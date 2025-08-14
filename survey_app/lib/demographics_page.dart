@@ -1,7 +1,10 @@
-// lib/demographics_page.dart
+// lib/demographics_page.dart (versão atualizada)
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:survey_app/instructions_page.dart';
+import 'package:survey_app/providers/app_settings.dart';
+import 'package:survey_app/settings_page.dart'; // Importar a página de configurações
 
 class DemographicsPage extends StatefulWidget {
   const DemographicsPage({super.key});
@@ -11,14 +14,10 @@ class DemographicsPage extends StatefulWidget {
 }
 
 class _DemographicsPageState extends State<DemographicsPage> {
-  // Chave para validar o formulário
+  // ... (todo o código do formulário permanece o mesmo)
   final _formKey = GlobalKey<FormState>();
-
-  // Controladores para os campos de texto
   final _nameController = TextEditingController();
   final _dobController = TextEditingController();
-
-  // Variáveis para os campos de seleção
   String? _selectedSex;
   String? _selectedRace;
   final List<String> _diagnoses = [
@@ -26,7 +25,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
     'TDAH',
     'Depressão',
     'Transtorno Bipolar',
-    'Esquizofrenia'
+    'Esquizofrenia',
   ];
   final Map<String, bool> _selectedDiagnoses = {};
   String? _usesMedication;
@@ -34,7 +33,6 @@ class _DemographicsPageState extends State<DemographicsPage> {
   @override
   void initState() {
     super.initState();
-    // Inicializa o mapa de diagnósticos selecionados com 'false'
     for (var diagnosis in _diagnoses) {
       _selectedDiagnoses[diagnosis] = false;
     }
@@ -42,27 +40,36 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
   @override
   void dispose() {
-    // Limpa os controladores quando o widget é descartado
     _nameController.dispose();
     _dobController.dispose();
     super.dispose();
   }
 
   void _submitForm() {
-    // Valida o formulário antes de prosseguir
     if (_formKey.currentState!.validate()) {
-      // Coleta todas as informações (aqui você pode salvar em um modelo de dados)
-      print('Nome: ${_nameController.text}');
-      print('Data de Nascimento: ${_dobController.text}');
-      print('Sexo: $_selectedSex');
-      print('Raça/Cor: $_selectedRace');
-      print('Diagnósticos: $_selectedDiagnoses');
-      print('Usa medicação: $_usesMedication');
+      // Pega o questionário selecionado do Provider
+      final settings = Provider.of<AppSettings>(context, listen: false);
+      final surveyPath = settings.selectedSurveyPath;
 
-      // Navega para a próxima página
+      if (surveyPath == null) {
+        // Mostra um alerta se nenhum questionário for encontrado ou selecionado
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Nenhum questionário selecionado. Verifique as configurações.',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      // Navega para a próxima página, passando o caminho do questionário
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const InstructionsPage()),
+        MaterialPageRoute(
+          builder: (context) => InstructionsPage(surveyPath: surveyPath),
+        ),
       );
     }
   }
@@ -73,7 +80,21 @@ class _DemographicsPageState extends State<DemographicsPage> {
       appBar: AppBar(
         title: const Text('Informações Demográficas'),
         backgroundColor: Colors.teal,
+        // Adicionando o botão de configurações
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
+              );
+            },
+          ),
+        ],
       ),
+      // O corpo do Scaffold com o formulário permanece o mesmo de antes
+      // ... (Cole aqui o Center -> Form -> ListView que já tínhamos)
       body: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: 600),
@@ -82,23 +103,17 @@ class _DemographicsPageState extends State<DemographicsPage> {
             child: ListView(
               padding: const EdgeInsets.all(24.0),
               children: [
-                // Campo Nome Completo
                 TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(
                     labelText: 'Nome Completo',
                     border: OutlineInputBorder(),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, insira seu nome.';
-                    }
-                    return null;
-                  },
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Por favor, insira seu nome.'
+                      : null,
                 ),
                 const SizedBox(height: 16),
-
-                // Campo Data de Nascimento
                 TextFormField(
                   controller: _dobController,
                   decoration: const InputDecoration(
@@ -106,7 +121,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                     border: OutlineInputBorder(),
                     suffixIcon: Icon(Icons.calendar_today),
                   ),
-                  readOnly: true, // Impede a digitação direta
+                  readOnly: true,
                   onTap: () async {
                     DateTime? pickedDate = await showDatePicker(
                       context: context,
@@ -121,16 +136,11 @@ class _DemographicsPageState extends State<DemographicsPage> {
                       });
                     }
                   },
-                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor, selecione sua data de nascimento.';
-                    }
-                    return null;
-                  },
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Por favor, selecione sua data de nascimento.'
+                      : null,
                 ),
                 const SizedBox(height: 16),
-
-                // Campo Sexo de Nascimento
                 DropdownButtonFormField<String>(
                   value: _selectedSex,
                   decoration: const InputDecoration(
@@ -138,93 +148,95 @@ class _DemographicsPageState extends State<DemographicsPage> {
                     border: OutlineInputBorder(),
                   ),
                   items: ['Masculino', 'Feminino']
-                      .map((label) => DropdownMenuItem(
-                            value: label,
-                            child: Text(label),
-                          ))
+                      .map(
+                        (label) =>
+                            DropdownMenuItem(value: label, child: Text(label)),
+                      )
                       .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedSex = value;
-                    });
-                  },
-                   validator: (value) => value == null ? 'Campo obrigatório' : null,
+                  onChanged: (value) => setState(() => _selectedSex = value),
+                  validator: (value) =>
+                      value == null ? 'Campo obrigatório' : null,
                 ),
                 const SizedBox(height: 16),
-
-                // Campo Raça ou Cor
                 DropdownButtonFormField<String>(
                   value: _selectedRace,
                   decoration: const InputDecoration(
                     labelText: 'Raça ou Cor',
                     border: OutlineInputBorder(),
                   ),
-                  items: ['Branca', 'Preta', 'Parda', 'Amarela', 'Indígena', 'Outra']
-                      .map((label) => DropdownMenuItem(
-                            value: label,
-                            child: Text(label),
-                          ))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedRace = value;
-                    });
-                  },
-                   validator: (value) => value == null ? 'Campo obrigatório' : null,
+                  items:
+                      [
+                            'Branca',
+                            'Preta',
+                            'Parda',
+                            'Amarela',
+                            'Indígena',
+                            'Outra',
+                          ]
+                          .map(
+                            (label) => DropdownMenuItem(
+                              value: label,
+                              child: Text(label),
+                            ),
+                          )
+                          .toList(),
+                  onChanged: (value) => setState(() => _selectedRace = value),
+                  validator: (value) =>
+                      value == null ? 'Campo obrigatório' : null,
                 ),
                 const SizedBox(height: 24),
-                
-                // Campo Diagnóstico Prévio
-                const Text('Diagnóstico prévio de transtorno mental (selecione se aplicável):', style: TextStyle(fontSize: 16)),
-                ..._diagnoses.map((diagnosis) {
-                  return CheckboxListTile(
-                    title: Text(diagnosis),
-                    value: _selectedDiagnoses[diagnosis],
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _selectedDiagnoses[diagnosis] = value!;
-                      });
-                    },
-                  );
-                }),
+                const Text(
+                  'Diagnóstico prévio de transtorno mental:',
+                  style: TextStyle(fontSize: 16),
+                ),
+                ..._diagnoses
+                    .map(
+                      (diagnosis) => CheckboxListTile(
+                        title: Text(diagnosis),
+                        value: _selectedDiagnoses[diagnosis],
+                        onChanged: (bool? value) => setState(
+                          () => _selectedDiagnoses[diagnosis] = value!,
+                        ),
+                      ),
+                    )
+                    .toList(),
                 const SizedBox(height: 24),
-
-                // Campo Uso de Medicação
-                const Text('Faz uso de medicamento psiquiátrico?', style: TextStyle(fontSize: 16)),
-                 Column(
+                const Text(
+                  'Faz uso de medicamento psiquiátrico?',
+                  style: TextStyle(fontSize: 16),
+                ),
+                Column(
                   children: [
                     RadioListTile<String>(
                       title: const Text('Sim'),
                       value: 'Sim',
                       groupValue: _usesMedication,
-                      onChanged: (value) {
-                        setState(() {
-                          _usesMedication = value;
-                        });
-                      },
+                      onChanged: (value) =>
+                          setState(() => _usesMedication = value),
                     ),
-                     RadioListTile<String>(
+                    RadioListTile<String>(
                       title: const Text('Não'),
                       value: 'Não',
                       groupValue: _usesMedication,
-                      onChanged: (value) {
-                        setState(() {
-                          _usesMedication = value;
-                        });
-                      },
+                      onChanged: (value) =>
+                          setState(() => _usesMedication = value),
                     ),
                   ],
                 ),
-                 // Validador manual para o grupo de RadioButtons
-                if (_usesMedication == null && _formKey.currentState != null && !_formKey.currentState!.validate())
-                Padding(
-                  padding: const EdgeInsets.only(left: 15.0, top: 5.0),
-                  child: Text('Por favor, selecione uma opção.', style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12)),
-                ),
-
+                if (_usesMedication == null &&
+                    _formKey.currentState != null &&
+                    !_formKey.currentState!.validate())
+                  Padding(
+                    padding: const EdgeInsets.only(left: 15.0, top: 5.0),
+                    child: Text(
+                      'Por favor, selecione uma opção.',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
                 const SizedBox(height: 32),
-
-                // Botão de Envio
                 ElevatedButton(
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(

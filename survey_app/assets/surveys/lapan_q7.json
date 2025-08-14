@@ -1,0 +1,75 @@
+{
+    "name": "Lapan Q7",
+    "questions": [
+        {
+            "id": 1,
+            "questionText": "A luz te incomoda mais que o normal, gerando desconforto em ambientes claros? (Esse sintoma tem nome: fotofobia.)",
+            "answers": [
+                "Quase Nunca",
+                "Ocasionalmente",
+                "Frequentemente",
+                "Quase Sempre"
+            ]
+        },
+        {
+            "id": 2,
+            "questionText": "Você sente-se desconfortável ou sobrecarregado em ambientes muito barulhentos, como restaurantes ou escritórios abertos?",
+            "answers": [
+                "Quase Nunca",
+                "Ocasionalmente",
+                "Frequentemente",
+                "Quase Sempre"
+            ]
+        },
+        {
+            "id": 3,
+            "questionText": "Você tem uma sensibilidade especial para certos tipos de tecido ou etiquetas nas roupas?",
+            "answers": [
+                "Quase Nunca",
+                "Ocasionalmente",
+                "Frequentemente",
+                "Quase Sempre"
+            ]
+        },
+        {
+            "id": 4,
+            "questionText": "Costuma se sentir desconfortável ao usar portas automáticas, andar de escada rolante ou enjoa ao viajar como passageiro de carro?",
+            "answers": [
+                "Quase Nunca",
+                "Ocasionalmente",
+                "Frequentemente",
+                "Quase Sempre"
+            ]
+        },
+        {
+            "id": 5,
+            "questionText": "Seu paladar ou olfato é particularmente seletivo, com aversões ou preferências muito marcantes?",
+            "answers": [
+                "Quase Nunca",
+                "Ocasionalmente",
+                "Frequentemente",
+                "Quase Sempre"
+            ]
+        },
+        {
+            "id": 6,
+            "questionText": "Você tem dores de cabeça ou crises de enxaqueca frequentes?",
+            "answers": [
+                "Quase Nunca",
+                "Ocasionalmente",
+                "Frequentemente",
+                "Quase Sempre"
+            ]
+        },
+        {
+            "id": 7,
+            "questionText": "Ao final de um dia comum de trabalho, sente-se mais esgotado do que seria esperado para sua carga de atividades?",
+            "answers": [
+                "Quase Nunca",
+                "Ocasionalmente",
+                "Frequentemente",
+                "Quase Sempre"
+            ]
+        }
+    ]
+}

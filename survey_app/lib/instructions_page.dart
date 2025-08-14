@@ -1,10 +1,11 @@
-// lib/instructions_page.dart
+// lib/instructions_page.dart (versão atualizada)
 
 import 'package:flutter/material.dart';
 import 'package:survey_app/survey_page.dart';
 
 class InstructionsPage extends StatefulWidget {
-  const InstructionsPage({super.key});
+  final String surveyPath; // Recebe o caminho do questionário
+  const InstructionsPage({super.key, required this.surveyPath});
 
   @override
   State<InstructionsPage> createState() => _InstructionsPageState();
@@ -21,7 +22,10 @@ class _InstructionsPageState extends State<InstructionsPage> {
         _showError = false;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const SurveyPage()),
+          MaterialPageRoute(
+            // Passa o caminho para a SurveyPage
+            builder: (context) => SurveyPage(surveyPath: widget.surveyPath),
+          ),
         );
       } else {
         _showError = true;
@@ -29,8 +33,10 @@ class _InstructionsPageState extends State<InstructionsPage> {
     });
   }
 
+  // ... (o build da página de instruções continua o mesmo)
   @override
   Widget build(BuildContext context) {
+    // NENHUMA MUDANÇA NECESSÁRIA AQUI
     return Scaffold(
       appBar: AppBar(
         title: const Text('Instruções'),
@@ -65,18 +71,18 @@ class _InstructionsPageState extends State<InstructionsPage> {
               ...[
                 'Vou responder rapidamente sem ler.',
                 'Entendi, responderei honestamente.',
-                'Não sei como responder.'
-              ].map((option) => RadioListTile<String>(
-                    title: Text(option),
-                    value: option,
-                    groupValue: _comprehensionAnswer,
-                    onChanged: (value) {
-                      setState(() {
-                        _comprehensionAnswer = value;
-                         if(_showError) _showError = false;
-                      });
-                    },
-                  )),
+                'Não sei como responder.',
+              ].map(
+                (option) => RadioListTile<String>(
+                  title: Text(option),
+                  value: option,
+                  groupValue: _comprehensionAnswer,
+                  onChanged: (value) => setState(() {
+                    _comprehensionAnswer = value;
+                    if (_showError) _showError = false;
+                  }),
+                ),
+              ),
               if (_showError)
                 const Padding(
                   padding: EdgeInsets.only(top: 8.0),
@@ -95,7 +101,10 @@ class _InstructionsPageState extends State<InstructionsPage> {
                     backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,
                   ),
-                  child: const Text('Iniciar Questionário', style: TextStyle(fontSize: 18)),
+                  child: const Text(
+                    'Iniciar Questionário',
+                    style: TextStyle(fontSize: 18),
+                  ),
                 ),
               ),
             ],
@@ -105,4 +114,3 @@ class _InstructionsPageState extends State<InstructionsPage> {
     );
   }
 }
-

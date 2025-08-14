@@ -1,19 +1,20 @@
-// lib/survey_page.dart
+// lib/survey_page.dart (versão atualizada)
 
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:survey_app/models/survey_model.dart'; // Importa nosso modelo
 import 'package:survey_app/thank_you_page.dart';
 
 class SurveyPage extends StatefulWidget {
-  const SurveyPage({super.key});
+  final String surveyPath; // Recebe o caminho do arquivo JSON
+  const SurveyPage({super.key, required this.surveyPath});
 
   @override
   State<SurveyPage> createState() => _SurveyPageState();
 }
 
 class _SurveyPageState extends State<SurveyPage> {
-  List<dynamic> _questions = [];
+  Survey? _survey; // Agora armazena o objeto Survey completo
   int _currentQuestionIndex = 0;
   final List<String> _answers = [];
   bool _isLoading = true;
@@ -24,28 +25,32 @@ class _SurveyPageState extends State<SurveyPage> {
     _loadSurveyQuestions();
   }
 
-  // Função para carregar as perguntas do arquivo JSON
   Future<void> _loadSurveyQuestions() async {
-    final String jsonString = await rootBundle.loadString('assets/survey.json');
-    final List<dynamic> jsonResponse = json.decode(jsonString);
-    setState(() {
-      _questions = jsonResponse;
-      _isLoading = false;
-    });
+    try {
+      final String jsonString = await rootBundle.loadString(widget.surveyPath);
+      setState(() {
+        // Usa nosso modelo para decodificar o JSON
+        _survey = surveyFromJson(jsonString);
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("Erro ao carregar o questionário: $e");
+      setState(() {
+        _isLoading = false;
+      });
+      // Opcional: mostrar um erro na tela para o usuário
+    }
   }
 
-  // Função chamada quando uma resposta é selecionada
   void _answerQuestion(String answer) {
-    _answers.add(answer); // Armazena a resposta
+    _answers.add(answer);
     print('Respostas até agora: $_answers');
 
-    if (_currentQuestionIndex < _questions.length - 1) {
-      // Se não for a última pergunta, avança para a próxima
+    if (_currentQuestionIndex < _survey!.questions.length - 1) {
       setState(() {
         _currentQuestionIndex++;
       });
     } else {
-      // Se for a última pergunta, navega para a página de agradecimento
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const ThankYouPage()),
@@ -56,20 +61,25 @@ class _SurveyPageState extends State<SurveyPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      // Mostra um indicador de carregamento enquanto o JSON é lido
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    if (_survey == null) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(child: Text('Não foi possível carregar o questionário.')),
       );
     }
 
-    // Pega a pergunta atual
-    final currentQuestion = _questions[_currentQuestionIndex];
+    final currentQuestion = _survey!.questions[_currentQuestionIndex];
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Questionário: Pergunta ${_currentQuestionIndex + 1} de ${_questions.length}'),
+        // Usa o nome do questionário no título!
+        title: Text(
+          '${_survey!.name}: Pergunta ${_currentQuestionIndex + 1} de ${_survey!.questions.length}',
+        ),
         backgroundColor: Colors.teal,
-        automaticallyImplyLeading: false, // Remove o botão de voltar
+        automaticallyImplyLeading: false,
       ),
       body: Center(
         child: Container(
@@ -79,16 +89,16 @@ class _SurveyPageState extends State<SurveyPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Texto da Pergunta
               Text(
-                currentQuestion['questionText'],
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                currentQuestion.questionText,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
-
-              // Botões de Resposta
-              ..._buildAnswerButtons(currentQuestion['answers']),
+              ..._buildAnswerButtons(currentQuestion.answers),
             ],
           ),
         ),
@@ -96,8 +106,7 @@ class _SurveyPageState extends State<SurveyPage> {
     );
   }
 
-  // Função auxiliar para construir a lista de botões de resposta
-  List<Widget> _buildAnswerButtons(List<dynamic> answers) {
+  List<Widget> _buildAnswerButtons(List<String> answers) {
     return answers.map((answer) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0),

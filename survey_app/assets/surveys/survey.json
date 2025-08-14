@@ -1,0 +1,45 @@
+{
+  "name": "Sample Survey",
+  "questions": [
+    {
+      "id": 1,
+      "questionText": "Com que frequência você se sentiu triste ou 'para baixo' nas últimas duas semanas?",
+      "answers": [
+        "Nenhuma vez",
+        "Raramente",
+        "Metade dos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": 2,
+      "questionText": "Quão satisfeito você está com seu sono recentemente?",
+      "answers": [
+        "Muito satisfeito",
+        "Satisfeito",
+        "Insatisfeito",
+        "Muito insatisfeito"
+      ]
+    },
+    {
+      "id": 3,
+      "questionText": "Com que frequência você sentiu pouco interesse ou prazer em fazer as coisas?",
+      "answers": [
+        "Nenhuma vez",
+        "Raramente",
+        "Metade dos dias",
+        "Quase todos os dias"
+      ]
+    },
+    {
+      "id": 4,
+      "questionText": "Como você avalia seu nível de energia no dia a dia?",
+      "answers": [
+        "Muito alto",
+        "Alto",
+        "Baixo",
+        "Muito baixo"
+      ]
+    }
+  ]
+}
