@@ -3,6 +3,7 @@
 /// Permite configurar o nome do responsável pela aplicação do questionário,
 /// seu contato e selecionar qual questionário será utilizado dentre os disponíveis.
 /// Também oferece acesso aos detalhes de cada questionário.
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

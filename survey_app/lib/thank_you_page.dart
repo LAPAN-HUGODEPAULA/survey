@@ -7,17 +7,21 @@
 /// foram registradas com sucesso e exibindo notas finais específicas
 /// do questionário quando disponíveis.
 
+library;
+
 import 'dart:convert';
-import 'dart:html' as html;
 import 'dart:io';
+import 'dart:js_interop';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:provider/provider.dart';
-import 'package:survey_app/models/survey_model.dart';
-import 'package:survey_app/providers/app_settings.dart';
 import 'package:path/path.dart' as path;
+import 'package:provider/provider.dart';
+import 'package:survey_app/models/question_model.dart';
+import 'package:survey_app/providers/app_settings.dart';
+import 'package:web/web.dart' as web;
 
 /// Página de agradecimento final do questionário.
 ///
@@ -71,200 +75,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
   bool _saveSuccess = false;
   String? _saveError;
   String? _savedFilePath;
-
-  @override
-  void initState() {
-    super.initState();
-    // Salva o arquivo automaticamente quando a página carrega
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _saveResponseFile();
-    });
-  }
-
-  /// Salva o arquivo de resposta do questionário.
-  ///
-  /// Cria um arquivo JSON com a mesma estrutura do exemplo fornecido,
-  /// incluindo dados do survey, screener, paciente e respostas.
-  Future<void> _saveResponseFile() async {
-    if (widget.surveyId == null || widget.surveyAnswers == null) return;
-
-    setState(() {
-      _isSaving = true;
-      _saveError = null;
-    });
-
-    try {
-      final settings = Provider.of<AppSettings>(context, listen: false);
-
-      // Obtém dados do survey dos assets
-      final surveyData = await _loadSurveyData(settings.selectedSurveyPath!);
-
-      // Prepara o JSON de resposta
-      final responseData = {
-        "surveyId": widget.surveyId,
-        "creatorName": surveyData['creatorName'] ?? 'Não informado',
-        "creatorContact": surveyData['creatorContact'] ?? 'Não informado',
-        "testDate": DateTime.now().toString().substring(0, 19),
-        "screener": settings.screenerName,
-        "screenerEmail": settings.screenerContact,
-        "patientName": settings.patientName,
-        "patientEmail": settings.patientEmail,
-        "patientBirthDate": settings.patientBirthDate,
-        "patientGender": settings.patientGender,
-        "patientEthnicity": settings.patientEthnicity,
-        "patientMedication": settings.patientMedication,
-        "patientDiagnoses": settings.patientDiagnoses,
-        "questions": _buildQuestionsResponse(),
-      };
-
-      // Gera o nome do arquivo
-      final fileName = _generateFileName(
-        widget.surveyId!,
-        settings.patientName,
-      );
-
-      // Salva o arquivo
-      await _writeResponseFile(fileName, responseData);
-
-      setState(() {
-        _isSaving = false;
-        _saveSuccess = true;
-      });
-    } catch (e) {
-      setState(() {
-        _isSaving = false;
-        _saveError = 'Erro ao salvar arquivo: $e';
-      });
-    }
-  }
-
-  /// Carrega dados do survey do arquivo JSON.
-  Future<Map<String, dynamic>> _loadSurveyData(String surveyPath) async {
-    try {
-      final String response = await rootBundle.loadString(surveyPath);
-      return json.decode(response);
-    } catch (e) {
-      return {};
-    }
-  }
-
-  /// Constrói a lista de perguntas e respostas no formato do JSON.
-  List<Map<String, dynamic>> _buildQuestionsResponse() {
-    if (widget.surveyQuestions == null || widget.surveyAnswers == null) {
-      return [];
-    }
-
-    final responses = <Map<String, dynamic>>[];
-    for (int i = 0; i < widget.surveyAnswers!.length; i++) {
-      if (i < widget.surveyQuestions!.length) {
-        responses.add({
-          "id": widget.surveyQuestions![i].id,
-          "answer": widget.surveyAnswers![i],
-        });
-      }
-    }
-    return responses;
-  }
-
-  /// Gera o nome do arquivo baseado no surveyId e nome do paciente.
-  ///
-  /// Formato: surveyId_nome_do_paciente.json
-  /// Substitui espaços por sublinhado e remove caracteres especiais.
-  String _generateFileName(String surveyId, String patientName) {
-    final cleanName = patientName
-        .toLowerCase()
-        .replaceAll(' ', '_')
-        .replaceAll(RegExp(r'[^\w\s]'), ''); // Remove caracteres especiais
-    return '${surveyId}_$cleanName.json';
-  }
-
-  /// Escreve o arquivo de resposta no diretório apropriado.
-  Future<String> _writeResponseFile(
-    String fileName,
-    Map<String, dynamic> data,
-  ) async {
-    final jsonString = const JsonEncoder.withIndent('    ').convert(data);
-
-    try {
-      if (kIsWeb) {
-        // Web platform - use browser download
-        return await _saveToWebBrowser(fileName, jsonString);
-      } else {
-        // Native platform - use file system
-        return await _saveToNativeDirectory(fileName, jsonString);
-      }
-    } catch (e) {
-      print('Erro específico da plataforma: $e');
-      // Last resort fallback
-      return await _saveWithFallback(fileName, jsonString);
-    }
-  }
-
-  /// Salva arquivo usando download do navegador (Web).
-  Future<String> _saveToWebBrowser(String fileName, String jsonString) async {
-    try {
-      // Create blob and trigger download
-      final bytes = utf8.encode(jsonString);
-      final blob = html.Blob([bytes]);
-      final url = html.Url.createObjectUrlFromBlob(blob);
-
-      final anchor = html.AnchorElement(href: url)
-        ..setAttribute('download', fileName)
-        ..click();
-
-      html.Url.revokeObjectUrl(url);
-
-      return 'Download iniciado: $fileName';
-    } catch (e) {
-      throw Exception('Erro ao iniciar download: $e');
-    }
-  }
-
-  /// Salva arquivo no sistema de arquivos nativo (Mobile/Desktop).
-  Future<String> _saveToNativeDirectory(
-    String fileName,
-    String jsonString,
-  ) async {
-    try {
-      // Use system temp directory
-      final tempDir = Directory.systemTemp;
-      final responsesDir = Directory(
-        path.join(tempDir.path, 'survey_responses'),
-      );
-
-      if (!await responsesDir.exists()) {
-        await responsesDir.create(recursive: true);
-      }
-
-      final file = File(path.join(responsesDir.path, fileName));
-      await file.writeAsString(jsonString);
-
-      return file.path;
-    } catch (e) {
-      // Fallback to temp directory without subdirectory
-      final tempDir = Directory.systemTemp;
-      final file = File(path.join(tempDir.path, fileName));
-      await file.writeAsString(jsonString);
-
-      return file.path;
-    }
-  }
-
-  /// Fallback method for saving files.
-  Future<String> _saveWithFallback(String fileName, String jsonString) async {
-    if (kIsWeb) {
-      // Web fallback - try to save to browser storage or show data
-      try {
-        html.window.localStorage['survey_response_$fileName'] = jsonString;
-        return 'Salvo no armazenamento do navegador: $fileName';
-      } catch (e) {
-        return 'Dados preparados (não foi possível salvar): $fileName';
-      }
-    } else {
-      // Native fallback - just indicate the data is ready
-      return 'Dados preparados para salvamento: $fileName';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -494,5 +304,217 @@ class _ThankYouPageState extends State<ThankYouPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Salva o arquivo automaticamente quando a página carrega
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _saveResponseFile();
+    });
+  }
+
+  /// Constrói a lista de perguntas e respostas no formato do JSON.
+  List<Map<String, dynamic>> _buildQuestionsResponse() {
+    if (widget.surveyQuestions == null || widget.surveyAnswers == null) {
+      return [];
+    }
+
+    final responses = <Map<String, dynamic>>[];
+    for (int i = 0; i < widget.surveyAnswers!.length; i++) {
+      if (i < widget.surveyQuestions!.length) {
+        responses.add({
+          "id": widget.surveyQuestions![i].id,
+          "answer": widget.surveyAnswers![i],
+        });
+      }
+    }
+    return responses;
+  }
+
+  /// Gera o nome do arquivo baseado no surveyId e nome do paciente.
+  ///
+  /// Formato: surveyId_nome_do_paciente.json
+  /// Substitui espaços por sublinhado e remove caracteres especiais.
+  String _generateFileName(String surveyId, String patientName) {
+    final cleanName = patientName
+        .toLowerCase()
+        .replaceAll(' ', '_')
+        .replaceAll(RegExp(r'[^\w\s]'), ''); // Remove caracteres especiais
+    return '${surveyId}_$cleanName.json';
+  }
+
+  /// Carrega dados do survey do arquivo JSON.
+  Future<Map<String, dynamic>> _loadSurveyData(String surveyPath) async {
+    try {
+      final String response = await rootBundle.loadString(surveyPath);
+      return json.decode(response);
+    } catch (e) {
+      return {};
+    }
+  }
+
+  /// Salva o arquivo de resposta do questionário.
+  ///
+  /// Cria um arquivo JSON com a mesma estrutura do exemplo fornecido,
+  /// incluindo dados do survey, screener, paciente e respostas.
+  Future<void> _saveResponseFile() async {
+    if (widget.surveyId == null || widget.surveyAnswers == null) return;
+
+    setState(() {
+      _isSaving = true;
+      _saveError = null;
+    });
+
+    try {
+      final settings = Provider.of<AppSettings>(context, listen: false);
+
+      // Obtém dados do survey dos assets
+      final surveyData = await _loadSurveyData(settings.selectedSurveyPath!);
+
+      // Prepara o JSON de resposta
+      final responseData = {
+        "surveyId": widget.surveyId,
+        "creatorName": surveyData['creatorName'] ?? 'Não informado',
+        "creatorContact": surveyData['creatorContact'] ?? 'Não informado',
+        "testDate": DateTime.now().toString().substring(0, 19),
+        "screener": settings.screenerName,
+        "screenerEmail": settings.screenerContact,
+        "patientName": settings.patientName,
+        "patientEmail": settings.patientEmail,
+        "patientBirthDate": settings.patientBirthDate,
+        "patientGender": settings.patientGender,
+        "patientEthnicity": settings.patientEthnicity,
+        "patientMedication": settings.patientMedication,
+        "patientDiagnoses": settings.patientDiagnoses,
+        "questions": _buildQuestionsResponse(),
+      };
+
+      // Gera o nome do arquivo
+      final fileName = _generateFileName(
+        widget.surveyId!,
+        settings.patientName,
+      );
+
+      // Salva o arquivo
+      await _writeResponseFile(fileName, responseData);
+
+      setState(() {
+        _isSaving = false;
+        _saveSuccess = true;
+      });
+    } catch (e) {
+      setState(() {
+        _isSaving = false;
+        _saveError = 'Erro ao salvar arquivo: $e';
+      });
+    }
+  }
+
+  /// Salva arquivo no sistema de arquivos nativo (Mobile/Desktop).
+  Future<String> _saveToNativeDirectory(
+    String fileName,
+    String jsonString,
+  ) async {
+    try {
+      // Use system temp directory
+      final tempDir = Directory.systemTemp;
+      final responsesDir = Directory(
+        path.join(tempDir.path, 'survey_responses'),
+      );
+
+      if (!await responsesDir.exists()) {
+        await responsesDir.create(recursive: true);
+      }
+
+      final file = File(path.join(responsesDir.path, fileName));
+      await file.writeAsString(jsonString);
+
+      // Update state with the file path for display
+      setState(() {
+        _savedFilePath = file.path;
+      });
+
+      return file.path;
+    } catch (e) {
+      // Fallback to temp directory without subdirectory
+      final tempDir = Directory.systemTemp;
+      final file = File(path.join(tempDir.path, fileName));
+      await file.writeAsString(jsonString);
+
+      // Update state with the file path for display
+      setState(() {
+        _savedFilePath = file.path;
+      });
+
+      return file.path;
+    }
+  }
+
+  /// Salva arquivo usando download do navegador (Web).
+  Future<String> _saveToWebBrowser(String fileName, String jsonString) async {
+    // Create blob and trigger download
+    final bytes = utf8.encode(jsonString);
+    final blob = web.Blob([bytes.toJS].toJS);
+    final url = web.URL.createObjectURL(blob);
+
+    // Create an anchor element and trigger the download
+    final anchor = web.document.createElement('a') as web.HTMLAnchorElement
+      ..href = url
+      ..style.display = 'none'
+      ..download = fileName;
+    web.document.body!.appendChild(anchor);
+    anchor.click();
+    web.document.body!.removeChild(anchor);
+
+    web.URL.revokeObjectURL(url);
+
+    // Update state with the file path for display
+    setState(() {
+      _savedFilePath = fileName;
+    });
+
+    return 'Download iniciado: $fileName';
+  }
+
+  /// Fallback method for saving files.
+  Future<String> _saveWithFallback(String fileName, String jsonString) async {
+    if (kIsWeb) {
+      // Web fallback - try to save to browser storage or show data
+      try {
+        web.window.localStorage.setItem(
+          'survey_response_$fileName',
+          jsonString,
+        );
+        return 'Salvo no armazenamento do navegador: $fileName';
+      } catch (e) {
+        return 'Dados preparados (não foi possível salvar): $fileName';
+      }
+    } else {
+      // Native fallback - just indicate the data is ready
+      return 'Dados preparados para salvamento: $fileName';
+    }
+  }
+
+  /// Escreve o arquivo de resposta no diretório apropriado.
+  Future<String> _writeResponseFile(
+    String fileName,
+    Map<String, dynamic> data,
+  ) async {
+    final jsonString = const JsonEncoder.withIndent('    ').convert(data);
+
+    try {
+      if (kIsWeb) {
+        // Web platform - use browser download
+        return await _saveToWebBrowser(fileName, jsonString);
+      } else {
+        // Native platform - use file system
+        return await _saveToNativeDirectory(fileName, jsonString);
+      }
+    } catch (e) {
+      // Last resort fallback
+      return await _saveWithFallback(fileName, jsonString);
+    }
   }
 }

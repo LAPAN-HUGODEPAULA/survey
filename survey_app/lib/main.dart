@@ -3,6 +3,7 @@
 /// Esta é a aplicação principal que gerencia questionários de pesquisa,
 /// incluindo coleta de dados demográficos, instruções e apresentação de perguntas.
 /// A aplicação é configurada com localização em português brasileiro.
+library;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -27,7 +28,7 @@ void main() {
 ///
 /// Configura o MaterialApp com:
 /// - Localização para português brasileiro
-/// - Tema personalizado com cores teal
+/// - Tema personalizado com cores amber (lapan)
 /// - Página inicial sendo [DemographicsPage]
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -35,7 +36,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aplicação de Questionário',
+      title: 'LAPAN - Survey',
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

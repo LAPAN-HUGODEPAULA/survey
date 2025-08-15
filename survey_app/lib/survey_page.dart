@@ -1,8 +1,9 @@
-// lib/survey_page.dart (versão atualizada)
 /// Página principal do questionário onde as perguntas são apresentadas.
 ///
 /// Gerencia a apresentação sequencial das perguntas, coleta das respostas
 /// e navegação entre perguntas até completar o questionário.
+
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -66,7 +67,6 @@ class _SurveyPageState extends State<SurveyPage> {
         _isLoading = false;
       });
     } catch (e) {
-      print("Erro ao carregar o questionário: $e");
       setState(() {
         _isLoading = false;
       });

@@ -5,6 +5,7 @@
 /// Gerencia o estado das configurações do questionário, incluindo
 /// o nome do responsável pela aplicação e qual questionário está ativo.
 /// Utiliza o padrão Provider para notificação de mudanças de estado.
+library;
 
 import 'dart:convert';
 import 'package:flutter/material.dart';

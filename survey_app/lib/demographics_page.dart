@@ -5,6 +5,8 @@
 /// data de nascimento, sexo, raça, diagnósticos prévios, medicamentos
 /// e email de contato.
 
+library;
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
