@@ -1,4 +1,21 @@
 {
+    "surveyId": "Lapan Q7",
+    "surveyName": "Escala de Hipersensibilidade Visual - Lapan Q7",
+    "surveyDescription": "<p>Escala de Hipersensibilidade Visual - Lapan Q7 é um instrumento de avaliação do desconforto visual em ambientes cotidianos. O objetivo do questionário é medir, por auto-relato, a sensibilidade física a estímulos visuais como luz intensa, padrões repetitivos, luzes piscantes e ambientes visualmente complexos.</p>",
+    "creatorName": "Dr. Ricardo Guimarães",
+    "creatorContact": "lapan.hugodepaula@gmail.com",
+    "createdAt": "09-08-2025",
+    "modifiedAt": "15-08-2025",
+    "instructions": {
+        "preamble": "<p>Este questionário pergunta se certas situações são confortáveis ou desconfortáveis para seus olhos e cabeça. Embora uma situação possa ser desconfortável por ser perturbadora, assustadora ou repugnante, não é a isso que nos referimos.</p><p>Estamos perguntando especificamente se essas situações são fisicamente desconfortáveis, causando alguma forma de dor física, cansaço, incômodo ou tensão nos olhos, na cabeça ou ao redor deles.</p><p>Por favor, responda a cada pergunta com base no que acontece quando você vivencia uma determinada situação, e não na frequência com que você a vivencia. Por exemplo, se você sempre sente desconforto ao passar uma camisa listrada, mas não as passa com frequência, você deve responder 'Quase Sempre'.</p>",
+        "questionText": "Por favor, indique o que queremos dizer com 'desconfortável' nas perguntas que você está prestes a responder (leia o texto acima se não tiver certeza):",
+        "answers": [
+            "Perturbador",
+            "Assustador",
+            "Repugnante",
+            "Dor física, cansaço ou tensão nos olhos, na cabeça ou ao redor deles"
+        ]
+    },
     "name": "Lapan Q7",
     "questions": [
         {
@@ -71,5 +88,6 @@
                 "Quase Sempre"
             ]
         }
-    ]
+    ],
+    "finalNotes": "<p>Em breve você receberá um laudo com os resultados do seu questionário. Quaisquer dúvidas sobre a aplicação do questionário, armazenamento e uso de suas respostas, por favor, entre em contato com o responsável pelo estudo em <a href='mailto:lapan.hugodepaula@gmail.com'>lapan.hugodepaula@gmail.com</a>.</p><br /><br /><p>Gostaríamos de lembrar que seus dados são confidenciais e jamais serão divulgados com terceiros sem a sua expressa autorização.</p>"
 }
