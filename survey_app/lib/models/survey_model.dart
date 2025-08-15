@@ -16,30 +16,121 @@ import 'dart:convert';
 /// Throws [FormatException] se o JSON estiver malformado
 Survey surveyFromJson(String str) => Survey.fromJson(json.decode(str));
 
+/// Modelo que representa as instruções de um questionário.
+///
+/// Contém o preâmbulo em HTML, pergunta de compreensão e opções de resposta.
+class Instructions {
+  /// Preâmbulo em formato HTML explicando o questionário
+  final String preamble;
+
+  /// Texto da pergunta de compreensão
+  final String questionText;
+
+  /// Lista de opções de resposta para a pergunta de compreensão
+  final List<String> answers;
+
+  /// Cria uma nova instância de Instructions.
+  ///
+  /// [preamble] - Texto explicativo em HTML
+  /// [questionText] - Pergunta de verificação de compreensão
+  /// [answers] - Opções de resposta, sendo a última sempre a correta
+  Instructions({
+    required this.preamble,
+    required this.questionText,
+    required this.answers,
+  });
+
+  /// Cria Instructions a partir de um Map JSON.
+  ///
+  /// [json] - Map contendo os dados das instruções
+  ///
+  /// Expected JSON structure:
+  /// ```json
+  /// {
+  ///   "preamble": "<p>Texto em HTML</p>",
+  ///   "questionText": "Pergunta de compreensão?",
+  ///   "answers": ["Opção 1", "Opção 2", "Resposta Correta"]
+  /// }
+  /// ```
+  factory Instructions.fromJson(Map<String, dynamic> json) => Instructions(
+    preamble: json["preamble"],
+    questionText: json["questionText"],
+    answers: List<String>.from(json["answers"].map((x) => x)),
+  );
+
+  /// Retorna a resposta correta (sempre a última da lista).
+  String get correctAnswer => answers.last;
+}
+
 /// Modelo que representa um questionário completo.
 ///
-/// Contém o nome do questionário e a lista de perguntas.
+/// Contém informações básicas do questionário, instruções e lista de perguntas.
 /// Cada questionário pode ter múltiplas perguntas com diferentes opções de resposta.
 ///
 /// Exemplo de uso:
 /// ```dart
 /// final survey = Survey(
-///   name: "Questionário de Exemplo",
+///   surveyId: "exemplo_01",
+///   surveyName: "Questionário de Exemplo",
+///   instructions: instructions,
 ///   questions: [question1, question2, question3]
 /// );
 /// ```
 class Survey {
-  /// Nome identificador do questionário
-  final String name;
+  /// Identificador único do questionário
+  final String surveyId;
+
+  /// Nome do questionário
+  final String surveyName;
+
+  /// Descrição do questionário
+  final String surveyDescription;
+
+  /// Nome do criador do questionário
+  final String creatorName;
+
+  /// Contato do criador do questionário (email, telefone, etc.)
+  final String? creatorContact;
+
+  /// Data de criação
+  final String createdAt;
+
+  /// Data de modificação
+  final String modifiedAt;
+
+  /// Instruções do questionário
+  final Instructions instructions;
 
   /// Lista de perguntas que compõem o questionário
   final List<Question> questions;
 
+  /// Notas finais em HTML exibidas após completar o questionário
+  final String? finalNotes;
+
   /// Cria uma nova instância de Survey.
   ///
-  /// [name] - Nome do questionário
+  /// [surveyId] - Identificador único do questionário
+  /// [surveyName] - Nome do questionário
+  /// [surveyDescription] - Descrição do questionário
+  /// [creatorName] - Nome do criador
+  /// [creatorContact] - Contato do criador (opcional)
+  /// [createdAt] - Data de criação
+  /// [modifiedAt] - Data de modificação
+  /// [instructions] - Instruções do questionário
   /// [questions] - Lista de perguntas do questionário
-  Survey({required this.name, required this.questions});
+  /// [finalNotes] - Notas finais em HTML (opcional)
+  Survey({
+    required this.surveyId,
+    required this.surveyName,
+    required this.surveyDescription,
+    required this.creatorName,
+    this.creatorContact,
+    required this.createdAt,
+    required this.modifiedAt,
+    required this.instructions,
+    required this.questions,
+    this.finalNotes,
+  });
 
   /// Cria um Survey a partir de um Map JSON.
   ///
@@ -48,15 +139,31 @@ class Survey {
   /// Expected JSON structure:
   /// ```json
   /// {
-  ///   "name": "Nome do Questionário",
-  ///   "questions": [...]
+  ///   "surveyId": "questionario_01",
+  ///   "surveyName": "Nome do Questionário",
+  ///   "surveyDescription": "Descrição...",
+  ///   "creatorName": "Criador",
+  ///   "creatorContact": "email@exemplo.com",
+  ///   "createdAt": "2025-08-15 10:00:00",
+  ///   "modifiedAt": "2025-08-15 10:00:00",
+  ///   "instructions": {...},
+  ///   "questions": [...],
+  ///   "finalNotes": "<p>Notas finais em HTML</p>"
   /// }
   /// ```
   factory Survey.fromJson(Map<String, dynamic> json) => Survey(
-    name: json["name"],
+    surveyId: json["surveyId"],
+    surveyName: json["surveyName"],
+    surveyDescription: json["surveyDescription"],
+    creatorName: json["creatorName"],
+    creatorContact: json["creatorContact"],
+    createdAt: json["createdAt"],
+    modifiedAt: json["modifiedAt"],
+    instructions: Instructions.fromJson(json["instructions"]),
     questions: List<Question>.from(
       json["questions"].map((x) => Question.fromJson(x)),
     ),
+    finalNotes: json["finalNotes"],
   );
 }
 

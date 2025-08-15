@@ -2,18 +2,25 @@
 ///
 /// Apresenta as instruções do questionário ao usuário e verifica
 /// se ele compreendeu antes de permitir o início das perguntas.
+/// As instruções são carregadas dinamicamente do arquivo JSON do questionário.
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_html/flutter_html.dart';
+import 'package:survey_app/models/survey_model.dart';
 import 'package:survey_app/survey_page.dart';
 
 /// Página que apresenta instruções do questionário e verifica compreensão.
 ///
 /// Esta página é exibida após a coleta de dados demográficos e antes
-/// do questionário principal. Garante que o usuário compreendeu as
-/// instruções através de uma pergunta de verificação.
+/// do questionário principal. Carrega as instruções específicas do questionário
+/// selecionado e garante que o usuário compreendeu através de uma pergunta
+/// de verificação.
 ///
-/// Só permite avançar quando o usuário seleciona a resposta correta
-/// na pergunta de compreensão.
+/// O conteúdo das instruções (preâmbulo, pergunta e respostas) é carregado
+/// dinamicamente do arquivo JSON do questionário. A resposta correta é
+/// sempre a última opção da lista de respostas.
 class InstructionsPage extends StatefulWidget {
   /// Caminho do arquivo JSON do questionário a ser aplicado
   final String surveyPath;
@@ -29,25 +36,61 @@ class InstructionsPage extends StatefulWidget {
 
 /// Estado da página de instruções.
 ///
-/// Controla a seleção da pergunta de compreensão e a validação
-/// antes de permitir o avanço para o questionário.
+/// Controla o carregamento das instruções do questionário, a seleção
+/// da pergunta de compreensão e a validação antes de permitir o avanço
+/// para o questionário principal.
 class _InstructionsPageState extends State<InstructionsPage> {
+  /// Survey carregado do arquivo JSON
+  Survey? _survey;
+
   /// Resposta selecionada pelo usuário na pergunta de compreensão
   String? _comprehensionAnswer;
-
-  /// Resposta correta esperada para a pergunta de compreensão
-  final String _correctAnswer = 'Entendi, responderei honestamente.';
 
   /// Flag que indica se deve mostrar mensagem de erro
   bool _showError = false;
 
+  /// Flag que indica se as instruções ainda estão carregando
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSurveyInstructions();
+  }
+
+  /// Carrega as instruções do questionário do arquivo JSON.
+  ///
+  /// Deserializa o arquivo JSON e extrai as informações das instruções.
+  /// Em caso de erro, define _isLoading como false e exibe mensagem no console.
+  ///
+  /// Throws [Exception] se não conseguir carregar ou deserializar o arquivo.
+  Future<void> _loadSurveyInstructions() async {
+    try {
+      final String jsonString = await rootBundle.loadString(widget.surveyPath);
+      final Map<String, dynamic> jsonData = json.decode(jsonString);
+
+      setState(() {
+        _survey = Survey.fromJson(jsonData);
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("Erro ao carregar as instruções do questionário: $e");
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   /// Inicia o questionário se a resposta de compreensão estiver correta.
   ///
-  /// Valida se o usuário selecionou a resposta correta. Se sim,
-  /// navega para [SurveyPage]. Se não, exibe mensagem de erro.
+  /// Valida se o usuário selecionou a resposta correta (sempre a última
+  /// da lista de opções). Se sim, navega para [SurveyPage]. Se não,
+  /// exibe mensagem de erro.
   void _startSurvey() {
+    if (_survey?.instructions == null) return;
+
     setState(() {
-      if (_comprehensionAnswer == _correctAnswer) {
+      if (_comprehensionAnswer == _survey!.instructions.correctAnswer) {
         _showError = false;
         Navigator.pushReplacement(
           context,
@@ -63,86 +106,138 @@ class _InstructionsPageState extends State<InstructionsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Tela de carregamento
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // Tela de erro se não conseguiu carregar
+    if (_survey?.instructions == null) {
+      return const Scaffold(
+        appBar: null,
+        body: Center(
+          child: Text(
+            'Não foi possível carregar as instruções do questionário.',
+            style: TextStyle(fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
+    final instructions = _survey!.instructions;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Instruções'),
-        backgroundColor: Colors.teal,
+        title: Text('Instruções - ${_survey!.surveyName}'),
+        backgroundColor: Colors.amber,
       ),
       body: Center(
         child: Container(
           padding: const EdgeInsets.all(24.0),
-          constraints: const BoxConstraints(maxWidth: 600),
+          constraints: const BoxConstraints(maxWidth: 700),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Título das instruções
-              const Text(
-                'Instruções do Questionário',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
+              // Área rolável com preâmbulo e pergunta de compreensão
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Preâmbulo em HTML
+                      Html(
+                        data: instructions.preamble,
+                        style: {
+                          "body": Style(
+                            fontSize: FontSize(16.0),
+                            lineHeight: const LineHeight(1.4),
+                          ),
+                          "p": Style(margin: Margins.only(bottom: 12.0)),
+                          "ul": Style(
+                            margin: Margins.symmetric(vertical: 8.0),
+                            padding: HtmlPaddings.only(left: 20.0),
+                          ),
+                          "li": Style(margin: Margins.only(bottom: 4.0)),
+                        },
+                      ),
+                      const SizedBox(height: 24),
 
-              // Texto das instruções
-              const Text(
-                'A seguir, você responderá a uma série de perguntas sobre seus '
-                'sentimentos e pensamentos recentes. Por favor, leia cada pergunta '
-                'com atenção e responda da forma mais honesta possível. Não há '
-                'respostas certas ou erradas. Suas respostas são confidenciais '
-                'e nos ajudarão a entender melhor suas experiências.',
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 32),
+                      // Pergunta de compreensão
+                      Text(
+                        instructions.questionText,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
 
-              // Pergunta de compreensão
-              const Text(
-                'Pergunta de Compreensão:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              const Text(
-                'Para garantir que você entendeu as instruções, por favor, '
-                'selecione a opção correta abaixo:',
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 16),
+                      // Opções de resposta
+                      ...instructions.answers.map(
+                        (option) => RadioListTile<String>(
+                          title: Text(option),
+                          value: option,
+                          groupValue: _comprehensionAnswer,
+                          onChanged: (value) => setState(() {
+                            _comprehensionAnswer = value;
+                            if (_showError) _showError = false;
+                          }),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
 
-              // Opções de resposta
-              ...[
-                'Vou responder rapidamente sem ler.',
-                'Entendi, responderei honestamente.',
-                'Não sei como responder.',
-              ].map(
-                (option) => RadioListTile<String>(
-                  title: Text(option),
-                  value: option,
-                  groupValue: _comprehensionAnswer,
-                  onChanged: (value) => setState(() {
-                    _comprehensionAnswer = value;
-                    if (_showError) _showError = false;
-                  }),
-                ),
-              ),
+                      // Mensagem de erro
+                      if (_showError)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16.0),
+                          child: Container(
+                            padding: const EdgeInsets.all(12.0),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              border: Border.all(color: Colors.red.shade200),
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  color: Colors.red.shade700,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Por favor, selecione a resposta correta para continuar.',
+                                    style: TextStyle(
+                                      color: Colors.red.shade700,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
 
-              // Mensagem de erro
-              if (_showError)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    'Por favor, selecione a resposta correta para continuar.',
-                    style: TextStyle(color: Colors.red, fontSize: 14),
+                      const SizedBox(height: 24),
+                    ],
                   ),
                 ),
+              ),
 
-              const Spacer(),
-
-              // Botão para iniciar questionário
+              // Botão para iniciar questionário (fixo na parte inferior)
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _startSurvey,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   child: const Text(
                     'Iniciar Questionário',

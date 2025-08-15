@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [Locale('pt', 'BR')],
       locale: const Locale('pt', 'BR'),
       theme: ThemeData(
-        primarySwatch: Colors.teal,
+        primarySwatch: Colors.amber,
         visualDensity: VisualDensity.adaptivePlatformDensity,
         scaffoldBackgroundColor: Colors.grey[50],
         inputDecorationTheme: const InputDecorationTheme(

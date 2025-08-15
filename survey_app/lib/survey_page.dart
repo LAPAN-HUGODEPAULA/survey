@@ -1,5 +1,4 @@
 // lib/survey_page.dart (versão atualizada)
-
 /// Página principal do questionário onde as perguntas são apresentadas.
 ///
 /// Gerencia a apresentação sequencial das perguntas, coleta das respostas
@@ -80,19 +79,27 @@ class _SurveyPageState extends State<SurveyPage> {
   ///
   /// Adiciona a resposta à lista de respostas coletadas. Se ainda há
   /// perguntas, avança para a próxima. Se foi a última pergunta,
-  /// navega para a página de agradecimento.
+  /// navega para a página de agradecimento com as notas finais.
   void _answerQuestion(String answer) {
     _answers.add(answer);
-    print('Respostas até agora: $_answers');
 
     if (_currentQuestionIndex < _survey!.questions.length - 1) {
       setState(() {
         _currentQuestionIndex++;
       });
     } else {
+      // Chegou ao final do questionário
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const ThankYouPage()),
+        MaterialPageRoute(
+          builder: (context) => ThankYouPage(
+            finalNotes: _survey?.finalNotes,
+            surveyName: _survey?.surveyName,
+            surveyId: _survey?.surveyId,
+            surveyAnswers: _answers,
+            surveyQuestions: _survey!.questions,
+          ),
+        ),
       );
     }
   }
@@ -116,10 +123,10 @@ class _SurveyPageState extends State<SurveyPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          '${_survey!.name}: Pergunta ${_currentQuestionIndex + 1} '
+          '${_survey!.surveyName}: Pergunta ${_currentQuestionIndex + 1} '
           'de ${_survey!.questions.length}',
         ),
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.amber,
         automaticallyImplyLeading: false,
       ),
       body: Center(
@@ -164,8 +171,8 @@ class _SurveyPageState extends State<SurveyPage> {
           onPressed: () => _answerQuestion(answer),
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            backgroundColor: Colors.teal.shade100,
-            foregroundColor: Colors.teal.shade900,
+            backgroundColor: Colors.amber.shade100,
+            foregroundColor: Colors.amber.shade900,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
