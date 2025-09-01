@@ -3,7 +3,6 @@
 /// Apresenta as instruções do questionário ao usuário e verifica
 /// se ele compreendeu antes de permitir o início das perguntas.
 /// As instruções são carregadas dinamicamente do arquivo JSON do questionário.
-
 library;
 
 import 'dart:convert';
@@ -76,6 +75,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
         _isLoading = false;
       });
     } catch (e) {
+      print("Erro ao carregar as instruções do questionário: $e");
       setState(() {
         _isLoading = false;
       });

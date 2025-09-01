@@ -28,7 +28,7 @@ void main() {
 ///
 /// Configura o MaterialApp com:
 /// - Localização para português brasileiro
-/// - Tema personalizado com cores amber (lapan)
+/// - Tema personalizado com cores teal
 /// - Página inicial sendo [DemographicsPage]
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'LAPAN - Survey',
+      title: 'Aplicação de Questionário',
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

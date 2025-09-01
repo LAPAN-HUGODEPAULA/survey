@@ -4,7 +4,6 @@
 /// do início do questionário principal, incluindo informações como nome,
 /// data de nascimento, sexo, raça, diagnósticos prévios, medicamentos
 /// e email de contato.
-
 library;
 
 import 'dart:convert';
@@ -38,6 +37,21 @@ class _DemographicsPageState extends State<DemographicsPage> {
   /// Chave global para validação do formulário
   final _formKey = GlobalKey<FormState>();
 
+  /// Carrega a lista de profissões do arquivo assets/data/professions.json.
+  Future<List<String>> _loadProfessions() async {
+    try {
+      final String response = await rootBundle.loadString(
+        'assets/data/professions.json',
+      );
+      final data = json.decode(response);
+      // O arquivo é uma lista direta
+      return List<String>.from(data);
+    } catch (e) {
+      // Em caso de erro, retorna uma lista padrão
+      return ['Estudante', 'Engenheiro', 'Professor', 'Médico', 'Advogado'];
+    }
+  }
+
   // Controladores dos campos de texto
   /// Controlador para o campo nome completo
   final _nameController = TextEditingController();
@@ -47,6 +61,9 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
   /// Controlador para o campo data de nascimento
   final _dobController = TextEditingController();
+
+  /// Controlador para o campo profissão
+  final _professionController = TextEditingController();
 
   /// Controlador para o campo nome do medicamento
   final _medicationNameController = TextEditingController();
@@ -58,6 +75,9 @@ class _DemographicsPageState extends State<DemographicsPage> {
   /// Raça/etnia selecionada pelo usuário
   String? _selectedRace;
 
+  /// Grau de escolaridade selecionado pelo usuário
+  String? _selectedEducationLevel;
+
   /// Indica se o usuário usa medicamento psiquiátrico
   String? _usesMedication;
 
@@ -68,8 +88,14 @@ class _DemographicsPageState extends State<DemographicsPage> {
   /// Map que controla quais diagnósticos foram selecionados
   Map<String, bool> _selectedDiagnoses = {};
 
+  /// Lista de níveis de escolaridade carregados do arquivo JSON
+  List<String> _educationLevels = [];
+
   /// Indica se os diagnósticos ainda estão sendo carregados
   bool _isLoadingDiagnoses = true;
+
+  /// Indica se os níveis de escolaridade ainda estão sendo carregados
+  bool _isLoadingEducationLevels = true;
 
   /// Indica se o formulário já foi submetido pelo menos uma vez
   bool _hasAttemptedSubmit = false;
@@ -81,6 +107,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
   void initState() {
     super.initState();
     _loadDiagnoses();
+    _loadEducationLevels();
     // Verifica se precisa limpar os campos baseado no provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkIfShouldClearFields();
@@ -128,11 +155,13 @@ class _DemographicsPageState extends State<DemographicsPage> {
       _nameController.clear();
       _emailController.clear();
       _dobController.clear();
+      _professionController.clear();
       _medicationNameController.clear();
 
       // Reseta seleções
       _selectedSex = null;
       _selectedRace = null;
+      _selectedEducationLevel = null;
       _usesMedication = null;
 
       // Reseta diagnósticos selecionados
@@ -178,16 +207,29 @@ class _DemographicsPageState extends State<DemographicsPage> {
       setState(() {
         _isLoadingDiagnoses = false;
       });
+    }
+  }
 
-      // Opcional: mostrar erro para o usuário
-      if (mounted) {
+  /// Carrega a lista de níveis de escolaridade do arquivo assets/data/education_level.json.
+  Future<void> _loadEducationLevels() async {
+    try {
+      final String response = await rootBundle.loadString(
+        'assets/data/education_level.json',
+      );
+      final data = json.decode(response);
+      setState(() {
+        _educationLevels = List<String>.from(data['educationLevel']);
+        _isLoadingEducationLevels = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingEducationLevels = false;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao carregar diagnósticos: $e'),
-            backgroundColor: Colors.orange,
+            content: Text('Erro ao carregar níveis de escolaridade: $e'),
           ),
         );
-      }
+      });
     }
   }
 
@@ -196,6 +238,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
     _nameController.dispose();
     _emailController.dispose();
     _dobController.dispose();
+    _professionController.dispose();
     _medicationNameController.dispose();
     super.dispose();
   }
@@ -280,9 +323,20 @@ class _DemographicsPageState extends State<DemographicsPage> {
     final lastPart = domainParts.last;
 
     if (lastPart.length < 2) {
-      return 'Extensão do domínio deve ter pelo menos 2 caracteres.';
+      return 'O domínio do email deve ter pelo menos 2 caracteres após o ponto.';
     }
 
+    return null;
+  }
+
+  /// Valida a profissão do usuário.
+  String? _validateProfession(String? profession) {
+    if (profession == null || profession.isEmpty) {
+      return 'Por favor, insira sua profissão.';
+    }
+    if (profession.trim().length < 2) {
+      return 'A profissão deve ter pelo menos 2 caracteres.';
+    }
     return null;
   }
 
@@ -434,7 +488,11 @@ class _DemographicsPageState extends State<DemographicsPage> {
     }
 
     if (_selectedRace == null) {
-      validationErrors.add('Selecione a raça/etnia');
+      validationErrors.add('Raça/Etnia');
+    }
+
+    if (_selectedEducationLevel == null) {
+      validationErrors.add('Grau de Escolaridade');
     }
 
     // Adiciona validação para medicamento psiquiátrico
@@ -458,59 +516,40 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
     // Só prossegue se o formulário estiver válido E todos os campos obrigatórios estiverem preenchidos
     if (isFormValid) {
+      // Coleta os dados do formulário
       final settings = Provider.of<AppSettings>(context, listen: false);
-      final surveyPath = settings.selectedSurveyPath;
 
-      if (surveyPath == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Nenhum questionário selecionado. Verifique as configurações.',
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
-      }
-
-      // Diagnósticos selecionados
-      final selectedDiagnoses = _selectedDiagnoses.entries
-          .where((entry) => entry.value == true)
+      // Coleta os diagnósticos selecionados
+      final selectedDiagnosesList = _selectedDiagnoses.entries
+          .where((entry) => entry.value)
           .map((entry) => entry.key)
           .toList();
 
-      // Processa lista de medicamentos
-      String medicationString = '';
-      if (_usesMedication == 'Sim' &&
-          _medicationNameController.text.trim().isNotEmpty) {
-        // Divide por vírgula, limpa espaços e reconstrói como string
-        final medications = _medicationNameController.text
-            .split(',')
-            .map((med) => med.trim())
-            .where((med) => med.isNotEmpty)
-            .toList();
-        medicationString = medications.join(', ');
-      }
-
-      // Salva os dados demográficos no provider
+      // Atualiza o provider com os dados do paciente
       settings.setPatientData(
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
         birthDate: _dobController.text,
         gender: _selectedSex!,
         ethnicity: _selectedRace!,
-        medication: medicationString,
-        diagnoses: selectedDiagnoses,
+        educationLevel: _selectedEducationLevel!,
+        profession: _professionController.text.trim(),
+        medication: _usesMedication == 'Sim'
+            ? _medicationNameController.text.trim()
+            : 'Não aplicável',
+        diagnoses: selectedDiagnosesList,
       );
 
+      // Navega para a página de instruções
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => InstructionsPage(surveyPath: surveyPath),
+          builder: (context) =>
+              InstructionsPage(surveyPath: settings.selectedSurveyPath!),
         ),
       );
     } else {
-      // Se o formulário não é válido, mostra mensagem geral
+      // Se o formulário não for válido, exibe uma mensagem de erro geral
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Por favor, corrija os erros nos campos destacados.'),
@@ -709,7 +748,93 @@ class _DemographicsPageState extends State<DemographicsPage> {
                   validator: (value) =>
                       value == null ? 'Campo obrigatório' : null,
                 ),
+                const SizedBox(height: 16),
+
+                // Campo de seleção para Grau de Escolaridade
+                _isLoadingEducationLevels
+                    ? const Center(child: CircularProgressIndicator())
+                    : DropdownButtonFormField<String>(
+                        value: _selectedEducationLevel,
+                        decoration: const InputDecoration(
+                          labelText: 'Grau de Escolaridade *',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _educationLevels.map<DropdownMenuItem<String>>((
+                          String value,
+                        ) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            _selectedEducationLevel = newValue;
+                          });
+                        },
+                        validator: (value) =>
+                            value == null ? 'Campo obrigatório' : null,
+                      ),
+
+                const SizedBox(height: 16),
+
+                // Campo de texto para Profissão com Autocomplete
+                FutureBuilder<List<String>>(
+                  future: _loadProfessions(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final professions = snapshot.data ?? [];
+                    return Autocomplete<String>(
+                      optionsBuilder: (TextEditingValue textEditingValue) {
+                        if (textEditingValue.text.isEmpty) {
+                          return const Iterable<String>.empty();
+                        }
+                        return professions.where((String option) {
+                          return option.toLowerCase().contains(
+                            textEditingValue.text.toLowerCase(),
+                          );
+                        });
+                      },
+                      fieldViewBuilder:
+                          (
+                            context,
+                            fieldTextEditingController,
+                            focusNode,
+                            onFieldSubmitted,
+                          ) {
+                            return TextFormField(
+                              controller: fieldTextEditingController,
+                              focusNode: focusNode,
+                              decoration: const InputDecoration(
+                                labelText: 'Profissão',
+                                border: OutlineInputBorder(),
+                                hintText: 'Ex: Estudante, Engenheiro, etc.',
+                              ),
+                              validator: _validateProfession,
+                            );
+                          },
+                      onSelected: (String selection) {
+                        _professionController.text = selection;
+                      },
+                    );
+                  },
+                ),
+
                 const SizedBox(height: 24),
+
+                // Título da seção de saúde
+                Text(
+                  'Informações de Saúde',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.amber.shade800,
+                  ),
+                ),
+
+                const SizedBox(height: 16),
 
                 // Campo de diagnósticos dinâmico
                 const Text(

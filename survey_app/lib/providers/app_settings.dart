@@ -40,6 +40,8 @@ class AppSettings extends ChangeNotifier {
   String _patientBirthDate = '';
   String _patientGender = '';
   String _patientEthnicity = '';
+  String _patientEducationLevel = '';
+  String _patientProfession = '';
   String _patientMedication = '';
   List<String> _patientDiagnoses = [];
 
@@ -61,6 +63,8 @@ class AppSettings extends ChangeNotifier {
   String get patientBirthDate => _patientBirthDate;
   String get patientGender => _patientGender;
   String get patientEthnicity => _patientEthnicity;
+  String get patientEducationLevel => _patientEducationLevel;
+  String get patientProfession => _patientProfession;
   String get patientMedication => _patientMedication;
   List<String> get patientDiagnoses => _patientDiagnoses;
 
@@ -127,6 +131,8 @@ class AppSettings extends ChangeNotifier {
     required String birthDate,
     required String gender,
     required String ethnicity,
+    required String educationLevel,
+    required String profession,
     required String medication,
     required List<String> diagnoses,
   }) {
@@ -135,6 +141,8 @@ class AppSettings extends ChangeNotifier {
     _patientBirthDate = birthDate;
     _patientGender = gender;
     _patientEthnicity = ethnicity;
+    _patientEducationLevel = educationLevel;
+    _patientProfession = profession;
     _patientMedication = medication;
     _patientDiagnoses = diagnoses;
     notifyListeners();
@@ -150,6 +158,8 @@ class AppSettings extends ChangeNotifier {
     _patientBirthDate = '';
     _patientGender = '';
     _patientEthnicity = '';
+    _patientEducationLevel = '';
+    _patientProfession = '';
     _patientMedication = '';
     _patientDiagnoses = [];
     notifyListeners();

@@ -3,7 +3,6 @@
 /// Mostra informações completas sobre um questionário específico,
 /// incluindo metadados como ID, nome, descrição, criador, contato e datas.
 /// A descrição pode conter formatação HTML.
-
 library;
 
 import 'dart:convert';
@@ -76,6 +75,7 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
         _isLoading = false;
       });
     } catch (e) {
+      print("Erro ao carregar detalhes do questionário: $e");
       setState(() {
         _errorMessage = 'Erro ao carregar os detalhes do questionário.';
         _isLoading = false;
