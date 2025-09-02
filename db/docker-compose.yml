@@ -12,6 +12,25 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    networks:
+      - survey_network
+
+  fastapi_app:
+    build: .
+    container_name: fastapi_app
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongodb
+    networks:
+      - survey_network
+    env_file:
+      - .env
 
 volumes:
   mongodb_data:
+
+networks:
+  survey_network:
+    driver: bridge
