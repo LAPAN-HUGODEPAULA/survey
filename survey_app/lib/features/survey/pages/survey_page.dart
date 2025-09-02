@@ -5,11 +5,10 @@
 /// e navegação entre perguntas até completar o questionário.
 library;
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:survey_app/models/survey_model.dart';
-import 'package:survey_app/thank_you_page.dart';
+import 'package:survey_app/core/models/survey/survey.dart';
+import 'package:survey_app/features/survey/pages/thank_you_page.dart';
 
 /// Página que apresenta as perguntas do questionário sequencialmente.
 ///

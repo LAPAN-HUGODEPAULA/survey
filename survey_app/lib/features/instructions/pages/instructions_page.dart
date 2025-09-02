@@ -9,9 +9,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_html/flutter_html.dart';
-import 'package:survey_app/models/survey_model.dart';
-import 'package:survey_app/survey_page.dart';
+import 'package:provider/provider.dart';
+import 'package:survey_app/core/models/survey/survey.dart';
+import 'package:survey_app/core/providers/app_settings.dart';
+import 'package:survey_app/features/survey/pages/survey_page.dart';
 
+///';
 /// Página que apresenta instruções do questionário e verifica compreensão.
 ///
 /// Esta página é exibida após a coleta de dados demográficos e antes
@@ -249,6 +252,151 @@ class _InstructionsPageState extends State<InstructionsPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Página de configurações do aplicativo.
+///
+/// Permite ao usuário atualizar os dados do aplicador e selecionar
+/// o questionário ativo. As configurações são salvas e carregadas
+/// através do [AppSettings].
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  late final TextEditingController _screenerNameController;
+  late final TextEditingController _screenerContactController;
+  final FocusNode _screenerNameFocus = FocusNode();
+  final FocusNode _screenerContactFocus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    final appSettings = Provider.of<AppSettings>(context, listen: false);
+
+    _screenerNameController = TextEditingController(
+      text: appSettings.screener.name,
+    );
+    _screenerContactController = TextEditingController(
+      text: appSettings.screener.email,
+    );
+
+    _screenerNameController.addListener(() {
+      final appSettings = Provider.of<AppSettings>(context, listen: false);
+      if (_screenerNameController.text != appSettings.screener.name) {
+        appSettings.setScreenerName(_screenerNameController.text);
+      }
+    });
+    _screenerContactController.addListener(() {
+      final appSettings = Provider.of<AppSettings>(context, listen: false);
+      if (_screenerContactController.text != appSettings.screener.email) {
+        appSettings.setScreenerContact(_screenerContactController.text);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _screenerNameController.dispose();
+    _screenerContactController.dispose();
+    _screenerNameFocus.dispose();
+    _screenerContactFocus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Configurações')),
+      body: Consumer<AppSettings>(
+        builder: (context, appSettings, child) {
+          // To prevent cursor jumps, only update the controller's text if the
+          // field is not focused and the text is out of sync.
+          if (!_screenerNameFocus.hasFocus &&
+              _screenerNameController.text != appSettings.screener.name) {
+            _screenerNameController.text = appSettings.screener.name;
+          }
+          if (!_screenerContactFocus.hasFocus &&
+              _screenerContactController.text != appSettings.screener.email) {
+            _screenerContactController.text = appSettings.screener.email;
+          }
+
+          return ListView(
+            padding: const EdgeInsets.all(16.0),
+            children: [
+              Text(
+                'Dados do Aplicador',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _screenerNameController,
+                focusNode: _screenerNameFocus,
+                decoration: const InputDecoration(
+                  labelText: 'Nome do Aplicador',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _screenerContactController,
+                focusNode: _screenerContactFocus,
+                decoration: const InputDecoration(
+                  labelText: 'Email do Aplicador',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Seleção de Questionário',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              if (appSettings.availableSurveyPaths.isEmpty)
+                const Center(child: CircularProgressIndicator())
+              else
+                DropdownButtonFormField<String>(
+                  value: appSettings.selectedSurveyPath,
+                  decoration: const InputDecoration(
+                    labelText: 'Questionário Ativo',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: appSettings.availableSurveyPaths.map((path) {
+                    // Extrai um nome legível do caminho do arquivo
+                    String name = path
+                        .split('/')
+                        .last
+                        .replaceAll('.json', '')
+                        .replaceAll('_', ' ')
+                        .replaceAll('-', ' ');
+                    name = name
+                        .split(' ')
+                        .map((word) {
+                          if (word.isEmpty) return '';
+                          return word[0].toUpperCase() + word.substring(1);
+                        })
+                        .join(' ');
+
+                    return DropdownMenuItem<String>(
+                      value: path,
+                      child: Text(name),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      appSettings.selectSurvey(newValue);
+                    }
+                  },
+                ),
+            ],
+          );
+        },
       ),
     );
   }

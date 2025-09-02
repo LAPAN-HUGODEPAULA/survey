@@ -10,9 +10,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:survey_app/instructions_page.dart';
-import 'package:survey_app/providers/app_settings.dart';
-import 'package:survey_app/settings_page.dart';
+import 'package:survey_app/core/providers/app_settings.dart';
+import 'package:survey_app/features/instructions/pages/instructions_page.dart';
 
 /// Página que coleta informações demográficas do usuário.
 ///
@@ -36,21 +35,6 @@ class DemographicsPage extends StatefulWidget {
 class _DemographicsPageState extends State<DemographicsPage> {
   /// Chave global para validação do formulário
   final _formKey = GlobalKey<FormState>();
-
-  /// Carrega a lista de profissões do arquivo assets/data/professions.json.
-  Future<List<String>> _loadProfessions() async {
-    try {
-      final String response = await rootBundle.loadString(
-        'assets/data/professions.json',
-      );
-      final data = json.decode(response);
-      // O arquivo é uma lista direta
-      return List<String>.from(data);
-    } catch (e) {
-      // Em caso de erro, retorna uma lista padrão
-      return ['Estudante', 'Engenheiro', 'Professor', 'Médico', 'Advogado'];
-    }
-  }
 
   // Controladores dos campos de texto
   /// Controlador para o campo nome completo
@@ -97,6 +81,12 @@ class _DemographicsPageState extends State<DemographicsPage> {
   /// Indica se os níveis de escolaridade ainda estão sendo carregados
   bool _isLoadingEducationLevels = true;
 
+  /// Lista de profissões carregadas do arquivo JSON
+  List<String> _professions = [];
+
+  /// Indica se as profissões ainda estão sendo carregadas
+  bool _isLoadingProfessions = true;
+
   /// Indica se o formulário já foi submetido pelo menos uma vez
   bool _hasAttemptedSubmit = false;
 
@@ -108,6 +98,10 @@ class _DemographicsPageState extends State<DemographicsPage> {
     super.initState();
     _loadDiagnoses();
     _loadEducationLevels();
+    _loadProfessions();
+    _professionController.addListener(() {
+      setState(() {});
+    });
     // Verifica se precisa limpar os campos baseado no provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkIfShouldClearFields();
@@ -121,9 +115,9 @@ class _DemographicsPageState extends State<DemographicsPage> {
     final settings = Provider.of<AppSettings>(context, listen: false);
 
     final patientDataIsEmpty =
-        settings.patientName.isEmpty &&
-        settings.patientEmail.isEmpty &&
-        settings.patientBirthDate.isEmpty;
+        settings.patient.name.isEmpty &&
+        settings.patient.email.isEmpty &&
+        settings.patient.birthDate.isEmpty;
 
     // Se os dados estavam preenchidos antes e agora estão vazios, limpa os campos
     if (!_lastPatientDataWasEmpty && patientDataIsEmpty) {
@@ -136,9 +130,9 @@ class _DemographicsPageState extends State<DemographicsPage> {
   /// Método chamado quando os dados do provider mudam
   void _onProviderDataChanged(AppSettings settings) {
     final patientDataIsEmpty =
-        settings.patientName.isEmpty &&
-        settings.patientEmail.isEmpty &&
-        settings.patientBirthDate.isEmpty;
+        settings.patient.name.isEmpty &&
+        settings.patient.email.isEmpty &&
+        settings.patient.birthDate.isEmpty;
 
     // Se os dados mudaram de preenchidos para vazios, limpa os campos
     if (!_lastPatientDataWasEmpty && patientDataIsEmpty) {
@@ -228,6 +222,27 @@ class _DemographicsPageState extends State<DemographicsPage> {
           SnackBar(
             content: Text('Erro ao carregar níveis de escolaridade: $e'),
           ),
+        );
+      });
+    }
+  }
+
+  /// Carrega a lista de profissões do arquivo assets/data/professions.json.
+  Future<void> _loadProfessions() async {
+    try {
+      final String response = await rootBundle.loadString(
+        'assets/data/professions.json',
+      );
+      final data = json.decode(response);
+      setState(() {
+        _professions = List<String>.from(data['professions']);
+        _isLoadingProfessions = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingProfessions = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao carregar profissões: $e')),
         );
       });
     }
@@ -616,6 +631,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                   controller: _nameController,
                   decoration: const InputDecoration(
                     labelText: 'Nome Completo *',
+                    hintText: 'Digite seu nome completo',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.person),
                     helperText: 'Mínimo 5 caracteres, apenas letras',
@@ -629,11 +645,12 @@ class _DemographicsPageState extends State<DemographicsPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Campo Email de Contato
+                // Campo Email
                 TextFormField(
                   controller: _emailController,
                   decoration: const InputDecoration(
-                    labelText: 'Email de Contato *',
+                    labelText: 'Email *',
+                    hintText: 'Digite seu email',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.email),
                     helperText:
@@ -665,6 +682,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                   controller: _dobController,
                   decoration: const InputDecoration(
                     labelText: 'Data de Nascimento *',
+                    hintText: 'DD/MM/AAAA',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.cake),
                     suffixIcon: Icon(Icons.calendar_today),
@@ -702,12 +720,12 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
                 // Campo Sexo
                 DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(
+                  value: _selectedSex,
+                  decoration: InputDecoration(
                     labelText: 'Sexo *',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.wc),
                   ),
-                  value: _selectedSex,
                   items: ['Feminino', 'Masculino', 'Outro']
                       .map(
                         (label) =>
@@ -722,12 +740,12 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
                 // Campo Raça/Etnia
                 DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(
+                  value: _selectedRace,
+                  decoration: InputDecoration(
                     labelText: 'Raça/Etnia *',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.people),
                   ),
-                  value: _selectedRace,
                   items:
                       [
                             'Branca',
@@ -779,48 +797,41 @@ class _DemographicsPageState extends State<DemographicsPage> {
                 const SizedBox(height: 16),
 
                 // Campo de texto para Profissão com Autocomplete
-                FutureBuilder<List<String>>(
-                  future: _loadProfessions(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    final professions = snapshot.data ?? [];
-                    return Autocomplete<String>(
-                      optionsBuilder: (TextEditingValue textEditingValue) {
-                        if (textEditingValue.text.isEmpty) {
-                          return const Iterable<String>.empty();
-                        }
-                        return professions.where((String option) {
-                          return option.toLowerCase().contains(
-                            textEditingValue.text.toLowerCase(),
-                          );
-                        });
-                      },
-                      fieldViewBuilder:
-                          (
-                            context,
-                            fieldTextEditingController,
-                            focusNode,
-                            onFieldSubmitted,
-                          ) {
-                            return TextFormField(
-                              controller: fieldTextEditingController,
-                              focusNode: focusNode,
-                              decoration: const InputDecoration(
-                                labelText: 'Profissão',
-                                border: OutlineInputBorder(),
-                                hintText: 'Ex: Estudante, Engenheiro, etc.',
-                              ),
-                              validator: _validateProfession,
+                _isLoadingProfessions
+                    ? const Center(child: CircularProgressIndicator())
+                    : Autocomplete<String>(
+                        optionsBuilder: (TextEditingValue textEditingValue) {
+                          if (textEditingValue.text.isEmpty) {
+                            return const Iterable<String>.empty();
+                          }
+                          return _professions.where((String option) {
+                            return option.toLowerCase().contains(
+                              textEditingValue.text.toLowerCase(),
                             );
-                          },
-                      onSelected: (String selection) {
-                        _professionController.text = selection;
-                      },
-                    );
-                  },
-                ),
+                          });
+                        },
+                        onSelected: (String selection) {
+                          _professionController.text = selection;
+                        },
+                        fieldViewBuilder:
+                            (
+                              BuildContext context,
+                              TextEditingController fieldTextEditingController,
+                              FocusNode fieldFocusNode,
+                              VoidCallback onFieldSubmitted,
+                            ) {
+                              return TextFormField(
+                                controller: _professionController,
+                                focusNode: fieldFocusNode,
+                                decoration: const InputDecoration(
+                                  labelText: 'Profissão',
+                                  border: OutlineInputBorder(),
+                                  hintText: 'Ex: Estudante, Engenheiro, etc.',
+                                ),
+                                validator: _validateProfession,
+                              );
+                            },
+                      ),
 
                 const SizedBox(height: 24),
 
@@ -836,10 +847,10 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
                 const SizedBox(height: 16),
 
-                // Campo de diagnósticos dinâmico
+                // Seção de Diagnósticos
                 const Text(
-                  'Diagnóstico prévio (selecione se aplicável):',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  'Diagnósticos Prévios',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 _isLoadingDiagnoses

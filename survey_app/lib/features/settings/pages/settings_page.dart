@@ -8,8 +8,8 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:survey_app/providers/app_settings.dart';
-import 'package:survey_app/survey_details_page.dart';
+import 'package:survey_app/core/providers/app_settings.dart';
+import 'package:survey_app/features/survey/pages/survey_details_page.dart';
 
 /// Página de configurações da aplicação de questionários.
 ///
@@ -48,10 +48,10 @@ class _SettingsPageState extends State<SettingsPage> {
     final settings = Provider.of<AppSettings>(context, listen: false);
     settings.loadAvailableSurveys();
     _screenerNameController = TextEditingController(
-      text: settings.screenerName,
+      text: settings.screener.name,
     );
     _screenerContactController = TextEditingController(
-      text: settings.screenerContact,
+      text: settings.screener.email,
     );
   }
 
@@ -425,17 +425,17 @@ class _SettingsPageState extends State<SettingsPage> {
                         const SizedBox(height: 8),
                         _buildStatusItem(
                           'Responsável configurado:',
-                          settings.screenerName.isNotEmpty
-                              ? settings.screenerName
+                          settings.screener.name.isNotEmpty
+                              ? settings.screener.name
                               : 'Não configurado',
-                          settings.screenerName.isNotEmpty,
+                          settings.screener.name.isNotEmpty,
                         ),
                         _buildStatusItem(
                           'Email configurado:',
-                          settings.screenerContact.isNotEmpty
-                              ? settings.screenerContact
+                          settings.screener.email.isNotEmpty
+                              ? settings.screener.email
                               : 'Não configurado',
-                          settings.screenerContact.isNotEmpty,
+                          settings.screener.email.isNotEmpty,
                         ),
                         _buildStatusItem(
                           'Questionário selecionado:',

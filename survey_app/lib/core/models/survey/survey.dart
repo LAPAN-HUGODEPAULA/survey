@@ -1,13 +1,9 @@
-// lib/models/survey_model.dart
-///
-/// Modelos de dados para representação de questionários e perguntas.
-///
-/// Este arquivo contém as classes que modelam a estrutura dos questionários
-/// carregados a partir de arquivos JSON, incluindo métodos de deserialização.
 library;
 
-
 import 'dart:convert';
+
+import 'package:survey_app/core/models/survey/instructions.dart';
+import 'package:survey_app/core/models/survey/question.dart';
 
 /// Função utilitária para deserializar um questionário a partir de JSON.
 ///
@@ -17,52 +13,6 @@ import 'dart:convert';
 ///
 /// Throws [FormatException] se o JSON estiver malformado
 Survey surveyFromJson(String str) => Survey.fromJson(json.decode(str));
-
-/// Modelo que representa as instruções de um questionário.
-///
-/// Contém o preâmbulo em HTML, pergunta de compreensão e opções de resposta.
-class Instructions {
-  /// Preâmbulo em formato HTML explicando o questionário
-  final String preamble;
-
-  /// Texto da pergunta de compreensão
-  final String questionText;
-
-  /// Lista de opções de resposta para a pergunta de compreensão
-  final List<String> answers;
-
-  /// Cria uma nova instância de Instructions.
-  ///
-  /// [preamble] - Texto explicativo em HTML
-  /// [questionText] - Pergunta de verificação de compreensão
-  /// [answers] - Opções de resposta, sendo a última sempre a correta
-  Instructions({
-    required this.preamble,
-    required this.questionText,
-    required this.answers,
-  });
-
-  /// Cria Instructions a partir de um Map JSON.
-  ///
-  /// [json] - Map contendo os dados das instruções
-  ///
-  /// Expected JSON structure:
-  /// ```json
-  /// {
-  ///   "preamble": "<p>Texto em HTML</p>",
-  ///   "questionText": "Pergunta de compreensão?",
-  ///   "answers": ["Opção 1", "Opção 2", "Resposta Correta"]
-  /// }
-  /// ```
-  factory Instructions.fromJson(Map<String, dynamic> json) => Instructions(
-    preamble: json["preamble"],
-    questionText: json["questionText"],
-    answers: List<String>.from(json["answers"].map((x) => x)),
-  );
-
-  /// Retorna a resposta correta (sempre a última da lista).
-  String get correctAnswer => answers.last;
-}
 
 /// Modelo que representa um questionário completo.
 ///
@@ -166,58 +116,5 @@ class Survey {
       json["questions"].map((x) => Question.fromJson(x)),
     ),
     finalNotes: json["finalNotes"],
-  );
-}
-
-/// Modelo que representa uma pergunta individual do questionário.
-///
-/// Cada pergunta possui um ID único, texto da pergunta e uma lista
-/// de possíveis respostas que o usuário pode selecionar.
-///
-/// Exemplo de uso:
-/// ```dart
-/// final question = Question(
-///   id: 1,
-///   questionText: "Como você se sente hoje?",
-///   answers: ["Bem", "Regular", "Mal"]
-/// );
-/// ```
-class Question {
-  /// Identificador único da pergunta
-  final int id;
-
-  /// Texto da pergunta apresentada ao usuário
-  final String questionText;
-
-  /// Lista de opções de resposta disponíveis
-  final List<String> answers;
-
-  /// Cria uma nova instância de Question.
-  ///
-  /// [id] - Identificador único da pergunta
-  /// [questionText] - Texto da pergunta
-  /// [answers] - Lista de opções de resposta
-  Question({
-    required this.id,
-    required this.questionText,
-    required this.answers,
-  });
-
-  /// Cria uma Question a partir de um Map JSON.
-  ///
-  /// [json] - Map contendo os dados da pergunta
-  ///
-  /// Expected JSON structure:
-  /// ```json
-  /// {
-  ///   "id": 1,
-  ///   "questionText": "Texto da pergunta",
-  ///   "answers": ["Opção 1", "Opção 2", "Opção 3"]
-  /// }
-  /// ```
-  factory Question.fromJson(Map<String, dynamic> json) => Question(
-    id: json["id"],
-    questionText: json["questionText"],
-    answers: List<String>.from(json["answers"].map((x) => x)),
   );
 }

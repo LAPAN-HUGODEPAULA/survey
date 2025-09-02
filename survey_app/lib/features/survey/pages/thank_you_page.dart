@@ -15,10 +15,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:provider/provider.dart';
-import 'package:survey_app/models/survey_model.dart';
-import 'package:survey_app/providers/app_settings.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_html/html.dart' as html;
+import 'package:survey_app/core/providers/app_settings.dart';
+import 'package:survey_app/core/models/survey/question.dart';
+import 'package:survey_app/core/models/survey_response.dart';
 
 /// Página de agradecimento final do questionário.
 ///
@@ -100,34 +101,25 @@ class _ThankYouPageState extends State<ThankYouPage> {
       // Obtém dados do survey dos assets
       final surveyData = await _loadSurveyData(settings.selectedSurveyPath!);
 
-      // Prepara o JSON de resposta
-      final responseData = {
-        "surveyId": widget.surveyId,
-        "creatorName": surveyData['creatorName'] ?? 'Não informado',
-        "creatorContact": surveyData['creatorContact'] ?? 'Não informado',
-        "testDate": DateTime.now().toString().substring(0, 19),
-        "screener": settings.screenerName,
-        "screenerEmail": settings.screenerContact,
-        "patientName": settings.patientName,
-        "patientEmail": settings.patientEmail,
-        "patientBirthDate": settings.patientBirthDate,
-        "patientGender": settings.patientGender,
-        "patientEthnicity": settings.patientEthnicity,
-        "patientEducationLevel": settings.patientEducationLevel,
-        "patientProfession": settings.patientProfession,
-        "patientMedication": settings.patientMedication,
-        "patientDiagnoses": settings.patientDiagnoses,
-        "questions": _buildQuestionsResponse(),
-      };
+      // Cria o SurveyResponse usando os novos modelos
+      final surveyResponse = SurveyResponse(
+        surveyId: widget.surveyId!,
+        creatorName: surveyData['creatorName'] ?? 'Não informado',
+        creatorContact: surveyData['creatorContact'] ?? 'Não informado',
+        testDate: DateTime.now(),
+        screener: settings.screener,
+        patient: settings.patient,
+        questions: _buildQuestionsResponse(),
+      );
 
       // Gera o nome do arquivo
       final fileName = _generateFileName(
         widget.surveyId!,
-        settings.patientName,
+        settings.patient.name,
       );
 
-      // Salva o arquivo
-      await _writeResponseFile(fileName, responseData);
+      // Salva o arquivo usando o método toJson() do SurveyResponse
+      await _writeResponseFile(fileName, surveyResponse.toJson());
 
       setState(() {
         _isSaving = false;
@@ -152,18 +144,20 @@ class _ThankYouPageState extends State<ThankYouPage> {
   }
 
   /// Constrói a lista de perguntas e respostas no formato do JSON.
-  List<Map<String, dynamic>> _buildQuestionsResponse() {
+  List<QuestionAnswer> _buildQuestionsResponse() {
     if (widget.surveyQuestions == null || widget.surveyAnswers == null) {
       return [];
     }
 
-    final responses = <Map<String, dynamic>>[];
+    final responses = <QuestionAnswer>[];
     for (int i = 0; i < widget.surveyAnswers!.length; i++) {
       if (i < widget.surveyQuestions!.length) {
-        responses.add({
-          "id": widget.surveyQuestions![i].id,
-          "answer": widget.surveyAnswers![i],
-        });
+        responses.add(
+          QuestionAnswer(
+            id: widget.surveyQuestions![i].id,
+            answer: widget.surveyAnswers![i],
+          ),
+        );
       }
     }
     return responses;

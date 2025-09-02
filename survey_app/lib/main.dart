@@ -7,9 +7,9 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:survey_app/demographics_page.dart';
-import 'package:survey_app/providers/app_settings.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:survey_app/core/providers/app_settings.dart';
+import 'package:survey_app/features/demographics/pages/demographics_page.dart';
 
 /// Ponto de entrada principal da aplicação.
 ///

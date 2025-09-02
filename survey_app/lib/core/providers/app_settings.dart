@@ -10,6 +10,8 @@ library;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:survey_app/core/models/patient.dart';
+import 'package:survey_app/core/models/screener.dart';
 
 /// Classe que gerencia as configurações globais da aplicação de questionários.
 ///
@@ -23,10 +25,7 @@ import 'package:flutter/services.dart' show rootBundle;
 /// - Controlar qual questionário está selecionado
 class AppSettings extends ChangeNotifier {
   /// Nome do profissional responsável pela aplicação do questionário.
-  String _screenerName = '';
-
-  /// Contato do profissional responsável (email, telefone, etc.).
-  String _screenerContact = '';
+  Screener _screener = Screener.initial();
 
   /// Caminho do questionário atualmente selecionado.
   String? _selectedSurveyPath;
@@ -35,21 +34,10 @@ class AppSettings extends ChangeNotifier {
   List<String> _availableSurveyPaths = [];
 
   // Dados demográficos do paciente
-  String _patientName = '';
-  String _patientEmail = '';
-  String _patientBirthDate = '';
-  String _patientGender = '';
-  String _patientEthnicity = '';
-  String _patientEducationLevel = '';
-  String _patientProfession = '';
-  String _patientMedication = '';
-  List<String> _patientDiagnoses = [];
+  Patient _patient = Patient.initial();
 
   /// Retorna o nome do profissional responsável.
-  String get screenerName => _screenerName;
-
-  /// Retorna o contato do profissional responsável.
-  String get screenerContact => _screenerContact;
+  Screener get screener => _screener;
 
   /// Retorna o caminho do questionário selecionado.
   String? get selectedSurveyPath => _selectedSurveyPath;
@@ -58,15 +46,7 @@ class AppSettings extends ChangeNotifier {
   List<String> get availableSurveyPaths => _availableSurveyPaths;
 
   // Getters para dados demográficos
-  String get patientName => _patientName;
-  String get patientEmail => _patientEmail;
-  String get patientBirthDate => _patientBirthDate;
-  String get patientGender => _patientGender;
-  String get patientEthnicity => _patientEthnicity;
-  String get patientEducationLevel => _patientEducationLevel;
-  String get patientProfession => _patientProfession;
-  String get patientMedication => _patientMedication;
-  List<String> get patientDiagnoses => _patientDiagnoses;
+  Patient get patient => _patient;
 
   /// Retorna um nome formatado e legível do questionário selecionado.
   ///
@@ -108,7 +88,7 @@ class AppSettings extends ChangeNotifier {
   ///
   /// Notifica todos os listeners sobre a mudança.
   void setScreenerName(String name) {
-    _screenerName = name;
+    _screener = _screener.copyWith(name: name);
     notifyListeners();
   }
 
@@ -118,7 +98,7 @@ class AppSettings extends ChangeNotifier {
   ///
   /// Notifica todos os listeners sobre a mudança.
   void setScreenerContact(String contact) {
-    _screenerContact = contact;
+    _screener = _screener.copyWith(email: contact);
     notifyListeners();
   }
 
@@ -136,15 +116,17 @@ class AppSettings extends ChangeNotifier {
     required String medication,
     required List<String> diagnoses,
   }) {
-    _patientName = name;
-    _patientEmail = email;
-    _patientBirthDate = birthDate;
-    _patientGender = gender;
-    _patientEthnicity = ethnicity;
-    _patientEducationLevel = educationLevel;
-    _patientProfession = profession;
-    _patientMedication = medication;
-    _patientDiagnoses = diagnoses;
+    _patient = _patient.copyWith(
+      name: name,
+      email: email,
+      birthDate: birthDate,
+      gender: gender,
+      ethnicity: ethnicity,
+      educationLevel: educationLevel,
+      profession: profession,
+      medication: medication,
+      diagnoses: diagnoses,
+    );
     notifyListeners();
   }
 
@@ -153,15 +135,7 @@ class AppSettings extends ChangeNotifier {
   /// Usado quando o usuário inicia uma nova avaliação para garantir
   /// que os campos da página demográfica sejam resetados.
   void clearPatientData() {
-    _patientName = '';
-    _patientEmail = '';
-    _patientBirthDate = '';
-    _patientGender = '';
-    _patientEthnicity = '';
-    _patientEducationLevel = '';
-    _patientProfession = '';
-    _patientMedication = '';
-    _patientDiagnoses = [];
+    _patient = Patient.initial();
     notifyListeners();
   }
 
