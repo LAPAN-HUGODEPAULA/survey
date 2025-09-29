@@ -1,11 +1,12 @@
 {
-    "surveyId": "CHYPS-V Br Q20",
+    "_id": "chyps_v_br_q20",
+    "surveyDisplayName": "CHYPS-V Br Q20",
     "surveyName": "Escala de Hipersensibilidade de Cardiff - Visual (CHYPS-V Br Q20)",
     "surveyDescription": "<p>A Escala de Hipersensibilidade de Cardiff - Visual (CHYPS-V) é um instrumento internacionalmente reconhecido desenvolvido para avaliar desconfortos visuais em ambientes cotidianos. O objetivo do questionário é medir, por auto-relato, a sensibilidade física a estímulos visuais como luz intensa, padrões repetitivos, luzes piscantes e ambientes visualmente complexos, sendo composto por 20 itens agrupados em quatro subtipos (Brilho, Padrão, Estroboscópico e Ambientes Visuais Intensos).</p><br /><br /><p>Esta versão foi traduzida para o português brasileiro em agosto de 2025. O instrumento original foi desenvolvido por Price, Sumner &amp; Powell e publicado na Vision Research (<a href=\"https://doi.org/10.1016/j.visres.2025.108610\">https://doi.org/10.1016/j.visres.2025.108610</a>).</p><br /><br /><p>PRICE, Alice; SUMNER, Petroc; POWELL, Georgina. Understanding the subtypes of visual hypersensitivity: Four coherent factors and their measurement with the Cardiff Hypersensitivity Scale (CHYPS). <b>Vision Research</b>, v. 233, p. 108610, 1 ago. 2025. DOI: <a href=\"https://doi.org/10.1016/j.visres.2025.108610\">https://doi.org/10.1016/j.visres.2025.108610</a></p>",
     "creatorName": "Hugo de Paula",
     "creatorContact": "lapan.hugodepaula@gmail.com",
-    "createdAt": "09-08-2025",
-    "modifiedAt": "15-08-2025",
+    "createdAt": "2025-08-09",
+    "modifiedAt": "2025-08-15",
     "instructions": {
         "preamble": "<p><strong>Escala de Hipersensibilidade de Cardiff - Visual (CHYPS-V)</strong></p><br /><p>Este questionário pergunta se certas situações são confortáveis ou desconfortáveis para seus olhos e cabeça. Embora uma situação possa ser desconfortável por ser perturbadora, assustadora ou repugnante, não é a isso que nos referimos.</p><p>Estamos perguntando especificamente se essas situações são fisicamente desconfortáveis, causando alguma forma de dor física, cansaço, incômodo ou tensão nos olhos, na cabeça ou ao redor deles.</p><p>Por favor, responda a cada pergunta com base no que acontece quando você vivencia uma determinada situação, e não na frequência com que você a vivencia. Por exemplo, se você sempre sente desconforto ao passar uma camisa listrada, mas não as passa com frequência, você deve responder 'Quase Sempre'.</p>",
         "questionText": "Por favor, indique o que queremos dizer com 'desconfortável' nas perguntas que você está prestes a responder (leia o texto acima se não tiver certeza):",

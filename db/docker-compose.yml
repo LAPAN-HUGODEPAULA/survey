@@ -1,24 +1,24 @@
-version: '3.8'
-
 services:
   mongodb:
     image: mongo
     container_name: mongodb
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: secret
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     networks:
       - survey_network
+    env_file:
+      - .env
 
-  fastapi_app:
+  survey_fastapi:
     build: .
-    container_name: fastapi_app
-    restart: always
+    container_name: survey_fastapi
+    restart: no
     ports:
       - "8000:8000"
     depends_on:
@@ -30,6 +30,7 @@ services:
 
 volumes:
   mongodb_data:
+
 
 networks:
   survey_network:

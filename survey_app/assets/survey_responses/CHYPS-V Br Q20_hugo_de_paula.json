@@ -1,23 +1,30 @@
 {
-    "surveyId": "CHYPS-V Br Q20",
+    "surveyId": "chyps_v_br_q20",
     "creatorName": "Hugo de Paula",
     "creatorContact": "lapan.hugodepaula@gmail.com",
     "testDate": "2025-08-15 17:45:18",
-    "screener": "Dr Pavlos Alexiadis",
+    "screenerName": "Dr Pavlos Alexiadis",
     "screenerEmail": "pavlos@gmail.com",
-    "patientName": "Hugo de Paula",
-    "patientEmail": "lapan.hugodepaula@gmail.com",
-    "patientBirthDate": "28/01/1977",
-    "patientGender": "Masculino",
-    "patientEthnicity": "Parda",
-    "patientMedication": "Litio, Fluoxetina",
-    "patientDiagnoses": [
-        "Agorafobia",
-        "Transtorno da Compulsão Alimentar Periódica (TCAP)",
-        "Transtorno de Estresse Pós-Traumático (TEPT)",
-        "Transtorno do Espectro Autista (TEA)"
-    ],
-    "questions": [
+    "patient": {
+        "name": "Hugo de Paula",
+        "email": "lapan.hugodepaula@gmail.com",
+        "birthDate": "28/01/1977",
+        "gender": "Masculino",
+        "ethnicity": "Parda",
+        "educationLevel": "Ensino superior completo",
+        "profession": "Estudante",
+        "medication": [
+            "Litio",
+            "Fluoxetina"
+        ],
+        "diagnoses": [
+            "Agorafobia",
+            "Transtorno da Compulsão Alimentar Periódica (TCAP)",
+            "Transtorno de Estresse Pós-Traumático (TEPT)",
+            "Transtorno do Espectro Autista (TEA)"
+        ]
+    },
+    "answers": [
         {
             "id": 1,
             "answer": "Quase Nunca"
