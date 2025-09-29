@@ -11,7 +11,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/core/navigation/app_navigator.dart';
-import 'package:survey_app/core/services/asset_list_provider.dart';
+import 'package:survey_app/core/services/demographics_data_service.dart';
+import 'package:survey_app/core/utils/validator_sets.dart';
 import 'package:survey_app/features/settings/pages/settings_page.dart';
 
 /// Página que coleta informações demográficas do usuário.
@@ -97,9 +98,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
   @override
   void initState() {
     super.initState();
-    _loadDiagnoses();
-    _loadEducationLevels();
-    _loadProfessions();
+    _loadAllDemographicsData();
     _professionController.addListener(() {
       setState(() {});
     });
@@ -172,77 +171,48 @@ class _DemographicsPageState extends State<DemographicsPage> {
     _formKey.currentState?.reset();
   }
 
-  /// Carrega a lista de diagnósticos do arquivo assets/data/diagnoses.json.
+  /// Carrega todos os dados demográficos usando o serviço centralizado.
   ///
-  /// Popula [_diagnosesList] com os diagnósticos disponíveis e inicializa
-  /// [_selectedDiagnoses] com todos os valores como false.
-  ///
-  /// O arquivo JSON tem a estrutura: {"diagnoses": ["diagnosis1", "diagnosis2", ...]}
-  ///
-  /// Em caso de erro, define [_isLoadingDiagnoses] como false e exibe erro no console.
-  Future<void> _loadDiagnoses() async {
+  /// Este método substitui os antigos métodos individuais de carregamento
+  /// e usa o DemographicsDataService para carregar todos os dados de uma vez.
+  Future<void> _loadAllDemographicsData() async {
     try {
-      final List<String> diagnosesList = await AssetListProvider.loadStringList(
-        'assets/data/diagnoses.json',
-        'diagnoses',
-      );
+      final dataService = DemographicsDataService.instance;
+      final data = await dataService.loadAllData();
 
       setState(() {
-        _diagnosesList = diagnosesList;
+        _diagnosesList = data.diagnoses;
+        _educationLevels = data.educationLevels;
+        _professions = data.professions;
+
         // Inicializa todos os diagnósticos como não selecionados
         _selectedDiagnoses = {
           for (String diagnosis in _diagnosesList) diagnosis: false,
         };
-        _isLoadingDiagnoses = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingDiagnoses = false;
-      });
-    }
-  }
 
-  /// Carrega a lista de níveis de escolaridade do arquivo assets/data/education_level.json.
-  Future<void> _loadEducationLevels() async {
-    try {
-      final list = await AssetListProvider.loadStringList(
-        'assets/data/education_level.json',
-        'educationLevel',
-      );
-      setState(() {
-        _educationLevels = list;
+        // Marca todos os dados como carregados
+        _isLoadingDiagnoses = false;
         _isLoadingEducationLevels = false;
+        _isLoadingProfessions = false;
       });
     } catch (e) {
       setState(() {
+        // Em caso de erro, marca todos como não carregando
+        _isLoadingDiagnoses = false;
         _isLoadingEducationLevels = false;
+        _isLoadingProfessions = false;
+      });
+
+      // Mostra erro para o usuário
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erro ao carregar níveis de escolaridade: $e'),
+            content: Text('Erro ao carregar dados do formulário: $e'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 4),
           ),
         );
-      });
-    }
-  }
-
-  /// Carrega a lista de profissões do arquivo assets/data/professions.json.
-  Future<void> _loadProfessions() async {
-    try {
-      final list = await AssetListProvider.loadStringList(
-        'assets/data/professions.json',
-        'professions',
-      );
-      setState(() {
-        _professions = list;
-        _isLoadingProfessions = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingProfessions = false;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao carregar profissões: $e')),
-        );
-      });
+      }
     }
   }
 
@@ -256,195 +226,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
     super.dispose();
   }
 
-  /// Valida o nome completo do usuário.
-  ///
-  /// [name] - String do nome a ser validada
-  ///
-  /// Returns string de erro se inválido, null se válido
-  String? _validateName(String? name) {
-    if (name == null || name.isEmpty) {
-      return 'Por favor, insira seu nome completo.';
-    }
-
-    if (name.trim().length < 5) {
-      return 'O nome deve ter pelo menos 5 caracteres.';
-    }
-
-    // Regex para validar apenas caracteres alfabéticos e espaços
-    final nameRegex = RegExp(r'^[a-zA-ZÀ-ÿ\s]+$');
-    if (!nameRegex.hasMatch(name.trim())) {
-      return 'O nome deve conter apenas letras e espaços.';
-    }
-
-    return null;
-  }
-
-  /// Valida se o email tem formato válido.
-  ///
-  /// [email] - String do email a ser validada
-  ///
-  /// Returns string de erro se inválido, null se válido
-  String? _validateEmail(String? email) {
-    if (email == null || email.isEmpty) {
-      return 'Por favor, insira seu email de contato.';
-    }
-
-    // Remove espaços em branco no início e fim
-    final emailTrimmed = email.trim();
-
-    // Verifica se contém pelo menos um @
-    if (!emailTrimmed.contains('@')) {
-      return 'Email deve conter o símbolo @.';
-    }
-
-    // Verifica se tem apenas um @
-    if (emailTrimmed.split('@').length != 2) {
-      return 'Email deve conter apenas um símbolo @.';
-    }
-
-    // Separa as partes antes e depois do @
-    final parts = emailTrimmed.split('@');
-    final localPart = parts[0];
-    final domainPart = parts[1];
-
-    // Valida parte local (antes do @)
-    if (localPart.isEmpty) {
-      return 'Email deve ter texto antes do @.';
-    }
-
-    // Valida parte do domínio (depois do @)
-    if (domainPart.isEmpty) {
-      return 'Email deve ter um domínio depois do @.';
-    }
-
-    // Verifica se o domínio contém pelo menos um ponto
-    if (!domainPart.contains('.')) {
-      return 'Domínio do email deve conter pelo menos um ponto.';
-    }
-
-    // Regex mais rigorosa para validação completa
-    final emailRegex = RegExp(
-      r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
-    );
-
-    if (!emailRegex.hasMatch(emailTrimmed)) {
-      return 'Por favor, insira um email válido (ex: usuario@exemplo.com).';
-    }
-
-    // Validação adicional: verifica se a extensão do domínio tem pelo menos 2 caracteres
-    final domainParts = domainPart.split('.');
-    final lastPart = domainParts.last;
-
-    if (lastPart.length < 2) {
-      return 'O domínio do email deve ter pelo menos 2 caracteres após o ponto.';
-    }
-
-    return null;
-  }
-
-  /// Valida a profissão do usuário.
-  String? _validateProfession(String? profession) {
-    if (profession == null || profession.isEmpty) {
-      return 'Por favor, insira sua profissão.';
-    }
-    if (profession.trim().length < 2) {
-      return 'A profissão deve ter pelo menos 2 caracteres.';
-    }
-    return null;
-  }
-
-  /// Valida e formata a data de nascimento.
-  ///
-  /// [dateText] - String da data a ser validada
-  ///
-  /// Returns string de erro se inválida, null se válida
-  String? _validateDate(String? dateText) {
-    if (dateText == null || dateText.isEmpty) {
-      return 'Por favor, insira sua data de nascimento.';
-    }
-
-    // Regex para validar formato DD/MM/YYYY
-    final dateRegex = RegExp(r'^\d{2}/\d{2}/\d{4}$');
-    if (!dateRegex.hasMatch(dateText)) {
-      return 'Use o formato DD/MM/AAAA (ex: 15/03/1990).';
-    }
-
-    try {
-      final parts = dateText.split('/');
-      final day = int.parse(parts[0]);
-      final month = int.parse(parts[1]);
-      final year = int.parse(parts[2]);
-
-      // Validações básicas de data
-      if (day < 1 || day > 31) {
-        return 'Dia deve estar entre 01 e 31.';
-      }
-      if (month < 1 || month > 12) {
-        return 'Mês deve estar entre 01 e 12.';
-      }
-      if (year < 1900 || year > DateTime.now().year) {
-        return 'Ano deve estar entre 1900 e ${DateTime.now().year}.';
-      }
-
-      // Tenta criar a data para validar se é uma data real
-      final date = DateTime(year, month, day);
-      if (date.day != day || date.month != month || date.year != year) {
-        return 'Data inválida.';
-      }
-
-      // Verifica se não é uma data futura
-      if (date.isAfter(DateTime.now())) {
-        return 'A data de nascimento não pode ser futura.';
-      }
-
-      return null;
-    } catch (e) {
-      return 'Data inválida. Use o formato DD/MM/AAAA.';
-    }
-  }
-
-  /// Valida a lista de medicamentos separados por vírgula.
-  ///
-  /// [medicationList] - String com medicamentos separados por vírgula
-  ///
-  /// Returns string de erro se inválido, null se válido
-  String? _validateMedicationList(String? medicationList) {
-    if (medicationList == null || medicationList.isEmpty) {
-      return 'Por favor, informe o(s) nome(s) do(s) medicamento(s).';
-    }
-
-    // Divide por vírgula e remove espaços em branco
-    final medications = medicationList
-        .split(',')
-        .map((med) => med.trim())
-        .where((med) => med.isNotEmpty)
-        .toList();
-
-    if (medications.isEmpty) {
-      return 'Por favor, informe pelo menos um medicamento válido.';
-    }
-
-    // Valida cada medicamento individualmente
-    for (final medication in medications) {
-      // Regex para validar apenas letras, números, espaços e hífen
-      final medicationRegex = RegExp(r'^[a-zA-Z0-9À-ÿ\s\-]+$');
-      if (!medicationRegex.hasMatch(medication)) {
-        return 'Medicamento "$medication" contém caracteres inválidos.\nUse apenas letras, números, espaços e hífen.';
-      }
-
-      // Verifica se o nome não é muito curto
-      if (medication.length < 2) {
-        return 'Medicamento "$medication" deve ter pelo menos 2 caracteres.';
-      }
-
-      // Verifica se não é muito longo
-      if (medication.length > 50) {
-        return 'Medicamento "$medication" deve ter no máximo 50 caracteres.';
-      }
-    }
-
-    return null;
-  }
+  // Validation methods are now provided by ValidatorSets and FormValidators
 
   /// Formata a entrada de data automaticamente durante a digitação.
   ///
@@ -520,7 +302,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
           content: Text(
             'Campos obrigatórios não preenchidos:\n• ${validationErrors.join('\n• ')}',
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
           duration: const Duration(seconds: 4),
         ),
       );
@@ -561,10 +343,12 @@ class _DemographicsPageState extends State<DemographicsPage> {
     } else {
       // Se o formulário não for válido, exibe uma mensagem de erro geral
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, corrija os erros nos campos destacados.'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
+        SnackBar(
+          content: const Text(
+            'Por favor, corrija os erros nos campos destacados.',
+          ),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          duration: const Duration(seconds: 3),
         ),
       );
     }
@@ -636,7 +420,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                     // Permite apenas letras, espaços e acentos
                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZÀ-ÿ\s]')),
                   ],
-                  validator: _validateName,
+                  validator: ValidatorSets.patientName,
                 ),
                 const SizedBox(height: 16),
 
@@ -655,7 +439,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                   autocorrect: false,
                   autovalidateMode: AutovalidateMode
                       .onUserInteraction, // Adiciona validação em tempo real
-                  validator: _validateEmail,
+                  validator: ValidatorSets.patientEmail,
                   // Adiciona formatação automática para remover espaços
                   onChanged: (value) {
                     // Remove espaços automaticamente durante a digitação
@@ -709,7 +493,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                       });
                     }
                   },
-                  validator: _validateDate,
+                  validator: ValidatorSets.patientBirthDate,
                 ),
                 const SizedBox(height: 16),
 
@@ -728,8 +512,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                       )
                       .toList(),
                   onChanged: (value) => setState(() => _selectedSex = value),
-                  validator: (value) =>
-                      value == null ? 'Campo obrigatório' : null,
+                  validator: ValidatorSets.genderSelection,
                 ),
                 const SizedBox(height: 16),
 
@@ -758,8 +541,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                           )
                           .toList(),
                   onChanged: (value) => setState(() => _selectedRace = value),
-                  validator: (value) =>
-                      value == null ? 'Campo obrigatório' : null,
+                  validator: ValidatorSets.raceSelection,
                 ),
                 const SizedBox(height: 16),
 
@@ -785,8 +567,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                             _selectedEducationLevel = newValue;
                           });
                         },
-                        validator: (value) =>
-                            value == null ? 'Campo obrigatório' : null,
+                        validator: ValidatorSets.educationLevelSelection,
                       ),
 
                 const SizedBox(height: 16),
@@ -823,7 +604,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                                   border: OutlineInputBorder(),
                                   hintText: 'Ex: Estudante, Engenheiro, etc.',
                                 ),
-                                validator: _validateProfession,
+                                validator: ValidatorSets.patientProfession,
                               );
                             },
                       ),
@@ -968,7 +749,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                                 ),
                               ],
                               validator: _usesMedication == 'Sim'
-                                  ? _validateMedicationList
+                                  ? ValidatorSets.medicationList
                                   : null,
                             ),
                           ],
