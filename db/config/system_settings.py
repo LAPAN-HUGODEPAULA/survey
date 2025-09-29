@@ -1,0 +1,34 @@
+import os
+from pydantic_settings import BaseSettings
+from pydantic import computed_field
+import logging
+
+# Use basic logging here since logging_config may not be imported yet
+config_logger = logging.getLogger("survey_app.config")
+
+class Settings(BaseSettings):
+    mongo_initdb_root_username: str
+    mongo_initdb_root_password: str
+    my_custom_env: str
+    mongo_username: str = os.getenv("MONGO_USERNAME", "admin")
+    mongo_password: str = os.getenv("MONGO_PASSWORD", "secret")
+    mail_username: str = os.getenv("MAIL_USERNAME", "email@not.set")
+    mail_password: str = os.getenv("MAIL_PASSWORD", "nopassword")
+    mail_server: str = os.getenv("MAIL_SERVER", "smtp.example.com")
+
+    @computed_field
+    @property
+    def mongodb_uri(self) -> str:
+        return f"mongodb://{self.mongo_username}:{self.mongo_password}@mongodb:27017"
+
+    class Config:
+        env_file = ".env"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        config_logger.info("Configuration loaded successfully")
+        config_logger.info(f"MongoDB connection will use username: {self.mongo_username}")
+        # Don't log the full URI to avoid exposing passwords
+        config_logger.info(f"MongoDB URI configured for host: mongodb:27017")
+
+settings = Settings()
