@@ -1,106 +1,98 @@
 # GEMINI.md
 
-## Project Overview
+## 1. Visão Geral do Projeto
 
-This project is a Flutter-based mobile and web compatible application for conducting surveys. It uses a MongoDB database for storing survey data and results. The project is divided into two main parts:
+Este projeto é um sistema de análise clínica para coletar e analisar dados de pacientes. O sistema é operado por um **Screener** (profissional de saúde/pesquisador) que insere os dados de um **Paciente** através de uma aplicação. O objetivo é estruturar dados de anamnese e respostas a questionários padronizados para pesquisa e análise.
 
-*   **`survey_app`**: A Flutter application for the user interface.
-*   **`db`**: A directory containing the database setup and a Python script for data migration.
+O repositório contém três subprojetos:
 
-The application is designed to display surveys, collect responses, and store them in the database. The survey definitions and results are initially stored in JSON files and then migrated to MongoDB.
+*   **`db`**: O backend da aplicação, desenvolvido em Python com FastAPI. É responsável por gerenciar a API REST e a interação com um banco de dados MongoDB. Armazena e recupera `surveys` (questionários) e `survey_responses` (respostas dos pacientes).
+*   **`survey_app`**: A aplicação frontend principal, desenvolvida em Flutter (compatível com web e Android). Ela se comunica com o backend `db` para buscar questionários e salvar as respostas.
+*   **`survey_app_local`**: Uma versão do frontend em Flutter que funciona de forma autônoma (offline). Ela lê os questionários de arquivos JSON locais e salva as respostas também em arquivos JSON, sem a necessidade de um backend ou conexão de rede.
 
-## Project Structure
+## 2. Estrutura do Projeto e Dados
 
-### survey_app
+### `db` (Backend)
+*   **Localização**: `/db`
+*   **Tecnologia**: Python, FastAPI, MongoDB (via Docker).
+*   **Ponto de Entrada**: `db/main.py`.
+*   **Configuração**: `db/docker-compose.yml`.
+*   **Modelos de Dados**: Definidos em `db/models/`, usam Pydantic para validação.
+*   **Rotas da API**: Definidas em `db/routers/`.
+*   **Migração**: O script `db/migrate/migrate_to_mongo.py` é usado para popular o banco de dados a partir dos arquivos JSON de `survey_app/assets/surveys`.
 
-The survey_app directory contains the Flutter application. the application is compatible with web and Android. The features of the application are as follows:
+### `survey_app` & `survey_app_local` (Frontends)
+*   **Localização**: `/survey_app` e `/survey_app_local`.
+*   **Tecnologia**: Flutter.
+*   **Ponto de Entrada**: `lib/main.dart` em ambos os projetos.
+*   **Modelos de Dados**: `survey_app/lib/core/models/`
+*   **Dependências**: Gerenciadas em `pubspec.yaml`.
+*   **Dados Estáticos**:
+    *   **Questionários**: `assets/surveys/*.json`. Usados pelo `survey_app_local` e pelo script de migração.
+    *   **Respostas (local)**: `assets/survey_responses/*.json`. Onde o `survey_app_local` salva os resultados.
+    *   **Dados da UI**: `assets/data/*.json` (e.g., `diagnoses.json`, `education_level.json`) fornecem dados para widgets como dropdowns e autocompletes.
 
-1 - During the setup process, the app collects data about the screener responsible for giving instructions to the patient and the survey that will be used during the screening process.
-2 - The app then collects demographic data about the patient. 
-3 - The patient answers are then collected.
-4 - Answers are stored in a json file.
+## 3. Formato dos Dados Principais
 
-### db
+### Estrutura do `Survey` (Questionário)
+```json
+{
+  "_id": "string",
+  "name": "string",
+  "description": "string (HTML)",
+  "questions": [
+    {
+      "id": "string",
+      "questionText": "string",
+      "answers": [
+        { "id": "string", "text": "string", "value": "any" }
+      ]
+    }
+  ]
+}
+```
 
-The db directory contains the database setup and a Python script for data migration. It will also contains the Python fastAPI application that will be responsible for storing the json data in MongoDB. 
+### Estrutura da `SurveyResponse` (Resposta)
+```json
+{
+  "_id": "string",
+  "testDate": "string (ISO 8601)",
+  "screener": "string",
+  "screenerEmail": "string",
+  "patientName": "string",
+  "patientEmail": "string",
+  "questions": [
+    {
+      "id": "number",
+      "answer": "string"
+    }
+  ]
+}
+```
 
-## Data structure
+## 4. Comandos Comuns
 
-### App data:
+### Iniciar Backend
+'''bash
+cd db
+docker-compose up -d
+'''
 
-App data are stored on `assets/data` directory.
+### Executar Migração de Dados
+'''bash
+cd db
+python migrate/migrate_to_mongo.py
+'''
 
-- `diagnoses.json` stores the list of mental disorders that are recognized by the system. A list of toggle buttons are created based on this list.
-- `education_level.json` stores the list of education levels that are recognized by the system. These values are used in a DropdownFormField on the Flutter App.
-- `professions.json` stores the list of professions that are recognized by the system. This list is used as an autocomplete reference for a TextFormField on the Flutter App..
+### Executar App Flutter
+'''bash
+# Para a versão online
+cd survey_app
+flutter pub get
+flutter run
 
-### Survey data:
-
-Sample survey questionnaires can be seen in the `assets/surveys` directory.
-
-The data structure of the survey files is as follows:
-
-*   `surveyId`: A unique identifier for the survey.
-*   `surveyName`: The name of the survey.
-*   `surveyDescription`: An HTML string containing the description of the survey.
-*   `creatorName`: The name of the survey's creator.
-*   `creatorContact`: The contact information of the creator.
-*   `createdAt`: The date the survey was created.
-*   `modifiedAt`: The date the survey was last modified.
-*   `instructions`: An object containing the instructions for the survey.
-    *   `preamble`: An HTML string with a preamble to the survey.
-    *   `questionText`: The text of the question about the instructions.
-    *   `answers`: A list of possible answers to the instruction question.
-*   `name`: The name of the survey.
-*   `questions`: A list of question objects.
-    *   `id`: A unique identifier for the question.
-    *   `questionText`: The text of the question.
-    *   `answers`: A list of possible answers to the question.
-*   `finalNotes`: An HTML string with final notes to be displayed after the survey is completed.
-
-## Building and Running
-
-### Flutter App
-
-To run the Flutter application, you will need to have the Flutter SDK installed.
-
-1.  **Navigate to the `survey_app` directory:**
-    ```bash
-    cd survey_app
-    ```
-
-2.  **Install dependencies:**
-    ```bash
-    flutter pub get
-    ```
-
-3.  **Run the app:**
-    ```bash
-    flutter run
-    ```
-
-### Database
-
-The project uses MongoDB, which is set up to run in a Docker container.
-
-1.  **Navigate to the `db` directory:**
-    ```bash
-    cd db
-    ```
-
-2.  **Start the MongoDB container:**
-    ```bash
-    docker-compose up -d
-    ```
-
-3.  **Migrate data:**
-    The project includes a Python script to migrate survey data from JSON files to the MongoDB database.
-    ```bash
-    python migrate/migrate_to_mongo.py
-    ```
-
-## Development Conventions
-
-*   **Data Migration**: All survey data and results are initially stored as JSON files in the `assets/surveys` and `assets/survey_results` directories, respectively. The `db/migrate/migrate_to_mongo.py` script is used to populate the MongoDB database from these files.
-*   **Configuration**: The Flutter app's dependencies are managed in `survey_app/pubspec.yaml`. The database configuration is in `db/docker-compose.yml`.
-*   **Backend Logic**: The `db/main.py` file is a placeholder. Any future backend logic should be implemented there.
+# Para a versão offline
+cd survey_app_local
+flutter pub get
+flutter run
+'''
