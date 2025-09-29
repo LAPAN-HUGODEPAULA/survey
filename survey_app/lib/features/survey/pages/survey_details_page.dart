@@ -120,10 +120,10 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
           children: [
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
@@ -139,10 +139,7 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
     return AsyncScaffold(
       isLoading: _isLoading,
       error: _errorMessage,
-      appBar: AppBar(
-        title: Text('Detalhes - ${widget.surveyDisplayName}'),
-        backgroundColor: Colors.amber,
-      ),
+      appBar: AppBar(title: Text('Detalhes - ${widget.surveyDisplayName}')),
       // Evita acessar _surveyData! enquanto ainda está carregando
       // ou quando há erro. O AsyncScaffold já cuida desses estados.
       child: (_isLoading || _errorMessage != null)
@@ -260,7 +257,7 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
                           "p": Style(margin: Margins.only(bottom: 8.0)),
                           "strong": Style(fontWeight: FontWeight.bold),
                           "a": Style(
-                            color: Colors.blue.shade700,
+                            color: Theme.of(context).colorScheme.secondary,
                             textDecoration: TextDecoration.underline,
                           ),
                         },
@@ -274,8 +271,6 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
                     onPressed: () => Navigator.of(context).pop(),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: Colors.amber,
-                      foregroundColor: Colors.black,
                     ),
                     child: const Text(
                       'Voltar às Configurações',
@@ -304,9 +299,9 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
             width: 140,
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: Colors.grey,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),

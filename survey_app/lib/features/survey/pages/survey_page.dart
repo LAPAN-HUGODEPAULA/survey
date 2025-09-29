@@ -119,7 +119,6 @@ class _SurveyPageState extends State<SurveyPage> {
               ? 'Carregando Questionário'
               : '${_survey!.surveyName}: Pergunta ${_currentQuestionIndex + 1} de ${_survey!.questions.length}',
         ),
-        backgroundColor: Colors.amber,
         automaticallyImplyLeading: false,
       ),
       child: Center(
@@ -165,8 +164,8 @@ class _SurveyPageState extends State<SurveyPage> {
           onPressed: () => _answerQuestion(answer),
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
-            backgroundColor: Colors.amber.shade100,
-            foregroundColor: Colors.amber.shade900,
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),

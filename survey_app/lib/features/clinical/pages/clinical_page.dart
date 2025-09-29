@@ -94,10 +94,7 @@ class _ClinicalPageState extends State<ClinicalPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dados Clínicos (opcional)'),
-        backgroundColor: Colors.amber,
-      ),
+      appBar: AppBar(title: const Text('Dados Clínicos (opcional)')),
       body: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: 700),

@@ -116,8 +116,8 @@ class _InstructionsPageState extends State<InstructionsPage> {
           ? 'Não foi possível carregar as instruções do questionário.'
           : null,
       appBar: AppBar(
-        title: Text('Instruções - ${_survey?.surveyName ?? ''}'),
-        backgroundColor: Colors.amber,
+        title: const Text('Instruções'),
+        automaticallyImplyLeading: false,
       ),
       child: Center(
         child: Container(
@@ -181,15 +181,21 @@ class _InstructionsPageState extends State<InstructionsPage> {
                           child: Container(
                             padding: const EdgeInsets.all(12.0),
                             decoration: BoxDecoration(
-                              color: Colors.red.shade50,
-                              border: Border.all(color: Colors.red.shade200),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.errorContainer,
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
                               borderRadius: BorderRadius.circular(8.0),
                             ),
                             child: Row(
                               children: [
                                 Icon(
                                   Icons.error_outline,
-                                  color: Colors.red.shade700,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onErrorContainer,
                                   size: 20,
                                 ),
                                 const SizedBox(width: 8),
@@ -197,7 +203,9 @@ class _InstructionsPageState extends State<InstructionsPage> {
                                   child: Text(
                                     'Por favor, selecione a resposta correta para continuar.',
                                     style: TextStyle(
-                                      color: Colors.red.shade700,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.onErrorContainer,
                                       fontSize: 14,
                                     ),
                                   ),
@@ -220,8 +228,6 @@ class _InstructionsPageState extends State<InstructionsPage> {
                   onPressed: _startSurvey,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.amber,
-                    foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),

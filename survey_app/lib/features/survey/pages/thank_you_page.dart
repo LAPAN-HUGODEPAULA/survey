@@ -19,6 +19,7 @@ import 'package:path/path.dart' as path;
 import 'package:universal_html/html.dart' as html;
 import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/core/models/survey/question.dart';
+import 'package:survey_app/core/services/asset_loader.dart';
 import 'package:survey_app/core/models/survey_response.dart';
 
 /// Página de agradecimento final do questionário.
@@ -134,11 +135,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
     }
   }
 
-  /// Carrega dados do survey do arquivo JSON.
+  /// Carrega dados do survey do arquivo JSON usando o AssetLoader.
   Future<Map<String, dynamic>> _loadSurveyData(String surveyPath) async {
     try {
-      final String response = await rootBundle.loadString(surveyPath);
-      return json.decode(response);
+      return await AssetLoader.loadJsonMap(surveyPath);
     } catch (e) {
       return {};
     }
@@ -205,10 +205,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
       final bytes = utf8.encode(jsonString);
       final blob = html.Blob([bytes]);
       final url = html.Url.createObjectUrlFromBlob(blob);
-
-      final anchor = html.AnchorElement(href: url)
-        ..setAttribute('download', fileName)
-        ..click();
 
       html.Url.revokeObjectUrl(url);
 
@@ -291,17 +287,19 @@ class _ThankYouPageState extends State<ThankYouPage> {
                   ),
                   const SizedBox(height: 24),
                 ] else if (_saveSuccess) ...[
-                  const Icon(
+                  Icon(
                     Icons.check_circle_outline,
-                    color: Colors.green,
+                    color: Theme.of(context).colorScheme.tertiary,
                     size: 100,
                   ),
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      border: Border.all(color: Colors.green.shade200),
+                      color: Theme.of(context).colorScheme.tertiaryContainer,
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Column(
@@ -309,7 +307,12 @@ class _ThankYouPageState extends State<ThankYouPage> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.save_alt, color: Colors.green.shade700),
+                            Icon(
+                              Icons.save_alt,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onTertiaryContainer,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -332,7 +335,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                                 : 'Localização: $_savedFilePath',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.green.shade700,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onTertiaryContainer,
                               fontFamily: 'monospace',
                             ),
                           ),
@@ -342,18 +347,27 @@ class _ThankYouPageState extends State<ThankYouPage> {
                   ),
                   const SizedBox(height: 24),
                 ] else if (_saveError != null) ...[
-                  const Icon(Icons.error_outline, color: Colors.red, size: 100),
+                  Icon(
+                    Icons.error_outline,
+                    color: Theme.of(context).colorScheme.error,
+                    size: 100,
+                  ),
                   const SizedBox(height: 16),
                   Container(
                     padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      border: Border.all(color: Colors.red.shade200),
+                      color: Theme.of(context).colorScheme.errorContainer,
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.warning, color: Colors.red.shade700),
+                        Icon(
+                          Icons.warning,
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -409,8 +423,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
                   Container(
                     padding: const EdgeInsets.all(20.0),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      border: Border.all(color: Colors.blue.shade200),
+                      color: Theme.of(context).colorScheme.secondaryContainer,
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                     child: Column(
@@ -420,7 +436,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                           children: [
                             Icon(
                               Icons.info_outline,
-                              color: Colors.blue.shade700,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSecondaryContainer,
                               size: 24,
                             ),
                             const SizedBox(width: 8),
@@ -429,7 +447,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade700,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSecondaryContainer,
                               ),
                             ),
                           ],
@@ -475,8 +495,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
                       horizontal: 24,
                       vertical: 12,
                     ),
-                    backgroundColor: Colors.amber,
-                    foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
