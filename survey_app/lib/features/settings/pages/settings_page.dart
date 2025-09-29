@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/features/survey/pages/survey_details_page.dart';
+import 'package:survey_app/core/utils/formatters.dart';
 
 /// Página de configurações da aplicação de questionários.
 ///
@@ -158,9 +159,7 @@ class _SettingsPageState extends State<SettingsPage> {
   /// ```dart
   /// getSurveyNameFromPath('assets/surveys/lapan_q7.json') // retorna 'lapan_q7'
   /// ```
-  String getSurveyNameFromPath(String path) {
-    return path.split('/').last.replaceAll('.json', '');
-  }
+  String getSurveyNameFromPath(String path) => Formatters.surveyFileStem(path);
 
   /// Navega para a página de detalhes do questionário selecionado.
   ///
@@ -357,7 +356,9 @@ class _SettingsPageState extends State<SettingsPage> {
                             items: settings.availableSurveyPaths.map((path) {
                               return DropdownMenuItem(
                                 value: path,
-                                child: Text(getSurveyNameFromPath(path)),
+                                child: Text(
+                                  Formatters.prettifySurveyName(path),
+                                ),
                               );
                             }).toList(),
                             validator: (value) =>
@@ -440,7 +441,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         _buildStatusItem(
                           'Questionário selecionado:',
                           settings.selectedSurveyPath != null
-                              ? getSurveyNameFromPath(
+                              ? Formatters.prettifySurveyName(
                                   settings.selectedSurveyPath!,
                                 )
                               : 'Nenhum selecionado',

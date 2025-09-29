@@ -6,9 +6,10 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:survey_app/core/models/survey/survey.dart';
-import 'package:survey_app/features/survey/pages/thank_you_page.dart';
+import 'package:survey_app/core/navigation/app_navigator.dart';
+import 'package:survey_app/core/repositories/survey_repository.dart';
+import 'package:survey_app/widgets/common/async_scaffold.dart';
 
 /// Página que apresenta as perguntas do questionário sequencialmente.
 ///
@@ -47,6 +48,8 @@ class _SurveyPageState extends State<SurveyPage> {
   /// Flag que indica se o questionário ainda está carregando
   bool _isLoading = true;
 
+  final SurveyRepository _surveyRepository = SurveyRepository();
+
   @override
   void initState() {
     super.initState();
@@ -61,9 +64,9 @@ class _SurveyPageState extends State<SurveyPage> {
   /// Throws [Exception] se não conseguir carregar ou deserializar o arquivo.
   Future<void> _loadSurveyQuestions() async {
     try {
-      final String jsonString = await rootBundle.loadString(widget.surveyPath);
+      final loaded = await _surveyRepository.getByPath(widget.surveyPath);
       setState(() {
-        _survey = surveyFromJson(jsonString);
+        _survey = loaded;
         _isLoading = false;
       });
     } catch (e) {
@@ -90,47 +93,36 @@ class _SurveyPageState extends State<SurveyPage> {
       });
     } else {
       // Chegou ao final do questionário
-      Navigator.pushReplacement(
+      AppNavigator.replaceWithThankYou(
         context,
-        MaterialPageRoute(
-          builder: (context) => ThankYouPage(
-            finalNotes: _survey?.finalNotes,
-            surveyName: _survey?.surveyName,
-            surveyId: _survey?.surveyId,
-            surveyAnswers: _answers,
-            surveyQuestions: _survey!.questions,
-          ),
-        ),
+        finalNotes: _survey?.finalNotes,
+        surveyName: _survey?.surveyName,
+        surveyId: _survey?.id,
+        surveyAnswers: _answers,
+        surveyQuestions: _survey!.questions,
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Tela de carregamento
-    if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    final currentQuestion = _survey?.questions[_currentQuestionIndex];
 
-    // Tela de erro se não conseguiu carregar
-    if (_survey == null) {
-      return const Scaffold(
-        body: Center(child: Text('Não foi possível carregar o questionário.')),
-      );
-    }
-
-    final currentQuestion = _survey!.questions[_currentQuestionIndex];
-
-    return Scaffold(
+    return AsyncScaffold(
+      isLoading: _isLoading,
+      error: _survey == null && !_isLoading
+          ? 'Não foi possível carregar o questionário.'
+          : null,
       appBar: AppBar(
         title: Text(
-          '${_survey!.surveyName}: Pergunta ${_currentQuestionIndex + 1} '
-          'de ${_survey!.questions.length}',
+          _survey == null
+              ? 'Carregando Questionário'
+              : '${_survey!.surveyName}: Pergunta ${_currentQuestionIndex + 1} de ${_survey!.questions.length}',
         ),
         backgroundColor: Colors.amber,
         automaticallyImplyLeading: false,
       ),
-      body: Center(
+      child: Center(
         child: Container(
           padding: const EdgeInsets.all(24.0),
           constraints: const BoxConstraints(maxWidth: 600),
@@ -140,7 +132,7 @@ class _SurveyPageState extends State<SurveyPage> {
             children: [
               // Texto da pergunta
               Text(
-                currentQuestion.questionText,
+                currentQuestion?.questionText ?? '',
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -150,7 +142,8 @@ class _SurveyPageState extends State<SurveyPage> {
               const SizedBox(height: 40),
 
               // Botões de resposta
-              ..._buildAnswerButtons(currentQuestion.answers),
+              if (currentQuestion != null)
+                ..._buildAnswerButtons(currentQuestion.answers),
             ],
           ),
         ),

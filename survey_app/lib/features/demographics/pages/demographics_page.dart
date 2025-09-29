@@ -6,12 +6,13 @@
 /// e email de contato.
 library;
 
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
-import 'package:survey_app/features/instructions/pages/instructions_page.dart';
+import 'package:survey_app/core/navigation/app_navigator.dart';
+import 'package:survey_app/core/services/asset_list_provider.dart';
+import 'package:survey_app/features/settings/pages/settings_page.dart';
 
 /// Página que coleta informações demográficas do usuário.
 ///
@@ -181,16 +182,13 @@ class _DemographicsPageState extends State<DemographicsPage> {
   /// Em caso de erro, define [_isLoadingDiagnoses] como false e exibe erro no console.
   Future<void> _loadDiagnoses() async {
     try {
-      final String response = await rootBundle.loadString(
+      final List<String> diagnosesList = await AssetListProvider.loadStringList(
         'assets/data/diagnoses.json',
+        'diagnoses',
       );
-      final Map<String, dynamic> data = json.decode(response);
-
-      // Extrai a lista de diagnósticos da propriedade "diagnoses"
-      final List<dynamic> diagnosesList = data['diagnoses'] ?? [];
 
       setState(() {
-        _diagnosesList = diagnosesList.cast<String>();
+        _diagnosesList = diagnosesList;
         // Inicializa todos os diagnósticos como não selecionados
         _selectedDiagnoses = {
           for (String diagnosis in _diagnosesList) diagnosis: false,
@@ -207,12 +205,12 @@ class _DemographicsPageState extends State<DemographicsPage> {
   /// Carrega a lista de níveis de escolaridade do arquivo assets/data/education_level.json.
   Future<void> _loadEducationLevels() async {
     try {
-      final String response = await rootBundle.loadString(
+      final list = await AssetListProvider.loadStringList(
         'assets/data/education_level.json',
+        'educationLevel',
       );
-      final data = json.decode(response);
       setState(() {
-        _educationLevels = List<String>.from(data['educationLevel']);
+        _educationLevels = list;
         _isLoadingEducationLevels = false;
       });
     } catch (e) {
@@ -230,12 +228,12 @@ class _DemographicsPageState extends State<DemographicsPage> {
   /// Carrega a lista de profissões do arquivo assets/data/professions.json.
   Future<void> _loadProfessions() async {
     try {
-      final String response = await rootBundle.loadString(
+      final list = await AssetListProvider.loadStringList(
         'assets/data/professions.json',
+        'professions',
       );
-      final data = json.decode(response);
       setState(() {
-        _professions = List<String>.from(data['professions']);
+        _professions = list;
         _isLoadingProfessions = false;
       });
     } catch (e) {
@@ -556,12 +554,9 @@ class _DemographicsPageState extends State<DemographicsPage> {
       );
 
       // Navega para a página de instruções
-      Navigator.push(
+      AppNavigator.toInstructions(
         context,
-        MaterialPageRoute(
-          builder: (context) =>
-              InstructionsPage(surveyPath: settings.selectedSurveyPath!),
-        ),
+        surveyPath: settings.selectedSurveyPath!,
       );
     } else {
       // Se o formulário não for válido, exibe uma mensagem de erro geral

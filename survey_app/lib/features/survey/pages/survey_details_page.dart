@@ -5,10 +5,11 @@
 /// A descrição pode conter formatação HTML.
 library;
 
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_html/flutter_html.dart';
+import 'package:survey_app/core/utils/formatters.dart';
+import 'package:survey_app/core/repositories/survey_repository.dart';
+import 'package:survey_app/widgets/common/async_scaffold.dart';
 
 /// Página que exibe informações detalhadas de um questionário.
 ///
@@ -52,6 +53,8 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
   /// Mensagem de erro caso ocorra falha no carregamento
   String? _errorMessage;
 
+  final SurveyRepository _surveyRepository = SurveyRepository();
+
   @override
   void initState() {
     super.initState();
@@ -67,9 +70,7 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
   /// Throws [Exception] se não conseguir carregar ou deserializar o arquivo.
   Future<void> _loadSurveyDetails() async {
     try {
-      final String jsonString = await rootBundle.loadString(widget.surveyPath);
-      final Map<String, dynamic> jsonData = json.decode(jsonString);
-
+      final jsonData = await _surveyRepository.getRawByPath(widget.surveyPath);
       setState(() {
         _surveyData = jsonData;
         _isLoading = false;
@@ -83,24 +84,24 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
     }
   }
 
+  /// Converte qualquer valor em [String] de forma segura.
+  ///
+  /// Retorna [fallback] quando o valor for nulo ou, no caso de string,
+  /// estiver vazia após trim. Caso contrário, chama `toString()`.
+  String _asString(dynamic value, {String fallback = 'Não informado'}) {
+    if (value == null) return fallback;
+    if (value is String && value.trim().isEmpty) return fallback;
+    return value.toString();
+  }
+
   /// Formata uma data para exibição em formato brasileiro.
   ///
   /// [dateString] - String da data no formato ISO ou similar
   ///
   /// Returns a data formatada ou a string original se não conseguir formatar
   String _formatDate(String? dateString) {
-    if (dateString == null || dateString.isEmpty) {
-      return 'Não informado';
-    }
-
-    try {
-      // Tenta fazer o parse da data
-      final DateTime date = DateTime.parse(dateString.replaceAll(' ', 'T'));
-      return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} às ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-    } catch (e) {
-      // Se não conseguir fazer o parse, retorna a string original
-      return dateString;
-    }
+    final formatted = Formatters.formatIsoDateBr(dateString);
+    return formatted.isEmpty ? 'Não informado' : formatted;
   }
 
   /// Constrói um card com informações do questionário.
@@ -135,14 +136,14 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AsyncScaffold(
+      isLoading: _isLoading,
+      error: _errorMessage,
       appBar: AppBar(
         title: Text('Detalhes - ${widget.surveyDisplayName}'),
         backgroundColor: Colors.amber,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _errorMessage != null
+      child: _errorMessage != null
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -180,17 +181,14 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildDetailRow(
-                          'ID:',
-                          _surveyData!['surveyId'] ?? 'Não informado',
-                        ),
+                        _buildDetailRow('ID:', _asString(_surveyData!['_id'])),
                         _buildDetailRow(
                           'Nome:',
-                          _surveyData!['surveyName'] ?? 'Não informado',
+                          _asString(_surveyData!['surveyName']),
                         ),
                         _buildDetailRow(
                           'Criador:',
-                          _surveyData!['creatorName'] ?? 'Não informado',
+                          _asString(_surveyData!['creatorName']),
                         ),
                         if (_surveyData!['creatorContact'] != null &&
                             _surveyData!['creatorContact']
@@ -198,7 +196,7 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
                                 .isNotEmpty)
                           _buildDetailRow(
                             'Contato:',
-                            _surveyData!['creatorContact'],
+                            _asString(_surveyData!['creatorContact']),
                           ),
                       ],
                     ),
@@ -230,7 +228,10 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
                                 .toString()
                                 .contains('<')
                         ? Html(
-                            data: _surveyData!['surveyDescription'],
+                            data: _asString(
+                              _surveyData!['surveyDescription'],
+                              fallback: 'Nenhuma descrição disponível.',
+                            ),
                             style: {
                               "body": Style(
                                 fontSize: FontSize(16.0),
@@ -240,8 +241,10 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
                             },
                           )
                         : Text(
-                            _surveyData!['surveyDescription'] ??
-                                'Nenhuma descrição disponível.',
+                            _asString(
+                              _surveyData!['surveyDescription'],
+                              fallback: 'Nenhuma descrição disponível.',
+                            ),
                             style: const TextStyle(fontSize: 16),
                           ),
                   ),
@@ -271,7 +274,7 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
                     _buildInfoCard(
                       'Notas Finais',
                       Html(
-                        data: _surveyData!['finalNotes'],
+                        data: _asString(_surveyData!['finalNotes']),
                         style: {
                           "body": Style(
                             fontSize: FontSize(16.0),

@@ -5,14 +5,14 @@
 /// As instruções são carregadas dinamicamente do arquivo JSON do questionário.
 library;
 
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_html/flutter_html.dart';
 import 'package:provider/provider.dart';
 import 'package:survey_app/core/models/survey/survey.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
-import 'package:survey_app/features/survey/pages/survey_page.dart';
+import 'package:survey_app/core/navigation/app_navigator.dart';
+import 'package:survey_app/core/repositories/survey_repository.dart';
+import 'package:survey_app/widgets/common/async_scaffold.dart';
 
 ///';
 /// Página que apresenta instruções do questionário e verifica compreensão.
@@ -56,6 +56,8 @@ class _InstructionsPageState extends State<InstructionsPage> {
   /// Flag que indica se as instruções ainda estão carregando
   bool _isLoading = true;
 
+  final SurveyRepository _surveyRepository = SurveyRepository();
+
   @override
   void initState() {
     super.initState();
@@ -70,11 +72,9 @@ class _InstructionsPageState extends State<InstructionsPage> {
   /// Throws [Exception] se não conseguir carregar ou deserializar o arquivo.
   Future<void> _loadSurveyInstructions() async {
     try {
-      final String jsonString = await rootBundle.loadString(widget.surveyPath);
-      final Map<String, dynamic> jsonData = json.decode(jsonString);
-
+      final loaded = await _surveyRepository.getByPath(widget.surveyPath);
       setState(() {
-        _survey = Survey.fromJson(jsonData);
+        _survey = loaded;
         _isLoading = false;
       });
     } catch (e) {
@@ -96,12 +96,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
     setState(() {
       if (_comprehensionAnswer == _survey!.instructions.correctAnswer) {
         _showError = false;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => SurveyPage(surveyPath: widget.surveyPath),
-          ),
-        );
+        AppNavigator.replaceWithSurvey(context, surveyPath: widget.surveyPath);
       } else {
         _showError = true;
       }
@@ -110,33 +105,21 @@ class _InstructionsPageState extends State<InstructionsPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Tela de carregamento
-    if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    final hasError = _survey?.instructions == null && !_isLoading;
 
-    // Tela de erro se não conseguiu carregar
-    if (_survey?.instructions == null) {
-      return const Scaffold(
-        appBar: null,
-        body: Center(
-          child: Text(
-            'Não foi possível carregar as instruções do questionário.',
-            style: TextStyle(fontSize: 16),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
+    // While loading or if survey not yet available, rely on AsyncScaffold to show loader/error
+    final instructions = _survey?.instructions;
 
-    final instructions = _survey!.instructions;
-
-    return Scaffold(
+    return AsyncScaffold(
+      isLoading: _isLoading,
+      error: hasError
+          ? 'Não foi possível carregar as instruções do questionário.'
+          : null,
       appBar: AppBar(
-        title: Text('Instruções - ${_survey!.surveyName}'),
+        title: Text('Instruções - ${_survey?.surveyName ?? ''}'),
         backgroundColor: Colors.amber,
       ),
-      body: Center(
+      child: Center(
         child: Container(
           padding: const EdgeInsets.all(24.0),
           constraints: const BoxConstraints(maxWidth: 700),
@@ -151,7 +134,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
                     children: [
                       // Preâmbulo em HTML
                       Html(
-                        data: instructions.preamble,
+                        data: instructions?.preamble ?? '',
                         style: {
                           "body": Style(
                             fontSize: FontSize(16.0),
@@ -169,7 +152,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
 
                       // Pergunta de compreensão
                       Text(
-                        instructions.questionText,
+                        instructions?.questionText ?? '',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
@@ -178,7 +161,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
                       const SizedBox(height: 16),
 
                       // Opções de resposta
-                      ...instructions.answers.map(
+                      ...((instructions?.answers ?? const <String>[]).map(
                         (option) => RadioListTile<String>(
                           title: Text(option),
                           value: option,
@@ -189,7 +172,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
                           }),
                           contentPadding: EdgeInsets.zero,
                         ),
-                      ),
+                      )),
 
                       // Mensagem de erro
                       if (_showError)
@@ -362,7 +345,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 const Center(child: CircularProgressIndicator())
               else
                 DropdownButtonFormField<String>(
-                  value: appSettings.selectedSurveyPath,
+                  initialValue: appSettings.selectedSurveyPath,
                   decoration: const InputDecoration(
                     labelText: 'Questionário Ativo',
                     border: OutlineInputBorder(),

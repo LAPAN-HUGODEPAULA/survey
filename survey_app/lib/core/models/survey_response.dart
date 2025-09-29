@@ -2,7 +2,7 @@ import 'package:survey_app/core/models/patient.dart';
 import 'package:survey_app/core/models/screener.dart';
 
 class SurveyResponse {
-  final String surveyId;
+  final String surveyId; // Will be sourced from Survey.id ("_id" in JSON)
   final String creatorName;
   final String creatorContact;
   final DateTime testDate;
@@ -22,7 +22,8 @@ class SurveyResponse {
 
   factory SurveyResponse.fromJson(Map<String, dynamic> json) {
     return SurveyResponse(
-      surveyId: json['surveyId'],
+      // Accept both legacy 'surveyId' and new '_id' for compatibility
+      surveyId: json['_id'] ?? json['surveyId'],
       creatorName: json['creatorName'],
       creatorContact: json['creatorContact'],
       testDate: DateTime.parse(json['testDate']),
@@ -36,7 +37,8 @@ class SurveyResponse {
 
   Map<String, dynamic> toJson() {
     return {
-      'surveyId': surveyId,
+      // Persist using new key name
+      '_id': surveyId,
       'creatorName': creatorName,
       'creatorContact': creatorContact,
       'testDate': testDate.toIso8601String(),

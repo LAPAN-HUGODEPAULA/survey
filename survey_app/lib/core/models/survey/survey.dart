@@ -22,7 +22,7 @@ Survey surveyFromJson(String str) => Survey.fromJson(json.decode(str));
 /// Exemplo de uso:
 /// ```dart
 /// final survey = Survey(
-///   surveyId: "exemplo_01",
+///   id: "exemplo_01",
 ///   surveyName: "Questionário de Exemplo",
 ///   instructions: instructions,
 ///   questions: [question1, question2, question3]
@@ -30,7 +30,7 @@ Survey surveyFromJson(String str) => Survey.fromJson(json.decode(str));
 /// ```
 class Survey {
   /// Identificador único do questionário
-  final String surveyId;
+  final String id;
 
   /// Nome do questionário
   final String surveyName;
@@ -61,7 +61,7 @@ class Survey {
 
   /// Cria uma nova instância de Survey.
   ///
-  /// [surveyId] - Identificador único do questionário
+  /// [id] - Identificador único do questionário
   /// [surveyName] - Nome do questionário
   /// [surveyDescription] - Descrição do questionário
   /// [creatorName] - Nome do criador
@@ -72,7 +72,7 @@ class Survey {
   /// [questions] - Lista de perguntas do questionário
   /// [finalNotes] - Notas finais em HTML (opcional)
   Survey({
-    required this.surveyId,
+    required this.id,
     required this.surveyName,
     required this.surveyDescription,
     required this.creatorName,
@@ -91,7 +91,7 @@ class Survey {
   /// Expected JSON structure:
   /// ```json
   /// {
-  ///   "surveyId": "questionario_01",
+  ///   "_id": "questionario_01",
   ///   "surveyName": "Nome do Questionário",
   ///   "surveyDescription": "Descrição...",
   ///   "creatorName": "Criador",
@@ -104,7 +104,8 @@ class Survey {
   /// }
   /// ```
   factory Survey.fromJson(Map<String, dynamic> json) => Survey(
-    surveyId: json["surveyId"],
+    // Primary key is "_id"; accept legacy "surveyId" as fallback
+    id: json["_id"] ?? json["surveyId"],
     surveyName: json["surveyName"],
     surveyDescription: json["surveyDescription"],
     creatorName: json["creatorName"],

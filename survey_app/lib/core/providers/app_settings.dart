@@ -10,6 +10,7 @@ library;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:survey_app/core/utils/formatters.dart';
 import 'package:survey_app/core/models/patient.dart';
 import 'package:survey_app/core/models/screener.dart';
 
@@ -57,23 +58,7 @@ class AppSettings extends ChangeNotifier {
     if (_selectedSurveyPath == null) {
       return "Nenhum questionário selecionado";
     }
-    // Ex: 'assets/surveys/chyps_v_br20.json' -> 'chyps v br20'
-    String name = _selectedSurveyPath!
-        .split('/')
-        .last
-        .replaceAll('.json', '')
-        .replaceAll('_', ' ')
-        .replaceAll('-', ' ');
-
-    // Capitaliza a primeira letra de cada palavra
-    return name
-        .split(' ')
-        .map((word) {
-          if (word.isEmpty) return '';
-          // Garante que a palavra não seja vazia antes de acessar o primeiro caractere
-          return word[0].toUpperCase() + word.substring(1);
-        })
-        .join(' ');
+    return Formatters.prettifySurveyName(_selectedSurveyPath!);
   }
 
   /// Retorna o surveyId extraído do caminho do questionário selecionado.
