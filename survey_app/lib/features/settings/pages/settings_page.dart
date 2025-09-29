@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/features/survey/pages/survey_details_page.dart';
 import 'package:survey_app/core/utils/formatters.dart';
+import 'package:survey_app/core/utils/validator_sets.dart';
 
 /// Página de configurações da aplicação de questionários.
 ///
@@ -63,91 +64,7 @@ class _SettingsPageState extends State<SettingsPage> {
     super.dispose();
   }
 
-  /// Valida o nome completo do responsável.
-  ///
-  /// [name] - String do nome a ser validada
-  ///
-  /// Returns string de erro se inválido, null se válido
-  String? _validateName(String? name) {
-    if (name == null || name.isEmpty) {
-      return 'Por favor, insira o nome completo do responsável.';
-    }
-
-    if (name.trim().length < 5) {
-      return 'O nome deve ter pelo menos 5 caracteres.';
-    }
-
-    // Regex para validar apenas caracteres alfabéticos e espaços
-    final nameRegex = RegExp(r'^[a-zA-ZÀ-ÿ\s]+$');
-    if (!nameRegex.hasMatch(name.trim())) {
-      return 'O nome deve conter apenas letras e espaços.';
-    }
-
-    return null;
-  }
-
-  /// Valida se o email tem formato válido.
-  ///
-  /// [email] - String do email a ser validada
-  ///
-  /// Returns string de erro se inválido, null se válido
-  String? _validateEmail(String? email) {
-    if (email == null || email.isEmpty) {
-      return 'Por favor, insira o email de contato do responsável.';
-    }
-
-    // Remove espaços em branco no início e fim
-    final emailTrimmed = email.trim();
-
-    // Verifica se contém pelo menos um @
-    if (!emailTrimmed.contains('@')) {
-      return 'Email deve conter o símbolo @.';
-    }
-
-    // Verifica se tem apenas um @
-    if (emailTrimmed.split('@').length != 2) {
-      return 'Email deve conter apenas um símbolo @.';
-    }
-
-    // Separa as partes antes e depois do @
-    final parts = emailTrimmed.split('@');
-    final localPart = parts[0];
-    final domainPart = parts[1];
-
-    // Valida parte local (antes do @)
-    if (localPart.isEmpty) {
-      return 'Email deve ter texto antes do @.';
-    }
-
-    // Valida parte do domínio (depois do @)
-    if (domainPart.isEmpty) {
-      return 'Email deve ter um domínio depois do @.';
-    }
-
-    // Verifica se o domínio contém pelo menos um ponto
-    if (!domainPart.contains('.')) {
-      return 'Domínio do email deve conter pelo menos um ponto.';
-    }
-
-    // Regex mais rigorosa para validação completa
-    final emailRegex = RegExp(
-      r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
-    );
-
-    if (!emailRegex.hasMatch(emailTrimmed)) {
-      return 'Por favor, insira um email válido (ex: usuario@exemplo.com).';
-    }
-
-    // Validação adicional: verifica se a extensão do domínio tem pelo menos 2 caracteres
-    final domainParts = domainPart.split('.');
-    final lastPart = domainParts.last;
-
-    if (lastPart.length < 2) {
-      return 'Extensão do domínio deve ter pelo menos 2 caracteres.';
-    }
-
-    return null;
-  }
+  // Validation methods are now provided by ValidatorSets and FormValidators
 
   /// Extrai um nome legível do caminho do arquivo de questionário.
   ///
@@ -219,17 +136,19 @@ class _SettingsPageState extends State<SettingsPage> {
             content: Text(
               'Campos obrigatórios não preenchidos:\n• ${validationErrors.join('\n• ')}',
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: Theme.of(context).colorScheme.error,
             duration: const Duration(seconds: 4),
           ),
         );
       } else {
         // Se apenas os campos de texto não passaram na validação
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Por favor, corrija os erros nos campos destacados.'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
+          SnackBar(
+            content: const Text(
+              'Por favor, corrija os erros nos campos destacados.',
+            ),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -238,10 +157,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
     // Se tudo estiver válido, mostra mensagem de sucesso e fecha
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Configurações salvas com sucesso!'),
-        backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
+      SnackBar(
+        content: const Text('Configurações salvas com sucesso!'),
+        backgroundColor: Theme.of(context).colorScheme.tertiary,
+        duration: const Duration(seconds: 2),
       ),
     );
 
@@ -253,10 +172,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return Consumer<AppSettings>(
       builder: (context, settings, child) {
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Configurações'),
-            backgroundColor: Colors.amber,
-          ),
+          appBar: AppBar(title: const Text('Configurações')),
           body: Form(
             key: _formKey,
             child: ListView(
@@ -278,7 +194,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     // Permite apenas letras, espaços e acentos
                     FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZÀ-ÿ\s]')),
                   ],
-                  validator: _validateName,
+                  validator: ValidatorSets.screenerName,
                   onChanged: (value) {
                     // Atualiza o nome nas configurações em tempo real
                     settings.setScreenerName(value);
@@ -299,7 +215,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
                   autovalidateMode: AutovalidateMode.onUserInteraction,
-                  validator: _validateEmail,
+                  validator: ValidatorSets.screenerEmail,
                   onChanged: (value) {
                     // Remove espaços automaticamente durante a digitação
                     final trimmedValue = value.replaceAll(' ', '');
@@ -383,9 +299,18 @@ class _SettingsPageState extends State<SettingsPage> {
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               backgroundColor:
                                   settings.selectedSurveyPath != null
-                                  ? Colors.amber.shade200
-                                  : Colors.grey,
-                              foregroundColor: Colors.black,
+                                  ? Theme.of(
+                                      context,
+                                    ).colorScheme.primaryContainer
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.surfaceContainerHighest,
+                              foregroundColor:
+                                  settings.selectedSurveyPath != null
+                                  ? Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer
+                                  : Theme.of(context).colorScheme.onSurface,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -400,7 +325,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
                 // Informações de status
                 Card(
-                  color: Colors.amber.shade50,
+                  color: Theme.of(context).colorScheme.primaryContainer,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -410,7 +335,9 @@ class _SettingsPageState extends State<SettingsPage> {
                           children: [
                             Icon(
                               Icons.info_outline,
-                              color: Colors.amber.shade700,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer,
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -418,7 +345,9 @@ class _SettingsPageState extends State<SettingsPage> {
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimaryContainer,
                               ),
                             ),
                           ],
@@ -463,15 +392,19 @@ class _SettingsPageState extends State<SettingsPage> {
                 Container(
                   padding: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    border: Border.all(color: Colors.blue.shade200),
+                    color: Theme.of(context).colorScheme.secondaryContainer,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.info_outline,
-                        color: Colors.blue.shade700,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSecondaryContainer,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -492,8 +425,6 @@ class _SettingsPageState extends State<SettingsPage> {
                   onPressed: _submitForm,
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Colors.amber,
-                    foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -525,14 +456,19 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           Icon(
             isValid ? Icons.check_circle : Icons.cancel,
-            color: isValid ? Colors.green : Colors.red,
+            color: isValid
+                ? Theme.of(context).colorScheme.tertiary
+                : Theme.of(context).colorScheme.error,
             size: 20,
           ),
           const SizedBox(width: 8),
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: const TextStyle(fontSize: 14, color: Colors.black87),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
                 children: [
                   TextSpan(
                     text: label,
