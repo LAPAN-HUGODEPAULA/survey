@@ -14,7 +14,11 @@
         "educationLevel": "Ensino superior completo",
         "profession": "Estudante",
         "medication": [],
-        "diagnoses": []
+        "diagnoses": [],
+        "family_history": "",
+        "social_history": "",
+        "medical_history": "",
+        "medication_history": ""
     },
     "answers": [
         {

@@ -22,7 +22,11 @@
             "Depressão (TDM)",
             "Distimia (TDP)",
             "Enxaqueca ou Migrânea"
-        ]
+        ],
+        "family_history": "",
+        "social_history": "",
+        "medical_history": "",
+        "medication_history": ""
     },
     "answers": [
         {
