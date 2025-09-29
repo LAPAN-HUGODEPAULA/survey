@@ -143,33 +143,10 @@ class _SurveyDetailsPageState extends State<SurveyDetailsPage> {
         title: Text('Detalhes - ${widget.surveyDisplayName}'),
         backgroundColor: Colors.amber,
       ),
-      child: _errorMessage != null
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.red.shade400,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _errorMessage!,
-                      style: const TextStyle(fontSize: 16),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Voltar'),
-                    ),
-                  ],
-                ),
-              ),
-            )
+      // Evita acessar _surveyData! enquanto ainda está carregando
+      // ou quando há erro. O AsyncScaffold já cuida desses estados.
+      child: (_isLoading || _errorMessage != null)
+          ? const SizedBox.shrink()
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Column(

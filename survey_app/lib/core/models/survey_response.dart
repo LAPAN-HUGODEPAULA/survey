@@ -1,5 +1,6 @@
 import 'package:survey_app/core/models/patient.dart';
 import 'package:survey_app/core/models/screener.dart';
+import 'package:survey_app/core/models/clinical_data.dart';
 
 class SurveyResponse {
   final String surveyId; // Will be sourced from Survey.id ("_id" in JSON)
@@ -8,6 +9,7 @@ class SurveyResponse {
   final DateTime testDate;
   final Screener screener;
   final Patient patient;
+  final ClinicalData clinicalData;
   final List<QuestionAnswer> questions;
 
   SurveyResponse({
@@ -18,6 +20,7 @@ class SurveyResponse {
     required this.screener,
     required this.patient,
     required this.questions,
+    required this.clinicalData,
   });
 
   factory SurveyResponse.fromJson(Map<String, dynamic> json) {
@@ -29,6 +32,9 @@ class SurveyResponse {
       testDate: DateTime.parse(json['testDate']),
       screener: Screener.fromJson(json),
       patient: Patient.fromJson(json),
+      clinicalData: ClinicalData.fromJson(
+        json['clinicalData'] as Map<String, dynamic>?,
+      ),
       questions: (json['questions'] as List)
           .map((q) => QuestionAnswer.fromJson(q))
           .toList(),
@@ -44,6 +50,7 @@ class SurveyResponse {
       'testDate': testDate.toIso8601String(),
       ...screener.toJson(),
       ...patient.toJson(),
+      ...clinicalData.toJson(),
       'questions': questions.map((q) => q.toJson()).toList(),
     };
   }

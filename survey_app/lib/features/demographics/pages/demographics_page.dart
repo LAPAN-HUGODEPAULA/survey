@@ -553,8 +553,8 @@ class _DemographicsPageState extends State<DemographicsPage> {
         diagnoses: selectedDiagnosesList,
       );
 
-      // Navega para a página de instruções
-      AppNavigator.toInstructions(
+      // Navega para a nova página clínica antes das instruções
+      AppNavigator.toClinical(
         context,
         surveyPath: settings.selectedSurveyPath!,
       );

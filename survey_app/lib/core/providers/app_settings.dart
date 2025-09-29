@@ -13,6 +13,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:survey_app/core/utils/formatters.dart';
 import 'package:survey_app/core/models/patient.dart';
 import 'package:survey_app/core/models/screener.dart';
+import 'package:survey_app/core/models/clinical_data.dart';
 
 /// Classe que gerencia as configurações globais da aplicação de questionários.
 ///
@@ -37,6 +38,9 @@ class AppSettings extends ChangeNotifier {
   // Dados demográficos do paciente
   Patient _patient = Patient.initial();
 
+  // Dados clínicos opcionais
+  ClinicalData _clinicalData = ClinicalData.initial();
+
   /// Retorna o nome do profissional responsável.
   Screener get screener => _screener;
 
@@ -48,6 +52,9 @@ class AppSettings extends ChangeNotifier {
 
   // Getters para dados demográficos
   Patient get patient => _patient;
+
+  // Getter para dados clínicos
+  ClinicalData get clinicalData => _clinicalData;
 
   /// Retorna um nome formatado e legível do questionário selecionado.
   ///
@@ -115,12 +122,31 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Define os dados clínicos opcionais do paciente.
+  ///
+  /// Todos os campos são opcionais e podem ser strings vazias.
+  void setClinicalData({
+    String? medicalHistory,
+    String? familyHistory,
+    String? socialData,
+    String? medicationHistory,
+  }) {
+    _clinicalData = _clinicalData.copyWith(
+      medicalHistory: medicalHistory,
+      familyHistory: familyHistory,
+      socialData: socialData,
+      medicationHistory: medicationHistory,
+    );
+    notifyListeners();
+  }
+
   /// Limpa todos os dados demográficos do paciente.
   ///
   /// Usado quando o usuário inicia uma nova avaliação para garantir
   /// que os campos da página demográfica sejam resetados.
   void clearPatientData() {
     _patient = Patient.initial();
+    _clinicalData = ClinicalData.initial();
     notifyListeners();
   }
 

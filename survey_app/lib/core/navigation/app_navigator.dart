@@ -2,6 +2,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:survey_app/features/instructions/pages/instructions_page.dart';
+import 'package:survey_app/features/clinical/pages/clinical_page.dart';
 import 'package:survey_app/features/survey/pages/survey_page.dart';
 import 'package:survey_app/features/survey/pages/thank_you_page.dart';
 import 'package:survey_app/core/models/survey/question.dart';
@@ -26,6 +27,13 @@ class AppNavigator {
     required String surveyPath,
   }) {
     return push(context, InstructionsPage(surveyPath: surveyPath));
+  }
+
+  static Future<void> toClinical(
+    BuildContext context, {
+    required String surveyPath,
+  }) {
+    return push(context, ClinicalPage(surveyPath: surveyPath));
   }
 
   static Future<void> replaceWithSurvey(

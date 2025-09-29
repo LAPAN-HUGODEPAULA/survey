@@ -109,6 +109,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
         testDate: DateTime.now(),
         screener: settings.screener,
         patient: settings.patient,
+        clinicalData: settings.clinicalData,
         questions: _buildQuestionsResponse(),
       );
 
