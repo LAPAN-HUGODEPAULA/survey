@@ -22,7 +22,11 @@
             "Transtorno da Compulsão Alimentar Periódica (TCAP)",
             "Transtorno de Estresse Pós-Traumático (TEPT)",
             "Transtorno do Espectro Autista (TEA)"
-        ]
+        ],
+        "family_history": "",
+        "social_history": "",
+        "medical_history": "",
+        "medication_history": ""
     },
     "answers": [
         {
