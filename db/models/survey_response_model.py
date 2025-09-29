@@ -1,9 +1,9 @@
-from pydantic import BaseModel, Field, ConfigDict, NaiveDatetime
+from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
-from app.models.patient_model import Patient
-from app.models.answer_model import Answer
+from models.patient_model import Patient
+from models.answer_model import Answer
 
 class SurveyResponse(BaseModel):
     id: Optional[str] = Field(default=None, alias="_id")

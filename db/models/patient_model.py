@@ -1,6 +1,6 @@
 from bson import ObjectId
-from pydantic import BaseModel, Field, ConfigDict, NaiveDatetime
-from typing import List
+from pydantic import BaseModel, Field, ConfigDict
+from typing import List, Optional
 
 class Patient(BaseModel):
     name: str
@@ -12,4 +12,8 @@ class Patient(BaseModel):
     profession: str
     medication: List[str]
     diagnoses: List[str]
-    model_config = ConfigDict(extra='forbid')
+    family_history: Optional[str] = Field(default="", alias="family_history")
+    social_history: Optional[str] = Field(default="", alias="social_history")
+    medical_history: Optional[str] = Field(default="", alias="medical_history")
+    medication_history: Optional[str] = Field(default="", alias="medication_history")
+    model_config = ConfigDict(populate_by_name=True, extra='forbid')

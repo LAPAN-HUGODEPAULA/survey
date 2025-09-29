@@ -23,10 +23,10 @@
             "Distimia (TDP)",
             "Enxaqueca ou Migrânea"
         ],
-        "family_history": "",
-        "social_history": "",
-        "medical_history": "",
-        "medication_history": ""
+        "family_history": "Mãe com diabetes mellitus tipo 2 e osteoporose. Tia materna com histórico de câncer de mama diagnosticado aos 55 anos. Sem casos conhecidos de doenças autoimunes.",
+        "social_history": "Professora, rotina ativa. Não fuma e não consome álcool. Pratica caminhada regularmente, 3 a 4 vezes por semana. Dieta balanceada com predominância de vegetais e alimentos integrais.",
+        "medical_history": "Hipotireoidismo diagnosticado há 8 anos. Histórico de enxaqueca recorrente desde a adolescência. Cesárea eletiva aos 32 anos. Sem internações hospitalares recentes.",
+        "medication_history": "Levotiroxina 75 mcg em jejum diariamente. Uso eventual de analgésicos comuns (dipirona ou paracetamol) para crises de enxaqueca."
     },
     "answers": [
         {

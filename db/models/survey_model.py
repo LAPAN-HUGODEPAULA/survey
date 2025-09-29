@@ -2,8 +2,8 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
-from app.models.instructions_model import Instructions
-from app.models.question_model import Question  
+from models.instructions_model import Instructions
+from models.question_model import Question  
 
 
 class Survey(BaseModel):

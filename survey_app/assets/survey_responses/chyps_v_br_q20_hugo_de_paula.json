@@ -23,10 +23,10 @@
             "Transtorno de Estresse Pós-Traumático (TEPT)",
             "Transtorno do Espectro Autista (TEA)"
         ],
-        "family_history": "",
-        "social_history": "",
-        "medical_history": "",
-        "medication_history": ""
+        "family_history": "Pai com histórico de hipertensão arterial e avô materno falecido por infarto agudo do miocárdio. Sem relatos de câncer hereditário na família.",
+        "social_history": "Trabalha em escritório, vida predominantemente sedentária. Ex-fumante (parou há 5 anos, após 10 anos de tabagismo). Consome álcool socialmente, cerca de 2 a 3 doses por semana. Dieta rica em carnes vermelhas e industrializados.",
+        "medical_history": "Hipertensão arterial diagnosticada aos 42 anos, atualmente em acompanhamento. Sofreu episódio de apneia do sono leve diagnosticada em polissonografia há 2 anos. Sem cirurgias prévias.",
+        "medication_history": "Uso diário de losartana 50 mg pela manhã. Relata adesão regular ao tratamento e ausência de efeitos adversos relevantes."
     },
     "answers": [
         {
