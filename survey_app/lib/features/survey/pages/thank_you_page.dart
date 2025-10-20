@@ -352,33 +352,51 @@ class _ThankYouPageState extends State<ThankYouPage> {
                         ),
                         if (_savedResponseId != null) ...[
                           const SizedBox(height: 8),
-                          Text(
-                            'Protocolo da submissão: $_savedResponseId',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.onTertiaryContainer,
-                              fontFamily: 'monospace',
-                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Protocolo da submissão: $_savedResponseId',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Theme.of(context).colorScheme.onTertiaryContainer,
+                                    fontFamily: 'monospace',
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ] else if (_savedFilePath != null) ...[
                           const SizedBox(height: 8),
-                          Text(
-                            'Arquivo salvo em: $_savedFilePath',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.onTertiaryContainer,
-                              fontFamily: 'monospace',
-                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  'Arquivo salvo em: $_savedFilePath',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Theme.of(context).colorScheme.onTertiaryContainer,
+                                    fontFamily: 'monospace',
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                         if (_saveError != null) ...[
                           const SizedBox(height: 12),
-                          Text(
-                            _saveError!,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.onTertiaryContainer,
-                            ),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _saveError!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Theme.of(context).colorScheme.onTertiaryContainer,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ],
