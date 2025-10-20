@@ -96,3 +96,37 @@ cd survey_app_local
 flutter pub get
 flutter run
 '''
+
+## 5. Padrão de Commits
+Este projeto utiliza o padrão **Conventional Commits** para manter um histórico de commits claro e legível. Todos os commits devem seguir este padrão.
+### Estrutura do Commit
+A mensagem de commit deve ter a seguinte estrutura:
+```
+<tipo>(<escopo>): <assunto>
+
+[corpo opcional]
+
+[rodapé opcional]
+```
+**Tipos de Commit:**
+- **feat**: Uma nova funcionalidade (feature).
+- **fix**: Uma correção de bug.
+- **refactor**: Uma alteração de código que não corrige um bug nem adiciona uma funcionalidade.
+- **chore**: Alterações em processos de build, ferramentas auxiliares e bibliotecas.
+- **docs**: Alterações na documentação.
+- **style**: Alterações que não afetam o significado do código (espaços em branco, formatação, etc.).
+- **test**: Adição ou correção de testes.
+**Escopo:**
+O escopo é opcional e indica a parte do codebase afetada pela alteração (ex: `db`, `api`, `app`, `auth`).
+### Commits Atômicos
+Cada commit deve ser **atômico**, ou seja, deve representar uma única mudança lógica e completa. Evite agrupar várias alterações não relacionadas em um único commit. Por exemplo, uma correção de bug e uma refatoração de código devem ser feitas em commits separados.
+### Exemplos
+```
+fix(db): allow multiple survey responses for same patient
+```
+```
+feat(api): improve API logging and fix response retrieval
+```
+```
+refactor(app): remove debug print statements
+```
