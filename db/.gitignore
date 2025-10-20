@@ -3,7 +3,6 @@ logs/
 *.log
 
 # Migration and assets (keep these if needed)
-migrate/
 assets/
 ../survey_app/assets/migrate/migrate_to_mongo.py
 
