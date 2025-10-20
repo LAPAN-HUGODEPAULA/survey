@@ -22,16 +22,19 @@ async def create_survey_response(survey_response: SurveyResponse, background_tas
     logger.info("Creating new survey response for survey: %s, patient: %s", survey_response.survey_id, survey_response.patient.name)
     try:
         survey_response_dict = survey_response.model_dump(by_alias=True)
-        logger.info("Survey response data prepared for insertion: survey_id=%s", survey_response.id)
+        if survey_response_dict.get("_id") is None:
+            del survey_response_dict["_id"]
+        logger.info("Survey response data prepared for insertion: survey_id=%s", survey_response.survey_id)
         
         response = db.survey_responses.insert_one(survey_response_dict)
         
         if not response.inserted_id:
-            logger.error("Failed to create survey response for survey %s - No insertion ID returned", survey_response.id)
+            logger.error("Failed to create survey response for survey %s - No insertion ID returned", survey_response.survey_id)
             raise HTTPException(status_code=500, detail="Survey response could not be created")
 
         logger.info("Successfully created survey response with MongoDB ID: %s", response.inserted_id)
 
+        survey_response_dict['_id'] = str(response.inserted_id)
         # Prepare JSON string of survey response for email
         survey_response_json = json.dumps(survey_response_dict, default=pydantic_encoder, indent=2)
 
