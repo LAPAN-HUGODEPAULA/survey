@@ -5,6 +5,7 @@
 /// and providing convenient access to commonly used data services.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:survey_app/core/services/form_data_service.dart';
 import 'package:survey_app/core/services/demographics_data_service.dart';
 
@@ -123,7 +124,7 @@ class FormDataServiceConfig {
       await DemographicsDataService.instance.loadAllData();
     } catch (e) {
       // Log error but don't throw to avoid disrupting app initialization
-      print('Warning: Failed to preload demographic data: $e');
+      debugPrint('Warning: Failed to preload demographic data: $e');
     }
   }
 

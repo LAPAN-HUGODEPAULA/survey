@@ -4,13 +4,14 @@
 /// seu contato e selecionar qual questionário será utilizado dentre os disponíveis.
 /// Também oferece acesso aos detalhes de cada questionário.
 library;
+// ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:survey_app/core/models/survey/survey.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/features/survey/pages/survey_details_page.dart';
-import 'package:survey_app/core/utils/formatters.dart';
 import 'package:survey_app/core/utils/validator_sets.dart';
 
 /// Página de configurações da aplicação de questionários.
@@ -48,7 +49,9 @@ class _SettingsPageState extends State<SettingsPage> {
     super.initState();
     // Carrega os questionários disponíveis e inicializa os controladores
     final settings = Provider.of<AppSettings>(context, listen: false);
-    settings.loadAvailableSurveys();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      settings.loadAvailableSurveys();
+    });
     _screenerNameController = TextEditingController(
       text: settings.screener.name,
     );
@@ -66,33 +69,12 @@ class _SettingsPageState extends State<SettingsPage> {
 
   // Validation methods are now provided by ValidatorSets and FormValidators
 
-  /// Extrai um nome legível do caminho do arquivo de questionário.
-  ///
-  /// [path] - Caminho completo do arquivo (ex: 'assets/surveys/lapan_q7.json')
-  ///
-  /// Returns o nome do arquivo sem extensão (ex: 'lapan_q7')
-  ///
-  /// Exemplo:
-  /// ```dart
-  /// getSurveyNameFromPath('assets/surveys/lapan_q7.json') // retorna 'lapan_q7'
-  /// ```
-  String getSurveyNameFromPath(String path) => Formatters.surveyFileStem(path);
-
   /// Navega para a página de detalhes do questionário selecionado.
-  ///
-  /// [surveyPath] - Caminho do questionário selecionado
-  ///
-  /// Só executa se há um questionário válido selecionado.
-  void _showSurveyDetails(String surveyPath) {
-    final displayName = getSurveyNameFromPath(surveyPath);
-
+  void _showSurveyDetails(Survey survey) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SurveyDetailsPage(
-          surveyPath: surveyPath,
-          surveyDisplayName: displayName,
-        ),
+        builder: (context) => SurveyDetailsPage(survey: survey),
       ),
     );
   }
@@ -124,7 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
     // Verificação se há questionário selecionado
     final settings = Provider.of<AppSettings>(context, listen: false);
-    if (settings.selectedSurveyPath == null) {
+    if (settings.selectedSurvey == null) {
       validationErrors.add('Selecione um questionário');
     }
 
@@ -171,6 +153,10 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Consumer<AppSettings>(
       builder: (context, settings, child) {
+        print('[SettingsPage] build -> isLoading=${settings.isLoadingSurveys}, '
+            'count=${settings.availableSurveys.length}, '
+            'selected=${settings.selectedSurveyId}, '
+            'error=${settings.surveyLoadError}');
         return Scaffold(
           appBar: AppBar(title: const Text('Configurações')),
           body: Form(
@@ -250,9 +236,25 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(height: 16),
 
                 // Dropdown de seleção do questionário
-                if (settings.availableSurveyPaths.isEmpty)
-                  const Center(child: CircularProgressIndicator())
-                else
+                if (settings.isLoadingSurveys) ...[
+                  const Center(child: CircularProgressIndicator()),
+                ] else if (settings.availableSurveys.isEmpty) ...[
+                  Card(
+                    color:
+                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        'Nenhum questionário foi encontrado no servidor. Verifique se o backend está em execução.',
+                        style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
+                ] else ...[
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -260,7 +262,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           DropdownButtonFormField<String>(
-                            value: settings.selectedSurveyPath,
+                            key: ValueKey(settings.selectedSurveyId),
+                            initialValue: settings.selectedSurveyId,
                             isExpanded: true,
                             decoration: const InputDecoration(
                               labelText: 'Questionário Selecionado *',
@@ -269,12 +272,13 @@ class _SettingsPageState extends State<SettingsPage> {
                                 horizontal: 16.0,
                               ),
                             ),
-                            items: settings.availableSurveyPaths.map((path) {
+                            items: settings.availableSurveys.map((survey) {
+                              final displayName = survey.surveyDisplayName.isNotEmpty
+                                  ? survey.surveyDisplayName
+                                  : survey.surveyName;
                               return DropdownMenuItem(
-                                value: path,
-                                child: Text(
-                                  Formatters.prettifySurveyName(path),
-                                ),
+                                value: survey.id,
+                                child: Text(displayName),
                               );
                             }).toList(),
                             validator: (value) =>
@@ -288,28 +292,26 @@ class _SettingsPageState extends State<SettingsPage> {
 
                           // Botão de detalhes do questionário
                           ElevatedButton.icon(
-                            onPressed: settings.selectedSurveyPath != null
+                            onPressed: settings.selectedSurvey != null
                                 ? () => _showSurveyDetails(
-                                    settings.selectedSurveyPath!,
-                                  )
+                                      settings.selectedSurvey!,
+                                    )
                                 : null,
                             icon: const Icon(Icons.info_outline),
                             label: const Text('Ver Detalhes do Questionário'),
                             style: ElevatedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 12),
-                              backgroundColor:
-                                  settings.selectedSurveyPath != null
-                                  ? Theme.of(
-                                      context,
-                                    ).colorScheme.primaryContainer
-                                  : Theme.of(
-                                      context,
-                                    ).colorScheme.surfaceContainerHighest,
-                              foregroundColor:
-                                  settings.selectedSurveyPath != null
-                                  ? Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimaryContainer
+                              backgroundColor: settings.selectedSurvey != null
+                                  ? Theme.of(context)
+                                      .colorScheme
+                                      .primaryContainer
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest,
+                              foregroundColor: settings.selectedSurvey != null
+                                  ? Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer
                                   : Theme.of(context).colorScheme.onSurface,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -320,6 +322,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ),
                     ),
                   ),
+                ],
 
                 const SizedBox(height: 32),
 
@@ -369,17 +372,15 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                         _buildStatusItem(
                           'Questionário selecionado:',
-                          settings.selectedSurveyPath != null
-                              ? Formatters.prettifySurveyName(
-                                  settings.selectedSurveyPath!,
-                                )
+                          settings.selectedSurvey != null
+                              ? settings.selectedSurveyName
                               : 'Nenhum selecionado',
-                          settings.selectedSurveyPath != null,
+                          settings.selectedSurvey != null,
                         ),
                         _buildStatusItem(
                           'Questionários disponíveis:',
-                          '${settings.availableSurveyPaths.length} encontrado(s)',
-                          settings.availableSurveyPaths.isNotEmpty,
+                          '${settings.availableSurveys.length} encontrado(s)',
+                          settings.availableSurveys.isNotEmpty,
                         ),
                       ],
                     ),

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 # Use absolute imports because this file is executed as a top-level module ("uvicorn main:app")
@@ -18,8 +19,16 @@ app = FastAPI(title="Survey Application API", version="1.0.0", lifespan=lifespan
 
 logger.info("Starting Survey Application API")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+logger.info("CORS middleware configured with permissive defaults")
+
 app.include_router(surveys_router, prefix="/api/v1", tags=["surveys"])
 app.include_router(survey_results_router, prefix="/api/v1", tags=["survey_results"])
 
 logger.info("API routers registered successfully")
-

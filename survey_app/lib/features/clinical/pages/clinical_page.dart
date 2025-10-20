@@ -13,9 +13,7 @@ import 'package:survey_app/core/providers/app_settings.dart';
 /// - Dados sociais
 /// - Histórico de medicação
 class ClinicalPage extends StatefulWidget {
-  final String surveyPath;
-
-  const ClinicalPage({super.key, required this.surveyPath});
+  const ClinicalPage({super.key});
 
   @override
   State<ClinicalPage> createState() => _ClinicalPageState();
@@ -67,7 +65,7 @@ class _ClinicalPageState extends State<ClinicalPage> {
     );
 
     // Avança para as instruções
-    AppNavigator.toInstructions(context, surveyPath: widget.surveyPath);
+    AppNavigator.toInstructions(context);
   }
 
   Widget _buildMultilineField({

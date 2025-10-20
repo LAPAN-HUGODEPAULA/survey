@@ -1,4 +1,5 @@
 // lib/providers/app_settings.dart
+// ignore_for_file: avoid_print
 ///
 /// Provedor de configurações globais da aplicação.
 ///
@@ -7,13 +8,13 @@
 /// Utiliza o padrão Provider para notificação de mudanças de estado.
 library;
 
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:survey_app/core/utils/formatters.dart';
+
+import 'package:survey_app/core/models/clinical_data.dart';
 import 'package:survey_app/core/models/patient.dart';
 import 'package:survey_app/core/models/screener.dart';
-import 'package:survey_app/core/models/clinical_data.dart';
+import 'package:survey_app/core/models/survey/survey.dart';
+import 'package:survey_app/core/repositories/survey_repository.dart';
 
 /// Classe que gerencia as configurações globais da aplicação de questionários.
 ///
@@ -26,77 +27,97 @@ import 'package:survey_app/core/models/clinical_data.dart';
 /// - Carregar questionários disponíveis dinamicamente
 /// - Controlar qual questionário está selecionado
 class AppSettings extends ChangeNotifier {
-  /// Nome do profissional responsável pela aplicação do questionário.
+  AppSettings({SurveyRepository? surveyRepository})
+      : _surveyRepository = surveyRepository ?? SurveyRepository();
+
+  final SurveyRepository _surveyRepository;
+
   Screener _screener = Screener.initial();
-
-  /// Caminho do questionário atualmente selecionado.
-  String? _selectedSurveyPath;
-
-  /// Lista de caminhos dos questionários disponíveis.
-  List<String> _availableSurveyPaths = [];
-
-  // Dados demográficos do paciente
   Patient _patient = Patient.initial();
-
-  // Dados clínicos opcionais
   ClinicalData _clinicalData = ClinicalData.initial();
 
-  /// Retorna o nome do profissional responsável.
+  List<Survey> _surveys = const [];
+  String? _selectedSurveyId;
+  bool _isLoadingSurveys = false;
+  String? _loadError;
+
   Screener get screener => _screener;
-
-  /// Retorna o caminho do questionário selecionado.
-  String? get selectedSurveyPath => _selectedSurveyPath;
-
-  /// Retorna a lista de questionários disponíveis.
-  List<String> get availableSurveyPaths => _availableSurveyPaths;
-
-  // Getters para dados demográficos
   Patient get patient => _patient;
-
-  // Getter para dados clínicos
   ClinicalData get clinicalData => _clinicalData;
+  bool get isLoadingSurveys => _isLoadingSurveys;
+  String? get surveyLoadError => _loadError;
 
-  /// Retorna um nome formatado e legível do questionário selecionado.
-  ///
-  /// Extrai o nome do arquivo do caminho, remove a extensão,
-  /// substitui hífens e underscores por espaços e capitaliza o resultado.
-  /// Retorna uma string padrão se nenhum questionário for selecionado.
-  String get selectedSurveyName {
-    if (_selectedSurveyPath == null) {
-      return "Nenhum questionário selecionado";
+  List<Survey> get availableSurveys => List.unmodifiable(_surveys);
+
+  Survey? get selectedSurvey {
+    if (_selectedSurveyId == null) return null;
+    try {
+      return _surveys.firstWhere((survey) => survey.id == _selectedSurveyId);
+    } catch (_) {
+      return null;
     }
-    return Formatters.prettifySurveyName(_selectedSurveyPath!);
   }
 
-  /// Retorna o surveyId extraído do caminho do questionário selecionado.
-  String? get selectedSurveyId {
-    if (_selectedSurveyPath == null) return null;
-    return _selectedSurveyPath!.split('/').last.replaceAll('.json', '');
+  String? get selectedSurveyId => _selectedSurveyId;
+
+  String get selectedSurveyName {
+    final survey = selectedSurvey;
+    if (survey == null) {
+      return 'Nenhum questionário selecionado';
+    }
+    return survey.surveyDisplayName.isNotEmpty
+        ? survey.surveyDisplayName
+        : survey.surveyName;
   }
 
-  /// Define o nome do profissional responsável.
-  ///
-  /// [name] - Novo nome do responsável
-  ///
-  /// Notifica todos os listeners sobre a mudança.
+  Future<void> loadAvailableSurveys() async {
+    if (_isLoadingSurveys) return;
+
+    _isLoadingSurveys = true;
+    _loadError = null;
+    notifyListeners();
+    print('[AppSettings] loadAvailableSurveys started (loading=$_isLoadingSurveys)');
+
+    try {
+      print('[AppSettings] Requesting surveys from repository...');
+      final surveys = await _surveyRepository.fetchAll();
+      print('[AppSettings] Retrieved ${surveys.length} survey(s)');
+      _surveys = surveys;
+      print('[AppSettings] Previous selected ID: $_selectedSurveyId');
+      if (_selectedSurveyId == null ||
+          !_surveys.any((survey) => survey.id == _selectedSurveyId)) {
+        _selectedSurveyId = surveys.isEmpty ? null : surveys.first.id;
+      }
+      print('[AppSettings] Updated selected ID: $_selectedSurveyId');
+    } catch (error) {
+      _loadError = error.toString();
+      print('[AppSettings] Error loading surveys: $_loadError');
+    } finally {
+      _isLoadingSurveys = false;
+      print('[AppSettings] loadAvailableSurveys completed (loading=$_isLoadingSurveys)');
+      notifyListeners();
+    }
+  }
+
+  void selectSurvey(String? id) {
+    if (id == null || id.isEmpty) {
+      _selectedSurveyId = null;
+    } else if (_selectedSurveyId != id) {
+      _selectedSurveyId = id;
+    }
+    notifyListeners();
+  }
+
   void setScreenerName(String name) {
     _screener = _screener.copyWith(name: name);
     notifyListeners();
   }
 
-  /// Define o contato do profissional responsável.
-  ///
-  /// [contact] - Novo contato do responsável (email, telefone, etc.)
-  ///
-  /// Notifica todos os listeners sobre a mudança.
   void setScreenerContact(String contact) {
     _screener = _screener.copyWith(email: contact);
     notifyListeners();
   }
 
-  /// Define os dados demográficos do paciente.
-  ///
-  /// Usado para armazenar todas as informações coletadas na página demográfica.
   void setPatientData({
     required String name,
     required String email,
@@ -116,15 +137,12 @@ class AppSettings extends ChangeNotifier {
       ethnicity: ethnicity,
       educationLevel: educationLevel,
       profession: profession,
-      medication: medication,
+      medication: _normaliseMedication(medication),
       diagnoses: diagnoses,
     );
     notifyListeners();
   }
 
-  /// Define os dados clínicos opcionais do paciente.
-  ///
-  /// Todos os campos são opcionais e podem ser strings vazias.
   void setClinicalData({
     String? medicalHistory,
     String? familyHistory,
@@ -137,57 +155,38 @@ class AppSettings extends ChangeNotifier {
       socialData: socialData,
       medicationHistory: medicationHistory,
     );
+
+    _patient = _patient.copyWith(
+      medicalHistory: _clinicalData.medicalHistory,
+      familyHistory: _clinicalData.familyHistory,
+      socialHistory: _clinicalData.socialData,
+      medicationHistory: _clinicalData.medicationHistory,
+    );
+
     notifyListeners();
   }
 
-  /// Limpa todos os dados demográficos do paciente.
-  ///
-  /// Usado quando o usuário inicia uma nova avaliação para garantir
-  /// que os campos da página demográfica sejam resetados.
   void clearPatientData() {
     _patient = Patient.initial();
     _clinicalData = ClinicalData.initial();
     notifyListeners();
   }
 
-  /// Seleciona um questionário específico.
-  ///
-  /// [path] - Caminho do questionário a ser selecionado
-  ///
-  /// Notifica todos os listeners sobre a mudança.
-  void selectSurvey(String? path) {
-    _selectedSurveyPath = path;
-    notifyListeners();
+  @override
+  void dispose() {
+    _surveyRepository.dispose();
+    super.dispose();
   }
 
-  /// Carrega dinamicamente os questionários disponíveis na pasta assets/surveys/.
-  ///
-  /// Lê o AssetManifest.json para descobrir todos os arquivos .json
-  /// na pasta de questionários. Se nenhum questionário estiver selecionado,
-  /// automaticamente seleciona o primeiro da lista.
-  ///
-  /// Throws [Exception] se não conseguir carregar o manifest.
-  Future<void> loadAvailableSurveys() async {
-    // Carrega o manifest que lista todos os assets da aplicação
-    final manifestContent = await rootBundle.loadString('AssetManifest.json');
-
-    final Map<String, dynamic> manifestMap = json.decode(manifestContent);
-
-    // Filtra apenas arquivos .json na pasta assets/surveys/
-    final surveyPaths = manifestMap.keys
-        .where(
-          (String key) =>
-              key.startsWith('assets/surveys/') && key.endsWith('.json'),
-        )
-        .toList();
-
-    _availableSurveyPaths = surveyPaths;
-
-    // Auto-seleciona o primeiro questionário se nenhum estiver selecionado
-    if (_selectedSurveyPath == null && _availableSurveyPaths.isNotEmpty) {
-      _selectedSurveyPath = _availableSurveyPaths.first;
+  List<String> _normaliseMedication(String medication) {
+    final normalised = medication.trim();
+    if (normalised.isEmpty || normalised.toLowerCase() == 'não aplicável') {
+      return const <String>[];
     }
-
-    notifyListeners();
+    return normalised
+        .split(',')
+        .map((entry) => entry.trim())
+        .where((entry) => entry.isNotEmpty)
+        .toList();
   }
 }

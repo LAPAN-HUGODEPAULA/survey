@@ -41,7 +41,7 @@ The project uses Docker containers for both MongoDB database and the FastAPI app
 
     ```bash
     # Build only the FastAPI app container
-    docker-compose build fastapi_app
+    docker-compose build survey_fastapi
     
     # Start all services
     docker-compose up -d
@@ -53,7 +53,7 @@ The MongoDB container will start with the following credentials:
 
 * **Username:** admin
 * **Password:** secret
-* **Database:** survey_app_db
+* **Database:** survey_db
 * **Port:** 27017
 
 ### Updating Container Builds After Code Changes
@@ -63,7 +63,7 @@ When you make changes to the application code, you need to rebuild the container
 1. **Rebuild and restart the FastAPI container after code changes:**
 
     ```bash
-    docker-compose up --build fastapi_app -d
+    docker-compose up --build survey_fastapi -d
     ```
 
 2. **Rebuild all containers (if needed):**
@@ -76,14 +76,14 @@ When you make changes to the application code, you need to rebuild the container
 3. **Force rebuild without using cache (for major changes):**
 
     ```bash
-    docker-compose build --no-cache fastapi_app
+    docker-compose build --no-cache survey_fastapi
     docker-compose up -d
     ```
 
 4. **Quick restart without rebuild (for testing):**
 
     ```bash
-    docker-compose restart fastapi_app
+    docker-compose restart survey_fastapi
     ```
 
 ### Container Management Commands
@@ -98,13 +98,13 @@ When you make changes to the application code, you need to rebuild the container
 
     ```bash
     # FastAPI app logs
-    docker-compose logs fastapi_app
+    docker-compose logs survey_fastapi
     
     # MongoDB logs
     docker-compose logs mongodb
     
     # Follow logs in real-time
-    docker-compose logs -f fastapi_app
+    docker-compose logs -f survey_fastapi
     ```
 
 * **Stop all containers:**
@@ -145,7 +145,7 @@ The project includes a Python script to migrate survey data from JSON files to t
 2. **Use database:**
 
     ```sql
-    use survey_app_db
+    use survey_db
     ```
 
 3. **Show collections:**

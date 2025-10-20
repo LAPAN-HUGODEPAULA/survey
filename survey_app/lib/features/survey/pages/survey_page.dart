@@ -8,8 +8,6 @@ library;
 import 'package:flutter/material.dart';
 import 'package:survey_app/core/models/survey/survey.dart';
 import 'package:survey_app/core/navigation/app_navigator.dart';
-import 'package:survey_app/core/repositories/survey_repository.dart';
-import 'package:survey_app/widgets/common/async_scaffold.dart';
 
 /// Página que apresenta as perguntas do questionário sequencialmente.
 ///
@@ -19,13 +17,9 @@ import 'package:survey_app/widgets/common/async_scaffold.dart';
 ///
 /// O progresso é mostrado no AppBar com contador de perguntas.
 class SurveyPage extends StatefulWidget {
-  /// Caminho para o arquivo JSON contendo o questionário
-  final String surveyPath;
+  const SurveyPage({super.key, required this.survey});
 
-  /// Cria uma página de questionário.
-  ///
-  /// [surveyPath] - Caminho para o arquivo JSON do questionário
-  const SurveyPage({super.key, required this.surveyPath});
+  final Survey survey;
 
   @override
   State<SurveyPage> createState() => _SurveyPageState();
@@ -36,46 +30,12 @@ class SurveyPage extends StatefulWidget {
 /// Controla o carregamento do questionário, navegação entre perguntas,
 /// coleta de respostas e finalização do processo.
 class _SurveyPageState extends State<SurveyPage> {
-  /// Objeto Survey carregado do arquivo JSON
-  Survey? _survey;
-
-  /// Índice da pergunta atual (baseado em zero)
   int _currentQuestionIndex = 0;
 
   /// Lista das respostas coletadas do usuário
   final List<String> _answers = [];
 
-  /// Flag que indica se o questionário ainda está carregando
-  bool _isLoading = true;
-
-  final SurveyRepository _surveyRepository = SurveyRepository();
-
-  @override
-  void initState() {
-    super.initState();
-    _loadSurveyQuestions();
-  }
-
-  /// Carrega o questionário do arquivo JSON especificado.
-  ///
-  /// Deserializa o arquivo JSON usando [surveyFromJson] e atualiza
-  /// o estado da página. Em caso de erro, exibe mensagem no console.
-  ///
-  /// Throws [Exception] se não conseguir carregar ou deserializar o arquivo.
-  Future<void> _loadSurveyQuestions() async {
-    try {
-      final loaded = await _surveyRepository.getByPath(widget.surveyPath);
-      setState(() {
-        _survey = loaded;
-        _isLoading = false;
-      });
-    } catch (e) {
-      print("Erro ao carregar o questionário: $e");
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
+  late final Survey _survey = widget.survey;
 
   /// Processa a resposta do usuário e avança para próxima pergunta.
   ///
@@ -87,7 +47,7 @@ class _SurveyPageState extends State<SurveyPage> {
   void _answerQuestion(String answer) {
     _answers.add(answer);
 
-    if (_currentQuestionIndex < _survey!.questions.length - 1) {
+    if (_currentQuestionIndex < _survey.questions.length - 1) {
       setState(() {
         _currentQuestionIndex++;
       });
@@ -95,33 +55,26 @@ class _SurveyPageState extends State<SurveyPage> {
       // Chegou ao final do questionário
       AppNavigator.replaceWithThankYou(
         context,
-        finalNotes: _survey?.finalNotes,
-        surveyName: _survey?.surveyName,
-        surveyId: _survey?.id,
+        survey: _survey,
         surveyAnswers: _answers,
-        surveyQuestions: _survey!.questions,
+        surveyQuestions: _survey.questions,
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentQuestion = _survey?.questions[_currentQuestionIndex];
+    final currentQuestion = _survey.questions[_currentQuestionIndex];
 
-    return AsyncScaffold(
-      isLoading: _isLoading,
-      error: _survey == null && !_isLoading
-          ? 'Não foi possível carregar o questionário.'
-          : null,
+    return Scaffold(
       appBar: AppBar(
         title: Text(
-          _survey == null
-              ? 'Carregando Questionário'
-              : '${_survey!.surveyName}: Pergunta ${_currentQuestionIndex + 1} de ${_survey!.questions.length}',
+          '${_survey.surveyDisplayName.isNotEmpty ? _survey.surveyDisplayName : _survey.surveyName}: '
+          'Pergunta ${_currentQuestionIndex + 1} de ${_survey.questions.length}',
         ),
         automaticallyImplyLeading: false,
       ),
-      child: Center(
+      body: Center(
         child: Container(
           padding: const EdgeInsets.all(24.0),
           constraints: const BoxConstraints(maxWidth: 600),
@@ -129,9 +82,8 @@ class _SurveyPageState extends State<SurveyPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Texto da pergunta
               Text(
-                currentQuestion?.questionText ?? '',
+                currentQuestion.questionText,
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -139,10 +91,7 @@ class _SurveyPageState extends State<SurveyPage> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 40),
-
-              // Botões de resposta
-              if (currentQuestion != null)
-                ..._buildAnswerButtons(currentQuestion.answers),
+              ..._buildAnswerButtons(currentQuestion.answers),
             ],
           ),
         ),
