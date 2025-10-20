@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from .routers.survey import router as surveys_router
-from .routers.survey_responses import router as survey_results_router
-from .config.logging_config import logger
+
+# Use absolute imports because this file is executed as a top-level module ("uvicorn main:app")
+# Relative imports like ".routers" fail since there is no parent package directory.
+from routers.survey import router as surveys_router
+from routers.survey_responses import router as survey_results_router
+from config.logging_config import logger
 
 
 @asynccontextmanager
