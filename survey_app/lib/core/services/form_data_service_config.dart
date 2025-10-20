@@ -124,7 +124,6 @@ class FormDataServiceConfig {
       await DemographicsDataService.instance.loadAllData();
     } catch (e) {
       // Log error but don't throw to avoid disrupting app initialization
-      debugPrint('Warning: Failed to preload demographic data: $e');
     }
   }
 

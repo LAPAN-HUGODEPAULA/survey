@@ -1,5 +1,4 @@
 // lib/providers/app_settings.dart
-// ignore_for_file: avoid_print
 ///
 /// Provedor de configurações globais da aplicação.
 ///
@@ -76,25 +75,18 @@ class AppSettings extends ChangeNotifier {
     _isLoadingSurveys = true;
     _loadError = null;
     notifyListeners();
-    print('[AppSettings] loadAvailableSurveys started (loading=$_isLoadingSurveys)');
 
     try {
-      print('[AppSettings] Requesting surveys from repository...');
       final surveys = await _surveyRepository.fetchAll();
-      print('[AppSettings] Retrieved ${surveys.length} survey(s)');
       _surveys = surveys;
-      print('[AppSettings] Previous selected ID: $_selectedSurveyId');
       if (_selectedSurveyId == null ||
           !_surveys.any((survey) => survey.id == _selectedSurveyId)) {
         _selectedSurveyId = surveys.isEmpty ? null : surveys.first.id;
       }
-      print('[AppSettings] Updated selected ID: $_selectedSurveyId');
     } catch (error) {
       _loadError = error.toString();
-      print('[AppSettings] Error loading surveys: $_loadError');
     } finally {
       _isLoadingSurveys = false;
-      print('[AppSettings] loadAvailableSurveys completed (loading=$_isLoadingSurveys)');
       notifyListeners();
     }
   }

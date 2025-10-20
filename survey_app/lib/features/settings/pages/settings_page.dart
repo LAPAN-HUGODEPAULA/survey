@@ -4,7 +4,6 @@
 /// seu contato e selecionar qual questionário será utilizado dentre os disponíveis.
 /// Também oferece acesso aos detalhes de cada questionário.
 library;
-// ignore_for_file: avoid_print
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -153,10 +152,7 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Consumer<AppSettings>(
       builder: (context, settings, child) {
-        print('[SettingsPage] build -> isLoading=${settings.isLoadingSurveys}, '
-            'count=${settings.availableSurveys.length}, '
-            'selected=${settings.selectedSurveyId}, '
-            'error=${settings.surveyLoadError}');
+
         return Scaffold(
           appBar: AppBar(title: const Text('Configurações')),
           body: Form(

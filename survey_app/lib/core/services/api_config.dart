@@ -44,8 +44,7 @@ class ApiConfig {
   /// Helper to log the resolved URL when debugging.
   static void debugLogResolved(String path) {
     if (kDebugMode) {
-      // ignore: avoid_print
-      print('[ApiConfig] Resolved $path -> ${resolve(path)}');
+      // This is intentionally left empty.
     }
   }
 }

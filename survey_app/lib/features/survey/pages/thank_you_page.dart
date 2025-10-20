@@ -207,7 +207,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
         return await _saveToNativeDirectory(fileName, jsonString);
       }
     } catch (e) {
-      debugPrint('Erro específico da plataforma: $e');
       // Last resort fallback
       return await _saveWithFallback(fileName, jsonString);
     }
