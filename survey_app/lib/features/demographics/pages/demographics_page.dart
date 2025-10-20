@@ -45,6 +45,29 @@ class _DemographicsPageState extends State<DemographicsPage> {
   void initState() {
     super.initState();
     _loadInitialData();
+    Provider.of<AppSettings>(context, listen: false).addListener(_onSettingsChanged);
+  }
+
+  void _onSettingsChanged() {
+    final settings = Provider.of<AppSettings>(context, listen: false);
+    if (settings.patient.name.isEmpty) {
+      _clearAllFields();
+    }
+  }
+
+  void _clearAllFields() {
+    _nameController.clear();
+    _emailController.clear();
+    _dobController.clear();
+    _professionController.clear();
+    _medicationNameController.clear();
+    setState(() {
+      _selectedSex = null;
+      _selectedRace = null;
+      _selectedEducationLevel = null;
+      _usesMedication = null;
+      _selectedDiagnoses = {for (var diagnosis in _diagnosesList) diagnosis: false};
+    });
   }
 
   Future<void> _loadInitialData() async {
@@ -72,6 +95,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
   @override
   void dispose() {
+    Provider.of<AppSettings>(context, listen: false).removeListener(_onSettingsChanged);
     _nameController.dispose();
     _emailController.dispose();
     _dobController.dispose();
