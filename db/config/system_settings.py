@@ -26,9 +26,12 @@ class Settings(BaseSettings):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        config_logger.info("Configuration loaded successfully")
+        config_logger.info("--- Loading System Settings ---")
+        config_logger.info(f"MY_CUSTOM_ENV: {self.my_custom_env}")
         config_logger.info(f"MongoDB connection will use username: {self.mongo_username}")
-        # Don't log the full URI to avoid exposing passwords
-        config_logger.info(f"MongoDB URI configured for host: mongodb:27017")
+        config_logger.info("MongoDB URI configured for host: mongodb:27017")
+        config_logger.info(f"Mail username: {self.mail_username}")
+        config_logger.info(f"Mail server: {self.mail_server}")
+        config_logger.info("--- System Settings Loaded ---")
 
 settings = Settings()
