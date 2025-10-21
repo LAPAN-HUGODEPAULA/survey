@@ -19,7 +19,8 @@ class Settings(BaseSettings):
     @computed_field
     @property
     def mongodb_uri(self) -> str:
-        return f"mongodb://{self.mongo_username}:{self.mongo_password}@mongodb:27017"
+        # return f"mongodb://{self.mongo_username}:{self.mongo_password}@mongodb:27017"
+        return f"mongodb+srv://{self.mongo_username}:{self.mongo_password}@lapan.xttqjbk.mongodb.net/?retryWrites=true&w=majority&appName=Lapan"
 
     class Config:
         env_file = ".env"

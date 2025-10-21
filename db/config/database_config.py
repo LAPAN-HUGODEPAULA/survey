@@ -6,6 +6,7 @@ from .logging_config import logger
 
 try:
     logger.info(f"Attempting to connect to MongoDB at: {settings.mongodb_uri.split('@')[1] if '@' in settings.mongodb_uri else settings.mongodb_uri}")
+    # client = MongoClient(settings.mongodb_uri, serverSelectionTimeoutMS=5000)
     client = MongoClient(settings.mongodb_uri, serverSelectionTimeoutMS=5000)
     
     # Test the connection

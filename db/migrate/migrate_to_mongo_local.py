@@ -21,15 +21,16 @@ logger = logging.getLogger("migration")
 load_dotenv()
 
 # --- Configuração da Conexão ---
-MONGO_USERNAME = os.getenv("MONGO_USERNAME")
-MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
-client = MongoClient(f'mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@localhost:27017/')
-# db = client['survey_db'] # Nome do seu banco de dados
+MONGO_URI = os.getenv("MONGO_URI")
+if not MONGO_URI:
+    # Fallback to old method for local development if MONGO_URI is not set
+    print("MONGO_URI not found, falling back to local MongoDB connection.")
+    MONGO_USERNAME = os.getenv("MONGO_USERNAME")
+    MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
+    MONGO_URI = f'mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@localhost:27017/'
 
-# uri = "mongodb+srv://lapanhugodepaula:8tUdY4LsrunPVjYH@lapan.xttqjbk.mongodb.net/?retryWrites=true&w=majority&appName=Lapan"
-
-# Create a new client and connect to the server
-# client = MongoClient(uri, server_api=ServerApi('1'))
+print("Connecting to MongoDB...")
+client = MongoClient(MONGO_URI)
 
 # Send a ping to confirm a successful connection
 try:
