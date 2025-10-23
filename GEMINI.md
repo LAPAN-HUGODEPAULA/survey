@@ -19,6 +19,7 @@ O repositório contém três subprojetos:
 *   **Configuração**: `db/docker-compose.yml`.
 *   **Modelos de Dados**: Definidos em `db/models/`, usam Pydantic para validação.
 *   **Rotas da API**: Definidas em `db/routers/`.
+*   **Serviços**: Lógica de negócio desacoplada em `db/services/`.
 *   **Migração**: O script `db/migrate/migrate_to_mongo.py` é usado para popular o banco de dados a partir dos arquivos JSON de `survey_app/assets/surveys`.
 
 ### `survey_app` & `survey_app_local` (Frontends)
