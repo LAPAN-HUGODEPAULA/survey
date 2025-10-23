@@ -1,34 +1,26 @@
 """FastAPI router for survey responses."""
 
-import json
 from typing import List
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
-from fastapi_mail import MessageSchema, MessageType
+from bson.objectid import InvalidId, ObjectId
+from fastapi import APIRouter, BackgroundTasks, HTTPException, status
+from fastapi.responses import JSONResponse
 from pydantic import ValidationError
-from pydantic.json import pydantic_encoder
 from pymongo.errors import PyMongoError
-from bson.objectid import ObjectId, InvalidId
 
 from config.database_config import db
-from config.email_config import fast_mail
 from config.logging_config import logger
 from models.survey_response_model import SurveyResponse
+from services.email_service import send_survey_response_email
 
 router = APIRouter()
 
-async def send_email_background(message: MessageSchema):
-    """Wrapper to send email and log status."""
-    logger.info("Sending email in background...")
-    try:
-        await fast_mail.send_message(message)
-        logger.info("Email sent successfully.")
-    except Exception as e:
-        logger.error("Failed to send email: %s", e)
 
-@router.post("/survey_responses/", response_model=SurveyResponse)
+@router.post("/survey_responses/", response_model=SurveyResponse, status_code=status.HTTP_201_CREATED)
 async def create_survey_response(survey_response: SurveyResponse, background_tasks: BackgroundTasks):
-    """Create a survey response, persist it, and send notification email."""
+    """
+    Create a survey response, persist it, and trigger a background task to send a notification email.
+    """
     logger.info("--- Received request to create survey response ---")
     logger.info("Survey ID: %s, Patient: %s", survey_response.survey_id, survey_response.patient.name)
     try:
@@ -37,41 +29,59 @@ async def create_survey_response(survey_response: SurveyResponse, background_tas
         if survey_response_dict.get("_id") is None:
             del survey_response_dict["_id"]
         logger.info("Survey response data prepared for insertion.")
-        
+
         logger.info("Inserting survey response into database...")
         response = db.survey_responses.insert_one(survey_response_dict)
-        
+
         if not response.inserted_id:
             logger.error("Failed to create survey response for survey %s - No insertion ID returned", survey_response.survey_id)
             raise HTTPException(status_code=500, detail="Survey response could not be created")
 
-        logger.info("Successfully created survey response with MongoDB ID: %s", response.inserted_id)
+        inserted_id = str(response.inserted_id)
+        logger.info("Successfully created survey response with MongoDB ID: %s", inserted_id)
 
-        survey_response_dict['_id'] = str(response.inserted_id)
-        
-        logger.info("Preparing JSON string of survey response for email...")
-        survey_response_json = json.dumps(survey_response_dict, default=pydantic_encoder, indent=2)
+        logger.info("Adding email sending task to background for response ID: %s", inserted_id)
+        background_tasks.add_task(send_survey_response_email, inserted_id)
 
-        logger.info("Composing email message...")
-        message = MessageSchema(
-            subject=f"New Survey Response for Survey ID {response.inserted_id}",
-            recipients=["lapan.hugodepaula@gmail.com", survey_response_dict.get('patient', {}).get('email')], 
-            body=f"New survey response received:\n\n{survey_response_json}",
-            subtype= MessageType.plain
-        )
-
-        logger.info("Adding email sending task to background...")
-        background_tasks.add_task(send_email_background, message)
-
+        survey_response.id = inserted_id
         logger.info("--- Returning created survey response ---")
         return survey_response
-        
+
     except PyMongoError as e:
         logger.error("Database error creating survey response for survey %s: %s", survey_response.survey_id, e)
         raise HTTPException(status_code=500, detail="Database error occurred while creating survey response") from e
     except Exception as e:
         logger.error("Unexpected error creating survey response for survey %s: %s", survey_response.survey_id, e)
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
+
+
+@router.post("/survey_responses/{response_id}/send_email", status_code=status.HTTP_202_ACCEPTED)
+async def resend_survey_email(response_id: str, background_tasks: BackgroundTasks):
+    """
+    Triggers a background task to send the survey response email for a given response ID.
+    """
+    logger.info("--- Received request to resend email for survey response ID: %s ---", response_id)
+    
+    # Optional: Check if the response_id is valid and exists before dispatching the task
+    try:
+        oid = ObjectId(response_id)
+        if not db.survey_responses.find_one({"_id": oid}):
+            logger.warning("Attempted to resend email for a non-existent survey response: %s", response_id)
+            raise HTTPException(status_code=404, detail=f"Survey response with id {response_id} not found")
+    except InvalidId:
+        logger.warning("Invalid ObjectId format for email resending: %s", response_id)
+        raise HTTPException(status_code=400, detail="Invalid response ID format")
+    except PyMongoError as e:
+        logger.error("Database error checking survey response existence for email resend: %s", e)
+        raise HTTPException(status_code=500, detail="Database error occurred")
+
+    background_tasks.add_task(send_survey_response_email, response_id)
+    logger.info("Email resend task added to background for response ID: %s", response_id)
+    
+    return JSONResponse(
+        content={"message": "Email sending process initiated."},
+        status_code=status.HTTP_202_ACCEPTED
+    )
 
 @router.get("/survey_responses/", response_model=List[SurveyResponse])
 async def get_survey_responses():
