@@ -7,9 +7,9 @@ extension DeploymentExtension on Deployment {
   String get apiBaseUrl {
     switch (this) {
       case Deployment.dockerVps:
-        return '/api/v1';
+        return 'http://localhost:8000';
       case Deployment.firebase:
-        return 'https://us-central1-darv-13c19.cloudfunctions.net/api/api/v1';
+        return 'https://us-central1-darv-13c19.cloudfunctions.net/api';
     }
   }
 }

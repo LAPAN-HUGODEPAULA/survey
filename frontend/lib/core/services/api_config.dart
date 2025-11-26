@@ -1,23 +1,17 @@
 library;
 
 import 'package:flutter/foundation.dart';
+import 'package:survey_app/flavors.dart';
 
 /// Centralized API configuration for building backend URLs.
 class ApiConfig {
-  /// Base URL for the Survey backend, overridable at compile time using
-  /// `--dart-define=API_BASE_URL=<url>`.
-  static const String _baseUrlEnv = String.fromEnvironment(
-    'API_BASE_URL',
-    /// defaultValue: 'https://us-central1-darv-13c19.cloudfunctions.net/api/api/v1/',
-    defaultValue: 'http://localhost:5001/darv-13c19/us-central1/api/api/v1/',
-  );
-  /// Returns the normalized API base URL, ensuring a trailing slash to allow
-  /// reliable path resolution.
+  /// Base URL for the Survey backend, determined by the selected flavor.
   static String get baseUrl {
-    if (_baseUrlEnv.endsWith('/')) {
-      return _baseUrlEnv;
+    final baseUrl = deployment.apiBaseUrl;
+    if (baseUrl.endsWith('/')) {
+      return baseUrl;
     }
-    return '$_baseUrlEnv/';
+    return '$baseUrl/';
   }
 
   /// Builds a [Uri] for the provided [path] relative to [baseUrl].
