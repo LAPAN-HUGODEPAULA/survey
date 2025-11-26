@@ -12,7 +12,6 @@ O projeto é dividido em três componentes principais:
 
 1.  **`db`**: O backend da aplicação, contendo a API REST e a configuração do banco de dados MongoDB.
 2.  **`survey_app`**: O frontend principal em Flutter, que se conecta ao backend.
-3.  **`survey_app_local`**: Uma versão offline do frontend que armazena os dados localmente em arquivos JSON.
 
 ## Documentação
 
@@ -30,11 +29,24 @@ A documentação inclui:
 *   Git
 *   Flutter SDK
 *   Docker e Docker Compose
+*   Firebase CLI
 
-### Backend (`db`)
+### Backend (Local com Docker)
 ```bash
 cd db
 docker-compose up -d --build
+```
+
+### Backend (Deploy no Firebase)
+```bash
+# Instale as dependências
+cd survey_api
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Deploy para o Firebase
+firebase deploy --only functions
 ```
 
 ### Frontend (`survey_app`)

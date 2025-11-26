@@ -1,0 +1,6 @@
+{
+    "conventionalCommits.scopes": [
+        "app"
+    ],
+    "java.configuration.updateBuildConfiguration": "interactive"
+}

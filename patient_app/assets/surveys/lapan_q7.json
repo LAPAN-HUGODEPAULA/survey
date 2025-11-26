@@ -1,0 +1,93 @@
+{
+    "_id": "lapan_q7",
+    "surveyDisplayName": "Lapan Q7",
+    "surveyName": "Escala de Hipersensibilidade Visual - Lapan Q7",
+    "surveyDescription": "<p>Escala de Hipersensibilidade Visual - Lapan Q7 é um instrumento de avaliação do desconforto visual em ambientes cotidianos. O objetivo do questionário é medir, por auto-relato, a sensibilidade física a estímulos visuais como luz intensa, padrões repetitivos, luzes piscantes e ambientes visualmente complexos.</p>",
+    "creatorName": "Dr. Ricardo Guimarães",
+    "creatorContact": "lapan.hugodepaula@gmail.com",
+    "createdAt": "2025-08-09",
+    "modifiedAt": "2025-08-15",
+    "instructions": {
+        "preamble": "<p>Este questionário pergunta se certas situações são confortáveis ou desconfortáveis para seus olhos e cabeça. Embora uma situação possa ser desconfortável por ser perturbadora, assustadora ou repugnante, não é a isso que nos referimos.</p><p>Estamos perguntando especificamente se essas situações são fisicamente desconfortáveis, causando alguma forma de dor física, cansaço, incômodo ou tensão nos olhos, na cabeça ou ao redor deles.</p><p>Por favor, responda a cada pergunta com base no que acontece quando você vivencia uma determinada situação, e não na frequência com que você a vivencia. Por exemplo, se você sempre sente desconforto ao passar uma camisa listrada, mas não as passa com frequência, você deve responder 'Quase Sempre'.</p>",
+        "questionText": "Por favor, indique o que queremos dizer com 'desconfortável' nas perguntas que você está prestes a responder (leia o texto acima se não tiver certeza):",
+        "answers": [
+            "Perturbador",
+            "Assustador",
+            "Repugnante",
+            "Dor física, cansaço ou tensão nos olhos, na cabeça ou ao redor deles"
+        ]
+    },
+    "questions": [
+        {
+            "id": 1,
+            "questionText": "A luz te incomoda mais que o normal, gerando desconforto em ambientes claros? (Esse sintoma tem nome: fotofobia.)",
+            "answers": [
+                "Quase Nunca",
+                "Ocasionalmente",
+                "Frequentemente",
+                "Quase Sempre"
+            ]
+        },
+        {
+            "id": 2,
+            "questionText": "Você sente-se desconfortável ou sobrecarregado em ambientes muito barulhentos, como restaurantes ou escritórios abertos?",
+            "answers": [
+                "Quase Nunca",
+                "Ocasionalmente",
+                "Frequentemente",
+                "Quase Sempre"
+            ]
+        },
+        {
+            "id": 3,
+            "questionText": "Você tem uma sensibilidade especial para certos tipos de tecido ou etiquetas nas roupas?",
+            "answers": [
+                "Quase Nunca",
+                "Ocasionalmente",
+                "Frequentemente",
+                "Quase Sempre"
+            ]
+        },
+        {
+            "id": 4,
+            "questionText": "Costuma se sentir desconfortável ao usar portas automáticas, andar de escada rolante ou enjoa ao viajar como passageiro de carro?",
+            "answers": [
+                "Quase Nunca",
+                "Ocasionalmente",
+                "Frequentemente",
+                "Quase Sempre"
+            ]
+        },
+        {
+            "id": 5,
+            "questionText": "Seu paladar ou olfato é particularmente seletivo, com aversões ou preferências muito marcantes?",
+            "answers": [
+                "Quase Nunca",
+                "Ocasionalmente",
+                "Frequentemente",
+                "Quase Sempre"
+            ]
+        },
+        {
+            "id": 6,
+            "questionText": "Você tem dores de cabeça ou crises de enxaqueca frequentes?",
+            "answers": [
+                "Quase Nunca",
+                "Ocasionalmente",
+                "Frequentemente",
+                "Quase Sempre"
+            ]
+        },
+        {
+            "id": 7,
+            "questionText": "Ao final de um dia comum de trabalho, sente-se mais esgotado do que seria esperado para sua carga de atividades?",
+            "answers": [
+                "Quase Nunca",
+                "Ocasionalmente",
+                "Frequentemente",
+                "Quase Sempre"
+            ]
+        }
+    ],
+    "finalNotes": "<p>Em breve você receberá um laudo com os resultados do seu questionário. Quaisquer dúvidas sobre a aplicação do questionário, armazenamento e uso de suas respostas, por favor, entre em contato com o responsável pelo estudo em <a href='mailto:lapan.hugodepaula@gmail.com'>lapan.hugodepaula@gmail.com</a>.</p><br /><br /><p>Gostaríamos de lembrar que seus dados são confidenciais e jamais serão divulgados com terceiros sem a sua expressa autorização.</p>"
+}

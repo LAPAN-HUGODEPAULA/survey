@@ -1,0 +1,61 @@
+{
+    "surveyId": "lapan_q7",
+    "creatorName": "Dr. Ricardo Guimarães",
+    "creatorContact": "lapan.hugodepaula@gmail.com",
+    "testDate": "2025-08-15 14:57:57",
+    "screenerName": "Hugo de Paula",
+    "screenerEmail": "hugo@gmail.com",
+    "patient": {
+        "name": "Sabrina Oliveira",
+        "email": "sab@gmail.com",
+        "birthDate": "01/12/1986",
+        "gender": "Feminino",
+        "ethnicity": "Branca",
+        "educationLevel": "Ensino superior completo",
+        "profession": "Estudante",
+        "medication": [
+            "Fluoxetina 20mg",
+            "Clonazepam 0,5mg"
+        ],
+        "diagnoses": [
+            "Ansiedade generalizada (TAG)",
+            "Depressão (TDM)",
+            "Distimia (TDP)",
+            "Enxaqueca ou Migrânea"
+        ],
+        "family_history": "Mãe com diabetes mellitus tipo 2 e osteoporose. Tia materna com histórico de câncer de mama diagnosticado aos 55 anos. Sem casos conhecidos de doenças autoimunes.",
+        "social_history": "Professora, rotina ativa. Não fuma e não consome álcool. Pratica caminhada regularmente, 3 a 4 vezes por semana. Dieta balanceada com predominância de vegetais e alimentos integrais.",
+        "medical_history": "Hipotireoidismo diagnosticado há 8 anos. Histórico de enxaqueca recorrente desde a adolescência. Cesárea eletiva aos 32 anos. Sem internações hospitalares recentes.",
+        "medication_history": "Levotiroxina 75 mcg em jejum diariamente. Uso eventual de analgésicos comuns (dipirona ou paracetamol) para crises de enxaqueca."
+    },
+    "answers": [
+        {
+            "id": 1,
+            "answer": "Quase Sempre"
+        },
+        {
+            "id": 2,
+            "answer": "Quase Sempre"
+        },
+        {
+            "id": 3,
+            "answer": "Quase Sempre"
+        },
+        {
+            "id": 4,
+            "answer": "Quase Sempre"
+        },
+        {
+            "id": 5,
+            "answer": "Quase Sempre"
+        },
+        {
+            "id": 6,
+            "answer": "Quase Sempre"
+        },
+        {
+            "id": 7,
+            "answer": "Quase Sempre"
+        }
+    ]
+}

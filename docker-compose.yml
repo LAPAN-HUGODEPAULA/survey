@@ -1,0 +1,64 @@
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    restart: always
+    profiles: ["local"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - survey_network
+
+  backend:
+    build: ./backend
+    container_name: survey_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGO_URI=${MONGO_URI}
+    networks:
+      - survey_network
+
+  frontend:
+    image: nginx:alpine
+    container_name: survey_frontend
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend/build/web:/usr/share/nginx/html
+      - ./infra/docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+    networks:
+      - survey_network
+
+  patient_app:
+    build:
+      context: ./patient_app
+      args:
+        DEFAULT_SCREENER_NAME: ${DEFAULT_SCREENER_NAME:-self}
+        DEFAULT_SCREENER_CONTACT: ${DEFAULT_SCREENER_CONTACT:-contact@lapan.com.br}
+    container_name: survey_patient_app
+    restart: always
+    ports:
+      - "8081:80"
+    volumes:
+      - ./infra/docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - backend
+    networks:
+      - survey_network
+
+volumes:
+  mongodb_data:
+
+networks:
+  survey_network:
+    driver: bridge

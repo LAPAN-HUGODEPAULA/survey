@@ -10,7 +10,7 @@ O sistema foi desenvolvido para ser utilizado por um profissional de saúde ou p
 
 *   **Coleta de Dados Estruturada**: Fornecer uma interface intuitiva para o Screener coletar dados demográficos e respostas de pacientes a questionários de anamnese.
 *   **Armazenamento Seguro**: Centralizar o armazenamento de questionários (surveys) e das respostas coletadas (survey responses) em um banco de dados robusto.
-*   **Flexibilidade**: Permitir a operação em dois modos: um conectado a um backend (`survey_app`) e outro totalmente offline, baseado em arquivos locais (`survey_app_local`).
+*   **Flexibilidade**: Permitir a operação em dois modos: um conectado a um backend (`survey_app`).
 *   **Análise Clínica**: Facilitar a exportação e análise futura dos dados coletados para fins de pesquisa e prática clínica.
 
 ## 3. Componentes do Projeto
@@ -19,6 +19,5 @@ O repositório está organizado em três subprojetos principais:
 
 1.  **`db`**: O backend da aplicação, desenvolvido em Python com FastAPI. É responsável por servir a API REST, interagir com o banco de dados MongoDB e gerenciar a lógica de negócio.
 2.  **`survey_app`**: O frontend principal, desenvolvido em Flutter. Esta aplicação consome a API do projeto `db` para buscar questionários e salvar as respostas dos pacientes.
-3.  **`survey_app_local`**: Uma versão alternativa do frontend em Flutter que opera de forma autônoma, utilizando arquivos JSON locais para ler os questionários e salvar as respostas. Ideal para ambientes sem acesso à rede ou para fins de desenvolvimento e teste.
 
 Para mais detalhes sobre a interação entre esses componentes, consulte a seção [Arquitetura](./architecture.md).

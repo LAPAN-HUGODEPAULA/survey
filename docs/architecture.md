@@ -13,7 +13,6 @@ graph TD
 
     subgraph "Aplicações Frontend"
         C(survey_app)
-        D(survey_app_local)
     end
 
     subgraph "Backend"
@@ -22,16 +21,12 @@ graph TD
         H{Serviços Assíncronos (E-mail)}
     end
 
-    subgraph "Armazenamento Local"
-        G([Arquivos JSON])
-    end
+
 
     A -- "Fornece respostas" --> B
     B -- "Insere dados no" --> C
-    B -- "Pode usar alternativamente" --> D
 
     C -- "1. Salva/Busca via API REST" --> E
-    D -- "Salva/Busca em" --> G
 
     E -- "2. Armazena/Lê em" --> F
     E -- "3. Dispara tarefa para" --> H
@@ -69,12 +64,3 @@ graph TD
     *   Coletar dados demográficos do paciente e as respostas para cada pergunta.
     *   Enviar o conjunto de respostas (`SurveyResponse`) para ser armazenado no backend via API em uma única requisição.
 
-### 2.3. `survey_app_local` (Frontend Offline)
-
-*   **Tecnologia**: Flutter.
-*   **Funcionalidade**: É uma variante do `survey_app` que não depende de uma conexão de rede.
-*   **Responsabilidades**:
-    *   Ler os questionários diretamente de arquivos JSON localizados na pasta `assets/surveys`.
-    *   Apresentar a interface de coleta de dados para o Screener.
-    *   Salvar as respostas do paciente em um novo arquivo JSON na pasta `assets/survey_responses`.
-*   **Caso de Uso**: Ideal para desenvolvimento, demonstrações ou para uso em campo onde a conectividade com a internet não é garantida.

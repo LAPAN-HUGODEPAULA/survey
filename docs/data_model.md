@@ -12,7 +12,7 @@ Estes arquivos servem como fonte de dados para componentes de UI, como dropdowns
 
 ## 2. Estrutura do Questionário (`Survey`)
 
-Os questionários são definidos em arquivos JSON na pasta `assets/surveys`. Esta estrutura é usada tanto pelo `survey_app_local` quanto pelo script de migração para o MongoDB. Note que o identificador principal é `_id`.
+Os questionários são definidos em arquivos JSON na pasta `assets/surveys`. Esta estrutura é usada pelo script de migração para o MongoDB. Note que o identificador principal é `_id`.
 
 ```json
 {
@@ -53,7 +53,7 @@ Os questionários são definidos em arquivos JSON na pasta `assets/surveys`. Est
 
 ## 3. Estrutura da Resposta (`SurveyResponse`)
 
-Quando um paciente completa um questionário, as respostas são agregadas em um objeto com a seguinte estrutura. Este objeto é o que é salvo em um arquivo JSON (no `survey_app_local`) ou enviado para a API do `db`.
+Quando um paciente completa um questionário, as respostas são agregadas em um objeto com a seguinte estrutura. Este objeto é o que é enviado para a API do `db`.
 
 A estrutura aninha os dados do `Patient` dentro do documento `SurveyResponse`.
 
