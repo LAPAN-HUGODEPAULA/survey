@@ -26,7 +26,12 @@ services:
       - survey_network
 
   frontend:
-    image: nginx:alpine
+    build:
+      context: ./patient_app
+      args:
+        DEFAULT_SCREENER_NAME: ${DEFAULT_SCREENER_NAME:-self}
+        DEFAULT_SCREENER_CONTACT: ${DEFAULT_SCREENER_CONTACT:-contact@lapan.com.br}
+        FLAVOR: ${FLAVOR:-dockerVps}
     container_name: survey_frontend
     restart: always
     ports:
@@ -45,6 +50,7 @@ services:
       args:
         DEFAULT_SCREENER_NAME: ${DEFAULT_SCREENER_NAME:-self}
         DEFAULT_SCREENER_CONTACT: ${DEFAULT_SCREENER_CONTACT:-contact@lapan.com.br}
+        FLAVOR: ${FLAVOR:-dockerVps}
     container_name: survey_patient_app
     restart: always
     ports:

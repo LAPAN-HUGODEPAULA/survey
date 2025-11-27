@@ -1,11 +1,6 @@
 # Stage 1: Build the Flutter Web App
 FROM ghcr.io/cirruslabs/flutter:3.38.3 AS build
 
-# Define build arguments
-ARG DEFAULT_SCREENER_NAME=self
-ARG DEFAULT_SCREENER_CONTACT=contact@lapan.com.br
-ARG FLAVOR=dockerVps
-
 WORKDIR /app
 
 # Copy the project files
@@ -15,7 +10,7 @@ COPY . .
 RUN flutter pub get
 
 # Build the web application with the build arguments
-RUN flutter build web  --dart-define=FLAVOR="$FLAVOR" --dart-define=DEFAULT_SCREENER_NAME="$DEFAULT_SCREENER_NAME" --dart-define=DEFAULT_SCREENER_CONTACT="$DEFAULT_SCREENER_CONTACT"
+RUN flutter build web  --dart-define=FLAVOR="dockerVps" 
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
