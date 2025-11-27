@@ -31,4 +31,4 @@ fi
 echo "MONGO_URI: $MONGO_URI"
 echo "COMPOSE_PROFILES: $COMPOSE_PROFILES"
 
-docker-compose up -d --build
+docker compose up -d --build
