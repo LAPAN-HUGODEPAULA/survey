@@ -167,10 +167,9 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          settings.selectedSurvey != null
-              ? 'Informações Demográficas: ${settings.selectedSurveyName}'
-              : 'Informações Demográficas',
+        title: Image.asset(
+          'assets/images/lapan_logo_orange.jpg',
+          height: 40,
         ),
         actions: [
           IconButton(

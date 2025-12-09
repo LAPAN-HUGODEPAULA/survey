@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
-import 'package:survey_app/features/demographics/pages/demographics_page.dart';
+import 'package:survey_app/features/splash/splash_screen.dart';
 
 /// Ponto de entrada principal da aplicação.
 ///
@@ -119,7 +119,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      home: const DemographicsPage(),
+      home: const SplashScreen(),
     );
   }
 }
