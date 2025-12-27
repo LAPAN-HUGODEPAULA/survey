@@ -1,0 +1,35 @@
+
+# Environment
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtualenv
+venv/
+env/
+ENV/
+.venv/
+.env/
+
+# Coverage/test
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
+coverage/
+
+# Docker
+*.pid
+*.sock
+
+# Build
+dist/
+build/
+*.class
+.buildlog/

@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+title: "Clinical Writer AI Multiagent System"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: "de Paula"
+    given-names: "Hugo"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+  - family-names: "[Your Name]"
+    given-names: "[Your Given Name]"
+    orcid: "https://orcid.org/YOUR-ORCID-ID"
+keywords:
+  - "AI"
+  - "Medical"
+  - "Clinical"
+  - "LangGraph"
+  - "FastAPI"
+  - "Gemini Pro"
+repository-code: "https://github.com/LAPAN-HUGODEPAULA/clinical_writer"
+license: "MIT"
