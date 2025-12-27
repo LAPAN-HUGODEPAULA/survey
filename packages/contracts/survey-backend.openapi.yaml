@@ -1,0 +1,257 @@
+openapi: 3.0.3
+info:
+  title: Survey Backend API
+  version: 1.0.0
+  description: API for managing surveys and collecting patient/survey responses.
+servers:
+  - url: http://localhost:8000/api/v1
+paths:
+  /surveys/:
+    get:
+      summary: List surveys
+      operationId: listSurveys
+      responses:
+        '200':
+          description: List of surveys
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Survey'
+    post:
+      summary: Create survey
+      operationId: createSurvey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Survey'
+      responses:
+        '200':
+          description: Created survey
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Survey'
+  /surveys/{surveyId}:
+    get:
+      summary: Get survey by id
+      operationId: getSurvey
+      parameters:
+        - in: path
+          name: surveyId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Survey found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Survey'
+        '404':
+          description: Survey not found
+  /survey_responses/:
+    get:
+      summary: List survey responses
+      operationId: listSurveyResponses
+      responses:
+        '200':
+          description: List of survey responses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SurveyResponse'
+    post:
+      summary: Create survey response
+      operationId: createSurveyResponse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SurveyResponse'
+      responses:
+        '201':
+          description: Created survey response with optional agent output
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurveyResponseWithAgent'
+  /survey_responses/{responseId}:
+    get:
+      summary: Get survey response by id
+      operationId: getSurveyResponse
+      parameters:
+        - in: path
+          name: responseId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Survey response found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurveyResponse'
+        '404':
+          description: Survey response not found
+  /survey_responses/{responseId}/send_email:
+    post:
+      summary: Resend survey response email
+      operationId: resendSurveyEmail
+      parameters:
+        - in: path
+          name: responseId
+          required: true
+          schema:
+            type: string
+      responses:
+        '202':
+          description: Email dispatch started
+  /patient_responses/:
+    post:
+      summary: Create patient response
+      operationId: createPatientResponse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SurveyResponse'
+      responses:
+        '201':
+          description: Created patient response with optional agent output
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurveyResponseWithAgent'
+components:
+  schemas:
+    Survey:
+      type: object
+      required:
+        - surveyDisplayName
+        - surveyName
+        - surveyDescription
+        - creatorName
+        - creatorContact
+        - createdAt
+        - modifiedAt
+        - instructions
+        - questions
+        - finalNotes
+      properties:
+        _id:
+          type: string
+        id:
+          type: string
+        surveyDisplayName:
+          type: string
+        surveyName:
+          type: string
+        surveyDescription:
+          type: string
+        creatorName:
+          type: string
+        creatorContact:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        modifiedAt:
+          type: string
+          format: date-time
+        instructions:
+          $ref: '#/components/schemas/Instructions'
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+        finalNotes:
+          type: string
+    Instructions:
+      type: object
+      properties:
+        preamble:
+          type: string
+        steps:
+          type: array
+          items:
+            type: string
+    Question:
+      type: object
+      required:
+        - id
+        - questionText
+        - answers
+      properties:
+        id:
+          type: integer
+        questionText:
+          type: string
+        answers:
+          type: array
+          items:
+            type: string
+    Patient:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        age:
+          type: integer
+        gender:
+          type: string
+        phone:
+          type: string
+    Answer:
+      type: object
+      properties:
+        questionId:
+          type: integer
+        response:
+          type: string
+    SurveyResponse:
+      type: object
+      required:
+        - surveyId
+        - patient
+        - answers
+      properties:
+        _id:
+          type: string
+        id:
+          type: string
+        surveyId:
+          type: string
+        patient:
+          $ref: '#/components/schemas/Patient'
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Answer'
+        notes:
+          type: string
+    AgentResponse:
+      type: object
+      properties:
+        content:
+          type: string
+        error_message:
+          type: string
+    SurveyResponseWithAgent:
+      allOf:
+        - $ref: '#/components/schemas/SurveyResponse'
+        - type: object
+          properties:
+            agent_response:
+              $ref: '#/components/schemas/AgentResponse'
