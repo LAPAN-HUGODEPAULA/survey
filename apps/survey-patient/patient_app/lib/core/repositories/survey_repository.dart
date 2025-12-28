@@ -89,6 +89,9 @@ class SurveyRepository {
   }
 
   ui.SurveyResponse _mapSurveyResponseWithAgent(api.SurveyResponseWithAgent source) {
+    final answers = source.answers?.toList(growable: false) ?? const <api.Answer>[];
+    final patient = source.patient;
+
     return ui.SurveyResponse(
       id: source.id,
       agentResponse: source.agentResponse == null
@@ -106,8 +109,8 @@ class SurveyRepository {
         name: source.screenerName ?? '',
         email: source.screenerEmail ?? '',
       ),
-      patient: _mapPatientFromApi(source.patient),
-      answers: source.answers
+      patient: patient != null ? _mapPatientFromApi(patient) : Patient.initial(),
+      answers: answers
           .map(
             (ans) => ui.Answer(
               id: ans.id ?? 0,
@@ -118,7 +121,7 @@ class SurveyRepository {
     );
   }
 
-  ui.Patient _mapPatientFromApi(api.Patient source) {
+  Patient _mapPatientFromApi(api.Patient source) {
     return Patient(
       name: source.name ?? '',
       email: source.email ?? '',
@@ -129,10 +132,6 @@ class SurveyRepository {
       profession: source.profession ?? '',
       medication: source.medication?.toList(growable: false) ?? const <String>[],
       diagnoses: source.diagnoses?.toList(growable: false) ?? const <String>[],
-      familyHistory: source.familyHistory ?? '',
-      socialHistory: source.socialHistory ?? '',
-      medicalHistory: source.medicalHistory ?? '',
-      medicationHistory: source.medicationHistory ?? '',
     );
   }
 
@@ -169,11 +168,11 @@ class SurveyRepository {
         ..educationLevel = source.educationLevel
         ..profession = source.profession
         ..medication.replace(source.medication)
-        ..diagnoses.replace(source.diagnoses)
-        ..familyHistory = source.familyHistory
-        ..socialHistory = source.socialHistory
-        ..medicalHistory = source.medicalHistory
-        ..medicationHistory = source.medicationHistory,
+        ..diagnoses.replace(source.diagnoses),
     );
+  }
+
+  void dispose() {
+    // no-op for now
   }
 }
