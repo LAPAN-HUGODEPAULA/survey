@@ -89,7 +89,7 @@ class SurveyRepository {
   }
 
   ui.SurveyResponse _mapSurveyResponseWithAgent(api.SurveyResponseWithAgent source) {
-    final answers = source.answers?.toList(growable: false) ?? const <api.Answer>[];
+    final answers = source.answers.toList(growable: false);
     final patient = source.patient;
 
     return ui.SurveyResponse(
@@ -101,7 +101,7 @@ class SurveyRepository {
               medicalRecord: source.agentResponse?.medicalRecord,
               errorMessage: source.agentResponse?.errorMessage,
             ),
-      surveyId: source.surveyId ?? '',
+      surveyId: source.surveyId,
       creatorName: source.creatorName ?? '',
       creatorContact: source.creatorContact ?? '',
       testDate: source.testDate?.toLocal() ?? DateTime.now(),
@@ -109,7 +109,7 @@ class SurveyRepository {
         name: source.screenerName ?? '',
         email: source.screenerEmail ?? '',
       ),
-      patient: patient != null ? _mapPatientFromApi(patient) : Patient.initial(),
+      patient: _mapPatientFromApi(patient),
       answers: answers
           .map(
             (ans) => ui.Answer(
