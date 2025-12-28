@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 - Backend lives in `services/survey-backend/app` (FastAPI) with persistence in `app/persistence/**` and domain models in `app/domain/models`.
-- Frontend apps (Flutter) reside under `apps/`: `survey-frontend/frontend`, `survey-patient/patient_app`, and `clinical-narrative/clinical_narrative_app`.
+- Frontend apps (Flutter) reside under `apps/`: `survey-frontend/`, `survey-patient/`, and `clinical-narrative/`.
 - Contracts and generated SDKs live in `packages/contracts/` (`survey-backend.openapi.yaml` and `generated/dart/`). Shared Flutter design system is in `packages/design_system_flutter/`.
 - Tooling, CI scripts, and migrations are under `tools/`.
 

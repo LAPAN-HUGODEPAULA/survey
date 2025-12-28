@@ -31,9 +31,9 @@ dependencies:
   flutter:
     sdk: flutter
   design_system_flutter:
-    path: ../../../packages/design_system_flutter
+    path: ../../packages/design_system_flutter
   survey_backend_api:
-    path: ../../../packages/contracts/generated/dart
+    path: ../../packages/contracts/generated/dart
   dio: ^5.7.0
 
   # The following adds the Cupertino Icons font to your application.

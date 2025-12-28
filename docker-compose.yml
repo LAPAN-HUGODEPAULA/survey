@@ -26,7 +26,7 @@ services:
 
   frontend:
     build:
-      context: ./apps/survey-frontend/frontend
+      context: ./apps/survey-frontend
     container_name: survey_frontend
     restart: always
     ports:
@@ -40,7 +40,7 @@ services:
 
   patient_app:
     build:
-      context: ./apps/survey-patient/patient_app
+      context: ./apps/survey-patient
       args:
         DEFAULT_SCREENER_NAME: ${DEFAULT_SCREENER_NAME:-self}
         DEFAULT_SCREENER_CONTACT: ${DEFAULT_SCREENER_CONTACT:-contact@lapan.com.br}
@@ -74,7 +74,7 @@ services:
 
   clinical-narrative:
     build:
-      context: ./apps/clinical-narrative/clinical_narrative_app
+      context: ./apps/clinical-narrative
       args:
         API_BASE_URL: ${CLINICAL_NARRATIVE_API_BASE_URL:-http://survey-backend:8000/api/v1/}
     container_name: clinical_narrative_app
