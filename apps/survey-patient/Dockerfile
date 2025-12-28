@@ -1,30 +1,34 @@
-# Stage 1: Build the Flutter Web App
+# Stage 1: Build the Flutter Web App as root
 FROM ghcr.io/cirruslabs/flutter:3.38.3 AS build
 
-# Define build arguments
 ARG DEFAULT_SCREENER_NAME=self
 ARG DEFAULT_SCREENER_CONTACT=contact@lapan.com.br
 ARG FLAVOR=dockerVps
 
 WORKDIR /app
+COPY . /app/
 
-# Copy the project files
-COPY . .
+# Set the working directory for the specific app
+WORKDIR /app/apps/survey-patient
 
-# Get dependencies
+# Run flutter pub get
 RUN flutter pub get
 
-# Build the web application with the build arguments
+# Build the web application
 RUN flutter build web  --dart-define=FLAVOR="$FLAVOR" --dart-define=DEFAULT_SCREENER_NAME="$DEFAULT_SCREENER_NAME" --dart-define=DEFAULT_SCREENER_CONTACT="$DEFAULT_SCREENER_CONTACT"
 
-# Stage 2: Serve with Nginx
+# Stage 2: Serve with Nginx as non-root
 FROM nginx:alpine
 
-# Copy the build artifacts from the build stage
-COPY --from=build /app/build/web /usr/share/nginx/html
+# Create a non-root user 'lapan'
+RUN addgroup -S lapan && adduser -S -G lapan lapan
 
-# Expose port 80
+# Copy the build artifacts
+COPY --from=build /app/apps/survey-patient/build/web /usr/share/nginx/html
+
+# Set permissions for nginx
+RUN mkdir -p /var/run && chown -R lapan:lapan /var/cache/nginx /var/log/nginx /etc/nginx/conf.d /usr/share/nginx/html /tmp /var/run
+
+# Expose port 80 and start Nginx
 EXPOSE 80
-
-# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
