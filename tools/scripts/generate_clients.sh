@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Regenerate API clients from OpenAPI specs.
-# Requires openapi-generator-cli (https://openapi-generator.tech/docs/installation).
+# Regenerate API clients from OpenAPI specs using the official openapi-generator CLI (Docker).
+# Requires Docker available locally.
 
 set -euo pipefail
 
@@ -13,9 +13,12 @@ echo "Generating Dart client from ${SPEC}"
 rm -rf "${OUT_DIR}"
 mkdir -p "${OUT_DIR}"
 
-openapi-generator-cli generate \
+docker run --rm \
+  -v "${ROOT_DIR}:${ROOT_DIR}" \
+  -w "${ROOT_DIR}" \
+  openapitools/openapi-generator-cli:v7.9.0 generate \
   -i "${SPEC}" \
-  -g dart-dio-next \
+  -g dart-dio \
   -o "${OUT_DIR}" \
   --additional-properties=pubName=survey_backend_api,nullableFields=true
 

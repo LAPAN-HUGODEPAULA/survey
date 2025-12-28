@@ -1,0 +1,21 @@
+import 'package:test/test.dart';
+import 'package:survey_backend_api/survey_backend_api.dart';
+
+// tests for Instructions
+void main() {
+  final instance = InstructionsBuilder();
+  // TODO add properties to the builder and call build()
+
+  group(Instructions, () {
+    // String preamble
+    test('to test the property `preamble`', () async {
+      // TODO
+    });
+
+    // BuiltList<String> steps
+    test('to test the property `steps`', () async {
+      // TODO
+    });
+
+  });
+}
