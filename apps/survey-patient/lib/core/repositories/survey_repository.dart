@@ -3,8 +3,8 @@ library;
 import 'package:built_collection/built_collection.dart';
 import 'package:dio/dio.dart';
 import 'package:patient_app/core/models/agent_response.dart';
-import 'package:patient_app/core/models/patient.dart';
-import 'package:patient_app/core/models/screener.dart';
+import 'package:patient_app/core/models/patient.dart' as ui;
+import 'package:patient_app/core/models/screener.dart' as ui;
 import 'package:patient_app/core/models/survey/instructions.dart' as ui;
 import 'package:patient_app/core/models/survey/question.dart' as ui;
 import 'package:patient_app/core/models/survey/survey.dart' as ui;
@@ -15,19 +15,20 @@ import 'package:survey_backend_api/survey_backend_api.dart' as api;
 /// Repository responsible for fetching surveys and submitting responses via API.
 class SurveyRepository {
   SurveyRepository({api.DefaultApi? apiClient})
-      : _api = apiClient ??
-            api.DefaultApi(
-              Dio(
-                BaseOptions(
-                  baseUrl: ApiConfig.baseUrl,
-                  headers: const {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                  },
-                ),
+    : _api =
+          apiClient ??
+          api.DefaultApi(
+            Dio(
+              BaseOptions(
+                baseUrl: ApiConfig.baseUrl,
+                headers: const {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json',
+                },
               ),
-              api.standardSerializers,
-            );
+            ),
+            api.standardSerializers,
+          );
 
   final api.DefaultApi _api;
 
@@ -55,7 +56,9 @@ class SurveyRepository {
     );
     final api.SurveyResponseWithAgent? created = apiResponse.data;
     if (created == null) {
-      throw const FormatException('Unexpected empty payload when creating response.');
+      throw const FormatException(
+        'Unexpected empty payload when creating response.',
+      );
     }
     return _mapSurveyResponseWithAgent(created);
   }
@@ -88,8 +91,10 @@ class SurveyRepository {
     );
   }
 
-  ui.SurveyResponse _mapSurveyResponseWithAgent(api.SurveyResponseWithAgent source) {
-    final answers = source.answers?.toList(growable: false) ?? const <api.Answer>[];
+  ui.SurveyResponse _mapSurveyResponseWithAgent(
+    api.SurveyResponseWithAgent source,
+  ) {
+    final answers = source.answers.toList(growable: false);
     final patient = source.patient;
 
     return ui.SurveyResponse(
@@ -101,28 +106,23 @@ class SurveyRepository {
               medicalRecord: source.agentResponse?.medicalRecord,
               errorMessage: source.agentResponse?.errorMessage,
             ),
-      surveyId: source.surveyId ?? '',
+      surveyId: source.surveyId,
       creatorName: source.creatorName ?? '',
       creatorContact: source.creatorContact ?? '',
       testDate: source.testDate?.toLocal() ?? DateTime.now(),
-      screener: Screener(
+      screener: ui.Screener(
         name: source.screenerName ?? '',
         email: source.screenerEmail ?? '',
       ),
-      patient: patient != null ? _mapPatientFromApi(patient) : Patient.initial(),
+      patient: _mapPatientFromApi(patient),
       answers: answers
-          .map(
-            (ans) => ui.Answer(
-              id: ans.id ?? 0,
-              answer: ans.answer ?? '',
-            ),
-          )
+          .map((ans) => ui.Answer(id: ans.id ?? 0, answer: ans.answer ?? ''))
           .toList(growable: false),
     );
   }
 
-  Patient _mapPatientFromApi(api.Patient source) {
-    return Patient(
+  ui.Patient _mapPatientFromApi(api.Patient source) {
+    return ui.Patient(
       name: source.name ?? '',
       email: source.email ?? '',
       birthDate: source.birthDate ?? '',
@@ -130,12 +130,15 @@ class SurveyRepository {
       ethnicity: source.ethnicity ?? '',
       educationLevel: source.educationLevel ?? '',
       profession: source.profession ?? '',
-      medication: source.medication?.toList(growable: false) ?? const <String>[],
+      medication:
+          source.medication?.toList(growable: false) ?? const <String>[],
       diagnoses: source.diagnoses?.toList(growable: false) ?? const <String>[],
     );
   }
 
-  api.SurveyResponseWithAgent _mapSurveyResponseToApi(ui.SurveyResponse source) {
+  api.SurveyResponseWithAgent _mapSurveyResponseToApi(
+    ui.SurveyResponse source,
+  ) {
     return api.SurveyResponseWithAgent((b) {
       b
         ..surveyId = source.surveyId

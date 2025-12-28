@@ -242,7 +242,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 key: const ValueKey('sex'), // Unique key
-                value: _selectedSex,
+                initialValue: _selectedSex,
                 decoration: const InputDecoration(labelText: 'Sexo *'),
                 items: ['Feminino', 'Masculino', 'Outro']
                     .map(
@@ -257,7 +257,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 key: const ValueKey('race'), // Unique key
-                value: _selectedRace,
+                initialValue: _selectedRace,
                 decoration: const InputDecoration(labelText: 'Raça/Etnia *'),
                 items:
                     ['Branca', 'Preta', 'Parda', 'Amarela', 'Indígena', 'Outra']
@@ -275,7 +275,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 key: const ValueKey('education'), // Unique key
-                value: _selectedEducationLevel,
+                initialValue: _selectedEducationLevel,
                 decoration: const InputDecoration(
                   labelText: 'Grau de Escolaridade *',
                 ),
@@ -339,23 +339,17 @@ class _DemographicsPageState extends State<DemographicsPage> {
               ),
               const SizedBox(height: 24),
               const Text('Faz uso de medicamento psiquiátrico? *'),
-              Row(
-                children: [
-                  Radio<String>(
-                    value: 'Sim',
-                    groupValue: _usesMedication,
-                    onChanged: (value) =>
-                        setState(() => _usesMedication = value),
-                  ),
-                  const Text('Sim'),
-                  Radio<String>(
-                    value: 'Não',
-                    groupValue: _usesMedication,
-                    onChanged: (value) =>
-                        setState(() => _usesMedication = value),
-                  ),
-                  const Text('Não'),
-                ],
+              RadioGroup<String>(
+                groupValue: _usesMedication,
+                onChanged: (value) => setState(() => _usesMedication = value),
+                child: Row(
+                  children: const [
+                    Radio<String>(value: 'Sim'),
+                    Text('Sim'),
+                    Radio<String>(value: 'Não'),
+                    Text('Não'),
+                  ],
+                ),
               ),
               if (_usesMedication == 'Sim')
                 TextFormField(

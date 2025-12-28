@@ -45,7 +45,10 @@ class _DemographicsPageState extends State<DemographicsPage> {
   void initState() {
     super.initState();
     _loadInitialData();
-    Provider.of<AppSettings>(context, listen: false).addListener(_onSettingsChanged);
+    Provider.of<AppSettings>(
+      context,
+      listen: false,
+    ).addListener(_onSettingsChanged);
   }
 
   void _onSettingsChanged() {
@@ -66,7 +69,9 @@ class _DemographicsPageState extends State<DemographicsPage> {
       _selectedRace = null;
       _selectedEducationLevel = null;
       _usesMedication = null;
-      _selectedDiagnoses = {for (var diagnosis in _diagnosesList) diagnosis: false};
+      _selectedDiagnoses = {
+        for (var diagnosis in _diagnosesList) diagnosis: false,
+      };
     });
   }
 
@@ -79,7 +84,9 @@ class _DemographicsPageState extends State<DemographicsPage> {
         _diagnosesList = data.diagnoses;
         _educationLevels = data.educationLevels;
         _professions = data.professions;
-        _selectedDiagnoses = {for (var diagnosis in _diagnosesList) diagnosis: false};
+        _selectedDiagnoses = {
+          for (var diagnosis in _diagnosesList) diagnosis: false,
+        };
       });
     } catch (e) {
       if (mounted) {
@@ -95,7 +102,10 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
   @override
   void dispose() {
-    Provider.of<AppSettings>(context, listen: false).removeListener(_onSettingsChanged);
+    Provider.of<AppSettings>(
+      context,
+      listen: false,
+    ).removeListener(_onSettingsChanged);
     _nameController.dispose();
     _emailController.dispose();
     _dobController.dispose();
@@ -107,11 +117,17 @@ class _DemographicsPageState extends State<DemographicsPage> {
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       final settings = Provider.of<AppSettings>(context, listen: false);
-      
-      if (_selectedSex == null || _selectedRace == null || _selectedEducationLevel == null || _usesMedication == null || settings.selectedSurvey == null) {
+
+      if (_selectedSex == null ||
+          _selectedRace == null ||
+          _selectedEducationLevel == null ||
+          _usesMedication == null ||
+          settings.selectedSurvey == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Por favor, preencha todos os campos obrigatórios.'),
+            content: const Text(
+              'Por favor, preencha todos os campos obrigatórios.',
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
@@ -165,10 +181,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Image.asset(
-          'assets/images/lapan_logo_reduced.png',
-          height: 40,
-        ),
+        title: Image.asset('assets/images/lapan_logo_reduced.png', height: 40),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -202,44 +215,68 @@ class _DemographicsPageState extends State<DemographicsPage> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _dobController,
-                decoration: const InputDecoration(labelText: 'Data de Nascimento *', hintText: 'DD/MM/AAAA'),
+                decoration: const InputDecoration(
+                  labelText: 'Data de Nascimento *',
+                  hintText: 'DD/MM/AAAA',
+                ),
                 keyboardType: TextInputType.datetime,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(8)],
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(8),
+                ],
                 onChanged: _formatDateInput,
                 validator: ValidatorSets.patientBirthDate,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 key: const ValueKey('sex'), // Unique key
-                value: _selectedSex,
+                initialValue: _selectedSex,
                 decoration: const InputDecoration(labelText: 'Sexo *'),
                 items: ['Feminino', 'Masculino', 'Outro']
-                    .map((label) => DropdownMenuItem(value: label, child: Text(label)))
+                    .map(
+                      (label) =>
+                          DropdownMenuItem(value: label, child: Text(label)),
+                    )
                     .toList(),
                 onChanged: (value) => setState(() => _selectedSex = value),
-                validator: (value) => value == null ? 'Campo obrigatório' : null,
+                validator: (value) =>
+                    value == null ? 'Campo obrigatório' : null,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 key: const ValueKey('race'), // Unique key
-                value: _selectedRace,
+                initialValue: _selectedRace,
                 decoration: const InputDecoration(labelText: 'Raça/Etnia *'),
-                items: ['Branca', 'Preta', 'Parda', 'Amarela', 'Indígena', 'Outra']
-                    .map((label) => DropdownMenuItem(value: label, child: Text(label)))
-                    .toList(),
+                items:
+                    ['Branca', 'Preta', 'Parda', 'Amarela', 'Indígena', 'Outra']
+                        .map(
+                          (label) => DropdownMenuItem(
+                            value: label,
+                            child: Text(label),
+                          ),
+                        )
+                        .toList(),
                 onChanged: (value) => setState(() => _selectedRace = value),
-                validator: (value) => value == null ? 'Campo obrigatório' : null,
+                validator: (value) =>
+                    value == null ? 'Campo obrigatório' : null,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 key: const ValueKey('education'), // Unique key
-                value: _selectedEducationLevel,
-                decoration: const InputDecoration(labelText: 'Grau de Escolaridade *'),
+                initialValue: _selectedEducationLevel,
+                decoration: const InputDecoration(
+                  labelText: 'Grau de Escolaridade *',
+                ),
                 items: _educationLevels
-                    .map((label) => DropdownMenuItem(value: label, child: Text(label)))
+                    .map(
+                      (label) =>
+                          DropdownMenuItem(value: label, child: Text(label)),
+                    )
                     .toList(),
-                onChanged: (value) => setState(() => _selectedEducationLevel = value),
-                validator: (value) => value == null ? 'Campo obrigatório' : null,
+                onChanged: (value) =>
+                    setState(() => _selectedEducationLevel = value),
+                validator: (value) =>
+                    value == null ? 'Campo obrigatório' : null,
               ),
               const SizedBox(height: 16),
               Autocomplete<String>(
@@ -248,22 +285,30 @@ class _DemographicsPageState extends State<DemographicsPage> {
                     return const Iterable<String>.empty();
                   }
                   return _professions.where((String option) {
-                    return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+                    return option.toLowerCase().contains(
+                      textEditingValue.text.toLowerCase(),
+                    );
                   });
                 },
                 onSelected: (String selection) {
                   _professionController.text = selection;
                 },
-                fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                  return TextFormField(
-                    controller: _professionController,
-                    focusNode: focusNode,
-                    decoration: const InputDecoration(labelText: 'Profissão'),
-                  );
-                },
+                fieldViewBuilder:
+                    (context, controller, focusNode, onFieldSubmitted) {
+                      return TextFormField(
+                        controller: _professionController,
+                        focusNode: focusNode,
+                        decoration: const InputDecoration(
+                          labelText: 'Profissão',
+                        ),
+                      );
+                    },
               ),
               const SizedBox(height: 24),
-              const Text('Informações de Saúde', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Text(
+                'Informações de Saúde',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 16),
               const Text('Diagnósticos Prévios'),
               Wrap(
@@ -282,27 +327,27 @@ class _DemographicsPageState extends State<DemographicsPage> {
               ),
               const SizedBox(height: 24),
               const Text('Faz uso de medicamento psiquiátrico? *'),
-              Row(
-                children: [
-                  Radio<String>(
-                    value: 'Sim',
-                    groupValue: _usesMedication,
-                    onChanged: (value) => setState(() => _usesMedication = value),
-                  ),
-                  const Text('Sim'),
-                  Radio<String>(
-                    value: 'Não',
-                    groupValue: _usesMedication,
-                    onChanged: (value) => setState(() => _usesMedication = value),
-                  ),
-                  const Text('Não'),
-                ],
+              RadioGroup<String>(
+                groupValue: _usesMedication,
+                onChanged: (value) => setState(() => _usesMedication = value),
+                child: Row(
+                  children: const [
+                    Radio<String>(value: 'Sim'),
+                    Text('Sim'),
+                    Radio<String>(value: 'Não'),
+                    Text('Não'),
+                  ],
+                ),
               ),
               if (_usesMedication == 'Sim')
                 TextFormField(
                   controller: _medicationNameController,
-                  decoration: const InputDecoration(labelText: 'Nome dos Medicamentos'),
-                  validator: (value) => value == null || value.isEmpty ? 'Campo obrigatório' : null,
+                  decoration: const InputDecoration(
+                    labelText: 'Nome dos Medicamentos',
+                  ),
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'Campo obrigatório'
+                      : null,
                 ),
               const SizedBox(height: 32),
               ElevatedButton(
