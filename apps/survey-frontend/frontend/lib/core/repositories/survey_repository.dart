@@ -139,8 +139,8 @@ class SurveyRepository {
     );
   }
 
-  api.SurveyResponse _mapSurveyResponseToApi(ui.SurveyResponse source) {
-    return api.SurveyResponse((b) {
+  api.SurveyResponseWithAgent _mapSurveyResponseToApi(ui.SurveyResponse source) {
+    return api.SurveyResponseWithAgent((b) {
       b
         ..surveyId = source.surveyId
         ..creatorName = source.creatorName

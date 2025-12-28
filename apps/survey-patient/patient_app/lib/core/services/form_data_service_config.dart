@@ -4,8 +4,6 @@
 /// the application, making it easy to manage asset paths, service registrations,
 /// and providing convenient access to commonly used data services.
 library;
-
-import 'package:flutter/foundation.dart';
 import 'package:patient_app/core/services/form_data_service.dart';
 import 'package:patient_app/core/services/demographics_data_service.dart';
 
