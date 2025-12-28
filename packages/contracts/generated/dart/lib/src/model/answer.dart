@@ -11,15 +11,15 @@ part 'answer.g.dart';
 /// Answer
 ///
 /// Properties:
-/// * [questionId] 
-/// * [response] 
+/// * [id] 
+/// * [answer] 
 @BuiltValue()
 abstract class Answer implements Built<Answer, AnswerBuilder> {
-  @BuiltValueField(wireName: r'questionId')
-  int? get questionId;
+  @BuiltValueField(wireName: r'id')
+  int? get id;
 
-  @BuiltValueField(wireName: r'response')
-  String? get response;
+  @BuiltValueField(wireName: r'answer')
+  String? get answer;
 
   Answer._();
 
@@ -44,17 +44,17 @@ class _$AnswerSerializer implements PrimitiveSerializer<Answer> {
     Answer object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
-    if (object.questionId != null) {
-      yield r'questionId';
+    if (object.id != null) {
+      yield r'id';
       yield serializers.serialize(
-        object.questionId,
+        object.id,
         specifiedType: const FullType(int),
       );
     }
-    if (object.response != null) {
-      yield r'response';
+    if (object.answer != null) {
+      yield r'answer';
       yield serializers.serialize(
-        object.response,
+        object.answer,
         specifiedType: const FullType(String),
       );
     }
@@ -81,19 +81,19 @@ class _$AnswerSerializer implements PrimitiveSerializer<Answer> {
       final key = serializedList[i] as String;
       final value = serializedList[i + 1];
       switch (key) {
-        case r'questionId':
+        case r'id':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(int),
           ) as int;
-          result.questionId = valueDes;
+          result.id = valueDes;
           break;
-        case r'response':
+        case r'answer':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
-          result.response = valueDes;
+          result.answer = valueDes;
           break;
         default:
           unhandled.add(key);

@@ -11,14 +11,18 @@ part 'agent_response.g.dart';
 /// AgentResponse
 ///
 /// Properties:
-/// * [content] 
+/// * [classification] 
+/// * [medicalRecord] 
 /// * [errorMessage] 
 @BuiltValue()
 abstract class AgentResponse implements Built<AgentResponse, AgentResponseBuilder> {
-  @BuiltValueField(wireName: r'content')
-  String? get content;
+  @BuiltValueField(wireName: r'classification')
+  String? get classification;
 
-  @BuiltValueField(wireName: r'error_message')
+  @BuiltValueField(wireName: r'medicalRecord')
+  String? get medicalRecord;
+
+  @BuiltValueField(wireName: r'errorMessage')
   String? get errorMessage;
 
   AgentResponse._();
@@ -44,15 +48,22 @@ class _$AgentResponseSerializer implements PrimitiveSerializer<AgentResponse> {
     AgentResponse object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
-    if (object.content != null) {
-      yield r'content';
+    if (object.classification != null) {
+      yield r'classification';
       yield serializers.serialize(
-        object.content,
+        object.classification,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.medicalRecord != null) {
+      yield r'medicalRecord';
+      yield serializers.serialize(
+        object.medicalRecord,
         specifiedType: const FullType(String),
       );
     }
     if (object.errorMessage != null) {
-      yield r'error_message';
+      yield r'errorMessage';
       yield serializers.serialize(
         object.errorMessage,
         specifiedType: const FullType(String),
@@ -81,14 +92,21 @@ class _$AgentResponseSerializer implements PrimitiveSerializer<AgentResponse> {
       final key = serializedList[i] as String;
       final value = serializedList[i + 1];
       switch (key) {
-        case r'content':
+        case r'classification':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
-          result.content = valueDes;
+          result.classification = valueDes;
           break;
-        case r'error_message':
+        case r'medicalRecord':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.medicalRecord = valueDes;
+          break;
+        case r'errorMessage':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),

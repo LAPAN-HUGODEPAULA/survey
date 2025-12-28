@@ -7,13 +7,13 @@ void main() {
   // TODO add properties to the builder and call build()
 
   group(Answer, () {
-    // int questionId
-    test('to test the property `questionId`', () async {
+    // int id
+    test('to test the property `id`', () async {
       // TODO
     });
 
-    // String response
-    test('to test the property `response`', () async {
+    // String answer
+    test('to test the property `answer`', () async {
       // TODO
     });
 

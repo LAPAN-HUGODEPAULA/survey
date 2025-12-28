@@ -9,7 +9,6 @@ import 'package:survey_backend_api/api.dart';
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **String** |  | [optional] 
-**id** | **String** |  | [optional] 
 **surveyDisplayName** | **String** |  | 
 **surveyName** | **String** |  | 
 **surveyDescription** | **String** |  | 

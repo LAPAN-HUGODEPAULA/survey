@@ -15,30 +15,42 @@ part 'survey_response.g.dart';
 ///
 /// Properties:
 /// * [id] 
-/// * [id] 
 /// * [surveyId] 
+/// * [creatorName] 
+/// * [creatorContact] 
+/// * [testDate] 
+/// * [screenerName] 
+/// * [screenerEmail] 
 /// * [patient] 
 /// * [answers] 
-/// * [notes] 
 @BuiltValue(instantiable: false)
 abstract class SurveyResponse  {
   @BuiltValueField(wireName: r'_id')
   String? get id;
 
-  @BuiltValueField(wireName: r'id')
-  String? get id;
-
   @BuiltValueField(wireName: r'surveyId')
   String get surveyId;
+
+  @BuiltValueField(wireName: r'creatorName')
+  String? get creatorName;
+
+  @BuiltValueField(wireName: r'creatorContact')
+  String? get creatorContact;
+
+  @BuiltValueField(wireName: r'testDate')
+  DateTime? get testDate;
+
+  @BuiltValueField(wireName: r'screenerName')
+  String? get screenerName;
+
+  @BuiltValueField(wireName: r'screenerEmail')
+  String? get screenerEmail;
 
   @BuiltValueField(wireName: r'patient')
   Patient get patient;
 
   @BuiltValueField(wireName: r'answers')
   BuiltList<Answer> get answers;
-
-  @BuiltValueField(wireName: r'notes')
-  String? get notes;
 
   @BuiltValueSerializer(custom: true)
   static Serializer<SurveyResponse> get serializer => _$SurveyResponseSerializer();
@@ -63,18 +75,46 @@ class _$SurveyResponseSerializer implements PrimitiveSerializer<SurveyResponse> 
         specifiedType: const FullType(String),
       );
     }
-    if (object.id != null) {
-      yield r'id';
-      yield serializers.serialize(
-        object.id,
-        specifiedType: const FullType(String),
-      );
-    }
     yield r'surveyId';
     yield serializers.serialize(
       object.surveyId,
       specifiedType: const FullType(String),
     );
+    if (object.creatorName != null) {
+      yield r'creatorName';
+      yield serializers.serialize(
+        object.creatorName,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.creatorContact != null) {
+      yield r'creatorContact';
+      yield serializers.serialize(
+        object.creatorContact,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.testDate != null) {
+      yield r'testDate';
+      yield serializers.serialize(
+        object.testDate,
+        specifiedType: const FullType(DateTime),
+      );
+    }
+    if (object.screenerName != null) {
+      yield r'screenerName';
+      yield serializers.serialize(
+        object.screenerName,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.screenerEmail != null) {
+      yield r'screenerEmail';
+      yield serializers.serialize(
+        object.screenerEmail,
+        specifiedType: const FullType(String),
+      );
+    }
     yield r'patient';
     yield serializers.serialize(
       object.patient,
@@ -85,13 +125,6 @@ class _$SurveyResponseSerializer implements PrimitiveSerializer<SurveyResponse> 
       object.answers,
       specifiedType: const FullType(BuiltList, [FullType(Answer)]),
     );
-    if (object.notes != null) {
-      yield r'notes';
-      yield serializers.serialize(
-        object.notes,
-        specifiedType: const FullType(String),
-      );
-    }
   }
 
   @override
@@ -162,19 +195,47 @@ class _$$SurveyResponseSerializer implements PrimitiveSerializer<$SurveyResponse
           ) as String;
           result.id = valueDes;
           break;
-        case r'id':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.id = valueDes;
-          break;
         case r'surveyId':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
           result.surveyId = valueDes;
+          break;
+        case r'creatorName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.creatorName = valueDes;
+          break;
+        case r'creatorContact':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.creatorContact = valueDes;
+          break;
+        case r'testDate':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(DateTime),
+          ) as DateTime;
+          result.testDate = valueDes;
+          break;
+        case r'screenerName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.screenerName = valueDes;
+          break;
+        case r'screenerEmail':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.screenerEmail = valueDes;
           break;
         case r'patient':
           final valueDes = serializers.deserialize(
@@ -189,13 +250,6 @@ class _$$SurveyResponseSerializer implements PrimitiveSerializer<$SurveyResponse
             specifiedType: const FullType(BuiltList, [FullType(Answer)]),
           ) as BuiltList<Answer>;
           result.answers.replace(valueDes);
-          break;
-        case r'notes':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.notes = valueDes;
           break;
         default:
           unhandled.add(key);

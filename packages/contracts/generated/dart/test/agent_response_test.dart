@@ -7,8 +7,13 @@ void main() {
   // TODO add properties to the builder and call build()
 
   group(AgentResponse, () {
-    // String content
-    test('to test the property `content`', () async {
+    // String classification
+    test('to test the property `classification`', () async {
+      // TODO
+    });
+
+    // String medicalRecord
+    test('to test the property `medicalRecord`', () async {
       // TODO
     });
 

@@ -150,8 +150,6 @@ components:
       properties:
         _id:
           type: string
-        id:
-          type: string
         surveyDisplayName:
           type: string
         surveyName:
@@ -178,10 +176,16 @@ components:
           type: string
     Instructions:
       type: object
+      required:
+        - preamble
+        - questionText
+        - answers
       properties:
         preamble:
           type: string
-        steps:
+        questionText:
+          type: string
+        answers:
           type: array
           items:
             type: string
@@ -207,18 +211,40 @@ components:
           type: string
         email:
           type: string
+        birthDate:
+          type: string
         age:
           type: integer
         gender:
           type: string
-        phone:
+        ethnicity:
+          type: string
+        educationLevel:
+          type: string
+        profession:
+          type: string
+        medication:
+          type: array
+          items:
+            type: string
+        diagnoses:
+          type: array
+          items:
+            type: string
+        family_history:
+          type: string
+        social_history:
+          type: string
+        medical_history:
+          type: string
+        medication_history:
           type: string
     Answer:
       type: object
       properties:
-        questionId:
+        id:
           type: integer
-        response:
+        answer:
           type: string
     SurveyResponse:
       type: object
@@ -229,9 +255,18 @@ components:
       properties:
         _id:
           type: string
-        id:
-          type: string
         surveyId:
+          type: string
+        creatorName:
+          type: string
+        creatorContact:
+          type: string
+        testDate:
+          type: string
+          format: date-time
+        screenerName:
+          type: string
+        screenerEmail:
           type: string
         patient:
           $ref: '#/components/schemas/Patient'
@@ -239,19 +274,19 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Answer'
-        notes:
-          type: string
     AgentResponse:
       type: object
       properties:
-        content:
+        classification:
           type: string
-        error_message:
+        medicalRecord:
+          type: string
+        errorMessage:
           type: string
     SurveyResponseWithAgent:
       allOf:
         - $ref: '#/components/schemas/SurveyResponse'
         - type: object
           properties:
-            agent_response:
+            agentResponse:
               $ref: '#/components/schemas/AgentResponse'

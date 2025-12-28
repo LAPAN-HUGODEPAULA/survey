@@ -17,6 +17,11 @@ void main() {
       // TODO
     });
 
+    // String birthDate
+    test('to test the property `birthDate`', () async {
+      // TODO
+    });
+
     // int age
     test('to test the property `age`', () async {
       // TODO
@@ -27,8 +32,48 @@ void main() {
       // TODO
     });
 
-    // String phone
-    test('to test the property `phone`', () async {
+    // String ethnicity
+    test('to test the property `ethnicity`', () async {
+      // TODO
+    });
+
+    // String educationLevel
+    test('to test the property `educationLevel`', () async {
+      // TODO
+    });
+
+    // String profession
+    test('to test the property `profession`', () async {
+      // TODO
+    });
+
+    // BuiltList<String> medication
+    test('to test the property `medication`', () async {
+      // TODO
+    });
+
+    // BuiltList<String> diagnoses
+    test('to test the property `diagnoses`', () async {
+      // TODO
+    });
+
+    // String familyHistory
+    test('to test the property `familyHistory`', () async {
+      // TODO
+    });
+
+    // String socialHistory
+    test('to test the property `socialHistory`', () async {
+      // TODO
+    });
+
+    // String medicalHistory
+    test('to test the property `medicalHistory`', () async {
+      // TODO
+    });
+
+    // String medicationHistory
+    test('to test the property `medicationHistory`', () async {
       // TODO
     });
 

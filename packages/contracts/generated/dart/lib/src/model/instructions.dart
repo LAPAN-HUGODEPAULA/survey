@@ -13,14 +13,18 @@ part 'instructions.g.dart';
 ///
 /// Properties:
 /// * [preamble] 
-/// * [steps] 
+/// * [questionText] 
+/// * [answers] 
 @BuiltValue()
 abstract class Instructions implements Built<Instructions, InstructionsBuilder> {
   @BuiltValueField(wireName: r'preamble')
-  String? get preamble;
+  String get preamble;
 
-  @BuiltValueField(wireName: r'steps')
-  BuiltList<String>? get steps;
+  @BuiltValueField(wireName: r'questionText')
+  String get questionText;
+
+  @BuiltValueField(wireName: r'answers')
+  BuiltList<String> get answers;
 
   Instructions._();
 
@@ -45,20 +49,21 @@ class _$InstructionsSerializer implements PrimitiveSerializer<Instructions> {
     Instructions object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
-    if (object.preamble != null) {
-      yield r'preamble';
-      yield serializers.serialize(
-        object.preamble,
-        specifiedType: const FullType(String),
-      );
-    }
-    if (object.steps != null) {
-      yield r'steps';
-      yield serializers.serialize(
-        object.steps,
-        specifiedType: const FullType(BuiltList, [FullType(String)]),
-      );
-    }
+    yield r'preamble';
+    yield serializers.serialize(
+      object.preamble,
+      specifiedType: const FullType(String),
+    );
+    yield r'questionText';
+    yield serializers.serialize(
+      object.questionText,
+      specifiedType: const FullType(String),
+    );
+    yield r'answers';
+    yield serializers.serialize(
+      object.answers,
+      specifiedType: const FullType(BuiltList, [FullType(String)]),
+    );
   }
 
   @override
@@ -89,12 +94,19 @@ class _$InstructionsSerializer implements PrimitiveSerializer<Instructions> {
           ) as String;
           result.preamble = valueDes;
           break;
-        case r'steps':
+        case r'questionText':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.questionText = valueDes;
+          break;
+        case r'answers':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(BuiltList, [FullType(String)]),
           ) as BuiltList<String>;
-          result.steps.replace(valueDes);
+          result.answers.replace(valueDes);
           break;
         default:
           unhandled.add(key);

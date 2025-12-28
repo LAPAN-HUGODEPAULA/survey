@@ -12,13 +12,33 @@ void main() {
       // TODO
     });
 
-    // String id
-    test('to test the property `id`', () async {
+    // String surveyId
+    test('to test the property `surveyId`', () async {
       // TODO
     });
 
-    // String surveyId
-    test('to test the property `surveyId`', () async {
+    // String creatorName
+    test('to test the property `creatorName`', () async {
+      // TODO
+    });
+
+    // String creatorContact
+    test('to test the property `creatorContact`', () async {
+      // TODO
+    });
+
+    // DateTime testDate
+    test('to test the property `testDate`', () async {
+      // TODO
+    });
+
+    // String screenerName
+    test('to test the property `screenerName`', () async {
+      // TODO
+    });
+
+    // String screenerEmail
+    test('to test the property `screenerEmail`', () async {
       // TODO
     });
 
@@ -29,11 +49,6 @@ void main() {
 
     // BuiltList<Answer> answers
     test('to test the property `answers`', () async {
-      // TODO
-    });
-
-    // String notes
-    test('to test the property `notes`', () async {
       // TODO
     });
 

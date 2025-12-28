@@ -17,15 +17,18 @@ part 'survey_response_with_agent.g.dart';
 ///
 /// Properties:
 /// * [id] 
-/// * [id] 
 /// * [surveyId] 
+/// * [creatorName] 
+/// * [creatorContact] 
+/// * [testDate] 
+/// * [screenerName] 
+/// * [screenerEmail] 
 /// * [patient] 
 /// * [answers] 
-/// * [notes] 
 /// * [agentResponse] 
 @BuiltValue()
 abstract class SurveyResponseWithAgent implements SurveyResponse, Built<SurveyResponseWithAgent, SurveyResponseWithAgentBuilder> {
-  @BuiltValueField(wireName: r'agent_response')
+  @BuiltValueField(wireName: r'agentResponse')
   AgentResponse? get agentResponse;
 
   SurveyResponseWithAgent._();
@@ -51,42 +54,70 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
     SurveyResponseWithAgent object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
-    yield r'answers';
-    yield serializers.serialize(
-      object.answers,
-      specifiedType: const FullType(BuiltList, [FullType(Answer)]),
-    );
+    if (object.creatorContact != null) {
+      yield r'creatorContact';
+      yield serializers.serialize(
+        object.creatorContact,
+        specifiedType: const FullType(String),
+      );
+    }
     yield r'surveyId';
     yield serializers.serialize(
       object.surveyId,
       specifiedType: const FullType(String),
     );
-    if (object.notes != null) {
-      yield r'notes';
+    yield r'patient';
+    yield serializers.serialize(
+      object.patient,
+      specifiedType: const FullType(Patient),
+    );
+    if (object.creatorName != null) {
+      yield r'creatorName';
       yield serializers.serialize(
-        object.notes,
+        object.creatorName,
         specifiedType: const FullType(String),
       );
     }
+    yield r'answers';
+    yield serializers.serialize(
+      object.answers,
+      specifiedType: const FullType(BuiltList, [FullType(Answer)]),
+    );
     if (object.id != null) {
-      yield r'id';
+      yield r'_id';
       yield serializers.serialize(
         object.id,
         specifiedType: const FullType(String),
       );
     }
     if (object.agentResponse != null) {
-      yield r'agent_response';
+      yield r'agentResponse';
       yield serializers.serialize(
         object.agentResponse,
         specifiedType: const FullType(AgentResponse),
       );
     }
-    yield r'patient';
-    yield serializers.serialize(
-      object.patient,
-      specifiedType: const FullType(Patient),
-    );
+    if (object.screenerEmail != null) {
+      yield r'screenerEmail';
+      yield serializers.serialize(
+        object.screenerEmail,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.testDate != null) {
+      yield r'testDate';
+      yield serializers.serialize(
+        object.testDate,
+        specifiedType: const FullType(DateTime),
+      );
+    }
+    if (object.screenerName != null) {
+      yield r'screenerName';
+      yield serializers.serialize(
+        object.screenerName,
+        specifiedType: const FullType(String),
+      );
+    }
   }
 
   @override
@@ -110,12 +141,12 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
       final key = serializedList[i] as String;
       final value = serializedList[i + 1];
       switch (key) {
-        case r'answers':
+        case r'creatorContact':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList, [FullType(Answer)]),
-          ) as BuiltList<Answer>;
-          result.answers.replace(valueDes);
+            specifiedType: const FullType(String),
+          ) as String;
+          result.creatorContact = valueDes;
           break;
         case r'surveyId':
           final valueDes = serializers.deserialize(
@@ -124,33 +155,61 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
           ) as String;
           result.surveyId = valueDes;
           break;
-        case r'notes':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.notes = valueDes;
-          break;
-        case r'id':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.id = valueDes;
-          break;
-        case r'agent_response':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(AgentResponse),
-          ) as AgentResponse;
-          result.agentResponse.replace(valueDes);
-          break;
         case r'patient':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(Patient),
           ) as Patient;
           result.patient.replace(valueDes);
+          break;
+        case r'creatorName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.creatorName = valueDes;
+          break;
+        case r'answers':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(Answer)]),
+          ) as BuiltList<Answer>;
+          result.answers.replace(valueDes);
+          break;
+        case r'_id':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.id = valueDes;
+          break;
+        case r'agentResponse':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(AgentResponse),
+          ) as AgentResponse;
+          result.agentResponse.replace(valueDes);
+          break;
+        case r'screenerEmail':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.screenerEmail = valueDes;
+          break;
+        case r'testDate':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(DateTime),
+          ) as DateTime;
+          result.testDate = valueDes;
+          break;
+        case r'screenerName':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.screenerName = valueDes;
           break;
         default:
           unhandled.add(key);

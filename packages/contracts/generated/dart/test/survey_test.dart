@@ -12,11 +12,6 @@ void main() {
       // TODO
     });
 
-    // String id
-    test('to test the property `id`', () async {
-      // TODO
-    });
-
     // String surveyDisplayName
     test('to test the property `surveyDisplayName`', () async {
       // TODO

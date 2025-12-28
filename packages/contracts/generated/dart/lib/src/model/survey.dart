@@ -15,7 +15,6 @@ part 'survey.g.dart';
 ///
 /// Properties:
 /// * [id] 
-/// * [id] 
 /// * [surveyDisplayName] 
 /// * [surveyName] 
 /// * [surveyDescription] 
@@ -29,9 +28,6 @@ part 'survey.g.dart';
 @BuiltValue()
 abstract class Survey implements Built<Survey, SurveyBuilder> {
   @BuiltValueField(wireName: r'_id')
-  String? get id;
-
-  @BuiltValueField(wireName: r'id')
   String? get id;
 
   @BuiltValueField(wireName: r'surveyDisplayName')
@@ -89,13 +85,6 @@ class _$SurveySerializer implements PrimitiveSerializer<Survey> {
   }) sync* {
     if (object.id != null) {
       yield r'_id';
-      yield serializers.serialize(
-        object.id,
-        specifiedType: const FullType(String),
-      );
-    }
-    if (object.id != null) {
-      yield r'id';
       yield serializers.serialize(
         object.id,
         specifiedType: const FullType(String),
@@ -175,13 +164,6 @@ class _$SurveySerializer implements PrimitiveSerializer<Survey> {
       final value = serializedList[i + 1];
       switch (key) {
         case r'_id':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.id = valueDes;
-          break;
-        case r'id':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),

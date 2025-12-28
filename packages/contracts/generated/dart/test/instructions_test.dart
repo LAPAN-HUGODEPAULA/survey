@@ -12,8 +12,13 @@ void main() {
       // TODO
     });
 
-    // BuiltList<String> steps
-    test('to test the property `steps`', () async {
+    // String questionText
+    test('to test the property `questionText`', () async {
+      // TODO
+    });
+
+    // BuiltList<String> answers
+    test('to test the property `answers`', () async {
       // TODO
     });
 
