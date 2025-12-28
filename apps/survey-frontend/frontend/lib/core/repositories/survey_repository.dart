@@ -89,6 +89,9 @@ class SurveyRepository {
   }
 
   ui.SurveyResponse _mapSurveyResponseWithAgent(api.SurveyResponseWithAgent source) {
+    final answers = source.answers?.toList(growable: false) ?? const <api.Answer>[];
+    final patient = source.patient;
+
     return ui.SurveyResponse(
       id: source.id,
       agentResponse: source.agentResponse == null
@@ -98,7 +101,7 @@ class SurveyRepository {
               medicalRecord: source.agentResponse?.medicalRecord,
               errorMessage: source.agentResponse?.errorMessage,
             ),
-      surveyId: source.surveyId ?? '',
+      surveyId: source.surveyId,
       creatorName: source.creatorName ?? '',
       creatorContact: source.creatorContact ?? '',
       testDate: source.testDate?.toLocal() ?? DateTime.now(),
@@ -106,8 +109,8 @@ class SurveyRepository {
         name: source.screenerName ?? '',
         email: source.screenerEmail ?? '',
       ),
-      patient: _mapPatientFromApi(source.patient),
-      answers: source.answers
+      patient: patient != null ? _mapPatientFromApi(patient) : Patient.initial(),
+      answers: answers
           .map(
             (ans) => ui.Answer(
               id: ans.id ?? 0,
@@ -118,7 +121,7 @@ class SurveyRepository {
     );
   }
 
-  ui.Patient _mapPatientFromApi(api.Patient source) {
+  Patient _mapPatientFromApi(api.Patient source) {
     return Patient(
       name: source.name ?? '',
       email: source.email ?? '',
@@ -175,5 +178,9 @@ class SurveyRepository {
         ..medicalHistory = source.medicalHistory
         ..medicationHistory = source.medicationHistory,
     );
+  }
+
+  void dispose() {
+    // currently no disposable resources
   }
 }
