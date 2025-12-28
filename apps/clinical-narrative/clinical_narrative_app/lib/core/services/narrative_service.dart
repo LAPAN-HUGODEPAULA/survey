@@ -1,12 +1,21 @@
 library;
 
+import 'package:dio/dio.dart';
+
 import 'package:clinical_narrative_app/core/models/patient.dart';
-import 'package:clinical_narrative_app/core/services/api_client.dart';
+import 'package:clinical_narrative_app/core/services/api_config.dart';
 
 class NarrativeService {
-  NarrativeService({ApiClient? apiClient}) : _apiClient = apiClient ?? ApiClient();
+  NarrativeService({Dio? httpClient})
+      : _httpClient = httpClient ??
+            Dio(
+              BaseOptions(
+                baseUrl: ApiConfig.baseUrl,
+                headers: ApiConfig.defaultHeaders,
+              ),
+            );
 
-  final ApiClient _apiClient;
+  final Dio _httpClient;
 
   Future<void> saveNarrative({
     required Patient patient,
@@ -16,10 +25,10 @@ class NarrativeService {
       'patient': patient.toJson(),
       'narrative': narrative,
     };
-    await _apiClient.postJson('narratives', body);
+    await _httpClient.post<dynamic>('narratives', data: body);
   }
 
   void dispose() {
-    _apiClient.dispose();
+    _httpClient.close();
   }
 }
