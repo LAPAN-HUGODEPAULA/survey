@@ -163,8 +163,6 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = Provider.of<AppSettings>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Image.asset(

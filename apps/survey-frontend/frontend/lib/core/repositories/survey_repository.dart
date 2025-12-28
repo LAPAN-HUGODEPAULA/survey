@@ -101,7 +101,7 @@ class SurveyRepository {
               medicalRecord: source.agentResponse?.medicalRecord,
               errorMessage: source.agentResponse?.errorMessage,
             ),
-      surveyId: source.surveyId,
+      surveyId: source.surveyId ?? '',
       creatorName: source.creatorName ?? '',
       creatorContact: source.creatorContact ?? '',
       testDate: source.testDate?.toLocal() ?? DateTime.now(),
