@@ -3,7 +3,6 @@ services:
     image: mongo:6.0
     container_name: mongodb
     restart: always
-    profiles: ["local"]
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
@@ -70,6 +69,20 @@ services:
       - BATCH_SIZE=${BATCH_SIZE:-10}
     depends_on:
       - mongodb
+    networks:
+      - survey_network
+
+  clinical-narrative:
+    build:
+      context: ./apps/clinical-narrative/clinical_narrative_app
+      args:
+        API_BASE_URL: ${CLINICAL_NARRATIVE_API_BASE_URL:-http://survey-backend:8000/api/v1/}
+    container_name: clinical_narrative_app
+    restart: always
+    ports:
+      - "8082:80"
+    depends_on:
+      - survey-backend
     networks:
       - survey_network
 

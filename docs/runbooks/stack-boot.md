@@ -8,13 +8,14 @@
 
 ## Start the stack (monorepo layout)
 ```bash
-docker compose up -d mongodb survey-backend survey-frontend survey-patient
+docker compose up -d mongodb survey-backend survey-frontend survey-patient clinical-narrative
 ```
 
 Service ports:
 - Backend API: http://localhost:8000/api/v1/
 - Screener web: http://localhost:8080
 - Patient web: http://localhost:8081
+- Clinical narrative web: http://localhost:8082
 
 ## Health checks
 - Backend: `curl http://localhost:8000/docs` or `GET /api/v1/surveys`
