@@ -1,5 +1,6 @@
 # AI code assistants
 GEMINI.md
+codex.json
 
 # Python bytecode
 __pycache__/
@@ -132,5 +133,4 @@ lib/generated_plugin_registrant.dart
 
 # Obfuscation related
 app.*.map.json
-
 

@@ -1,3 +1,0 @@
-# User Manual
-
-... (placeholder for user manual) ...

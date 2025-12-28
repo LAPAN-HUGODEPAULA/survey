@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+title: "LAPAN Survey Platform"
+authors:
+  - family-names: "de Paula"
+    given-names: "Hugo"
+    website: "https://www.github.com/hugodepaula"
+version: "1.0.0"
+date-released: 2025-12-27
+repository-code: "https://github.com/hugodepaula/survey"

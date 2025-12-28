@@ -1,3 +1,0 @@
-# Performance and Scalability
-
-... (placeholder for performance and scalability details) ...

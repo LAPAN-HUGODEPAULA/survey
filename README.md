@@ -1,59 +1,36 @@
-# Sistema de Survey para Análise Clínica
+# LAPAN Survey Platform
 
-[![pt-br](https://img.shields.io/badge/lang-pt--br-green.svg)](https://github.com/HHerauto/survey/blob/main/README.md)
+Monorepo for the LAPAN healthcare survey and clinical narrative platform. It includes a FastAPI backend, background worker, Flutter web applications, an AI-powered Clinical Writer service, and shared contracts/design system packages.
 
-Este projeto é um sistema de análise clínica projetado para coletar e analisar dados de pacientes através de questionários padronizados. Ele é composto por um backend em Python (FastAPI) com MongoDB e um frontend em Flutter.
+## Repository Layout
+- `services/survey-backend` – FastAPI API for surveys, survey responses, and patient responses (MongoDB persistence via repositories).
+- `services/survey-worker` – background processor that enriches responses via the Clinical Writer API.
+- `services/clinical-writer-api` – LangGraph/LLM-based clinical narrative service (runs separately when AI enrichment is needed).
+- `apps/` – Flutter web apps (`survey-frontend`, `survey-patient`, `clinical-narrative`) using the shared design system.
+- `packages/` – OpenAPI contract + generated SDKs (`contracts`), Flutter design system, and shared Python utilities.
+- `tools/` – scripts for client generation and CI tooling.
 
-## Visão Geral
-
-O sistema permite que um profissional de saúde (**Screener**) colete informações de um **Paciente** por meio de um aplicativo. As respostas são armazenadas para análise posterior.
-
-O projeto é dividido em três componentes principais:
-
-1.  **`db`**: O backend da aplicação, contendo a API REST e a configuração do banco de dados MongoDB.
-2.  **`survey_app`**: O frontend principal em Flutter, que se conecta ao backend.
-
-## Documentação
-
-Para uma visão completa da arquitetura, modelos de dados, e guias de configuração, consulte a **[documentação detalhada na pasta `docs`](./docs/index.md)**.
-
-A documentação inclui:
-*   [Visão Geral do Projeto](./docs/index.md)
-*   [Arquitetura do Sistema](./docs/architecture.md)
-*   [Modelo de Dados](./docs/data_model.md)
-*   [Guia de Instalação](./docs/setup.md)
-
-## Guia Rápido de Instalação
-
-### Pré-requisitos
-*   Git
-*   Flutter SDK
-*   Docker e Docker Compose
-*   Firebase CLI
-
-### Backend (Local com Docker)
+## Quick Start
 ```bash
-cd db
-docker-compose up -d --build
+# 1) Populate .env (copy from .env.example and set Mongo credentials)
+# 2) Start the stack
+docker compose up -d mongodb survey-backend frontend patient_app clinical-narrative survey-worker
+# 3) Optional: start the Clinical Writer AI service
+docker compose -f services/clinical-writer-api/docker-compose.yml up -d clinical-writer-api
 ```
 
-### Backend (Deploy no Firebase)
-```bash
-# Instale as dependências
-cd survey_api
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+- Backend docs: http://localhost:8000/docs
+- Screener app: http://localhost:8080
+- Patient app: http://localhost:8081
+- Clinical narrative app: http://localhost:8082
+- Clinical Writer (optional): http://localhost:9566
 
-# Deploy para o Firebase
-firebase deploy --only functions
-```
+## Development Notes
+- Contract source: `packages/contracts/survey-backend.openapi.yaml`; regenerate SDKs with `tools/scripts/generate_clients.sh`.
+- Backend sanity check: `python -m compileall services/survey-backend/app`.
+- Flutter apps use the shared `design_system_flutter` theme (seed color `Colors.orange`).
 
-### Frontend (`survey_app`)
-```bash
-cd survey_app
-flutter pub get
-flutter run
-```
-
-Para mais detalhes, siga o [Guia de Instalação completo](./docs/setup.md).
+## Documentation
+Authoritative docs live in `docs/`:
+- Index: `docs/README.md`
+- Requirements, technical spec, software design, API docs, deployment plan, release notes, and weekly changelog.
