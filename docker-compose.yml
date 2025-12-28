@@ -57,6 +57,22 @@ services:
     networks:
       - survey_network
 
+  survey-worker:
+    build: ./services/survey-worker
+    container_name: survey_worker
+    restart: always
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME:-survey_db}
+      - CLINICAL_WRITER_URL=${CLINICAL_WRITER_URL:-http://clinical_writer_agent:8000/process}
+      - CLINICAL_WRITER_API_TOKEN=${CLINICAL_WRITER_API_TOKEN:-}
+      - POLL_INTERVAL_SECONDS=${POLL_INTERVAL_SECONDS:-10}
+      - BATCH_SIZE=${BATCH_SIZE:-10}
+    depends_on:
+      - mongodb
+    networks:
+      - survey_network
+
 volumes:
   mongodb_data:
 
