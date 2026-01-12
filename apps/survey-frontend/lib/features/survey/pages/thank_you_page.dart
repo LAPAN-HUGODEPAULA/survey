@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:design_system_flutter/report/clinical_report.dart';
 import 'package:provider/provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_html/html.dart' as html;
@@ -79,52 +80,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
     });
   }
 
-  Future<void> _showAgentDialog(AgentResponse response) async {
-    final classification = response.classification ?? 'Sem classificação';
-    final medicalRecord = response.medicalRecord ?? 'Nenhum registro clínico retornado.';
-    final errorMessage = response.errorMessage;
-
-    await showDialog<void>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Resumo automático do assistente'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (errorMessage != null) ...[
-                  Text(
-                    errorMessage,
-                    style: const TextStyle(color: Colors.redAccent),
-                  ),
-                ] else ...[
-                  Text(
-                    'Classificação: $classification',
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'Evolução/Registro Clínico:',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(medicalRecord),
-                ],
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Fechar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   List<Answer> _buildAnswers() {
     final answers = <Answer>[];
 
@@ -181,11 +136,40 @@ class _ThankYouPageState extends State<ThankYouPage> {
         _savedResponseId = saved.id;
         _agentResponse = saved.agentResponse;
       });
-      if (saved.agentResponse != null && mounted) {
-        await _showAgentDialog(saved.agentResponse!);
-      }
+      await _maybeFetchAgentResponse(surveyResponse, saved.agentResponse);
     } catch (e) {
       await _fallbackToLocalSave(e);
+    }
+  }
+
+  Future<void> _maybeFetchAgentResponse(
+    SurveyResponse surveyResponse,
+    AgentResponse? agentResponse,
+  ) async {
+    if (!mounted) {
+      return;
+    }
+
+    if (agentResponse != null) {
+      setState(() {
+        _agentResponse = agentResponse;
+      });
+      return;
+    }
+
+    try {
+      final content = jsonEncode(surveyResponse.toJson());
+      final response = await _surveyRepository.processClinicalWriter(content);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _agentResponse = response;
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Clinical writer fallback failed: $e');
+      }
     }
   }
 
@@ -326,8 +310,143 @@ class _ThankYouPageState extends State<ThankYouPage> {
     }
   }
 
+  List<ClinicalReportSection> _buildReportSections(AgentResponse response) {
+    final errorMessage = response.errorMessage?.trim();
+    if (errorMessage != null && errorMessage.isNotEmpty) {
+      return [
+        ClinicalReportSection(
+          title: 'Erro no processamento',
+          body: errorMessage,
+        ),
+      ];
+    }
+
+    final sections = buildClinicalReportSections(
+      classification: response.classification,
+      medicalRecord: response.medicalRecord,
+      classificationTitle: 'Classificacao',
+      recordTitle: 'Relatorio Clinico',
+    );
+
+    if (sections.isEmpty) {
+      return const [
+        ClinicalReportSection(
+          title: 'Relatorio Clinico',
+          body: 'Nenhum registro clinico retornado.',
+        ),
+      ];
+    }
+
+    return sections;
+  }
+
+  String _buildReportText(AppSettings settings, AgentResponse response) {
+    final surveyName = widget.survey.surveyDisplayName.isNotEmpty
+        ? widget.survey.surveyDisplayName
+        : widget.survey.surveyName;
+    final buffer = StringBuffer()
+      ..writeln('Relatorio de Triagem Sensorial')
+      ..writeln('Questionario: $surveyName');
+
+    if (settings.patient.name.isNotEmpty) {
+      buffer.writeln('Paciente: ${settings.patient.name}');
+    }
+
+    if (_savedResponseId != null) {
+      buffer.writeln('Protocolo: $_savedResponseId');
+    }
+
+    buffer.writeln('');
+
+    for (final section in _buildReportSections(response)) {
+      buffer.writeln('${section.title}:');
+      if (section.body != null && section.body!.trim().isNotEmpty) {
+        buffer.writeln(section.body);
+      }
+      for (final bullet in section.bullets) {
+        buffer.writeln('- $bullet');
+      }
+      buffer.writeln('');
+    }
+
+    buffer.writeln(
+      'Gerado eletronicamente pelo NeuroCheck - Indicador de Saude Mental e Sensorial.',
+    );
+    return buffer.toString();
+  }
+
+  String _generateReportFileName(String surveyId, String patientName) {
+    final baseName = _generateFileName(surveyId, patientName).replaceAll('.json', '');
+    return '${baseName}_relatorio.txt';
+  }
+
+  Future<void> _exportReport(AppSettings settings, AgentResponse response) async {
+    final fileName = _generateReportFileName(widget.survey.id, settings.patient.name);
+    final reportText = _buildReportText(settings, response);
+    final result = await _writeReportFile(fileName, reportText);
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(result)),
+    );
+  }
+
+  void _printReport() {
+    if (kIsWeb) {
+      html.window.print();
+    }
+  }
+
+  Future<String> _writeReportFile(String fileName, String content) async {
+    try {
+      if (kIsWeb) {
+        return await _saveReportToWebBrowser(fileName, content);
+      }
+      return await _saveReportToNativeDirectory(fileName, content);
+    } catch (e) {
+      return 'Falha ao exportar relatorio: $e';
+    }
+  }
+
+  Future<String> _saveReportToWebBrowser(String fileName, String content) async {
+    final bytes = utf8.encode(content);
+    final blob = html.Blob([bytes]);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.AnchorElement(href: url)
+      ..download = fileName
+      ..style.display = 'none';
+
+    html.document.body?.children.add(anchor);
+    anchor.click();
+    anchor.remove();
+    html.Url.revokeObjectUrl(url);
+
+    return 'Download iniciado: $fileName';
+  }
+
+  Future<String> _saveReportToNativeDirectory(
+    String fileName,
+    String content,
+  ) async {
+    final tempDir = Directory.systemTemp;
+    final reportsDir = Directory(path.join(tempDir.path, 'survey_reports'));
+
+    if (!await reportsDir.exists()) {
+      await reportsDir.create(recursive: true);
+    }
+
+    final file = File(path.join(reportsDir.path, fileName));
+    await file.writeAsString(content);
+    return file.path;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final settings = Provider.of<AppSettings>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Finalizado'),
@@ -455,17 +574,21 @@ class _ThankYouPageState extends State<ThankYouPage> {
                   ),
                   const SizedBox(height: 24),
                   if (_agentResponse != null) ...[
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        final response = _agentResponse;
-                        if (response != null) {
-                          _showAgentDialog(response);
-                        }
-                      },
-                      icon: const Icon(Icons.forum_outlined),
-                      label: const Text('Ver resumo do assistente'),
+                    ClinicalReportView(
+                      title: 'Relatorio de Triagem Sensorial',
+                      subtitle: settings.screener.name.isNotEmpty
+                          ? 'Para: ${settings.screener.name}'
+                          : 'Para: Especialista responsavel',
+                      meta: _savedResponseId != null
+                          ? 'Protocolo: $_savedResponseId'
+                          : null,
+                      sections: _buildReportSections(_agentResponse!),
+                      footer:
+                          'Gerado eletronicamente pelo NeuroCheck - Indicador de Saude Mental e Sensorial.',
+                      onPrint: kIsWeb ? _printReport : null,
+                      onExport: () => _exportReport(settings, _agentResponse!),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 24),
                   ],
                 ] else if (_saveError != null) ...[
                   Icon(
