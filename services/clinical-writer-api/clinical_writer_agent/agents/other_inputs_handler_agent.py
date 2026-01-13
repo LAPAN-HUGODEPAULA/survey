@@ -20,7 +20,7 @@ class OtherInputHandlerAgent:
         start_time = datetime.now()
         if observer:
             observer.on_processing_start(agent_type, start_time, {
-                'classification': state.get('classification'),
+                'validation_status': state.get('validation_status'),
                 'has_error': bool(state.get('error_message'))
             })
         

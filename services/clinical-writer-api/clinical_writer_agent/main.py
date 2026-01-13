@@ -18,7 +18,6 @@ from .prompt_registry import PromptNotFoundError, create_prompt_registry
 app = FastAPI()
 
 DEFAULT_LOCALE = "pt-BR"
-PROMPT_VERSION = os.getenv("PROMPT_VERSION", "v1")
 MODEL_VERSION = os.getenv("MODEL_VERSION", "unknown")
 
 
@@ -180,7 +179,7 @@ def _build_report(
     request: ProcessRequest,
     final_state: dict,
     prompt_version: str,
-) -> ProcessResponse:
+) -> ReportDocument:
     warnings: list[str] = []
     error_message = final_state.get("error_message")
     if error_message:
@@ -206,21 +205,12 @@ def _build_report(
     if not sections and warnings:
         sections.append(Section(title="Avisos", blocks=[_paragraph_block(warnings[0])]))
 
-    report = ReportDocument(
+    return ReportDocument(
         title="Relatorio Clinico",
         subtitle=f"Entrada: {request.input_type}",
         created_at=datetime.now(timezone.utc),
         patient=PatientInfo(reference=request.metadata.patient_ref),
         sections=sections,
-    )
-
-    return ProcessResponse(
-        ok=not warnings,
-        input_type=request.input_type,
-        prompt_version=prompt_version,
-        model_version=MODEL_VERSION,
-        report=report,
-        warnings=warnings,
     )
 
 
@@ -236,13 +226,18 @@ async def process_content(
     prompt_registry = Depends(get_prompt_registry),
 ):
     try:
-        _, prompt_version = prompt_registry.get_prompt(input.prompt_key)
+        prompt_text, prompt_version = prompt_registry.get_prompt(input.prompt_key)
     except PromptNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     state = {
         "input_content": input.content,
-        "observer": observer
+        "observer": observer,
+        "input_type": input.input_type,
+        "prompt_key": input.prompt_key,
+        "prompt_version": prompt_version,
+        "prompt_text": prompt_text,
+        "model_version": MODEL_VERSION,
     }
     final_state = graph.invoke(state) # type: ignore
 
@@ -250,7 +245,20 @@ async def process_content(
     if 'observer' in final_state:
         del final_state['observer']
 
-    return _build_report(input, final_state, prompt_version)
+    report = _build_report(input, final_state, prompt_version)
+    final_state["report"] = report.model_dump()
+    warnings = []
+    if final_state.get("error_message"):
+        warnings.append(str(final_state["error_message"]))
+
+    return ProcessResponse(
+        ok=not warnings,
+        input_type=input.input_type,
+        prompt_version=final_state.get("prompt_version", prompt_version),
+        model_version=final_state.get("model_version", MODEL_VERSION),
+        report=report,
+        warnings=warnings,
+    )
 
 @app.get("/metrics")
 async def get_metrics(observer = Depends(get_observer)):

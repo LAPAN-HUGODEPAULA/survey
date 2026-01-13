@@ -71,17 +71,19 @@ def test_create_graph_accepts_injected_llms(monkeypatch):
     """Injected LLMs should be used by graph nodes, enabling fast unit tests."""
     conv_llm = _StubLLM("conversation")
     json_llm = _StubLLM("json")
-    judge_llm = _StubJudge(0.9)
 
-    graph = create_graph(conversation_llm=conv_llm, json_llm=json_llm, judge_llm=judge_llm)
-    state = {"input_content": 'Doutor: Como vai? {"patient": "Joao"}', "observer": None}
+    graph = create_graph(conversation_llm=conv_llm, json_llm=json_llm)
+    state = {
+        "input_content": 'Doutor: Como vai? {"patient": "Joao"}',
+        "observer": None,
+        "input_type": "consult",
+        "prompt_key": "default",
+        "prompt_version": "test",
+        "prompt_text": "{content}",
+        "model_version": "test",
+    }
 
     result = graph.invoke(state)
 
-    assert result["classification"] in ("conversation", "json")
-    if result["classification"] == "conversation":
-        assert conv_llm.invocations, "Conversation LLM should be invoked"
-        assert result["medical_record"] == "conversation-response"
-    else:
-        assert json_llm.invocations, "JSON LLM should be invoked"
-        assert result["medical_record"] == "json-response"
+    assert conv_llm.invocations, "Conversation LLM should be invoked"
+    assert result["medical_record"] == "conversation-response"

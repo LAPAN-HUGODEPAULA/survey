@@ -62,6 +62,7 @@ class MetricsMonitor(ProcessingMonitor):
         else:
             self.metrics['validation_results']['failed'] += 1
         self.metrics['validation_times'].append(duration)
+        self.metrics['total_requests'] += 1
 
     def on_event(self, event_name: str, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None):
         """Generic events are not tracked by this monitor."""
@@ -132,5 +133,4 @@ class MetricsMonitor(ProcessingMonitor):
             'total_requests': 0,
             'start_time': datetime.now()
         }
-
 

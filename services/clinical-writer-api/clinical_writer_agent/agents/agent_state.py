@@ -9,7 +9,7 @@ status), intermediate results (e.g., appropriateness scores), and final outputs
 """
 
 # Package imports
-from typing import TypedDict, Optional
+from typing import Optional, TypedDict
 
 # Project imports
 from ..monitoring.base_monitors import ProcessingMonitor
@@ -18,8 +18,13 @@ from ..monitoring.base_monitors import ProcessingMonitor
 class AgentState(TypedDict, total=False):
     """State passed between LangGraph nodes during request processing."""
     input_content: str
-    classification: str
+    validation_status: str
+    input_type: str
+    prompt_key: str
+    prompt_version: str
+    prompt_text: str
+    report: dict
+    model_version: str
     medical_record: str
     error_message: str
-    judge_score: float
     observer: Optional['ProcessingMonitor']  # Observer for monitoring and logging

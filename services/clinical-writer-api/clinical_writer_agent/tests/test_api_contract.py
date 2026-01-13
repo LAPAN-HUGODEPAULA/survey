@@ -1,6 +1,5 @@
 import pytest
 
-from clinical_writer_agent.agent_config import AgentConfig
 from clinical_writer_agent.agent_graph import create_graph, create_default_observer
 from clinical_writer_agent.main import ProcessRequest, process_content
 from clinical_writer_agent.prompt_registry import create_prompt_registry
@@ -23,24 +22,10 @@ class _StubLLM:
         return Response(f"{self.name}-response")
 
 
-class _StubJudge:
-    def __init__(self, score: float = 1.0):
-        self.score = score
-
-    def invoke(self, prompt: str):
-
-        class Response:
-            def __init__(self, content: str):
-                self.content = content
-
-        return Response(str(self.score))
-
-
 def _build_graph(observer):
     conv_llm = _StubLLM("conversation")
     json_llm = _StubLLM("json")
-    judge_llm = _StubJudge(0.9)
-    graph = create_graph(observer=observer, conversation_llm=conv_llm, json_llm=json_llm, judge_llm=judge_llm)
+    graph = create_graph(observer=observer, conversation_llm=conv_llm, json_llm=json_llm)
     return graph, conv_llm, json_llm
 
 
@@ -66,23 +51,24 @@ def _collect_report_text(report) -> str:
     return "\n".join(parts)
 
 
-async def test_flagging_of_sanitization_edges():
+async def test_sanitized_inputs_flow_to_writer():
     observer = create_default_observer()
     graph, *_ = _build_graph(observer)
     registry = create_prompt_registry()
-    inputs_and_expected = [
-        ("Hello there! 👋", AgentConfig.CLASSIFICATION_FLAGGED),
-        ("This is <b>html</b>", AgentConfig.CLASSIFICATION_OTHER),
-        ("Buy now and get a discount!", AgentConfig.CLASSIFICATION_FLAGGED),
+    inputs = [
+        "Hello there! 👋",
+        "This is <b>html</b>",
+        "Buy now and get a discount!",
     ]
-    for text, expected in inputs_and_expected:
-        result = await process_content(ProcessRequest(input_type="consult", content=text), graph, observer, registry)
+    for text in inputs:
+        result = await process_content(
+            ProcessRequest(input_type="consult", content=text),
+            graph,
+            observer,
+            registry,
+        )
         report_text = _collect_report_text(result.report)
-        assert expected in report_text
-        if expected == AgentConfig.CLASSIFICATION_FLAGGED:
-            assert "flagged" in report_text
-        else:
-            assert "could not be classified" in report_text
+        assert "conversation-response" in report_text
 
 
 async def test_json_and_conversation_paths_use_injected_llms():
@@ -97,7 +83,7 @@ async def test_json_and_conversation_paths_use_injected_llms():
         registry,
     )
     json_result = await process_content(
-        ProcessRequest(input_type="consult", content='{"patient": {"name": "Ana"}}'),
+        ProcessRequest(input_type="survey7", content='{"patient": {"name": "Ana"}}'),
         graph,
         observer,
         registry,
@@ -105,5 +91,5 @@ async def test_json_and_conversation_paths_use_injected_llms():
 
     assert conv_llm.calls == 1
     assert json_llm.calls == 1
-    assert AgentConfig.CLASSIFICATION_CONVERSATION in _collect_report_text(conv_result.report)
-    assert AgentConfig.CLASSIFICATION_JSON in _collect_report_text(json_result.report)
+    assert "conversation-response" in _collect_report_text(conv_result.report)
+    assert "json-response" in _collect_report_text(json_result.report)

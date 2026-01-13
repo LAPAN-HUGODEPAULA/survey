@@ -3,12 +3,10 @@ from langgraph.graph import StateGraph, END
 from typing import Optional
 
 # Project imports
-from .agent_config import AgentConfig
 from .agents.agent_state import AgentState
-from .agents.classification_agent import ClassificationAgent
 from .agents.input_validator_agent import InputValidatorAgent
-from .agents.conversation_processor_agent import ConversationProcessorAgent
-from .agents.json_processor_agent import JsonProcessorAgent
+from .agents.deterministic_router_agent import DeterministicRouterAgent
+from .agents.writer_nodes import ConsultWriterNode, Survey7WriterNode, FullIntakeWriterNode
 from .agents.other_inputs_handler_agent import OtherInputHandlerAgent
 
 from .monitoring.base_monitors import CompositeMonitor, ProcessingMonitor
@@ -21,7 +19,6 @@ def create_graph(
     *,
     conversation_llm=None,
     json_llm=None,
-    judge_llm=None,
 ):
     """
     Create and configure the LangGraph workflow for clinical record generation.
@@ -30,7 +27,6 @@ def create_graph(
         observer: Optional observer for monitoring and logging to attach to the compiled graph.
         conversation_llm: Optional LLM instance to inject into the conversation processor.
         json_llm: Optional LLM instance to inject into the JSON processor.
-        judge_llm: Optional LLM instance used as the appropriateness judge during validation.
     
     Returns:
         Compiled LangGraph workflow
@@ -38,40 +34,45 @@ def create_graph(
     workflow = StateGraph(AgentState)
 
     # Add nodes
-    workflow.add_node("validate_input", InputValidatorAgent(llm_judge=judge_llm).validate)
-    workflow.add_node("classify_input", ClassificationAgent().classify)
-    workflow.add_node("process_conversation", ConversationProcessorAgent(llm_model=conversation_llm).process)
-    workflow.add_node("process_json", JsonProcessorAgent(llm_model=json_llm).process)
+    workflow.add_node("validate_input", InputValidatorAgent().validate)
+    workflow.add_node(
+        "route_input",
+        DeterministicRouterAgent({"consult", "survey7", "full_intake"}).route,
+    )
+    workflow.add_node("process_consult", ConsultWriterNode(llm_model=conversation_llm).process)
+    workflow.add_node("process_survey7", Survey7WriterNode(llm_model=json_llm).process)
+    workflow.add_node("process_full_intake", FullIntakeWriterNode(llm_model=json_llm).process)
     workflow.add_node("handle_other", OtherInputHandlerAgent().handle)
 
     # Set entry point
     workflow.set_entry_point("validate_input")
 
-    # Route validated inputs to classification; short-circuit flagged content.
+    # Route validated inputs to deterministic routing; short-circuit flagged content.
     workflow.add_conditional_edges(
         "validate_input",
-        lambda state: state["classification"],
+        lambda state: state["validation_status"],
         {
-            AgentConfig.CLASSIFICATION_FLAGGED: "handle_other",
-            AgentConfig.CLASSIFICATION_VALIDATED: "classify_input",
+            "flagged": "handle_other",
+            "validated": "route_input",
         },
     )
 
-    # Define conditional edges based on classification
+    # Define conditional edges based on input_type
     workflow.add_conditional_edges(
-        "classify_input",
-        lambda state: state["classification"],
+        "route_input",
+        lambda state: state["input_type"],
         {
-            AgentConfig.CLASSIFICATION_CONVERSATION: "process_conversation",
-            AgentConfig.CLASSIFICATION_JSON: "process_json",
-            AgentConfig.CLASSIFICATION_INAPPROPRIATE: "handle_other",
-            AgentConfig.CLASSIFICATION_OTHER: "handle_other",
+            "consult": "process_consult",
+            "survey7": "process_survey7",
+            "full_intake": "process_full_intake",
+            "invalid": "handle_other",
         },
     )
 
     # Define normal edges
-    workflow.add_edge("process_conversation", END)
-    workflow.add_edge("process_json", END)
+    workflow.add_edge("process_consult", END)
+    workflow.add_edge("process_survey7", END)
+    workflow.add_edge("process_full_intake", END)
     workflow.add_edge("handle_other", END)
 
     compiled_graph = workflow.compile()

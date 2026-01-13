@@ -79,9 +79,14 @@ class GoogleDrivePromptProvider(PromptRegistry):
 
         meta = self._drive.files().get(
             fileId=file_id,
-            fields="id, name, modifiedTime, etag",
+            fields="id, name, modifiedTime",
         ).execute()
-        version = meta.get("etag") or meta.get("modifiedTime") or "unknown"
+        modified_time = meta.get("modifiedTime")
+        version = (
+            f"gdrive_modifiedTime:{modified_time}"
+            if modified_time
+            else "gdrive_modifiedTime:unknown"
+        )
         content_bytes = self._drive.files().export_media(
             fileId=file_id,
             mimeType="text/plain",
