@@ -24,13 +24,13 @@
 - **Resilience**: logs failures and marks statuses so retry logic can reprocess items.
 
 ## Clinical Writer Design (`services/clinical-writer-api`)
-- **Pipeline**: FastAPI endpoint invokes a LangGraph graph to validate, classify, and generate medical narratives with an LLM backend.
-- **Classification Strategy Pattern** (imported from prior docs):
-  - `ClassificationContext` executes prioritized strategies: inappropriate-content detection → JSON payload detection → conversation detection → fallback “other”.
-  - Strategies are registered via `AgentConfig` factories and can be extended without changing the calling code.
-  - The selected classification routes the request to the appropriate agent (e.g., JSON processor vs. conversation processor) before invoking the LLM.
-- **Configuration**: `AgentConfig` centralizes API keys, model params, and strategy registration; dependencies are injected for testability.
-- **Endpoint**: exposed on port `9566` when run via `services/clinical-writer-api/docker-compose.yml`.
+- **Pipeline**: FastAPI endpoint invokes a LangGraph graph to validate input, route by `input_type`, and generate JSON-only ReportDocument output.
+- **Routing**: deterministic by request `input_type` (`consult`, `survey7`, `full_intake`) without LLM-based classification.
+- **PromptRegistry**: resolves `prompt_key` to prompt text and version.
+  - **Google Drive provider** loads prompt docs from a configured folder or explicit map, exports as `text/plain`, caches with TTL, and uses Drive `modifiedTime` as human-readable `prompt_version`.
+- **Prompt config**: `PROMPT_PROVIDER=google_drive|local`, `GOOGLE_DRIVE_FOLDER_ID` or `PROMPT_DOC_MAP_JSON`, and service account credentials via `GOOGLE_APPLICATION_CREDENTIALS`.
+- **Configuration**: `AgentConfig` centralizes API keys, model params, and prompt provider configuration; dependencies are injected for testability.
+- **Endpoint**: exposed on port `9566` when run via `services/clinical-writer-api/docker-compose.yml`, path `/process`.
 
 ## Flutter Design (`apps/*`)
 - **Structure**: feature-first (e.g., `features/<feature>/data|domain|presentation`) with shared utilities under `shared/`.

@@ -4,6 +4,7 @@
 - Backend lives in `services/survey-backend/app` (FastAPI) with persistence in `app/persistence/**` and domain models in `app/domain/models`.
 - Frontend apps (Flutter) reside under `apps/`: `survey-frontend/`, `survey-patient/`, and `clinical-narrative/`.
 - Contracts and generated SDKs live in `packages/contracts/` (`survey-backend.openapi.yaml` and `generated/dart/`). Shared Flutter design system is in `packages/design_system_flutter/`.
+- Clinical Writer API (`services/clinical-writer-api`) exposes `/process` with JSON-only ReportDocument output and prompts loaded via PromptRegistry (Google Drive provider).
 - Tooling, CI scripts, and migrations are under `tools/`.
 
 ## Build, Test, and Development Commands
@@ -32,4 +33,5 @@
 ## Security & Configuration Tips
 - Configure Mongo via `MONGO_URI`/`MONGO_DB_NAME`; never hardcode secrets—use env vars.
 - Clinical writer and email integrations are env-driven in `app/config/settings.py`; keep tokens out of source control.
+- PromptRegistry uses Google Drive `modifiedTime` as `prompt_version`; do not embed prompt content in MongoDB.
 - Validate that generated clients are up to date before releases to avoid contract drift.

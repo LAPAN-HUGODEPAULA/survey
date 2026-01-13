@@ -1,0 +1,12 @@
+{
+  "input_type": "full_intake",
+  "content": "{\"patient\":{\"name\":\"Maria Silva\",\"email\":\"maria@example.com\",\"birthDate\":\"1992-05-10\",\"gender\":\"Feminino\"},\"medical_history\":\"Hipertensao controlada\",\"complaint\":\"Dor de cabeca frequente\"}",
+  "locale": "pt-BR",
+  "prompt_key": "default",
+  "output_format": "report_json",
+  "metadata": {
+    "source_app": "clinical-narrative",
+    "request_id": "req_demo_full_001",
+    "patient_ref": "maria@example.com"
+  }
+}

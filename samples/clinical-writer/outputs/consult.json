@@ -1,0 +1,54 @@
+{
+  "ok": true,
+  "input_type": "consult",
+  "prompt_version": "gdrive_modifiedTime:2026-01-14T18:42:03.123Z",
+  "model_version": "gemini-2.5-flash-lite",
+  "report": {
+    "title": "Relatorio Clinico",
+    "subtitle": "Consulta inicial",
+    "created_at": "2026-01-14T18:42:03Z",
+    "patient": {
+      "name": "Joao",
+      "reference": "Paciente Joao",
+      "birth_date": null,
+      "sex": null
+    },
+    "sections": [
+      {
+        "title": "Resumo",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "text": "Paciente de 17 anos com fotofobia e dificuldade de leitura; acuidade visual preservada.",
+                "bold": false,
+                "italic": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Conduta",
+        "blocks": [
+          {
+            "type": "bullet_list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "text": "Solicitar exames complementares e reavaliacao em 2 semanas.",
+                    "bold": false,
+                    "italic": false
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "warnings": []
+}

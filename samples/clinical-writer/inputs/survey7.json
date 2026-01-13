@@ -1,0 +1,12 @@
+{
+  "input_type": "survey7",
+  "content": "{\"surveyId\":\"lapan_q7\",\"patient\":{\"name\":\"Hugo de Paula\",\"email\":\"hugo@example.com\",\"birthDate\":\"28/01/1977\",\"gender\":\"Masculino\"},\"answers\":[{\"id\":1,\"answer\":\"Quase Sempre\"},{\"id\":2,\"answer\":\"Quase Sempre\"}]}",
+  "locale": "pt-BR",
+  "prompt_key": "default",
+  "output_format": "report_json",
+  "metadata": {
+    "source_app": "survey-frontend",
+    "request_id": "req_demo_survey7_001",
+    "patient_ref": "hugo@example.com"
+  }
+}

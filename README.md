@@ -12,7 +12,7 @@ Monorepo for the LAPAN healthcare survey and clinical narrative platform. It inc
 
 ## Quick Start
 ```bash
-# 1) Populate .env (copy from .env.example and set Mongo credentials)
+# 1) Populate .env with Mongo credentials and service endpoints
 # 2) Start the stack
 docker compose up -d mongodb survey-backend frontend patient_app clinical-narrative survey-worker
 # 3) Optional: start the Clinical Writer AI service
@@ -29,6 +29,8 @@ docker compose -f services/clinical-writer-api/docker-compose.yml up -d clinical
 - Contract source: `packages/contracts/survey-backend.openapi.yaml`; regenerate SDKs with `tools/scripts/generate_clients.sh`.
 - Backend sanity check: `python -m compileall services/survey-backend/app`.
 - Flutter apps use the shared `design_system_flutter` theme (seed color `Colors.orange`).
+- Clinical Writer `/process` returns JSON-only ReportDocument output; sample payloads live under `samples/clinical-writer/`.
+- Prompts are stored in Google Drive and resolved by `prompt_key` via PromptRegistry.
 
 ## Documentation
 Authoritative docs live in `docs/`:

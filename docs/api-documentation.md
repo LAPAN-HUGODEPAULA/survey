@@ -22,12 +22,34 @@
 
 - **Patient Responses**
   - `POST /patient_responses/` – create patient-facing response; same enrichment flow as survey responses. Returns `SurveyResponseWithAgent`.
+  - `POST /clinical_writer/process` – backend proxy to Clinical Writer `/process` with JSON-only report output.
 
 ## Models (abridged)
 - `Survey`: survey metadata and questions, stored in MongoDB.
 - `SurveyResponse`: answers plus patient details.
-- `AgentResponse`: AI payload with `classification`, `medical_record` (`medicalRecord` in payload), and optional `error_message` (`errorMessage`).
+- `AgentResponse`: AI payload with `ok`, `input_type`, `prompt_version`, `model_version`, `report`, `warnings`.
 - `SurveyResponseWithAgent`: response payload plus optional `agent_response`.
+
+## Clinical Writer Contract (/clinical_writer/process)
+Request body (JSON):
+- `input_type`: `consult` | `survey7` | `full_intake`
+- `content`: raw consult text or JSON string payload
+- `locale`: defaults to `pt-BR`
+- `prompt_key`: defaults to `default`
+- `output_format`: must be `report_json`
+- `metadata`: `source_app`, `request_id`, `patient_ref` (optional)
+
+Response body (JSON):
+- `ok`: boolean
+- `input_type`: echoes request input type
+- `prompt_version`: human-readable prompt version (e.g., Google Drive modifiedTime)
+- `model_version`: model used for generation
+- `report`: structured JSON ReportDocument (no markdown)
+- `warnings`: list of warnings (empty when successful)
+
+Samples:
+- Inputs: `samples/clinical-writer/inputs/*.json`
+- Outputs: `samples/clinical-writer/outputs/*.json`
 
 ## Error Semantics
 - `400` for validation errors (e.g., malformed ObjectId).

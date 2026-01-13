@@ -1,0 +1,12 @@
+{
+  "input_type": "consult",
+  "content": "Paciente de 17 anos, Joao, relata fotofobia e dificuldade de leitura. Exame com acuidade visual preservada e sensibilidade ao contraste reduzida.",
+  "locale": "pt-BR",
+  "prompt_key": "default",
+  "output_format": "report_json",
+  "metadata": {
+    "source_app": "clinical-narrative",
+    "request_id": "req_demo_consult_001",
+    "patient_ref": "Paciente Joao"
+  }
+}
