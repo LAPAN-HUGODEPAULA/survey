@@ -1,5 +1,6 @@
-"""Writer nodes that generate the clinical report from the prompt registry."""
+"""Writer nodes that generate JSON-only clinical reports."""
 
+import json
 from datetime import datetime
 from typing import Optional
 
@@ -8,6 +9,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from .agent_state import AgentState
 from ..agent_config import AgentConfig
 from ..prompts import ConversationPrompts, JsonPrompts
+from ..report_models import ReportDocument
 
 
 class _BaseWriterNode:  # pylint: disable=too-few-public-methods
@@ -44,10 +46,7 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
                 self._llm_model = AgentConfig.create_llm_instance()
 
             prompt_template = state.get("prompt_text") or self._fallback_prompt
-            try:
-                prompt = prompt_template.format(content=state.get("input_content", ""))
-            except Exception:
-                prompt = f"{prompt_template}\n\n{state.get('input_content', '')}"
+            prompt = self._build_prompt(prompt_template, state.get("input_content", ""))
 
             if observer:
                 observer.on_event(
@@ -65,7 +64,12 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
                 if isinstance(response.content, str)
                 else str(response.content)
             )
-            new_state["medical_record"] = content
+
+            report_payload = self._parse_json(content)
+            report_payload["created_at"] = (
+                report_payload.get("created_at") or datetime.now().isoformat()
+            )
+            new_state["report"] = report_payload
             new_state["model_version"] = AgentConfig.LLM_MODEL_NAME
 
             if observer:
@@ -85,18 +89,43 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
                     {"output_length": len(content), "success": True},
                 )
         except Exception as error:  # pylint: disable=broad-exception-caught
-            new_state["error_message"] = AgentConfig.ERROR_MSG_MEDICAL_RECORD_GENERATION.format(
-                error=error
-            )
+            new_state["error_message"] = f"Writer output invalid: {error}"
 
             if observer:
                 observer.on_error(
                     error,
-                    {"location": self._agent_type, "operation": "generate_medical_record"},
+                    {"location": self._agent_type, "operation": "generate_report_json"},
                     datetime.now(),
                 )
 
         return new_state
+
+    def _build_prompt(self, prompt_template: str, content: str) -> str:
+        schema = json.dumps(ReportDocument.model_json_schema(), ensure_ascii=False, indent=2)
+        system_frame = (
+            "Voce eh um assistente clinico que responde apenas com JSON valido. "
+            "A resposta deve seguir exatamente o schema ReportDocument abaixo. "
+            "Nao inclua explicacoes, markdown, ou texto fora do JSON."
+        )
+        try:
+            rendered_prompt = prompt_template.format(content=content)
+        except Exception:
+            rendered_prompt = f"{prompt_template}\n\n{content}"
+
+        return (
+            f"{system_frame}\n\n"
+            f"SCHEMA:\n{schema}\n\n"
+            f"INSTRUCOES:\n{rendered_prompt}\n\n"
+            f"CONTEUDO:\n{content}\n\n"
+            "RETORNE APENAS O JSON."
+        )
+
+    @staticmethod
+    def _parse_json(raw: str) -> dict:
+        try:
+            return json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"Resposta nao eh JSON valido: {exc}") from exc
 
 
 class ConsultWriterNode(_BaseWriterNode):

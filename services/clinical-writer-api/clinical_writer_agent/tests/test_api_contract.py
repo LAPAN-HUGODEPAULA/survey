@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from clinical_writer_agent.agent_graph import create_graph, create_default_observer
@@ -19,7 +21,24 @@ class _StubLLM:
             def __init__(self, content: str):
                 self.content = content
 
-        return Response(f"{self.name}-response")
+        report = {
+            "title": "Relatorio Clinico",
+            "subtitle": f"Stub {self.name}",
+            "created_at": "2026-01-14T18:42:03Z",
+            "patient": {},
+            "sections": [
+                {
+                    "title": "Resumo",
+                    "blocks": [
+                        {
+                            "type": "paragraph",
+                            "spans": [{"text": f"{self.name}-response", "bold": False, "italic": False}],
+                        }
+                    ],
+                }
+            ],
+        }
+        return Response(json.dumps(report))
 
 
 def _build_graph(observer):

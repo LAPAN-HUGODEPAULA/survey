@@ -1,7 +1,7 @@
 # Package imports
 import os
 from datetime import datetime, timezone
-from typing import Annotated, Literal, Optional, Union
+from typing import Literal, Optional
 
 from fastapi import FastAPI, Depends, HTTPException, Security, status
 from fastapi.security import APIKeyHeader
@@ -14,6 +14,7 @@ from .agent_graph import (
     get_shared_observer,
 )
 from .prompt_registry import PromptNotFoundError, create_prompt_registry
+from .report_models import ReportDocument
 
 app = FastAPI()
 
@@ -42,62 +43,6 @@ class ProcessRequest(BaseModel):
         if not value or not value.strip():
             raise ValueError("content must not be empty")
         return value.strip()
-
-
-class Span(BaseModel):
-    text: str
-    bold: bool = False
-    italic: bool = False
-
-
-class ParagraphBlock(BaseModel):
-    type: Literal["paragraph"] = "paragraph"
-    spans: list[Span]
-
-
-class BulletItem(BaseModel):
-    spans: list[Span]
-
-
-class BulletListBlock(BaseModel):
-    type: Literal["bullet_list"] = "bullet_list"
-    items: list[BulletItem]
-
-
-class KeyValueItem(BaseModel):
-    key: str
-    value: list[Span]
-
-
-class KeyValueBlock(BaseModel):
-    type: Literal["key_value"] = "key_value"
-    items: list[KeyValueItem]
-
-
-Block = Annotated[
-    Union[ParagraphBlock, BulletListBlock, KeyValueBlock],
-    Field(discriminator="type"),
-]
-
-
-class Section(BaseModel):
-    title: str
-    blocks: list[Block]
-
-
-class PatientInfo(BaseModel):
-    name: Optional[str] = None
-    reference: Optional[str] = None
-    birth_date: Optional[str] = None
-    sex: Optional[str] = None
-
-
-class ReportDocument(BaseModel):
-    title: str
-    subtitle: Optional[str] = None
-    created_at: datetime
-    patient: PatientInfo
-    sections: list[Section]
 
 
 class ProcessResponse(BaseModel):
@@ -146,72 +91,14 @@ def get_prompt_registry():
     return _prompt_registry
 
 
-def _span(text: str) -> Span:
-    return Span(text=text)
-
-
-def _paragraph_block(text: str) -> ParagraphBlock:
-    return ParagraphBlock(spans=[_span(text)])
-
-
-def _bullet_block(items: list[str]) -> BulletListBlock:
-    return BulletListBlock(items=[BulletItem(spans=[_span(item)]) for item in items])
-
-
-def _parse_blocks(text: str) -> list[Block]:
-    blocks: list[Block] = []
-    for chunk in text.split("\n\n"):
-        chunk = chunk.strip()
-        if not chunk:
-            continue
-        lines = [line.strip() for line in chunk.splitlines() if line.strip()]
-        if not lines:
-            continue
-        if all(line.startswith(("-", "•")) for line in lines):
-            cleaned = [line.lstrip("-•").strip() for line in lines]
-            blocks.append(_bullet_block(cleaned))
-        else:
-            blocks.append(_paragraph_block(" ".join(lines)))
-    return blocks
-
-
-def _build_report(
-    request: ProcessRequest,
-    final_state: dict,
-    prompt_version: str,
-) -> ReportDocument:
-    warnings: list[str] = []
-    error_message = final_state.get("error_message")
-    if error_message:
-        warnings.append(str(error_message))
-
-    sections: list[Section] = []
-    classification = final_state.get("classification")
-    if classification:
-        sections.append(
-            Section(
-                title="Classificacao",
-                blocks=[_paragraph_block(str(classification))],
-            )
-        )
-
-    medical_record = final_state.get("medical_record")
-    if medical_record:
-        blocks = _parse_blocks(str(medical_record))
-        if not blocks:
-            blocks = [_paragraph_block(str(medical_record))]
-        sections.append(Section(title="Registro Clinico", blocks=blocks))
-
-    if not sections and warnings:
-        sections.append(Section(title="Avisos", blocks=[_paragraph_block(warnings[0])]))
-
-    return ReportDocument(
-        title="Relatorio Clinico",
-        subtitle=f"Entrada: {request.input_type}",
-        created_at=datetime.now(timezone.utc),
-        patient=PatientInfo(reference=request.metadata.patient_ref),
-        sections=sections,
-    )
+def _validate_report(report_payload: object) -> ReportDocument:
+    try:
+        return ReportDocument.model_validate(report_payload)
+    except Exception as exc:  # pragma: no cover - explicit error message for clients
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Invalid report JSON: {exc}",
+        ) from exc
 
 
 @app.get("/")
@@ -245,19 +132,28 @@ async def process_content(
     if 'observer' in final_state:
         del final_state['observer']
 
-    report = _build_report(input, final_state, prompt_version)
-    final_state["report"] = report.model_dump()
-    warnings = []
     if final_state.get("error_message"):
-        warnings.append(str(final_state["error_message"]))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(final_state["error_message"]),
+        )
+
+    report_payload = final_state.get("report")
+    if report_payload is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Missing report payload from writer node.",
+        )
+
+    report = _validate_report(report_payload)
 
     return ProcessResponse(
-        ok=not warnings,
+        ok=True,
         input_type=input.input_type,
         prompt_version=final_state.get("prompt_version", prompt_version),
         model_version=final_state.get("model_version", MODEL_VERSION),
         report=report,
-        warnings=warnings,
+        warnings=[],
     )
 
 @app.get("/metrics")
