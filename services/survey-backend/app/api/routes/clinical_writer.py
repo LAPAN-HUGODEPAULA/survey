@@ -10,7 +10,12 @@ router = APIRouter()
 
 
 class ClinicalWriterRequest(BaseModel):
+    input_type: str = Field(..., description="consult|survey7|full_intake")
     content: str = Field(..., min_length=1, description="Conversation text or JSON string")
+    locale: str = Field(default="pt-BR")
+    prompt_key: str = Field(default="default")
+    output_format: str = Field(default="report_json")
+    metadata: dict = Field(default_factory=dict)
 
 
 @router.post("/clinical_writer/process", response_model=AgentResponse)
@@ -19,9 +24,11 @@ async def process_clinical_writer(request: ClinicalWriterRequest) -> AgentRespon
     logger.info("Forwarding clinical writer request.")
     agent_result = await send_to_langgraph_agent(
         request.content,
-        input_type="consult",
-        prompt_key="default",
-        source_app="clinical-writer",
+        input_type=request.input_type,
+        prompt_key=request.prompt_key,
+        source_app=request.metadata.get("source_app") or "clinical-writer",
+        patient_ref=request.metadata.get("patient_ref"),
+        request_id=request.metadata.get("request_id"),
     )
     try:
         return AgentResponse(**agent_result)

@@ -81,12 +81,13 @@ async def send_to_langgraph_agent(
     prompt_key: str | None = None,
     source_app: str | None = None,
     patient_ref: str | None = None,
+    request_id: str | None = None,
 ) -> Dict[str, Any]:
     """
     Send a survey response payload to the LangGraph agent and return its result.
 
-    The agent expects a JSON body with a single "content" field containing the
-    conversation text or JSON string to process.
+    The agent expects a JSON body with the report_json contract, including
+    input_type, content, locale, prompt_key, output_format, and metadata.
     """
     if isinstance(payload, str):
         content = payload.strip()
@@ -103,9 +104,9 @@ async def send_to_langgraph_agent(
         headers["Authorization"] = f"Bearer {token}"
 
     resolved_input_type = input_type or _infer_input_type(payload)
-    resolved_prompt_key = prompt_key or resolved_input_type
+    resolved_prompt_key = prompt_key or "default"
     resolved_patient_ref = patient_ref or _infer_patient_ref(payload)
-    request_id = str(uuid.uuid4())
+    request_id = request_id or str(uuid.uuid4())
     timestamp = datetime.now(timezone.utc)
 
     request_body = {

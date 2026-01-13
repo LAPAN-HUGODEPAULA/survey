@@ -132,6 +132,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SurveyResponseWithAgent'
+  /clinical_writer/process:
+    post:
+      summary: Forward content to Clinical Writer
+      operationId: processClinicalWriter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClinicalWriterRequest'
+      responses:
+        '200':
+          description: Clinical Writer response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentResponse'
 components:
   schemas:
     Survey:
@@ -277,12 +294,61 @@ components:
     AgentResponse:
       type: object
       properties:
+        ok:
+          type: boolean
+        input_type:
+          type: string
+        prompt_version:
+          type: string
+        model_version:
+          type: string
+        report:
+          type: object
+        warnings:
+          type: array
+          items:
+            type: string
         classification:
           type: string
         medicalRecord:
           type: string
         errorMessage:
           type: string
+    ClinicalWriterRequest:
+      type: object
+      required:
+        - input_type
+        - content
+        - locale
+        - prompt_key
+        - output_format
+        - metadata
+      properties:
+        input_type:
+          type: string
+          enum:
+            - consult
+            - survey7
+            - full_intake
+        content:
+          type: string
+        locale:
+          type: string
+        prompt_key:
+          type: string
+        output_format:
+          type: string
+          enum:
+            - report_json
+        metadata:
+          type: object
+          properties:
+            source_app:
+              type: string
+            request_id:
+              type: string
+            patient_ref:
+              type: string
     SurveyResponseWithAgent:
       allOf:
         - $ref: '#/components/schemas/SurveyResponse'

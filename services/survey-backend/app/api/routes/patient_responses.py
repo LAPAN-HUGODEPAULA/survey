@@ -56,7 +56,6 @@ async def create_patient_response(
             agent_result = await send_to_langgraph_agent(
                 response_payload,
                 input_type="survey7",
-                prompt_key="survey7",
                 source_app="survey-patient",
                 patient_ref=survey_response.patient.email,
             )
