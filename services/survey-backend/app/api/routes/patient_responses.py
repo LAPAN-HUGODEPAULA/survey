@@ -53,7 +53,13 @@ async def create_patient_response(
 
         try:
             logger.info("Sending patient response to LangGraph agent for processing...")
-            agent_result = await send_to_langgraph_agent(response_payload)
+            agent_result = await send_to_langgraph_agent(
+                response_payload,
+                input_type="survey7",
+                prompt_key="survey7",
+                source_app="survey-patient",
+                patient_ref=survey_response.patient.email,
+            )
             agent_response = AgentResponse(**agent_result)
             logger.info("Received agent response for patient response %s.", inserted_id)
         except ValidationError as exc:
