@@ -1,10 +1,11 @@
 library;
 
+import 'dart:convert';
+import 'dart:math';
+
 import 'package:built_collection/built_collection.dart';
 import 'package:dio/dio.dart';
 import 'package:survey_app/core/models/agent_response.dart';
-import 'package:survey_app/core/models/patient.dart' as ui;
-import 'package:survey_app/core/models/screener.dart' as ui;
 import 'package:survey_app/core/models/survey/instructions.dart' as ui;
 import 'package:survey_app/core/models/survey/question.dart' as ui;
 import 'package:survey_app/core/models/survey/survey.dart' as ui;
@@ -14,23 +15,29 @@ import 'package:survey_backend_api/survey_backend_api.dart' as api;
 
 /// Repository responsible for fetching surveys and submitting responses via API.
 class SurveyRepository {
-  SurveyRepository({api.DefaultApi? apiClient})
+  SurveyRepository({api.DefaultApi? apiClient, Dio? rawClient})
     : _api =
           apiClient ??
           api.DefaultApi(
             Dio(
               BaseOptions(
                 baseUrl: ApiConfig.baseUrl,
-                headers: const {
-                  'Content-Type': 'application/json',
-                  'Accept': 'application/json',
-                },
+                headers: ApiConfig.defaultHeaders,
               ),
             ),
             api.standardSerializers,
+          ),
+      _rawClient =
+          rawClient ??
+          Dio(
+            BaseOptions(
+              baseUrl: ApiConfig.baseUrl,
+              headers: ApiConfig.defaultHeaders,
+            ),
           );
 
   final api.DefaultApi _api;
+  final Dio _rawClient;
 
   /// Retrieves every survey available on the backend.
   Future<List<ui.Survey>> fetchAll() async {
@@ -51,16 +58,27 @@ class SurveyRepository {
 
   /// Submits a survey response to the backend and returns the saved record.
   Future<ui.SurveyResponse> submitResponse(ui.SurveyResponse response) async {
-    final apiResponse = await _api.createSurveyResponse(
-      surveyResponse: _mapSurveyResponseToApi(response),
-    );
-    final api.SurveyResponseWithAgent? created = apiResponse.data;
-    if (created == null) {
-      throw const FormatException(
-        'Unexpected empty payload when creating response.',
-      );
-    }
-    return _mapSurveyResponseWithAgent(created);
+    final payload = response.toJson();
+    final data = await _postJson('survey_responses/', payload);
+    return ui.SurveyResponse.fromJson(data);
+  }
+
+  /// Sends content to the Clinical Writer agent via backend proxy.
+  Future<AgentResponse> processClinicalWriter(String content) async {
+    final requestId = _generateRequestId();
+    final body = {
+      'input_type': 'survey7',
+      'content': content,
+      'locale': 'pt-BR',
+      'prompt_key': 'default',
+      'output_format': 'report_json',
+      'metadata': {
+        'source_app': 'survey-frontend',
+        'request_id': requestId,
+      },
+    };
+    final data = await _postJson('clinical_writer/process', body);
+    return AgentResponse.fromJson(data);
   }
 
   ui.Survey _mapSurvey(api.Survey source) {
@@ -91,96 +109,28 @@ class SurveyRepository {
     );
   }
 
-  ui.SurveyResponse _mapSurveyResponseWithAgent(
-    api.SurveyResponseWithAgent source,
-  ) {
-    final answers = source.answers.toList(growable: false);
-    final patient = source.patient;
-
-    return ui.SurveyResponse(
-      id: source.id,
-      agentResponse: source.agentResponse == null
-          ? null
-          : AgentResponse(
-              classification: source.agentResponse?.classification,
-              medicalRecord: source.agentResponse?.medicalRecord,
-              errorMessage: source.agentResponse?.errorMessage,
-            ),
-      surveyId: source.surveyId,
-      creatorName: source.creatorName ?? '',
-      creatorContact: source.creatorContact ?? '',
-      testDate: source.testDate?.toLocal() ?? DateTime.now(),
-      screener: ui.Screener(
-        name: source.screenerName ?? '',
-        email: source.screenerEmail ?? '',
-      ),
-      patient: _mapPatientFromApi(patient),
-      answers: answers
-          .map((ans) => ui.Answer(id: ans.id ?? 0, answer: ans.answer ?? ''))
-          .toList(growable: false),
+  Future<Map<String, dynamic>> _postJson(
+    String path,
+    Map<String, dynamic> payload,
+  ) async {
+    final response = await _rawClient.postUri(
+      ApiConfig.resolve(path),
+      data: payload,
     );
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      return Map<String, dynamic>.from(data);
+    }
+    if (data is String) {
+      return jsonDecode(data) as Map<String, dynamic>;
+    }
+    throw const FormatException('Unexpected response payload.');
   }
 
-  ui.Patient _mapPatientFromApi(api.Patient source) {
-    return ui.Patient(
-      name: source.name ?? '',
-      email: source.email ?? '',
-      birthDate: source.birthDate ?? '',
-      gender: source.gender ?? '',
-      ethnicity: source.ethnicity ?? '',
-      educationLevel: source.educationLevel ?? '',
-      profession: source.profession ?? '',
-      medication:
-          source.medication?.toList(growable: false) ?? const <String>[],
-      diagnoses: source.diagnoses?.toList(growable: false) ?? const <String>[],
-      familyHistory: source.familyHistory ?? '',
-      socialHistory: source.socialHistory ?? '',
-      medicalHistory: source.medicalHistory ?? '',
-      medicationHistory: source.medicationHistory ?? '',
-    );
-  }
-
-  api.SurveyResponseWithAgent _mapSurveyResponseToApi(
-    ui.SurveyResponse source,
-  ) {
-    return api.SurveyResponseWithAgent((b) {
-      b
-        ..surveyId = source.surveyId
-        ..creatorName = source.creatorName
-        ..creatorContact = source.creatorContact
-        ..testDate = source.testDate.toUtc()
-        ..screenerName = source.screener.name
-        ..screenerEmail = source.screener.email
-        ..patient.replace(_mapPatientToApi(source.patient))
-        ..answers.replace(
-          source.answers.map(
-            (ans) => api.Answer(
-              (ab) => ab
-                ..id = ans.id
-                ..answer = ans.answer,
-            ),
-          ),
-        );
-    });
-  }
-
-  api.Patient _mapPatientToApi(ui.Patient source) {
-    return api.Patient(
-      (p) => p
-        ..name = source.name
-        ..email = source.email
-        ..birthDate = source.birthDate
-        ..gender = source.gender
-        ..ethnicity = source.ethnicity
-        ..educationLevel = source.educationLevel
-        ..profession = source.profession
-        ..medication.replace(source.medication)
-        ..diagnoses.replace(source.diagnoses)
-        ..familyHistory = source.familyHistory
-        ..socialHistory = source.socialHistory
-        ..medicalHistory = source.medicalHistory
-        ..medicationHistory = source.medicationHistory,
-    );
+  String _generateRequestId() {
+    final random = Random();
+    final timestamp = DateTime.now().microsecondsSinceEpoch;
+    return 'req_${timestamp}_${random.nextInt(9999)}';
   }
 
   void dispose() {

@@ -12,8 +12,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:design_system_flutter/report/clinical_report.dart';
+import 'package:design_system_flutter/report/report_models.dart';
+import 'package:design_system_flutter/report/report_view.dart';
 import 'package:provider/provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:universal_html/html.dart' as html;
@@ -69,6 +71,8 @@ class _ThankYouPageState extends State<ThankYouPage> {
   String? _savedFilePath;
   String? _savedResponseId;
   AgentResponse? _agentResponse;
+  ReportDocument? _demoReport;
+  String? _demoReportError;
   final SurveyRepository _surveyRepository = SurveyRepository();
 
   @override
@@ -310,69 +314,65 @@ class _ThankYouPageState extends State<ThankYouPage> {
     }
   }
 
-  List<ClinicalReportSection> _buildReportSections(AgentResponse response) {
-    final errorMessage = response.errorMessage?.trim();
-    if (errorMessage != null && errorMessage.isNotEmpty) {
-      return [
-        ClinicalReportSection(
-          title: 'Erro no processamento',
-          body: errorMessage,
-        ),
-      ];
+  Future<void> _loadDemoReport() async {
+    try {
+      final raw = await rootBundle.loadString('assets/data/report_demo.json');
+      final json = jsonDecode(raw) as Map<String, dynamic>;
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _demoReport = ReportDocument.fromJson(json);
+        _demoReportError = null;
+      });
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _demoReportError = 'Falha ao carregar relatorio de exemplo.';
+      });
     }
-
-    final sections = buildClinicalReportSections(
-      classification: response.classification,
-      medicalRecord: response.medicalRecord,
-      classificationTitle: 'Classificacao',
-      recordTitle: 'Relatorio Clinico',
-    );
-
-    if (sections.isEmpty) {
-      return const [
-        ClinicalReportSection(
-          title: 'Relatorio Clinico',
-          body: 'Nenhum registro clinico retornado.',
-        ),
-      ];
-    }
-
-    return sections;
   }
 
-  String _buildReportText(AppSettings settings, AgentResponse response) {
-    final surveyName = widget.survey.surveyDisplayName.isNotEmpty
-        ? widget.survey.surveyDisplayName
-        : widget.survey.surveyName;
-    final buffer = StringBuffer()
-      ..writeln('Relatorio de Triagem Sensorial')
-      ..writeln('Questionario: $surveyName');
-
-    if (settings.patient.name.isNotEmpty) {
-      buffer.writeln('Paciente: ${settings.patient.name}');
+  ReportDocument? _resolveReportDocument(
+    AppSettings settings,
+    AgentResponse response,
+  ) {
+    final errorMessage = response.errorMessage?.trim();
+    if (errorMessage != null && errorMessage.isNotEmpty) {
+      return ReportDocument.fromError(errorMessage);
     }
 
-    if (_savedResponseId != null) {
-      buffer.writeln('Protocolo: $_savedResponseId');
+    if (response.report != null) {
+      return response.report;
     }
 
-    buffer.writeln('');
-
-    for (final section in _buildReportSections(response)) {
-      buffer.writeln('${section.title}:');
-      if (section.body != null && section.body!.trim().isNotEmpty) {
-        buffer.writeln(section.body);
-      }
-      for (final bullet in section.bullets) {
-        buffer.writeln('- $bullet');
-      }
-      buffer.writeln('');
+    final medicalRecord = response.medicalRecord?.trim();
+    if (medicalRecord != null && medicalRecord.isNotEmpty) {
+      return ReportDocument.fromPlainText(
+        text: medicalRecord,
+        title: 'Relatorio de Triagem Sensorial',
+        subtitle: settings.screener.name.isNotEmpty
+            ? 'Para: ${settings.screener.name}'
+            : 'Para: Especialista responsavel',
+        patient: ReportPatientInfo(
+          name: settings.patient.name,
+          reference: _savedResponseId,
+          birthDate: settings.patient.birthDate,
+          sex: settings.patient.gender,
+        ),
+      );
     }
 
-    buffer.writeln(
-      'Gerado eletronicamente pelo NeuroCheck - Indicador de Saude Mental e Sensorial.',
+    return null;
+  }
+
+  String _buildReportText(ReportDocument report) {
+    return report.toPlainText(
+      footer:
+          'Gerado eletronicamente pelo NeuroCheck - Indicador de Saude Mental e Sensorial.',
     );
-    return buffer.toString();
   }
 
   String _generateReportFileName(String surveyId, String patientName) {
@@ -380,9 +380,12 @@ class _ThankYouPageState extends State<ThankYouPage> {
     return '${baseName}_relatorio.txt';
   }
 
-  Future<void> _exportReport(AppSettings settings, AgentResponse response) async {
-    final fileName = _generateReportFileName(widget.survey.id, settings.patient.name);
-    final reportText = _buildReportText(settings, response);
+  Future<void> _exportReport(AppSettings settings, ReportDocument report) async {
+    final fileName = _generateReportFileName(
+      widget.survey.id,
+      settings.patient.name,
+    );
+    final reportText = _buildReportText(report);
     final result = await _writeReportFile(fileName, reportText);
 
     if (!mounted) {
@@ -446,6 +449,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<AppSettings>(context);
+    final reportDocument = _agentResponse == null
+        ? null
+        : _resolveReportDocument(settings, _agentResponse!);
 
     return Scaffold(
       appBar: AppBar(
@@ -573,22 +579,39 @@ class _ThankYouPageState extends State<ThankYouPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  if (_agentResponse != null) ...[
-                    ClinicalReportView(
-                      title: 'Relatorio de Triagem Sensorial',
-                      subtitle: settings.screener.name.isNotEmpty
-                          ? 'Para: ${settings.screener.name}'
-                          : 'Para: Especialista responsavel',
-                      meta: _savedResponseId != null
-                          ? 'Protocolo: $_savedResponseId'
-                          : null,
-                      sections: _buildReportSections(_agentResponse!),
+                  if (reportDocument != null) ...[
+                    ReportView(
+                      report: reportDocument,
                       footer:
                           'Gerado eletronicamente pelo NeuroCheck - Indicador de Saude Mental e Sensorial.',
                       onPrint: kIsWeb ? _printReport : null,
-                      onExport: () => _exportReport(settings, _agentResponse!),
+                      onExport: () => _exportReport(settings, reportDocument),
                     ),
                     const SizedBox(height: 24),
+                  ],
+                  if (reportDocument == null && kDebugMode) ...[
+                    OutlinedButton.icon(
+                      onPressed: _loadDemoReport,
+                      icon: const Icon(Icons.visibility_outlined),
+                      label: const Text('Carregar relatorio de exemplo'),
+                    ),
+                    if (_demoReportError != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        _demoReportError!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ],
+                    if (_demoReport != null) ...[
+                      const SizedBox(height: 16),
+                      ReportView(
+                        report: _demoReport!,
+                        footer: 'Exemplo local - nao representa dados reais.',
+                      ),
+                      const SizedBox(height: 24),
+                    ],
                   ],
                 ] else if (_saveError != null) ...[
                   Icon(

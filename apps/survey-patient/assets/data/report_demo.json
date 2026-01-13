@@ -1,0 +1,86 @@
+{
+  "title": "Relatorio Clinico",
+  "subtitle": "Triagem Sensorial",
+  "created_at": "2026-01-14T18:42:03Z",
+  "patient": {
+    "name": "Paciente Exemplo",
+    "reference": "PROTO-123",
+    "birth_date": "1990-01-01",
+    "sex": "F"
+  },
+  "sections": [
+    {
+      "title": "Resumo",
+      "blocks": [
+        {
+          "type": "paragraph",
+          "spans": [
+            {
+              "text": "Paciente relata desconforto visual em ambientes iluminados.",
+              "bold": false,
+              "italic": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Sinais e sintomas",
+      "blocks": [
+        {
+          "type": "bullet_list",
+          "items": [
+            {
+              "spans": [
+                {
+                  "text": "Fotofobia moderada",
+                  "bold": true,
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "spans": [
+                {
+                  "text": "Dificuldade de leitura prolongada",
+                  "bold": false,
+                  "italic": false
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Plano",
+      "blocks": [
+        {
+          "type": "key_value",
+          "items": [
+            {
+              "key": "Conduta",
+              "value": [
+                {
+                  "text": "Acompanhamento em 2 semanas e teste de lentes.",
+                  "bold": false,
+                  "italic": false
+                }
+              ]
+            },
+            {
+              "key": "Observacao",
+              "value": [
+                {
+                  "text": "Orientar higiene do sono.",
+                  "bold": false,
+                  "italic": true
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
