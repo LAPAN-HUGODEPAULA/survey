@@ -43,6 +43,16 @@ GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 
 Replace `YOUR_GEMINI_API_KEY` with your actual API key.
 
+Optional prompt registry settings (for Google Drive-backed prompts):
+
+```plain
+PROMPT_PROVIDER=google_drive
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json
+GOOGLE_DRIVE_FOLDER_ID=your-folder-id
+PROMPT_DOC_MAP_JSON={"default":"doc_id","survey7":"doc_id"}
+PROMPT_CACHE_TTL_SECONDS=60
+```
+
 ## Running the Application
 
 To start the FastAPI application, navigate to the project root and run:
