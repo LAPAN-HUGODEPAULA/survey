@@ -5,6 +5,7 @@ import logging
 from pymongo import MongoClient
 from dotenv import load_dotenv
 from datetime import datetime
+from urllib.parse import urlparse
 
 # Configure logging for migration script
 logging.basicConfig(
@@ -27,10 +28,23 @@ if not MONGO_URI:
     print("MONGO_URI not found, falling back to local MongoDB connection.")
     MONGO_USERNAME = os.getenv("MONGO_USERNAME")
     MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
-    MONGO_URI = f'mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@localhost:27017/'
+    if MONGO_USERNAME and MONGO_PASSWORD:
+        MONGO_URI = f'mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@localhost:27017/'
+    else:
+        MONGO_URI = 'mongodb://localhost:27017/'
+elif not MONGO_URI.startswith(("mongodb://", "mongodb+srv://")):
+    MONGO_URI = f"mongodb://{MONGO_URI}"
+else:
+    parsed = urlparse(MONGO_URI)
+    if parsed.hostname == "mongodb":
+        host = "localhost"
+        if parsed.port:
+            host = f"{host}:{parsed.port}"
+        auth = f"{parsed.username}:{parsed.password}@" if parsed.username else ""
+        MONGO_URI = f"{parsed.scheme}://{auth}{host}{parsed.path or '/'}"
 
 print("Connecting to MongoDB...")
-client = MongoClient(MONGO_URI)
+client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
 
 # Send a ping to confirm a successful connection
 try:
@@ -39,16 +53,67 @@ try:
 except Exception as e:
     print(e)
 
-db = client['survey_db']
+db = client[os.getenv("MONGO_DB_NAME", "survey_db")]
 
 # --- Caminhos para os dados ---
 # Get the absolute path of the script's directory
 script_dir = os.path.dirname(os.path.abspath(__file__))
-# Go up two levels to the project root from db/migrate/
-project_root = os.path.dirname(os.path.dirname(script_dir))
+# Go up three levels to the project root from tools/migrations/survey-backend/
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(script_dir)))
 
-SURVEYS_DIR = os.path.join(project_root, 'frontend', 'assets', 'surveys')
-RESPONSES_DIR = os.path.join(project_root, 'frontend', 'assets', 'survey_responses')
+def resolve_assets_dir() -> str:
+    candidates = [
+        os.path.join(project_root, 'apps', 'survey-frontend', 'assets'),
+        os.path.join(project_root, 'apps', 'survey-patient', 'assets'),
+    ]
+    for candidate in candidates:
+        surveys_dir = os.path.join(candidate, 'surveys')
+        responses_dir = os.path.join(candidate, 'survey_responses')
+        if os.path.isdir(surveys_dir) and os.path.isdir(responses_dir):
+            return candidate
+    raise FileNotFoundError(
+        "Assets directory not found. Expected surveys and survey_responses under "
+        "apps/survey-frontend/assets or apps/survey-patient/assets."
+    )
+
+assets_dir = resolve_assets_dir()
+SURVEYS_DIR = os.path.join(assets_dir, 'surveys')
+RESPONSES_DIR = os.path.join(assets_dir, 'survey_responses')
+
+def _parse_datetime(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        normalized = value.replace(" ", "T")
+        return datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+
+
+def _normalize_agent_response(payload: dict | None) -> dict | None:
+    if not payload:
+        return None
+    report = payload.get("report")
+    if isinstance(report, str):
+        try:
+            report = json.loads(report)
+        except (TypeError, ValueError):
+            report = None
+    warnings = payload.get("warnings")
+    if not isinstance(warnings, list):
+        warnings = []
+    return {
+        "ok": payload.get("ok"),
+        "input_type": payload.get("input_type"),
+        "prompt_version": payload.get("prompt_version"),
+        "model_version": payload.get("model_version"),
+        "report": report,
+        "warnings": warnings,
+        "classification": payload.get("classification"),
+        "medicalRecord": payload.get("medicalRecord") or payload.get("medical_record"),
+        "errorMessage": payload.get("errorMessage") or payload.get("error_message"),
+    }
+
 
 def migrate_surveys():
     """Lê os arquivos de questionários e os insere na coleção 'surveys'."""
@@ -61,8 +126,12 @@ def migrate_surveys():
             filepath = os.path.join(SURVEYS_DIR, filename)
             with open(filepath, 'r', encoding='utf-8') as f:
                 survey_data = json.load(f)
-                survey_data['createdAt'] = datetime.fromisoformat(survey_data.get('createdAt')).date().isoformat()
-                survey_data['modifiedAt'] = datetime.fromisoformat(survey_data.get('modifiedAt')).date().isoformat()
+                created_at = _parse_datetime(survey_data.get("createdAt"))
+                modified_at = _parse_datetime(survey_data.get("modifiedAt"))
+                if created_at:
+                    survey_data["createdAt"] = created_at
+                if modified_at:
+                    survey_data["modifiedAt"] = modified_at
                 # Inserir no banco de dados
                 surveys_collection.insert_one(survey_data)
                 print(f"  - Questionário '{survey_data['_id']}' inserido.")
@@ -101,11 +170,14 @@ def migrate_responses():
                     continue
 
                 # Montar o documento de resposta
+                agent_response = _normalize_agent_response(
+                    result_data.get("agentResponse") or result_data.get("agent_response")
+                )
                 response_doc = {
                     'surveyId': result_data.get('surveyId'),
                     'creatorName': result_data.get('creatorName'),
                     'creatorContact': result_data.get('creatorContact'),
-                    'testDate': datetime.fromisoformat(result_data.get('testDate').replace(" ", "T")),
+                    'testDate': _parse_datetime(result_data.get('testDate')),
                     'screenerName': result_data.get('screenerName', ''),
                     'screenerEmail': result_data.get('screenerEmail', ''),
                     'patient': {
@@ -125,13 +197,23 @@ def migrate_responses():
                     },
                     'answers': result_data.get('answers'),
                 }
+                if agent_response:
+                    response_doc["agentResponse"] = agent_response
 
                 responses_collection.insert_one(response_doc)
                 print(f"  - Respostas de questionário '{response_doc['surveyId']}' inseridas.")
     print("Migração de resultados concluída.\n")
 
+def migrate_run_logs():
+    """Create run log collection and indexes for clinical writer usage."""
+    logs_collection = db["clinical_writer_run_logs"]
+    logs_collection.create_index([("timestamp", 1)])
+    logs_collection.create_index([("request_id", 1)])
+    print("Colecao clinical_writer_run_logs preparada com indices.")
+
 
 if __name__ == '__main__':
     migrate_surveys()
     migrate_responses()
+    migrate_run_logs()
     print("Todos os dados foram migrados para o MongoDB com sucesso!")
