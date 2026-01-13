@@ -2,7 +2,7 @@ import pytest
 
 from clinical_writer_agent.agent_config import AgentConfig
 from clinical_writer_agent.agent_graph import create_graph, create_default_observer
-from clinical_writer_agent.main import Input, process_content
+from clinical_writer_agent.main import ProcessRequest, process_content
 
 pytestmark = pytest.mark.anyio("asyncio")
 
@@ -45,7 +45,24 @@ def _build_graph(observer):
 
 async def test_schema_validation_rejects_blank_input():
     with pytest.raises(ValueError):
-        Input(content="")
+        ProcessRequest(input_type="consult", content="")
+
+
+def _collect_report_text(report) -> str:
+    parts = []
+    for section in report.sections:
+        parts.append(section.title)
+        for block in section.blocks:
+            if block.type == "paragraph":
+                parts.append("".join(span.text for span in block.spans))
+            elif block.type == "bullet_list":
+                for item in block.items:
+                    parts.append("".join(span.text for span in item.spans))
+            elif block.type == "key_value":
+                for item in block.items:
+                    parts.append(item.key)
+                    parts.append("".join(span.text for span in item.value))
+    return "\n".join(parts)
 
 
 async def test_flagging_of_sanitization_edges():
@@ -57,22 +74,31 @@ async def test_flagging_of_sanitization_edges():
         ("Buy now and get a discount!", AgentConfig.CLASSIFICATION_FLAGGED),
     ]
     for text, expected in inputs_and_expected:
-        result = await process_content(Input(content=text), graph, observer)
-        assert result["classification"] == expected
+        result = await process_content(ProcessRequest(input_type="consult", content=text), graph, observer)
+        report_text = _collect_report_text(result.report)
+        assert expected in report_text
         if expected == AgentConfig.CLASSIFICATION_FLAGGED:
-            assert "flagged" in result["medical_record"]
+            assert "flagged" in report_text
         else:
-            assert "could not be classified" in result["medical_record"]
+            assert "could not be classified" in report_text
 
 
 async def test_json_and_conversation_paths_use_injected_llms():
     observer = create_default_observer()
     graph, conv_llm, json_llm = _build_graph(observer)
 
-    conv_result = await process_content(Input(content="Doutor: tudo bem? Paciente: sim."), graph, observer)
-    json_result = await process_content(Input(content='{"patient": {"name": "Ana"}}'), graph, observer)
+    conv_result = await process_content(
+        ProcessRequest(input_type="consult", content="Doutor: tudo bem? Paciente: sim."),
+        graph,
+        observer,
+    )
+    json_result = await process_content(
+        ProcessRequest(input_type="consult", content='{"patient": {"name": "Ana"}}'),
+        graph,
+        observer,
+    )
 
     assert conv_llm.calls == 1
     assert json_llm.calls == 1
-    assert conv_result["classification"] == AgentConfig.CLASSIFICATION_CONVERSATION
-    assert json_result["classification"] == AgentConfig.CLASSIFICATION_JSON
+    assert AgentConfig.CLASSIFICATION_CONVERSATION in _collect_report_text(conv_result.report)
+    assert AgentConfig.CLASSIFICATION_JSON in _collect_report_text(json_result.report)

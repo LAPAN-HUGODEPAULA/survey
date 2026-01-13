@@ -3,7 +3,7 @@ import pytest
 from clinical_writer_agent.agent_graph import create_graph, create_default_observer, get_metrics_monitor
 from clinical_writer_agent.agent_config import AgentConfig
 from clinical_writer_agent.agents.agent_state import AgentState
-from clinical_writer_agent.main import Input, get_metrics, process_content, verify_token
+from clinical_writer_agent.main import ProcessRequest, get_metrics, process_content, verify_token
 
 pytestmark = pytest.mark.anyio("asyncio")
 
@@ -48,6 +48,23 @@ def _make_graph(observer):
     return graph, conv_llm, json_llm, judge_llm
 
 
+def _collect_report_text(report) -> str:
+    parts = []
+    for section in report.sections:
+        parts.append(section.title)
+        for block in section.blocks:
+            if block.type == "paragraph":
+                parts.append("".join(span.text for span in block.spans))
+            elif block.type == "bullet_list":
+                for item in block.items:
+                    parts.append("".join(span.text for span in item.spans))
+            elif block.type == "key_value":
+                for item in block.items:
+                    parts.append(item.key)
+                    parts.append("".join(span.text for span in item.value))
+    return "\n".join(parts)
+
+
 def test_verify_token_allows_when_unset(monkeypatch):
     monkeypatch.delenv("API_TOKEN", raising=False)
     assert verify_token() is True
@@ -77,17 +94,18 @@ def test_verify_token_accepts_valid(monkeypatch):
 async def test_process_content_contract(input_content, expected_classification, expected_record_part):
     observer = create_default_observer()
     graph, *_ = _make_graph(observer)
-    payload = Input(content=input_content)
+    payload = ProcessRequest(input_type="consult", content=input_content)
     result = await process_content(payload, graph, observer)
-    assert result["classification"] == expected_classification
-    assert expected_record_part in result["medical_record"]
-    assert isinstance(result["medical_record"], str)
-    assert len(result["medical_record"]) > 0
+    report_text = _collect_report_text(result.report)
+    assert expected_classification in report_text
+    assert expected_record_part in report_text
+    assert isinstance(report_text, str)
+    assert len(report_text) > 0
 
 
 async def test_empty_content_rejected():
     with pytest.raises(ValueError):
-        Input(content="   ")
+        ProcessRequest(input_type="consult", content="   ")
 
 
 async def test_metrics_reflects_live_observer():
@@ -96,8 +114,8 @@ async def test_metrics_reflects_live_observer():
     metrics_monitor.reset_metrics()
     graph, *_ = _make_graph(observer)
 
-    await process_content(Input(content="Doutor: tudo bem?"), graph, observer)
-    await process_content(Input(content='{"patient": {"name": "Ana"}}'), graph, observer)
+    await process_content(ProcessRequest(input_type="consult", content="Doutor: tudo bem?"), graph, observer)
+    await process_content(ProcessRequest(input_type="consult", content='{"patient": {"name": "Ana"}}'), graph, observer)
 
     metrics = await get_metrics(observer=observer)
     assert metrics["total_requests"] == 2
@@ -111,7 +129,8 @@ async def test_llm_error_path_sets_error_message():
     judge_llm = _StubJudge(0.9)
     graph = create_graph(observer=observer, conversation_llm=flaky_llm, judge_llm=judge_llm)
 
-    result = await process_content(Input(content="Doutor: tudo bem?"), graph, observer)
-    assert result["classification"] == AgentConfig.CLASSIFICATION_OTHER
-    assert "Error generating medical record" in result["error_message"]
+    result = await process_content(ProcessRequest(input_type="consult", content="Doutor: tudo bem?"), graph, observer)
+    report_text = _collect_report_text(result.report)
+    assert AgentConfig.CLASSIFICATION_OTHER in report_text
+    assert "Error generating medical record" in "\n".join(result.warnings)
     assert flaky_llm.calls == 1
