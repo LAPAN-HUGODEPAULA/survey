@@ -20,6 +20,7 @@ class AgentState(TypedDict, total=False):
     input_content: str
     validation_status: str
     input_type: str
+    request_id: Optional[str]
     prompt_key: str
     prompt_version: str
     prompt_text: str

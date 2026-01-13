@@ -121,6 +121,7 @@ async def process_content(
         "input_content": input.content,
         "observer": observer,
         "input_type": input.input_type,
+        "request_id": input.metadata.request_id,
         "prompt_key": input.prompt_key,
         "prompt_version": prompt_version,
         "prompt_text": prompt_text,

@@ -2,14 +2,18 @@
 
 import json
 from datetime import datetime
-from typing import Optional
-
-from langchain_google_genai import ChatGoogleGenerativeAI
+from typing import Optional, Protocol, Any
 
 from .agent_state import AgentState
 from ..agent_config import AgentConfig
+from ..model_router import ModelRouter
 from ..prompts import ConversationPrompts, JsonPrompts
 from ..report_models import ReportDocument
+
+
+class LLMClient(Protocol):
+    def invoke(self, prompt: str) -> Any:
+        ...
 
 
 class _BaseWriterNode:  # pylint: disable=too-few-public-methods
@@ -18,7 +22,7 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
         *,
         agent_type: str,
         fallback_prompt: str,
-        llm_model: Optional[ChatGoogleGenerativeAI] = None,
+        llm_model: Optional[LLMClient] = None,
     ):
         self._agent_type = agent_type
         self._fallback_prompt = fallback_prompt
@@ -27,23 +31,27 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
     def process(self, state: AgentState) -> AgentState:
         new_state = state.copy()
         observer = state.get("observer")
+        request_id = state.get("request_id")
+        metadata = {"request_id": request_id} if request_id else {}
 
         start_time = datetime.now()
         if observer:
             observer.on_processing_start(
                 self._agent_type,
                 start_time,
-                {"input_length": len(state.get("input_content", ""))},
+                {"input_length": len(state.get("input_content", "")), **metadata},
             )
 
         try:
             if observer:
                 observer.on_event(
-                    "prompt_creation_start", datetime.now(), {"agent_type": self._agent_type}
+                    "prompt_creation_start",
+                    datetime.now(),
+                    {"agent_type": self._agent_type, **metadata},
                 )
 
             if self._llm_model is None:
-                self._llm_model = AgentConfig.create_llm_instance()
+                self._llm_model = ModelRouter.from_env()
 
             prompt_template = state.get("prompt_text") or self._fallback_prompt
             prompt = self._build_prompt(prompt_template, state.get("input_content", ""))
@@ -52,10 +60,16 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
                 observer.on_event(
                     "prompt_creation_complete",
                     datetime.now(),
-                    {"agent_type": self._agent_type, "prompt_length": len(prompt)},
+                    {
+                        "agent_type": self._agent_type,
+                        "prompt_length": len(prompt),
+                        **metadata,
+                    },
                 )
                 observer.on_event(
-                    "llm_invocation_start", datetime.now(), {"agent_type": self._agent_type}
+                    "llm_invocation_start",
+                    datetime.now(),
+                    {"agent_type": self._agent_type, **metadata},
                 )
 
             response = self._llm_model.invoke(prompt)
@@ -70,13 +84,17 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
                 report_payload.get("created_at") or datetime.now().isoformat()
             )
             new_state["report"] = report_payload
-            new_state["model_version"] = AgentConfig.LLM_MODEL_NAME
+            new_state["model_version"] = self._resolve_model_version()
 
             if observer:
                 observer.on_event(
                     "llm_invocation_complete",
                     datetime.now(),
-                    {"agent_type": self._agent_type, "response_length": len(content)},
+                    {
+                        "agent_type": self._agent_type,
+                        "response_length": len(content),
+                        **metadata,
+                    },
                 )
 
             end_time = datetime.now()
@@ -86,7 +104,7 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
                     self._agent_type,
                     duration,
                     end_time,
-                    {"output_length": len(content), "success": True},
+                    {"output_length": len(content), "success": True, **metadata},
                 )
         except Exception as error:  # pylint: disable=broad-exception-caught
             new_state["error_message"] = f"Writer output invalid: {error}"
@@ -94,7 +112,11 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
             if observer:
                 observer.on_error(
                     error,
-                    {"location": self._agent_type, "operation": "generate_report_json"},
+                    {
+                        "location": self._agent_type,
+                        "operation": "generate_report_json",
+                        **metadata,
+                    },
                     datetime.now(),
                 )
 
@@ -127,9 +149,22 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
         except json.JSONDecodeError as exc:
             raise ValueError(f"Resposta nao eh JSON valido: {exc}") from exc
 
+    def _resolve_model_version(self) -> str:
+        if self._llm_model is None:
+            return AgentConfig.PRIMARY_MODEL
+        if hasattr(self._llm_model, "model_version") and getattr(
+            self._llm_model, "model_version"
+        ):
+            return getattr(self._llm_model, "model_version")
+        if hasattr(self._llm_model, "model"):
+            return getattr(self._llm_model, "model")
+        if hasattr(self._llm_model, "name"):
+            return getattr(self._llm_model, "name")
+        return AgentConfig.PRIMARY_MODEL
+
 
 class ConsultWriterNode(_BaseWriterNode):
-    def __init__(self, llm_model: Optional[ChatGoogleGenerativeAI] = None):
+    def __init__(self, llm_model: Optional[LLMClient] = None):
         super().__init__(
             agent_type="ConsultWriter",
             fallback_prompt=ConversationPrompts.MEDICAL_RECORD_PROMPT,
@@ -138,7 +173,7 @@ class ConsultWriterNode(_BaseWriterNode):
 
 
 class Survey7WriterNode(_BaseWriterNode):
-    def __init__(self, llm_model: Optional[ChatGoogleGenerativeAI] = None):
+    def __init__(self, llm_model: Optional[LLMClient] = None):
         super().__init__(
             agent_type="Survey7Writer",
             fallback_prompt=JsonPrompts.MEDICAL_RECORD_PROMPT,
@@ -147,7 +182,7 @@ class Survey7WriterNode(_BaseWriterNode):
 
 
 class FullIntakeWriterNode(_BaseWriterNode):
-    def __init__(self, llm_model: Optional[ChatGoogleGenerativeAI] = None):
+    def __init__(self, llm_model: Optional[LLMClient] = None):
         super().__init__(
             agent_type="FullIntakeWriter",
             fallback_prompt=JsonPrompts.MEDICAL_RECORD_PROMPT,
