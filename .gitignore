@@ -1,6 +1,11 @@
 # AI code assistants
 GEMINI.md
+AGENTS.md
 codex.json
+
+# Credentials
+credentials/
+
 
 # Python bytecode
 __pycache__/
