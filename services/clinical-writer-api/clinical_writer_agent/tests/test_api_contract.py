@@ -3,6 +3,7 @@ import pytest
 from clinical_writer_agent.agent_config import AgentConfig
 from clinical_writer_agent.agent_graph import create_graph, create_default_observer
 from clinical_writer_agent.main import ProcessRequest, process_content
+from clinical_writer_agent.prompt_registry import create_prompt_registry
 
 pytestmark = pytest.mark.anyio("asyncio")
 
@@ -68,13 +69,14 @@ def _collect_report_text(report) -> str:
 async def test_flagging_of_sanitization_edges():
     observer = create_default_observer()
     graph, *_ = _build_graph(observer)
+    registry = create_prompt_registry()
     inputs_and_expected = [
         ("Hello there! 👋", AgentConfig.CLASSIFICATION_FLAGGED),
         ("This is <b>html</b>", AgentConfig.CLASSIFICATION_OTHER),
         ("Buy now and get a discount!", AgentConfig.CLASSIFICATION_FLAGGED),
     ]
     for text, expected in inputs_and_expected:
-        result = await process_content(ProcessRequest(input_type="consult", content=text), graph, observer)
+        result = await process_content(ProcessRequest(input_type="consult", content=text), graph, observer, registry)
         report_text = _collect_report_text(result.report)
         assert expected in report_text
         if expected == AgentConfig.CLASSIFICATION_FLAGGED:
@@ -86,16 +88,19 @@ async def test_flagging_of_sanitization_edges():
 async def test_json_and_conversation_paths_use_injected_llms():
     observer = create_default_observer()
     graph, conv_llm, json_llm = _build_graph(observer)
+    registry = create_prompt_registry()
 
     conv_result = await process_content(
         ProcessRequest(input_type="consult", content="Doutor: tudo bem? Paciente: sim."),
         graph,
         observer,
+        registry,
     )
     json_result = await process_content(
         ProcessRequest(input_type="consult", content='{"patient": {"name": "Ana"}}'),
         graph,
         observer,
+        registry,
     )
 
     assert conv_llm.calls == 1

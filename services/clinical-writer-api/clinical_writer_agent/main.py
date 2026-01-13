@@ -13,6 +13,7 @@ from .agent_graph import (
     get_metrics_monitor,
     get_shared_observer,
 )
+from .prompt_registry import PromptNotFoundError, create_prompt_registry
 
 app = FastAPI()
 
@@ -136,6 +137,15 @@ def get_observer(graph = Depends(get_graph)):
     observer = getattr(graph, "observer", None)
     return observer or get_shared_observer()
 
+_prompt_registry = None
+
+
+def get_prompt_registry():
+    global _prompt_registry
+    if _prompt_registry is None:
+        _prompt_registry = create_prompt_registry()
+    return _prompt_registry
+
 
 def _span(text: str) -> Span:
     return Span(text=text)
@@ -166,7 +176,11 @@ def _parse_blocks(text: str) -> list[Block]:
     return blocks
 
 
-def _build_report(request: ProcessRequest, final_state: dict) -> ProcessResponse:
+def _build_report(
+    request: ProcessRequest,
+    final_state: dict,
+    prompt_version: str,
+) -> ProcessResponse:
     warnings: list[str] = []
     error_message = final_state.get("error_message")
     if error_message:
@@ -203,7 +217,7 @@ def _build_report(request: ProcessRequest, final_state: dict) -> ProcessResponse
     return ProcessResponse(
         ok=not warnings,
         input_type=request.input_type,
-        prompt_version=PROMPT_VERSION,
+        prompt_version=prompt_version,
         model_version=MODEL_VERSION,
         report=report,
         warnings=warnings,
@@ -219,7 +233,13 @@ async def process_content(
     input: ProcessRequest,
     graph = Depends(get_graph),
     observer = Depends(get_observer),
+    prompt_registry = Depends(get_prompt_registry),
 ):
+    try:
+        _, prompt_version = prompt_registry.get_prompt(input.prompt_key)
+    except PromptNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
     state = {
         "input_content": input.content,
         "observer": observer
@@ -230,7 +250,7 @@ async def process_content(
     if 'observer' in final_state:
         del final_state['observer']
 
-    return _build_report(input, final_state)
+    return _build_report(input, final_state, prompt_version)
 
 @app.get("/metrics")
 async def get_metrics(observer = Depends(get_observer)):

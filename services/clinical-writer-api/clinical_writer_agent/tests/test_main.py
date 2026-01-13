@@ -4,6 +4,7 @@ from clinical_writer_agent.agent_graph import create_graph, create_default_obser
 from clinical_writer_agent.agent_config import AgentConfig
 from clinical_writer_agent.agents.agent_state import AgentState
 from clinical_writer_agent.main import ProcessRequest, get_metrics, process_content, verify_token
+from clinical_writer_agent.prompt_registry import create_prompt_registry
 
 pytestmark = pytest.mark.anyio("asyncio")
 
@@ -94,8 +95,9 @@ def test_verify_token_accepts_valid(monkeypatch):
 async def test_process_content_contract(input_content, expected_classification, expected_record_part):
     observer = create_default_observer()
     graph, *_ = _make_graph(observer)
+    registry = create_prompt_registry()
     payload = ProcessRequest(input_type="consult", content=input_content)
-    result = await process_content(payload, graph, observer)
+    result = await process_content(payload, graph, observer, registry)
     report_text = _collect_report_text(result.report)
     assert expected_classification in report_text
     assert expected_record_part in report_text
@@ -113,9 +115,10 @@ async def test_metrics_reflects_live_observer():
     metrics_monitor = get_metrics_monitor(observer)
     metrics_monitor.reset_metrics()
     graph, *_ = _make_graph(observer)
+    registry = create_prompt_registry()
 
-    await process_content(ProcessRequest(input_type="consult", content="Doutor: tudo bem?"), graph, observer)
-    await process_content(ProcessRequest(input_type="consult", content='{"patient": {"name": "Ana"}}'), graph, observer)
+    await process_content(ProcessRequest(input_type="consult", content="Doutor: tudo bem?"), graph, observer, registry)
+    await process_content(ProcessRequest(input_type="consult", content='{"patient": {"name": "Ana"}}'), graph, observer, registry)
 
     metrics = await get_metrics(observer=observer)
     assert metrics["total_requests"] == 2
@@ -128,8 +131,9 @@ async def test_llm_error_path_sets_error_message():
     flaky_llm = _StubLLM("conversation", fail_times=1)
     judge_llm = _StubJudge(0.9)
     graph = create_graph(observer=observer, conversation_llm=flaky_llm, judge_llm=judge_llm)
+    registry = create_prompt_registry()
 
-    result = await process_content(ProcessRequest(input_type="consult", content="Doutor: tudo bem?"), graph, observer)
+    result = await process_content(ProcessRequest(input_type="consult", content="Doutor: tudo bem?"), graph, observer, registry)
     report_text = _collect_report_text(result.report)
     assert AgentConfig.CLASSIFICATION_OTHER in report_text
     assert "Error generating medical record" in "\n".join(result.warnings)
