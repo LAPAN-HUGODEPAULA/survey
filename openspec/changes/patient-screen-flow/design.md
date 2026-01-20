@@ -8,25 +8,38 @@ The new screen flow for the `survey-patient` application is designed to be more 
     *   This will be the new entry point for the user.
     *   It will contain a brief explanation of the survey and a clear "Start Survey" button.
 
-2.  **Survey Screen**:
+2. **Instructions Screen**:
+    *   Before starting the survey, the user will be taken to an instructions screen.
+    *   The user will answer the instructions question as they do now to ensure they understand the process.
+
+3.  **Survey Screen**:
     *   This screen will contain the 7-question survey.
     *   The user will navigate through the questions as they do now.
 
-3.  **Thank You / Summary Screen**:
+4.  **Thank You / Summary Screen**:
     *   After completing the survey, the user will be taken to this screen.
     *   It will display a summary of their answers.
     *   A radar chart will be used to provide a visual representation of the answers.
-    *   Below the summary, there will be a section that explains the benefits of providing personal information (e.g., a more detailed analysis) and two buttons: "Add Information" and "Continue".
+    *   Below the summary, there will be a section that explains the benefits of providing personal information (e.g., a more detailed analysis) and two buttons: "Add Information" and "Get Results".
 
-4.  **Demographic Information Screen**:
+5.  **Demographic Information Screen**:
     *   This screen will only be shown if the user clicks "Add Information" on the Thank You screen.
     *   It will be the same demographic information screen that is currently in use.
 
-5.  **Report Screen**:
-    *   After the user provides demographic information (or clicks "Continue" on the Thank You screen), the application will submit the data to the AI agent and navigate to this new screen.
+6.  **Report Screen**:
+    *   After the user provides demographic information (or clicks "Get Results" on the Thank You screen), the application will submit the data to the AI agent and navigate to this new screen.
     *   It will display the formatted response from the AI agent.
     *   The content will be selectable for copy and paste.
     *   It will have two buttons: "Save as Text" and "Export as PDF".
+
+## Backend Changes
+
+To support the new screen flow, the following backend changes are required:
+
+*   **API Contract:** The `patient` field within the `SurveyResponse` schema in `survey-backend.openapi.yaml` will be made optional. This will remove it from the `required` list for the `SurveyResponse` component.
+*   **Pydantic Model:** The `patient` field in the `SurveyResponse` model (`services/survey-backend/app/domain/models/survey_response_model.py`) will be changed from `Patient` to `Optional[Patient] = None`.
+*   **Database:** MongoDB is schema-less, so no explicit schema changes are needed. The application logic will handle the absence of the `patient` field.
+*   **Validation:** The backend's validation logic, particularly in the `create_survey_response` endpoint, will be updated to handle cases where `patient` is `None`. This includes any logic that accesses `survey_response.patient`.
 
 ## Radar Chart
 

@@ -11,7 +11,7 @@ The system MUST display a welcome screen with a call-to-action button to start t
 **Then** the system MUST navigate to the survey screen.
 
 ### Requirement: Survey Screen
-The system MUST present the survey questions to the user.
+The system MUST present the survey instructions and survey questions to the user.
 
 #### Scenario: User answers the survey
 **Given** a user is on the survey screen
@@ -28,7 +28,7 @@ The system MUST display a thank you screen with a summary of the user's answers,
 
 #### Scenario: User continues without providing personal information
 **Given** a user is on the thank you screen
-**When** the user clicks the "Continue" button
+**When** the user clicks the "Get Results" button
 **Then** a system MUST send the survey response to the AI agent without personal data and navigate to the report page.
 
 ### Requirement: Demographic Information Screen
@@ -56,3 +56,18 @@ The system MUST display the AI agent's response on a new report page.
 **Given** a user is on the report page
 **When** the user clicks the "Export as PDF" button
 **Then** the system MUST initiate a process to save the report as a PDF file.
+
+## MODIFIED Requirements
+
+### Requirement: Survey Response Submission
+The backend MUST accept survey responses with or without patient data.
+
+#### Scenario: Submit survey with patient data
+**Given** a survey response contains patient data
+**When** the response is submitted to the `create_survey_response` endpoint
+**Then** the system MUST accept the response and store it.
+
+#### Scenario: Submit survey without patient data
+**Given** a survey response does not contain patient data
+**When** the response is submitted to the `create_survey_response` endpoint
+**Then** the system MUST accept the response and store it with a null value for patient data.

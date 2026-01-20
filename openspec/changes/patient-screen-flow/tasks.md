@@ -1,6 +1,6 @@
 # Tasks for 'patient-screen-flow'
 
-## Development Tasks
+## Frontend Development Tasks
 
 1.  **Create the new Welcome Screen.**
     *   Design and implement the UI for the welcome screen.
@@ -23,14 +23,18 @@
     *   If the user provides personal data, send the survey data along with the personal data to the AI agent.
     *   If the user refuses, send only the survey data to the AI agent.
     *   Navigate to the new report page with the AI agent's response.
-7.  **Write unit and integration tests for the new flow and components.**
 
-## Validation Tasks
+## Backend Development Tasks
 
-1.  **Test the new screen flow from end-to-end.**
-2.  **Validate the radar chart visualization.**
-3.  **Verify that the data is sent correctly to the AI agent in both scenarios (with and without personal data).**
-4.  **Verify the new report page functionality.**
-    *   Check that the report content is selectable.
-    *   Test the plain text export functionality.
-    *   Test the PDF export functionality.
+1.  **Update API Contract:** Modify `survey-backend.openapi.yaml` to make the `patient` field in `SurveyResponse` optional.
+2.  **Update Pydantic Model:** Change the `SurveyResponse` model in `services/survey-backend/app/domain/models/survey_response_model.py` to make the `patient` field optional.
+3.  **Adjust Backend Logic:** Update the `create_survey_response` endpoint and any other relevant logic to handle survey responses with or without patient data.
+4.  **Database:** Ensure that the database schema can handle null values for patient data.
+
+## Testing Tasks
+
+1.  **Frontend:** Write unit and integration tests for the new flow and components.
+2.  **Backend:** Add new test cases for survey submission with and without patient data.
+3.  **End-to-End:** Test the new screen flow from end-to-end.
+4.  **Report Page:** Verify the new report page functionality (selectable content, text export, PDF export).
+5.  **Data Validation:** Validate the radar chart visualization and verify that the data is sent correctly to the AI agent in both scenarios.
