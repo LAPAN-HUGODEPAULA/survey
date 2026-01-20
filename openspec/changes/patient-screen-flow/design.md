@@ -16,15 +16,17 @@ The new screen flow for the `survey-patient` application is designed to be more 
     *   After completing the survey, the user will be taken to this screen.
     *   It will display a summary of their answers.
     *   A radar chart will be used to provide a visual representation of the answers.
-    *   Below the summary, there will be a section that explains the benefits of providing personal information (e.g., a more detailed analysis) and two buttons: "Add Information" and "Finish".
+    *   Below the summary, there will be a section that explains the benefits of providing personal information (e.g., a more detailed analysis) and two buttons: "Add Information" and "Continue".
 
 4.  **Demographic Information Screen**:
     *   This screen will only be shown if the user clicks "Add Information" on the Thank You screen.
     *   It will be the same demographic information screen that is currently in use.
 
-5.  **Final Thank You Screen**:
-    *   If the user fills out the demographic information, they will be taken to a final thank you screen.
-    *   If the user clicks "Finish" on the Thank You / Summary screen, they will also be taken to this final screen.
+5.  **Report Screen**:
+    *   After the user provides demographic information (or clicks "Continue" on the Thank You screen), the application will submit the data to the AI agent and navigate to this new screen.
+    *   It will display the formatted response from the AI agent.
+    *   The content will be selectable for copy and paste.
+    *   It will have two buttons: "Save as Text" and "Export as PDF".
 
 ## Radar Chart
 
@@ -33,3 +35,11 @@ The radar chart on the Thank You / Summary screen will provide a visual summary 
 *   **Vertices**: Each vertex of the radar chart will represent one of the questions in the survey.
 *   **Values**: The value at each vertex will correspond to the user's answer to that question. The values should be normalized to fit the chart's scale (e.g., 0 to 5).
 *   **Appearance**: The chart will be styled to match the application's design system. The area inside the vertices will be filled with a semi-transparent color.
+
+## Report Page
+
+The report page will be responsible for displaying the AI agent's response.
+
+*   **Content**: The page will use the `ReportView` widget from the `design_system_flutter` package, similar to the current `thank_you_page.dart`. This ensures the content is selectable.
+*   **Save as Text**: This button will trigger a download of the report as a plain text file. It will use the `toPlainText()` method of the `ReportDocument` model.
+*   **Export as PDF**: This button will trigger the browser's print functionality on the web, allowing the user to save the report as a PDF. On native platforms, it would trigger a share/save dialog.

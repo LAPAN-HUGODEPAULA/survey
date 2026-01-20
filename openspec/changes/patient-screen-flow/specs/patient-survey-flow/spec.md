@@ -19,17 +19,17 @@ The system MUST present the survey questions to the user.
 **Then** the system MUST navigate to the thank you screen.
 
 ### Requirement: Thank You Screen
-The system MUST display a thank you screen with a summary of the user's answers, a radar chart, and an option to provide personal information.
+The system MUST display a thank you screen with a summary of the user's answers, a radar chart, and an option to provide personal information. Add kind inviting message to encourage users to share their demographic data for better insights.
 
 #### Scenario: User provides personal information
 **Given** a user is on the thank you screen
 **When** the user clicks the "Add Information" button
 **Then** the system MUST navigate to the demographic information screen.
 
-#### Scenario: User finishes without providing personal information
+#### Scenario: User continues without providing personal information
 **Given** a user is on the thank you screen
-**When** the user clicks the "Finish" button
-**Then** a system MUST send the survey response to the AI agent without personal data and navigate to the final thank you screen.
+**When** the user clicks the "Continue" button
+**Then** a system MUST send the survey response to the AI agent without personal data and navigate to the report page.
 
 ### Requirement: Demographic Information Screen
 The system MUST allow the user to enter their demographic information.
@@ -37,4 +37,22 @@ The system MUST allow the user to enter their demographic information.
 #### Scenario: User submits demographic information
 **Given** a user is on the demographic information screen
 **When** the user fills in the form and clicks "Submit"
-**Then** the system MUST send the survey response to the AI agent with the user's personal data and navigate to the final thank you screen.
+**Then** the system MUST send the survey response to the AI agent with the user's personal data and navigate to the report page.
+
+### Requirement: Report Page
+The system MUST display the AI agent's response on a new report page.
+
+#### Scenario: View report
+**Given** a user is on the report page
+**When** the user views the report
+**Then** the report content MUST be selectable.
+
+#### Scenario: Export report as text
+**Given** a user is on the report page
+**When** the user clicks the "Save as Text" button
+**Then** the system MUST initiate a download of the report as a plain text file.
+
+#### Scenario: Export report as PDF
+**Given** a user is on the report page
+**When** the user clicks the "Export as PDF" button
+**Then** the system MUST initiate a process to save the report as a PDF file.
