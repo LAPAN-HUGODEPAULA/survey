@@ -24,18 +24,6 @@ class _WelcomePageState extends State<WelcomePage> {
     _initialized = true;
 
     final settings = Provider.of<AppSettings>(context, listen: false);
-    settings.setScreenerName(
-      const String.fromEnvironment(
-        'DEFAULT_SCREENER_NAME',
-        defaultValue: 'self',
-      ),
-    );
-    settings.setScreenerContact(
-      const String.fromEnvironment(
-        'DEFAULT_SCREENER_CONTACT',
-        defaultValue: 'contact@lapan.com.br',
-      ),
-    );
     settings.loadAvailableSurveys().then((_) {
       final surveys = settings.availableSurveys;
       if (surveys.isNotEmpty && settings.selectedSurveyId == null) {

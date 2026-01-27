@@ -37,12 +37,6 @@ class _SettingsPageState extends State<SettingsPage> {
   /// Chave global para validação do formulário
   final _formKey = GlobalKey<FormState>();
 
-  /// Controlador para o campo de texto do nome do responsável
-  late TextEditingController _screenerNameController;
-
-  /// Controlador para o campo de texto do contato do responsável
-  late TextEditingController _screenerContactController;
-
   @override
   void initState() {
     super.initState();
@@ -51,18 +45,10 @@ class _SettingsPageState extends State<SettingsPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       settings.loadAvailableSurveys();
     });
-    _screenerNameController = TextEditingController(
-      text: settings.screener.name,
-    );
-    _screenerContactController = TextEditingController(
-      text: settings.screener.email,
-    );
   }
 
   @override
   void dispose() {
-    _screenerNameController.dispose();
-    _screenerContactController.dispose();
     super.dispose();
   }
 
@@ -88,20 +74,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
     // Lista para armazenar erros de validação adicional
     List<String> validationErrors = [];
-
-    // Validação específica do nome (além da validação do formulário)
-    final nameText = _screenerNameController.text.trim();
-    if (nameText.isEmpty) {
-      validationErrors.add('Preencha o nome do responsável');
-    } else if (nameText.length < 5) {
-      validationErrors.add('O nome deve ter pelo menos 5 caracteres');
-    }
-
-    // Validação específica do email (além da validação do formulário)
-    final emailText = _screenerContactController.text.trim();
-    if (emailText.isEmpty) {
-      validationErrors.add('Preencha o email do responsável');
-    }
 
     // Verificação se há questionário selecionado
     final settings = Provider.of<AppSettings>(context, listen: false);
@@ -160,61 +132,6 @@ class _SettingsPageState extends State<SettingsPage> {
             child: ListView(
               padding: const EdgeInsets.all(24.0),
               children: [
-                // Campo para o nome do responsável
-                TextFormField(
-                  controller: _screenerNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nome do Responsável (Screener) *',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
-                    helperText:
-                        'Nome do profissional que aplicará o questionário',
-                  ),
-                  textCapitalization: TextCapitalization.words,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  inputFormatters: [
-                    // Permite apenas letras, espaços e acentos
-                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZÀ-ÿ\s]')),
-                  ],
-                  validator: ValidatorSets.screenerName,
-                  onChanged: (value) {
-                    // Atualiza o nome nas configurações em tempo real
-                    settings.setScreenerName(value);
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Campo para o contato do responsável
-                TextFormField(
-                  controller: _screenerContactController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email do Responsável *',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email),
-                    helperText:
-                        'Email do profissional (ex: usuario@exemplo.com)',
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  autocorrect: false,
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  validator: ValidatorSets.screenerEmail,
-                  onChanged: (value) {
-                    // Remove espaços automaticamente durante a digitação
-                    final trimmedValue = value.replaceAll(' ', '');
-                    if (trimmedValue != value) {
-                      _screenerContactController.value = TextEditingValue(
-                        text: trimmedValue,
-                        selection: TextSelection.collapsed(
-                          offset: trimmedValue.length,
-                        ),
-                      );
-                    }
-                    // Atualiza o contato nas configurações em tempo real
-                    settings.setScreenerContact(trimmedValue);
-                  },
-                ),
-                const SizedBox(height: 24),
-
                 // Seção de seleção do questionário
                 const Text(
                   'Questionário Ativo',
@@ -352,20 +269,6 @@ class _SettingsPageState extends State<SettingsPage> {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        _buildStatusItem(
-                          'Responsável configurado:',
-                          settings.screener.name.isNotEmpty
-                              ? settings.screener.name
-                              : 'Não configurado',
-                          settings.screener.name.isNotEmpty,
-                        ),
-                        _buildStatusItem(
-                          'Email configurado:',
-                          settings.screener.email.isNotEmpty
-                              ? settings.screener.email
-                              : 'Não configurado',
-                          settings.screener.email.isNotEmpty,
-                        ),
                         _buildStatusItem(
                           'Questionário selecionado:',
                           settings.selectedSurvey != null

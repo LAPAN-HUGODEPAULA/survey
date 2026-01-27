@@ -20,7 +20,7 @@ import 'package:patient_app/core/repositories/survey_repository.dart';
 /// quando as configurações são alteradas.
 ///
 /// Principais responsabilidades:
-/// - Gerenciar nome do profissional responsável (screener)
+/// - Gerenciar o ID do Screener padrão (System Screener)
 /// - Gerenciar dados demográficos do paciente
 /// - Carregar questionários disponíveis dinamicamente
 /// - Controlar qual questionário está selecionado
@@ -108,16 +108,6 @@ class AppSettings extends ChangeNotifier {
       return preferred;
     }
     return surveys.first.id;
-  }
-
-  void setScreenerName(String name) {
-    _screener = _screener.copyWith(name: name);
-    notifyListeners();
-  }
-
-  void setScreenerContact(String contact) {
-    _screener = _screener.copyWith(email: contact);
-    notifyListeners();
   }
 
   void setPatientData({

@@ -149,6 +149,59 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentResponse'
+  /screeners/register:
+    post:
+      summary: Register a new screener
+      operationId: registerScreener
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScreenerRegister'
+      responses:
+        '201':
+          description: Screener registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenerModel'
+        '409':
+          description: Conflict (e.g., CPF or email already registered)
+  /screeners/login:
+    post:
+      summary: Authenticate a screener and get an access token
+      operationId: loginScreener
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScreenerLogin'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '401':
+          description: Invalid credentials
+  /screeners/recover-password:
+    post:
+      summary: Request password recovery for a screener
+      operationId: recoverScreenerPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScreenerPasswordRecoveryRequest'
+      responses:
+        '200':
+          description: Password recovery initiated (email sent if user exists)
+        '500':
+          description: Internal server error or email service not configured
 components:
   schemas:
     Survey:
@@ -157,8 +210,7 @@ components:
         - surveyDisplayName
         - surveyName
         - surveyDescription
-        - creatorName
-        - creatorContact
+        - creatorId
         - createdAt
         - modifiedAt
         - instructions
@@ -173,9 +225,7 @@ components:
           type: string
         surveyDescription:
           type: string
-        creatorName:
-          type: string
-        creatorContact:
+        creatorId:
           type: string
         createdAt:
           type: string
@@ -268,21 +318,19 @@ components:
       required:
         - surveyId
         - answers
+        - creatorId
+        - screenerId
       properties:
         _id:
           type: string
         surveyId:
           type: string
-        creatorName:
-          type: string
-        creatorContact:
+        creatorId:
           type: string
         testDate:
           type: string
           format: date-time
-        screenerName:
-          type: string
-        screenerEmail:
+        screenerId:
           type: string
         patient:
           $ref: '#/components/schemas/Patient'
@@ -355,3 +403,190 @@ components:
           properties:
             agentResponse:
               $ref: '#/components/schemas/AgentResponse'
+    Address:
+      type: object
+      required:
+        - postalCode
+        - street
+        - number
+        - neighborhood
+        - city
+        - state
+      properties:
+        postalCode:
+          type: string
+          description: CEP
+        street:
+          type: string
+          description: Logradouro
+        number:
+          type: string
+          description: Número
+        complement:
+          type: string
+          description: Complemento
+        neighborhood:
+          type: string
+          description: Bairro
+        city:
+          type: string
+          description: Cidade
+        state:
+          type: string
+          description: Estado (UF)
+    ProfessionalCouncil:
+      type: object
+      properties:
+        type:
+          type: string
+          description: "Tipo do conselho profissional (ex: CRP, CRM)"
+          enum:
+            - CFEP
+            - CRP
+            - COREN
+            - CRM
+            - CREFITO
+            - CREFONO
+            - CRN
+            - none
+        registrationNumber:
+          type: string
+          description: Número de registro no conselho profissional
+    ScreenerModel:
+      type: object
+      required:
+        - cpf
+        - firstName
+        - surname
+        - email
+        - password
+        - phone
+        - address
+        - professionalCouncil
+        - jobTitle
+        - degree
+      properties:
+        _id:
+          type: string
+        cpf:
+          type: string
+          description: CPF do Screener
+        firstName:
+          type: string
+          description: Primeiro nome do Screener
+        surname:
+          type: string
+          description: Sobrenome do Screener
+        email:
+          type: string
+          format: email
+          description: Endereço de e-mail do Screener
+        password:
+          type: string
+          description: Senha do Screener (hash)
+        phone:
+          type: string
+          description: Número de telefone do Screener
+        address:
+          $ref: '#/components/schemas/Address'
+        professionalCouncil:
+          $ref: '#/components/schemas/ProfessionalCouncil'
+        jobTitle:
+          type: string
+          description: Cargo/profissão do Screener
+        degree:
+          type: string
+          description: Formação acadêmica/grau do Screener
+        darvCourseYear:
+          type: integer
+          description: Ano de conclusão do curso DARV (opcional)
+    ScreenerRegister:
+      type: object
+      required:
+        - cpf
+        - firstName
+        - surname
+        - email
+        - password
+        - phone
+        - address
+        - professionalCouncil
+        - jobTitle
+        - degree
+      properties:
+        cpf:
+          type: string
+          description: CPF do Screener
+          example: '111.111.111-11'
+        firstName:
+          type: string
+          description: Primeiro nome do Screener
+          example: Maria
+        surname:
+          type: string
+          description: Sobrenome do Screener
+          example: Henriques Moreira Vale
+        email:
+          type: string
+          format: email
+          description: Endereço de e-mail do Screener
+          example: maria.vale@holhos.com
+        password:
+          type: string
+          description: Senha do Screener
+          example: StrongPassword123
+        phone:
+          type: string
+          description: Número de telefone do Screener
+          example: '31988447613'
+        address:
+          $ref: '#/components/schemas/Address'
+        professionalCouncil:
+          $ref: '#/components/schemas/ProfessionalCouncil'
+        jobTitle:
+          type: string
+          description: Cargo/profissão do Screener
+          example: Psychologist
+        degree:
+          type: string
+          description: Formação acadêmica/grau do Screener
+          example: Psychology
+        darvCourseYear:
+          type: integer
+          description: Ano de conclusão do curso DARV (opcional)
+          example: 2019
+    ScreenerLogin:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: Endereço de e-mail do Screener
+          example: maria.vale@holhos.com
+        password:
+          type: string
+          description: Senha do Screener
+          example: StrongPassword123
+    Token:
+      type: object
+      required:
+        - access_token
+        - token_type
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+    ScreenerPasswordRecoveryRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          description: Endereço de e-mail do Screener para recuperação de senha
+          example: maria.vale@holhos.com

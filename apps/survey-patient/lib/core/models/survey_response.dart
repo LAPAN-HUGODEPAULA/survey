@@ -7,10 +7,9 @@ class SurveyResponse {
     this.id,
     this.agentResponse,
     required this.surveyId,
-    required this.creatorName,
-    required this.creatorContact,
+    required this.creatorId,
     required this.testDate,
-    required this.screener,
+    required this.screenerId,
     this.patient,
     required this.answers,
   });
@@ -18,10 +17,9 @@ class SurveyResponse {
   final String? id;
   final AgentResponse? agentResponse;
   final String surveyId;
-  final String creatorName;
-  final String creatorContact;
+  final String creatorId;
   final DateTime testDate;
-  final Screener screener;
+  final String screenerId;
   final Patient? patient;
   final List<Answer> answers;
 
@@ -33,10 +31,9 @@ class SurveyResponse {
           ? AgentResponse.fromJson(json['agentResponse'] as Map<String, dynamic>)
           : null,
       surveyId: json['surveyId']?.toString() ?? '',
-      creatorName: json['creatorName']?.toString() ?? '',
-      creatorContact: json['creatorContact']?.toString() ?? '',
+      creatorId: json['creatorId']?.toString() ?? '',
       testDate: _parseDate(json['testDate']),
-      screener: Screener.fromJson(json),
+      screenerId: json['screenerId']?.toString() ?? '',
       patient: _parsePatient(json),
       answers: answersRaw
           .whereType<Map<String, dynamic>>()
@@ -48,11 +45,9 @@ class SurveyResponse {
   Map<String, dynamic> toJson() {
     return {
       'surveyId': surveyId,
-      'creatorName': creatorName,
-      'creatorContact': creatorContact,
+      'creatorId': creatorId,
       'testDate': testDate.toIso8601String(),
-      'screenerName': screener.name,
-      'screenerEmail': screener.email,
+      'screenerId': screenerId,
       if (patient != null) 'patient': patient!.toJson(),
       'answers': answers.map((answer) => answer.toJson()).toList(),
     };
@@ -61,10 +56,9 @@ class SurveyResponse {
   SurveyResponse copyWith({
     String? id,
     String? surveyId,
-    String? creatorName,
-    String? creatorContact,
+    String? creatorId,
     DateTime? testDate,
-    Screener? screener,
+    String? screenerId,
     Patient? patient,
     List<Answer>? answers,
     AgentResponse? agentResponse,
@@ -72,10 +66,9 @@ class SurveyResponse {
     return SurveyResponse(
       id: id ?? this.id,
       surveyId: surveyId ?? this.surveyId,
-      creatorName: creatorName ?? this.creatorName,
-      creatorContact: creatorContact ?? this.creatorContact,
+      creatorId: creatorId ?? this.creatorId,
       testDate: testDate ?? this.testDate,
-      screener: screener ?? this.screener,
+      screenerId: screenerId ?? this.screenerId,
       patient: patient ?? this.patient,
       answers: answers ?? this.answers,
       agentResponse: agentResponse ?? this.agentResponse,

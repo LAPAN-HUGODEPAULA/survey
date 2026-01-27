@@ -18,8 +18,7 @@ part 'survey.g.dart';
 /// * [surveyDisplayName] 
 /// * [surveyName] 
 /// * [surveyDescription] 
-/// * [creatorName] 
-/// * [creatorContact] 
+/// * [creatorId] 
 /// * [createdAt] 
 /// * [modifiedAt] 
 /// * [instructions] 
@@ -39,11 +38,8 @@ abstract class Survey implements Built<Survey, SurveyBuilder> {
   @BuiltValueField(wireName: r'surveyDescription')
   String get surveyDescription;
 
-  @BuiltValueField(wireName: r'creatorName')
-  String get creatorName;
-
-  @BuiltValueField(wireName: r'creatorContact')
-  String get creatorContact;
+  @BuiltValueField(wireName: r'creatorId')
+  String get creatorId;
 
   @BuiltValueField(wireName: r'createdAt')
   DateTime get createdAt;
@@ -105,14 +101,9 @@ class _$SurveySerializer implements PrimitiveSerializer<Survey> {
       object.surveyDescription,
       specifiedType: const FullType(String),
     );
-    yield r'creatorName';
+    yield r'creatorId';
     yield serializers.serialize(
-      object.creatorName,
-      specifiedType: const FullType(String),
-    );
-    yield r'creatorContact';
-    yield serializers.serialize(
-      object.creatorContact,
+      object.creatorId,
       specifiedType: const FullType(String),
     );
     yield r'createdAt';
@@ -191,19 +182,12 @@ class _$SurveySerializer implements PrimitiveSerializer<Survey> {
           ) as String;
           result.surveyDescription = valueDes;
           break;
-        case r'creatorName':
+        case r'creatorId':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
-          result.creatorName = valueDes;
-          break;
-        case r'creatorContact':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.creatorContact = valueDes;
+          result.creatorId = valueDes;
           break;
         case r'createdAt':
           final valueDes = serializers.deserialize(

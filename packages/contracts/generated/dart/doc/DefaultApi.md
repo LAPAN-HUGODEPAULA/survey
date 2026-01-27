@@ -16,6 +16,10 @@ Method | HTTP request | Description
 [**getSurveyResponse**](DefaultApi.md#getsurveyresponse) | **GET** /survey_responses/{responseId} | Get survey response by id
 [**listSurveyResponses**](DefaultApi.md#listsurveyresponses) | **GET** /survey_responses/ | List survey responses
 [**listSurveys**](DefaultApi.md#listsurveys) | **GET** /surveys/ | List surveys
+[**loginScreener**](DefaultApi.md#loginscreener) | **POST** /screeners/login | Authenticate a screener and get an access token
+[**processClinicalWriter**](DefaultApi.md#processclinicalwriter) | **POST** /clinical_writer/process | Forward content to Clinical Writer
+[**recoverScreenerPassword**](DefaultApi.md#recoverscreenerpassword) | **POST** /screeners/recover-password | Request password recovery for a screener
+[**registerScreener**](DefaultApi.md#registerscreener) | **POST** /screeners/register | Register a new screener
 [**resendSurveyEmail**](DefaultApi.md#resendsurveyemail) | **POST** /survey_responses/{responseId}/send_email | Resend survey response email
 
 
@@ -294,6 +298,169 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **loginScreener**
+> Token loginScreener(screenerLogin)
+
+Authenticate a screener and get an access token
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final ScreenerLogin screenerLogin = ; // ScreenerLogin | 
+
+try {
+    final response = api.loginScreener(screenerLogin);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->loginScreener: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **screenerLogin** | [**ScreenerLogin**](ScreenerLogin.md)|  | 
+
+### Return type
+
+[**Token**](Token.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **processClinicalWriter**
+> AgentResponse processClinicalWriter(clinicalWriterRequest)
+
+Forward content to Clinical Writer
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final ClinicalWriterRequest clinicalWriterRequest = ; // ClinicalWriterRequest | 
+
+try {
+    final response = api.processClinicalWriter(clinicalWriterRequest);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->processClinicalWriter: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **clinicalWriterRequest** | [**ClinicalWriterRequest**](ClinicalWriterRequest.md)|  | 
+
+### Return type
+
+[**AgentResponse**](AgentResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **recoverScreenerPassword**
+> recoverScreenerPassword(screenerPasswordRecoveryRequest)
+
+Request password recovery for a screener
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final ScreenerPasswordRecoveryRequest screenerPasswordRecoveryRequest = ; // ScreenerPasswordRecoveryRequest | 
+
+try {
+    api.recoverScreenerPassword(screenerPasswordRecoveryRequest);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->recoverScreenerPassword: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **screenerPasswordRecoveryRequest** | [**ScreenerPasswordRecoveryRequest**](ScreenerPasswordRecoveryRequest.md)|  | 
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **registerScreener**
+> ScreenerModel registerScreener(screenerRegister)
+
+Register a new screener
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final ScreenerRegister screenerRegister = ; // ScreenerRegister | 
+
+try {
+    final response = api.registerScreener(screenerRegister);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->registerScreener: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **screenerRegister** | [**ScreenerRegister**](ScreenerRegister.md)|  | 
+
+### Return type
+
+[**ScreenerModel**](ScreenerModel.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

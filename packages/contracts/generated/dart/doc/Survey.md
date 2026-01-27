@@ -12,8 +12,7 @@ Name | Type | Description | Notes
 **surveyDisplayName** | **String** |  | 
 **surveyName** | **String** |  | 
 **surveyDescription** | **String** |  | 
-**creatorName** | **String** |  | 
-**creatorContact** | **String** |  | 
+**creatorId** | **String** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **modifiedAt** | [**DateTime**](DateTime.md) |  | 
 **instructions** | [**Instructions**](Instructions.md) |  | 

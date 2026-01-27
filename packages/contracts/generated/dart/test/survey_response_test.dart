@@ -17,13 +17,8 @@ void main() {
       // TODO
     });
 
-    // String creatorName
-    test('to test the property `creatorName`', () async {
-      // TODO
-    });
-
-    // String creatorContact
-    test('to test the property `creatorContact`', () async {
+    // String creatorId
+    test('to test the property `creatorId`', () async {
       // TODO
     });
 
@@ -32,13 +27,8 @@ void main() {
       // TODO
     });
 
-    // String screenerName
-    test('to test the property `screenerName`', () async {
-      // TODO
-    });
-
-    // String screenerEmail
-    test('to test the property `screenerEmail`', () async {
+    // String screenerId
+    test('to test the property `screenerId`', () async {
       // TODO
     });
 

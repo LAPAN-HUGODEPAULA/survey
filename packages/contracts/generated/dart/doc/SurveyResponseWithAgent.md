@@ -10,12 +10,10 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **String** |  | [optional] 
 **surveyId** | **String** |  | 
-**creatorName** | **String** |  | [optional] 
-**creatorContact** | **String** |  | [optional] 
+**creatorId** | **String** |  | 
 **testDate** | [**DateTime**](DateTime.md) |  | [optional] 
-**screenerName** | **String** |  | [optional] 
-**screenerEmail** | **String** |  | [optional] 
-**patient** | [**Patient**](Patient.md) |  | 
+**screenerId** | **String** |  | 
+**patient** | [**Patient**](Patient.md) |  | [optional] 
 **answers** | [**BuiltList&lt;Answer&gt;**](Answer.md) |  | 
 **agentResponse** | [**AgentResponse**](AgentResponse.md) |  | [optional] 
 

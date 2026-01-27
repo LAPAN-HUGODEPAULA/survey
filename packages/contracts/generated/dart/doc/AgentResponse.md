@@ -8,6 +8,12 @@ import 'package:survey_backend_api/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**ok** | **bool** |  | [optional] 
+**inputType** | **String** |  | [optional] 
+**promptVersion** | **String** |  | [optional] 
+**modelVersion** | **String** |  | [optional] 
+**report** | [**JsonObject**](.md) |  | [optional] 
+**warnings** | **BuiltList&lt;String&gt;** |  | [optional] 
 **classification** | **String** |  | [optional] 
 **medicalRecord** | **String** |  | [optional] 
 **errorMessage** | **String** |  | [optional] 

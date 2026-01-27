@@ -8,11 +8,9 @@ from app.domain.models.answer_model import Answer
 class SurveyResponse(BaseModel):
     id: Optional[str] = Field(default=None, alias="_id")
     survey_id: str = Field(..., alias="surveyId")
-    creator_name: str = Field(..., alias="creatorName")
-    creator_contact: str = Field(..., alias="creatorContact")
+    creator_id: str = Field(..., alias="creatorId")
     test_date: datetime = Field(..., alias="testDate")
-    screener_name: str = Field(..., alias="screenerName")
-    screener_email: str = Field(..., alias="screenerEmail")
+    screener_id: str = Field(..., alias="screenerId")
     patient: Optional[Patient] = None
     answers: List[Answer]
 

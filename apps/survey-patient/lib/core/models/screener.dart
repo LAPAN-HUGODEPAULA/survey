@@ -1,26 +1,23 @@
 class Screener {
-  const Screener({required this.name, required this.email});
+  const Screener({required this.id});
 
-  final String name;
-  final String email;
+  final String id;
 
-  factory Screener.initial() => const Screener(name: '', email: '');
+  factory Screener.initial() => const Screener(id: '');
 
-  Screener copyWith({String? name, String? email}) {
-    return Screener(name: name ?? this.name, email: email ?? this.email);
+  Screener copyWith({String? id}) {
+    return Screener(id: id ?? this.id);
   }
 
   factory Screener.fromJson(Map<String, dynamic> json) {
     return Screener(
-      name: json['screenerName']?.toString() ?? json['screener']?.toString() ?? '',
-      email: json['screenerEmail']?.toString() ?? '',
+      id: json['screenerId']?.toString() ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'screenerName': name,
-      'screenerEmail': email,
+      'screenerId': id,
     };
   }
 }

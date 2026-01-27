@@ -72,19 +72,32 @@ Class | Method | HTTP request | Description
 [*DefaultApi*](doc/DefaultApi.md) | [**getSurveyResponse**](doc/DefaultApi.md#getsurveyresponse) | **GET** /survey_responses/{responseId} | Get survey response by id
 [*DefaultApi*](doc/DefaultApi.md) | [**listSurveyResponses**](doc/DefaultApi.md#listsurveyresponses) | **GET** /survey_responses/ | List survey responses
 [*DefaultApi*](doc/DefaultApi.md) | [**listSurveys**](doc/DefaultApi.md#listsurveys) | **GET** /surveys/ | List surveys
+[*DefaultApi*](doc/DefaultApi.md) | [**loginScreener**](doc/DefaultApi.md#loginscreener) | **POST** /screeners/login | Authenticate a screener and get an access token
+[*DefaultApi*](doc/DefaultApi.md) | [**processClinicalWriter**](doc/DefaultApi.md#processclinicalwriter) | **POST** /clinical_writer/process | Forward content to Clinical Writer
+[*DefaultApi*](doc/DefaultApi.md) | [**recoverScreenerPassword**](doc/DefaultApi.md#recoverscreenerpassword) | **POST** /screeners/recover-password | Request password recovery for a screener
+[*DefaultApi*](doc/DefaultApi.md) | [**registerScreener**](doc/DefaultApi.md#registerscreener) | **POST** /screeners/register | Register a new screener
 [*DefaultApi*](doc/DefaultApi.md) | [**resendSurveyEmail**](doc/DefaultApi.md#resendsurveyemail) | **POST** /survey_responses/{responseId}/send_email | Resend survey response email
 
 
 ## Documentation For Models
 
+ - [Address](doc/Address.md)
  - [AgentResponse](doc/AgentResponse.md)
  - [Answer](doc/Answer.md)
+ - [ClinicalWriterRequest](doc/ClinicalWriterRequest.md)
+ - [ClinicalWriterRequestMetadata](doc/ClinicalWriterRequestMetadata.md)
  - [Instructions](doc/Instructions.md)
  - [Patient](doc/Patient.md)
+ - [ProfessionalCouncil](doc/ProfessionalCouncil.md)
  - [Question](doc/Question.md)
+ - [ScreenerLogin](doc/ScreenerLogin.md)
+ - [ScreenerModel](doc/ScreenerModel.md)
+ - [ScreenerPasswordRecoveryRequest](doc/ScreenerPasswordRecoveryRequest.md)
+ - [ScreenerRegister](doc/ScreenerRegister.md)
  - [Survey](doc/Survey.md)
  - [SurveyResponse](doc/SurveyResponse.md)
  - [SurveyResponseWithAgent](doc/SurveyResponseWithAgent.md)
+ - [Token](doc/Token.md)
 
 
 ## Documentation For Authorization

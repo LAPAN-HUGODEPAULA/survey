@@ -56,6 +56,34 @@ void main() {
       // TODO
     });
 
+    // Authenticate a screener and get an access token
+    //
+    //Future<Token> loginScreener(ScreenerLogin screenerLogin) async
+    test('test loginScreener', () async {
+      // TODO
+    });
+
+    // Forward content to Clinical Writer
+    //
+    //Future<AgentResponse> processClinicalWriter(ClinicalWriterRequest clinicalWriterRequest) async
+    test('test processClinicalWriter', () async {
+      // TODO
+    });
+
+    // Request password recovery for a screener
+    //
+    //Future recoverScreenerPassword(ScreenerPasswordRecoveryRequest screenerPasswordRecoveryRequest) async
+    test('test recoverScreenerPassword', () async {
+      // TODO
+    });
+
+    // Register a new screener
+    //
+    //Future<ScreenerModel> registerScreener(ScreenerRegister screenerRegister) async
+    test('test registerScreener', () async {
+      // TODO
+    });
+
     // Resend survey response email
     //
     //Future resendSurveyEmail(String responseId) async

@@ -16,4 +16,9 @@ class Settings(BaseModel):
     smtp_user: str | None = os.getenv("SMTP_USER") or os.getenv("MAIL_USERNAME")
     smtp_password: str | None = os.getenv("SMTP_PASSWORD") or os.getenv("MAIL_PASSWORD")
 
+    # JWT Settings (Added)
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "super-secret-key") # TODO: Change in production
+    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+
 settings = Settings()
