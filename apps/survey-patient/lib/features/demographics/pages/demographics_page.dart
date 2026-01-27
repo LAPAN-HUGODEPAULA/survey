@@ -6,11 +6,22 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/core/navigation/app_navigator.dart';
+import 'package:patient_app/core/models/survey/question.dart';
+import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/services/demographics_data_service.dart';
 import 'package:patient_app/core/utils/validator_sets.dart';
 
 class DemographicsPage extends StatefulWidget {
-  const DemographicsPage({super.key});
+  const DemographicsPage({
+    super.key,
+    required this.survey,
+    required this.surveyAnswers,
+    required this.surveyQuestions,
+  });
+
+  final Survey survey;
+  final List<String> surveyAnswers;
+  final List<Question> surveyQuestions;
 
   @override
   State<DemographicsPage> createState() => _DemographicsPageState();
@@ -48,25 +59,6 @@ class _DemographicsPageState extends State<DemographicsPage> {
       context,
       listen: false,
     ).addListener(_onSettingsChanged);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final settings = Provider.of<AppSettings>(context, listen: false);
-      settings.setScreenerName(
-        const String.fromEnvironment(
-          'DEFAULT_SCREENER_NAME',
-          defaultValue: 'self',
-        ),
-      );
-      settings.setScreenerContact(
-        const String.fromEnvironment(
-          'DEFAULT_SCREENER_CONTACT',
-          defaultValue: 'contact@lapan.com.br',
-        ),
-      );
-      settings.loadAvailableSurveys().then((_) {
-        settings.selectSurvey('lapan_q7');
-      });
-    });
   }
 
   void _onSettingsChanged() {
@@ -170,7 +162,12 @@ class _DemographicsPageState extends State<DemographicsPage> {
         diagnoses: selectedDiagnosesList,
       );
 
-      AppNavigator.toInstructions(context);
+      AppNavigator.replaceWithReport(
+        context,
+        survey: widget.survey,
+        surveyAnswers: widget.surveyAnswers,
+        surveyQuestions: widget.surveyQuestions,
+      );
     }
   }
 
@@ -196,14 +193,10 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = Provider.of<AppSettings>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          settings.selectedSurvey != null
-              ? 'Informações Demográficas: ${settings.selectedSurveyName}'
-              : 'Informações Demográficas',
+          'Informações Demográficas: ${widget.survey.surveyDisplayName.isNotEmpty ? widget.survey.surveyDisplayName : widget.survey.surveyName}',
         ),
       ),
       body: Form(

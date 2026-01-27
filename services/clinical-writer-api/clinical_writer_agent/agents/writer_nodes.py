@@ -1,6 +1,7 @@
 """Writer nodes that generate JSON-only clinical reports."""
 
 import json
+import re
 from datetime import datetime
 from typing import Optional, Protocol, Any
 
@@ -144,10 +145,26 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
 
     @staticmethod
     def _parse_json(raw: str) -> dict:
+        cleaned = raw.strip()
+        if not cleaned:
+            raise ValueError("Resposta vazia do modelo.")
+
+        fenced_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", cleaned, re.DOTALL)
+        if fenced_match:
+            cleaned = fenced_match.group(1).strip()
+        else:
+            first_brace = cleaned.find("{")
+            last_brace = cleaned.rfind("}")
+            if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+                cleaned = cleaned[first_brace : last_brace + 1].strip()
+
         try:
-            return json.loads(raw)
+            return json.loads(cleaned)
         except json.JSONDecodeError as exc:
-            raise ValueError(f"Resposta nao eh JSON valido: {exc}") from exc
+            preview = cleaned[:200].replace("\n", " ")
+            raise ValueError(
+                f"Resposta nao eh JSON valido: {exc}. Inicio: '{preview}'"
+            ) from exc
 
     def _resolve_model_version(self) -> str:
         if self._llm_model is None:

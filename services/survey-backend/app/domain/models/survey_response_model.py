@@ -13,7 +13,7 @@ class SurveyResponse(BaseModel):
     test_date: datetime = Field(..., alias="testDate")
     screener_name: str = Field(..., alias="screenerName")
     screener_email: str = Field(..., alias="screenerEmail")
-    patient: Patient
+    patient: Optional[Patient] = None
     answers: List[Answer]
 
     model_config = ConfigDict(extra='forbid')

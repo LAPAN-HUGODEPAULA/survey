@@ -11,9 +11,9 @@ class Settings(BaseModel):
     clinical_writer_token: str | None = os.getenv("CLINICAL_WRITER_API_TOKEN")
 
     # Email (kept for later)
-    smtp_host: str | None = os.getenv("SMTP_HOST")
-    smtp_port: int = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user: str | None = os.getenv("SMTP_USER")
-    smtp_password: str | None = os.getenv("SMTP_PASSWORD")
+    smtp_host: str | None = os.getenv("SMTP_HOST") or os.getenv("MAIL_SERVER")
+    smtp_port: int = int(os.getenv("SMTP_PORT") or os.getenv("MAIL_PORT", "587"))
+    smtp_user: str | None = os.getenv("SMTP_USER") or os.getenv("MAIL_USERNAME")
+    smtp_password: str | None = os.getenv("SMTP_PASSWORD") or os.getenv("MAIL_PASSWORD")
 
 settings = Settings()

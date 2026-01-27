@@ -29,6 +29,7 @@ class AppSettings extends ChangeNotifier {
       : _surveyRepository = surveyRepository ?? SurveyRepository();
 
   final SurveyRepository _surveyRepository;
+  static const String _preferredSurveyId = 'lapan_q7';
 
   Screener _screener = Screener.initial();
   Patient _patient = Patient.initial();
@@ -78,7 +79,7 @@ class AppSettings extends ChangeNotifier {
       _surveys = surveys;
       if (_selectedSurveyId == null ||
           !_surveys.any((survey) => survey.id == _selectedSurveyId)) {
-        _selectedSurveyId = surveys.isEmpty ? null : surveys.first.id;
+        _selectedSurveyId = _resolveDefaultSurveyId(surveys);
       }
     } catch (error) {
       _loadError = error.toString();
@@ -95,6 +96,18 @@ class AppSettings extends ChangeNotifier {
       _selectedSurveyId = id;
     }
     notifyListeners();
+  }
+
+  String? _resolveDefaultSurveyId(List<Survey> surveys) {
+    if (surveys.isEmpty) return null;
+    final preferred = surveys
+        .where((survey) => survey.id == _preferredSurveyId)
+        .map((survey) => survey.id)
+        .firstWhere((_) => true, orElse: () => '');
+    if (preferred.isNotEmpty) {
+      return preferred;
+    }
+    return surveys.first.id;
   }
 
   void setScreenerName(String name) {

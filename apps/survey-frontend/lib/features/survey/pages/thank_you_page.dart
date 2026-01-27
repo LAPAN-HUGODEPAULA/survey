@@ -371,7 +371,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
   String _buildReportText(ReportDocument report) {
     return report.toPlainText(
       footer:
-          'Gerado eletronicamente pelo NeuroCheck - Indicador de Saude Mental e Sensorial.',
+          'Gerado por LAPAN - Labotatório de Pesquisa Aplicada à Neurociências da Visão',
     );
   }
 
@@ -583,7 +583,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                     ReportView(
                       report: reportDocument,
                       footer:
-                          'Gerado eletronicamente pelo NeuroCheck - Indicador de Saude Mental e Sensorial.',
+                          'Gerado por LAPAN - Labotatório de Pesquisa Aplicada à Neurociências da Visão',
                       onPrint: kIsWeb ? _printReport : null,
                       onExport: () => _exportReport(settings, reportDocument),
                     ),

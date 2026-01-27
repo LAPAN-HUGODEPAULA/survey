@@ -20,9 +20,24 @@ def get_mail_client() -> Optional[FastMail]:
         return _fast_mail
 
     if not settings.smtp_host or not settings.smtp_user or not settings.smtp_password:
-        logger.warning("SMTP not configured; skipping email send.")
+        missing = [
+            name
+            for name, value in (
+                ("SMTP_HOST/MAIL_SERVER", settings.smtp_host),
+                ("SMTP_USER/MAIL_USERNAME", settings.smtp_user),
+                ("SMTP_PASSWORD/MAIL_PASSWORD", settings.smtp_password),
+            )
+            if not value
+        ]
+        logger.warning("SMTP not configured; missing %s. Skipping email send.", ", ".join(missing))
         return None
 
+    logger.info(
+        "SMTP configured with host=%s port=%s user=%s",
+        settings.smtp_host,
+        settings.smtp_port,
+        settings.smtp_user,
+    )
     conf = ConnectionConfig(
         MAIL_USERNAME=settings.smtp_user,
         MAIL_PASSWORD=settings.smtp_password,
@@ -89,7 +104,7 @@ async def send_survey_response_email(response_id: str):
         logger.info("Email for survey response %s sent successfully.", response_id)
 
     except Exception as e:
-        logger.error("Failed to send email for survey response %s: %s", response_id, e)
+        logger.error("Failed to send email for survey response %s: %s", response_id, e, exc_info=True)
 
 
 async def send_patient_response_email(response_id: str):
@@ -143,4 +158,4 @@ async def send_patient_response_email(response_id: str):
         logger.info("Patient response email for %s sent successfully.", response_id)
 
     except Exception as e:
-        logger.error("Failed to send email for patient response %s: %s", response_id, e)
+        logger.error("Failed to send email for patient response %s: %s", response_id, e, exc_info=True)

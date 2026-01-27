@@ -2,7 +2,9 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
+import 'package:patient_app/features/demographics/pages/demographics_page.dart';
 import 'package:patient_app/features/instructions/pages/instructions_page.dart';
+import 'package:patient_app/features/report/pages/report_page.dart';
 import 'package:patient_app/features/survey/pages/survey_page.dart';
 import 'package:patient_app/features/survey/pages/thank_you_page.dart';
 import 'package:patient_app/core/models/survey/question.dart';
@@ -42,6 +44,38 @@ class AppNavigator {
     return replace(
       context,
       ThankYouPage(
+        survey: survey,
+        surveyAnswers: surveyAnswers,
+        surveyQuestions: surveyQuestions,
+      ),
+    );
+  }
+
+  static Future<void> toDemographics(
+    BuildContext context, {
+    required Survey survey,
+    required List<String> surveyAnswers,
+    required List<Question> surveyQuestions,
+  }) {
+    return push(
+      context,
+      DemographicsPage(
+        survey: survey,
+        surveyAnswers: surveyAnswers,
+        surveyQuestions: surveyQuestions,
+      ),
+    );
+  }
+
+  static Future<void> replaceWithReport(
+    BuildContext context, {
+    required Survey survey,
+    required List<String> surveyAnswers,
+    required List<Question> surveyQuestions,
+  }) {
+    return replace(
+      context,
+      ReportPage(
         survey: survey,
         surveyAnswers: surveyAnswers,
         surveyQuestions: surveyQuestions,

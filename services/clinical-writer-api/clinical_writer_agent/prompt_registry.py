@@ -57,6 +57,11 @@ class GoogleDrivePromptProvider(PromptRegistry):
 
         credentials = None
         if credentials_path:
+            if not os.path.isabs(credentials_path):
+                module_dir = os.path.dirname(os.path.abspath(__file__))
+                credentials_path = os.path.normpath(
+                    os.path.join(module_dir, credentials_path)
+                )
             credentials = service_account.Credentials.from_service_account_file(
                 credentials_path,
                 scopes=["https://www.googleapis.com/auth/drive.readonly"],

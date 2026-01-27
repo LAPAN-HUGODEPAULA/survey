@@ -11,7 +11,7 @@ class SurveyResponse {
     required this.creatorContact,
     required this.testDate,
     required this.screener,
-    required this.patient,
+    this.patient,
     required this.answers,
   });
 
@@ -22,7 +22,7 @@ class SurveyResponse {
   final String creatorContact;
   final DateTime testDate;
   final Screener screener;
-  final Patient patient;
+  final Patient? patient;
   final List<Answer> answers;
 
   factory SurveyResponse.fromJson(Map<String, dynamic> json) {
@@ -37,9 +37,7 @@ class SurveyResponse {
       creatorContact: json['creatorContact']?.toString() ?? '',
       testDate: _parseDate(json['testDate']),
       screener: Screener.fromJson(json),
-      patient: json['patient'] is Map<String, dynamic>
-          ? Patient.fromJson(json['patient'] as Map<String, dynamic>)
-          : Patient.fromJson(json),
+      patient: _parsePatient(json),
       answers: answersRaw
           .whereType<Map<String, dynamic>>()
           .map(Answer.fromJson)
@@ -55,7 +53,7 @@ class SurveyResponse {
       'testDate': testDate.toIso8601String(),
       'screenerName': screener.name,
       'screenerEmail': screener.email,
-      'patient': patient.toJson(),
+      if (patient != null) 'patient': patient!.toJson(),
       'answers': answers.map((answer) => answer.toJson()).toList(),
     };
   }
@@ -116,4 +114,24 @@ DateTime _parseDate(dynamic raw) {
   } catch (_) {
     return DateTime.now();
   }
+}
+
+Patient? _parsePatient(Map<String, dynamic> json) {
+  final rawPatient = json['patient'];
+  if (rawPatient is Map<String, dynamic>) {
+    return Patient.fromJson(rawPatient);
+  }
+
+  final fallback = Patient.fromJson(json);
+  final hasData = fallback.name.isNotEmpty ||
+      fallback.email.isNotEmpty ||
+      fallback.birthDate.isNotEmpty ||
+      fallback.gender.isNotEmpty ||
+      fallback.ethnicity.isNotEmpty ||
+      fallback.educationLevel.isNotEmpty ||
+      fallback.profession.isNotEmpty ||
+      fallback.medication.isNotEmpty ||
+      fallback.diagnoses.isNotEmpty;
+
+  return hasData ? fallback : null;
 }

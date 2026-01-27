@@ -267,7 +267,6 @@ components:
       type: object
       required:
         - surveyId
-        - patient
         - answers
       properties:
         _id:

@@ -1,5 +1,6 @@
 # Package imports
 import os
+import logging
 from datetime import datetime, timezone
 from typing import Literal, Optional
 
@@ -17,6 +18,7 @@ from .prompt_registry import PromptNotFoundError, create_prompt_registry
 from .report_models import ReportDocument
 
 app = FastAPI()
+logger = logging.getLogger("clinical-writer")
 
 DEFAULT_LOCALE = "pt-BR"
 MODEL_VERSION = os.getenv("MODEL_VERSION", "unknown")
@@ -112,9 +114,21 @@ async def process_content(
     observer = Depends(get_observer),
     prompt_registry = Depends(get_prompt_registry),
 ):
+    logger.info(
+        "Process request received input_type=%s prompt_key=%s request_id=%s content_length=%s",
+        input.input_type,
+        input.prompt_key,
+        input.metadata.request_id,
+        len(input.content),
+    )
     try:
         prompt_text, prompt_version = prompt_registry.get_prompt(input.prompt_key)
     except PromptNotFoundError as exc:
+        logger.warning(
+            "Prompt not found prompt_key=%s request_id=%s",
+            input.prompt_key,
+            input.metadata.request_id,
+        )
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     state = {
@@ -134,6 +148,12 @@ async def process_content(
         del final_state['observer']
 
     if final_state.get("error_message"):
+        logger.error(
+            "Writer error request_id=%s input_type=%s error=%s",
+            input.metadata.request_id,
+            input.input_type,
+            final_state.get("error_message"),
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(final_state["error_message"]),
@@ -141,6 +161,11 @@ async def process_content(
 
     report_payload = final_state.get("report")
     if report_payload is None:
+        logger.error(
+            "Missing report payload request_id=%s input_type=%s",
+            input.metadata.request_id,
+            input.input_type,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Missing report payload from writer node.",
@@ -148,7 +173,7 @@ async def process_content(
 
     report = _validate_report(report_payload)
 
-    return ProcessResponse(
+    response = ProcessResponse(
         ok=True,
         input_type=input.input_type,
         prompt_version=final_state.get("prompt_version", prompt_version),
@@ -156,6 +181,13 @@ async def process_content(
         report=report,
         warnings=[],
     )
+    logger.info(
+        "Process request completed request_id=%s input_type=%s prompt_version=%s",
+        input.metadata.request_id,
+        input.input_type,
+        response.prompt_version,
+    )
+    return response
 
 @app.get("/metrics")
 async def get_metrics(observer = Depends(get_observer)):

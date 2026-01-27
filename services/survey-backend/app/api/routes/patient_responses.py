@@ -27,7 +27,8 @@ async def create_patient_response(
     Create a patient survey response, persist it, trigger an email, and enrich with AI agent output.
     """
     logger.info("--- Received request to create patient response ---")
-    logger.info("Survey ID: %s, Patient: %s", survey_response.survey_id, survey_response.patient.name)
+    patient_name = survey_response.patient.name if survey_response.patient else "Anonymous"
+    logger.info("Survey ID: %s, Patient: %s", survey_response.survey_id, patient_name)
     try:
         logger.info("Dumping survey response model to dict...")
         survey_response_dict = survey_response.model_dump(by_alias=True)
@@ -57,7 +58,7 @@ async def create_patient_response(
                 response_payload,
                 input_type="survey7",
                 source_app="survey-patient",
-                patient_ref=survey_response.patient.email,
+                patient_ref=survey_response.patient.email if survey_response.patient else None,
             )
             agent_response = AgentResponse(**agent_result)
             logger.info("Received agent response for patient response %s.", inserted_id)

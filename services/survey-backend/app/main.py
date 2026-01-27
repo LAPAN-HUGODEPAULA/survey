@@ -6,6 +6,7 @@ from app.config.logging_config import logger
 from app.api.routes.survey import router as surveys_router
 from app.api.routes.survey_responses import router as survey_results_router
 from app.api.routes.patient_responses import router as patient_results_router
+from app.api.routes.clinical_writer import router as clinical_writer_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -31,3 +32,4 @@ app.add_middleware(
 app.include_router(surveys_router, prefix="/api/v1", tags=["surveys"])
 app.include_router(survey_results_router, prefix="/api/v1", tags=["survey_results"])
 app.include_router(patient_results_router, prefix="/api/v1", tags=["patient_results"])
+app.include_router(clinical_writer_router, prefix="/api/v1", tags=["clinical_writer"])

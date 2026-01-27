@@ -10,7 +10,7 @@ import 'package:design_system_flutter/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
-import 'package:patient_app/features/demographics/pages/demographics_page.dart';
+import 'package:patient_app/features/welcome/pages/welcome_page.dart';
 
 /// Ponto de entrada principal da aplicação.
 ///
@@ -30,7 +30,7 @@ void main() {
 /// Configura o MaterialApp com:
 /// - Localização para português brasileiro
 /// - Tema personalizado com cores teal
-/// - Página inicial sendo [DemographicsPage]
+/// - Página inicial sendo [WelcomePage]
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
       locale: const Locale('pt', 'BR'),
       theme: AppTheme.light(),
       debugShowCheckedModeBanner: false,
-      home: const DemographicsPage(),
+      home: const WelcomePage(),
     );
   }
 }

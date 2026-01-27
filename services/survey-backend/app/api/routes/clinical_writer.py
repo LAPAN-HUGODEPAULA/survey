@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 class ClinicalWriterRequest(BaseModel):
-    input_type: str = Field(..., description="consult|survey7|full_intake")
+    input_type: str = Field(default="consult", description="consult|survey7|full_intake")
     content: str = Field(..., min_length=1, description="Conversation text or JSON string")
     locale: str = Field(default="pt-BR")
     prompt_key: str = Field(default="default")

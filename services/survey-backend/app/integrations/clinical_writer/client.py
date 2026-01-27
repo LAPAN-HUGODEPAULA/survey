@@ -4,6 +4,7 @@ import json
 from datetime import datetime, timezone
 from typing import Any, Dict
 import uuid
+import time
 
 import httpx
 
@@ -108,6 +109,7 @@ async def send_to_langgraph_agent(
     resolved_patient_ref = patient_ref or _infer_patient_ref(payload)
     request_id = request_id or str(uuid.uuid4())
     timestamp = datetime.now(timezone.utc)
+    start_time = time.monotonic()
 
     request_body = {
         "input_type": resolved_input_type,
@@ -124,6 +126,13 @@ async def send_to_langgraph_agent(
 
     try:
         endpoint = settings.clinical_writer_url or LANGGRAPH_URL or DEFAULT_LANGGRAPH_URL
+        logger.info(
+            "Sending to clinical writer request_id=%s input_type=%s prompt_key=%s endpoint=%s",
+            request_id,
+            resolved_input_type,
+            resolved_prompt_key,
+            endpoint,
+        )
         async with httpx.AsyncClient(timeout=10) as client:
             response = await client.post(
                 endpoint,
@@ -133,7 +142,13 @@ async def send_to_langgraph_agent(
             response.raise_for_status()
             raw_result: Dict[str, Any] = response.json()
             agent_result: Dict[str, Any] = _normalize_agent_response(raw_result)
-            logger.info("LangGraph agent responded successfully.")
+            duration = time.monotonic() - start_time
+            logger.info(
+                "Clinical writer responded request_id=%s status=%s duration=%.3fs",
+                request_id,
+                response.status_code,
+                duration,
+            )
             _persist_run_log(
                 request_id=request_id,
                 timestamp=timestamp,
@@ -148,7 +163,14 @@ async def send_to_langgraph_agent(
             return agent_result
     except httpx.HTTPStatusError as exc:
         text = exc.response.text if exc.response is not None else str(exc)
-        logger.error("LangGraph agent returned an error: %s", text)
+        duration = time.monotonic() - start_time
+        logger.error(
+            "Clinical writer returned error request_id=%s status=%s duration=%.3fs body=%s",
+            request_id,
+            exc.response.status_code if exc.response is not None else "unknown",
+            duration,
+            text,
+        )
         _persist_run_log(
             request_id=request_id,
             timestamp=timestamp,
@@ -162,7 +184,13 @@ async def send_to_langgraph_agent(
         )
         return {"error_message": f"Agent error: {text}"}
     except httpx.RequestError as exc:
-        logger.error("Failed to reach LangGraph agent: %s", exc)
+        duration = time.monotonic() - start_time
+        logger.error(
+            "Failed to reach clinical writer request_id=%s duration=%.3fs error=%s",
+            request_id,
+            duration,
+            exc,
+        )
         _persist_run_log(
             request_id=request_id,
             timestamp=timestamp,
@@ -176,7 +204,13 @@ async def send_to_langgraph_agent(
         )
         return {"error_message": "Unable to reach AI agent"}
     except Exception as exc:  # pragma: no cover - guard for unexpected failures
-        logger.error("Unexpected error when calling LangGraph agent: %s", exc)
+        duration = time.monotonic() - start_time
+        logger.error(
+            "Unexpected error calling clinical writer request_id=%s duration=%.3fs error=%s",
+            request_id,
+            duration,
+            exc,
+        )
         _persist_run_log(
             request_id=request_id,
             timestamp=timestamp,

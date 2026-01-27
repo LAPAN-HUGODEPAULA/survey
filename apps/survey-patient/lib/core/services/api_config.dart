@@ -8,15 +8,12 @@ class ApiConfig {
   /// Base URL for the Survey backend, determined by the selected flavor.
   static String get baseUrl {
     final baseUrl = deployment.apiBaseUrl;
-    if (baseUrl.endsWith('/')) {
-      return baseUrl;
-    }
-    return '$baseUrl/';
+    return _normalizeBaseUrl(baseUrl);
   }
 
   /// Builds a [Uri] for the provided [path] relative to [baseUrl].
   static Uri resolve(String path, [Map<String, dynamic>? queryParameters]) {
-    final sanitizedPath = path.startsWith('/') ? path.substring(1) : path;
+    final sanitizedPath = _stripDuplicatedApiPrefix(path);
     final uri = Uri.parse(baseUrl).resolve(sanitizedPath);
     if (queryParameters == null || queryParameters.isEmpty) {
       return uri;
@@ -40,5 +37,24 @@ class ApiConfig {
     if (kDebugMode) {
       // This is intentionally left empty.
     }
+  }
+
+  static String _stripDuplicatedApiPrefix(String path) {
+    var sanitized = path.startsWith('/') ? path.substring(1) : path;
+    final normalizedBase = baseUrl.endsWith('/')
+        ? baseUrl.substring(0, baseUrl.length - 1)
+        : baseUrl;
+    if (normalizedBase.endsWith('/api/v1') && sanitized.startsWith('api/v1/')) {
+      sanitized = sanitized.substring('api/v1/'.length);
+    } else if (normalizedBase.endsWith('/api/v1') && sanitized == 'api/v1') {
+      sanitized = '';
+    }
+    return sanitized;
+  }
+
+  static String _normalizeBaseUrl(String rawBaseUrl) {
+    var normalized = rawBaseUrl.endsWith('/') ? rawBaseUrl : '$rawBaseUrl/';
+    normalized = normalized.replaceAll(RegExp(r'(/api/v1/){2,}'), '/api/v1/');
+    return normalized;
   }
 }

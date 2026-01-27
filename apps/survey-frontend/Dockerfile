@@ -1,6 +1,8 @@
 # Stage 1: Build the Flutter Web App as root
 FROM ghcr.io/cirruslabs/flutter:3.38.3 AS build
 
+ARG API_BASE_URL=/api/v1
+
 WORKDIR /app
 COPY . /app/
 
@@ -11,7 +13,7 @@ WORKDIR /app/apps/survey-frontend
 RUN flutter pub get
 
 # Build the web application
-RUN flutter build web  --dart-define=FLAVOR="dockerVps" 
+RUN flutter build web --dart-define=FLAVOR="dockerVps" --dart-define=API_BASE_URL="$API_BASE_URL"
 
 # Stage 2: Serve with Nginx as non-root
 FROM nginx:alpine

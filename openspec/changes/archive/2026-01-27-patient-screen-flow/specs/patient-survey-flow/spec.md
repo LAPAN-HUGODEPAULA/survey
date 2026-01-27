@@ -57,8 +57,6 @@ The system MUST display the AI agent's response on a new report page.
 **When** the user clicks the "Export as PDF" button
 **Then** the system MUST initiate a process to save the report as a PDF file.
 
-## MODIFIED Requirements
-
 ### Requirement: Survey Response Submission
 The backend MUST accept survey responses with or without patient data.
 

@@ -4,6 +4,7 @@ FROM ghcr.io/cirruslabs/flutter:3.38.3 AS build
 ARG DEFAULT_SCREENER_NAME=self
 ARG DEFAULT_SCREENER_CONTACT=contact@lapan.com.br
 ARG FLAVOR=dockerVps
+ARG API_BASE_URL=/api/v1
 
 WORKDIR /app
 COPY . /app/
@@ -15,7 +16,7 @@ WORKDIR /app/apps/survey-patient
 RUN flutter pub get
 
 # Build the web application
-RUN flutter build web  --dart-define=FLAVOR="$FLAVOR" --dart-define=DEFAULT_SCREENER_NAME="$DEFAULT_SCREENER_NAME" --dart-define=DEFAULT_SCREENER_CONTACT="$DEFAULT_SCREENER_CONTACT"
+RUN flutter build web --dart-define=FLAVOR="$FLAVOR" --dart-define=API_BASE_URL="$API_BASE_URL" --dart-define=DEFAULT_SCREENER_NAME="$DEFAULT_SCREENER_NAME" --dart-define=DEFAULT_SCREENER_CONTACT="$DEFAULT_SCREENER_CONTACT"
 
 # Stage 2: Serve with Nginx as non-root
 FROM nginx:alpine

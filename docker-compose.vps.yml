@@ -1,0 +1,166 @@
+services:
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    restart: always
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.le.acme.email=${LETSENCRYPT_EMAIL}
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+    networks:
+      - survey_network
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    expose:
+      - "27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - survey_network
+
+  survey-backend:
+    build: ./services/survey-backend
+    container_name: survey_backend
+    restart: always
+    expose:
+      - "8000"
+    env_file:
+      - .env
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - CLINICAL_WRITER_URL=${CLINICAL_WRITER_URL:-http://clinical_writer_agent:8000/process}
+      - CLINICAL_WRITER_API_TOKEN=${CLINICAL_WRITER_API_TOKEN:-}
+    depends_on:
+      - mongodb
+      - clinical-writer-api
+    networks:
+      - survey_network
+
+  survey-frontend:
+    build:
+      context: .
+      dockerfile: ./apps/survey-frontend/Dockerfile
+      args:
+        API_BASE_URL: ${SURVEY_FRONTEND_API_BASE_URL:-/api/v1/}
+    container_name: survey_frontend
+    restart: always
+    expose:
+      - "80"
+    volumes:
+      - ./infra/docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - survey-backend
+    networks:
+      - survey_network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.survey-frontend.rule=Host(`screen.lapan.cloud`)
+      - traefik.http.routers.survey-frontend.entrypoints=websecure
+      - traefik.http.routers.survey-frontend.tls.certresolver=le
+      - traefik.http.services.survey-frontend.loadbalancer.server.port=80
+
+  survey-patient:
+    build:
+      context: .
+      dockerfile: ./apps/survey-patient/Dockerfile
+      args:
+        DEFAULT_SCREENER_NAME: ${DEFAULT_SCREENER_NAME:-self}
+        DEFAULT_SCREENER_CONTACT: ${DEFAULT_SCREENER_CONTACT:-contact@lapan.com.br}
+        FLAVOR: ${FLAVOR:-dockerVps}
+        API_BASE_URL: ${SURVEY_PATIENT_API_BASE_URL:-/api/v1/}
+    container_name: survey_patient
+    restart: always
+    expose:
+      - "80"
+    volumes:
+      - ./infra/docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - survey-backend
+    networks:
+      - survey_network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.survey-patient.rule=Host(`patient.lapan.cloud`)
+      - traefik.http.routers.survey-patient.entrypoints=websecure
+      - traefik.http.routers.survey-patient.tls.certresolver=le
+      - traefik.http.services.survey-patient.loadbalancer.server.port=80
+
+  survey-worker:
+    build: ./services/survey-worker
+    container_name: survey_worker
+    restart: always
+    environment:
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_DB_NAME=${MONGO_DB_NAME:-survey_db}
+      - CLINICAL_WRITER_URL=${CLINICAL_WRITER_URL:-http://clinical_writer_agent:8000/process}
+      - CLINICAL_WRITER_API_TOKEN=${CLINICAL_WRITER_API_TOKEN:-}
+      - POLL_INTERVAL_SECONDS=${POLL_INTERVAL_SECONDS:-10}
+      - BATCH_SIZE=${BATCH_SIZE:-10}
+    depends_on:
+      - mongodb
+    networks:
+      - survey_network
+
+  clinical-writer-api:
+    build:
+      context: ./services/clinical-writer-api/clinical_writer_agent
+      dockerfile: Dockerfile
+    command: uvicorn clinical_writer_agent.main:app --host 0.0.0.0 --port 8000
+    container_name: clinical_writer_agent
+    env_file:
+      - services/clinical-writer-api/clinical_writer_agent/.env
+    expose:
+      - "8000"
+    restart: unless-stopped
+    networks:
+      - survey_network
+
+  clinical-narrative:
+    build:
+      context: .
+      dockerfile: ./apps/clinical-narrative/Dockerfile
+      args:
+        API_BASE_URL: ${CLINICAL_NARRATIVE_API_BASE_URL:-/api/v1/}
+    container_name: clinical_narrative
+    restart: always
+    expose:
+      - "80"
+    volumes:
+      - ./infra/docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - survey-backend
+    networks:
+      - survey_network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.clinical-narrative.rule=Host(`narrative.lapan.cloud`)
+      - traefik.http.routers.clinical-narrative.entrypoints=websecure
+      - traefik.http.routers.clinical-narrative.tls.certresolver=le
+      - traefik.http.services.clinical-narrative.loadbalancer.server.port=80
+
+volumes:
+  mongodb_data:
+  traefik_letsencrypt:
+
+networks:
+  survey_network:
+    driver: bridge

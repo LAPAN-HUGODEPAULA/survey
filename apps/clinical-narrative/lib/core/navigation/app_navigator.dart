@@ -1,7 +1,9 @@
 library;
 
 import 'package:clinical_narrative_app/features/narrative/pages/narrative_page.dart';
+import 'package:clinical_narrative_app/features/report/pages/report_page.dart';
 import 'package:clinical_narrative_app/features/thankyou/pages/thankyou_page.dart';
+import 'package:design_system_flutter/report/report_models.dart';
 import 'package:flutter/material.dart';
 
 class AppNavigator {
@@ -26,5 +28,8 @@ class AppNavigator {
   static Future<void> toThankYou(BuildContext context) {
     return replace(context, const ThankYouPage());
   }
-}
 
+  static Future<void> toReport(BuildContext context, ReportDocument report) {
+    return push(context, ReportPage(report: report));
+  }
+}

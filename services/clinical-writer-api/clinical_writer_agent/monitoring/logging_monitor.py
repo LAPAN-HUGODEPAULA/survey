@@ -110,6 +110,7 @@ class LoggingMonitor(ProcessingMonitor):
                 "error_type": type(error).__name__,
                 "error_message": str(error),
                 "context": context,
+                "metadata": context or {},
                 "timestamp": timestamp.isoformat(),
             },
             exc_info=True,

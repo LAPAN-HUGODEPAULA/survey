@@ -13,10 +13,10 @@ Monorepo for the LAPAN healthcare survey and clinical narrative platform. It inc
 ## Quick Start
 ```bash
 # 1) Populate .env with Mongo credentials and service endpoints
-# 2) Start the stack
-docker compose up -d mongodb survey-backend frontend patient_app clinical-narrative survey-worker
-# 3) Optional: start the Clinical Writer AI service
-docker compose -f services/clinical-writer-api/docker-compose.yml up -d clinical-writer-api
+# 2) Start the core stack
+docker compose up -d mongodb survey-backend survey-frontend survey-patient clinical-narrative survey-worker
+# 3) Optional: start the Clinical Writer AI service (same compose file)
+docker compose up -d clinical-writer-api
 ```
 
 - Backend docs: http://localhost:8000/docs
