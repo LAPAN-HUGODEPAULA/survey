@@ -30,8 +30,9 @@ class AppSettings extends ChangeNotifier {
 
   final SurveyRepository _surveyRepository;
   static const String _preferredSurveyId = 'lapan_q7';
+  static const String systemScreenerId = '000000000000000000000001';
 
-  Screener _screener = Screener.initial();
+  final Screener _screener = const Screener(id: systemScreenerId);
   Patient _patient = Patient.initial();
 
   List<Survey> _surveys = const [];

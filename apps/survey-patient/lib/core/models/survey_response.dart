@@ -1,6 +1,5 @@
 import 'package:patient_app/core/models/agent_response.dart';
 import 'package:patient_app/core/models/patient.dart';
-import 'package:patient_app/core/models/screener.dart';
 
 class SurveyResponse {
   const SurveyResponse({

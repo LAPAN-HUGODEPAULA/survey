@@ -28,6 +28,13 @@ void main() {
       // TODO
     });
 
+    // Get the current screener profile
+    //
+    //Future<ScreenerProfile> getCurrentScreener(String authorization) async
+    test('test getCurrentScreener', () async {
+      // TODO
+    });
+
     // Get survey by id
     //
     //Future<Survey> getSurvey(String surveyId) async

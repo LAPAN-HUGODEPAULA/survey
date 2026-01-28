@@ -26,6 +26,7 @@ import 'package:survey_backend_api/src/model/question.dart';
 import 'package:survey_backend_api/src/model/screener_login.dart';
 import 'package:survey_backend_api/src/model/screener_model.dart';
 import 'package:survey_backend_api/src/model/screener_password_recovery_request.dart';
+import 'package:survey_backend_api/src/model/screener_profile.dart';
 import 'package:survey_backend_api/src/model/screener_register.dart';
 import 'package:survey_backend_api/src/model/survey.dart';
 import 'package:survey_backend_api/src/model/survey_response.dart';
@@ -47,6 +48,7 @@ part 'serializers.g.dart';
   ScreenerLogin,
   ScreenerModel,
   ScreenerPasswordRecoveryRequest,
+  ScreenerProfile,
   ScreenerRegister,
   Survey,
   SurveyResponse,$SurveyResponse,

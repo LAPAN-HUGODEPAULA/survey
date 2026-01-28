@@ -87,8 +87,7 @@ class SurveyRepository {
       surveyDisplayName: source.surveyDisplayName,
       surveyName: source.surveyName,
       surveyDescription: source.surveyDescription,
-      creatorName: source.creatorName,
-      creatorContact: source.creatorContact,
+      creatorId: source.creatorId,
       createdAt: source.createdAt.toLocal(),
       modifiedAt: source.modifiedAt.toLocal(),
       instructions: ui.Instructions(

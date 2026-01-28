@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 
 import 'package:survey_app/core/models/clinical_data.dart';
 import 'package:survey_app/core/models/patient.dart';
-import 'package:survey_app/core/models/screener.dart';
+import 'package:survey_app/core/models/screener_profile.dart';
 import 'package:survey_app/core/models/survey/survey.dart';
 import 'package:survey_app/core/repositories/survey_repository.dart';
 
@@ -21,7 +21,7 @@ import 'package:survey_app/core/repositories/survey_repository.dart';
 /// quando as configurações são alteradas.
 ///
 /// Principais responsabilidades:
-/// - Gerenciar nome do profissional responsável (screener)
+/// - Gerenciar a sessão do screener autenticado
 /// - Gerenciar dados demográficos do paciente
 /// - Carregar questionários disponíveis dinamicamente
 /// - Controlar qual questionário está selecionado
@@ -30,8 +30,10 @@ class AppSettings extends ChangeNotifier {
       : _surveyRepository = surveyRepository ?? SurveyRepository();
 
   final SurveyRepository _surveyRepository;
+  static const String systemScreenerId = '000000000000000000000001';
 
-  Screener _screener = Screener.initial();
+  String? _authToken;
+  ScreenerProfile? _screenerProfile;
   Patient _patient = Patient.initial();
   ClinicalData _clinicalData = ClinicalData.initial();
 
@@ -40,7 +42,15 @@ class AppSettings extends ChangeNotifier {
   bool _isLoadingSurveys = false;
   String? _loadError;
 
-  Screener get screener => _screener;
+  String? get authToken => _authToken;
+  ScreenerProfile? get screenerProfile => _screenerProfile;
+  bool get isLoggedIn => (_authToken?.isNotEmpty ?? false) && _screenerProfile != null;
+  String get screenerId => _screenerProfile?.id ?? systemScreenerId;
+  String get screenerDisplayName {
+    final profile = _screenerProfile;
+    if (profile == null) return 'System Screener';
+    return '${profile.firstName} ${profile.surname}'.trim();
+  }
   Patient get patient => _patient;
   ClinicalData get clinicalData => _clinicalData;
   bool get isLoadingSurveys => _isLoadingSurveys;
@@ -100,13 +110,15 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setScreenerName(String name) {
-    _screener = _screener.copyWith(name: name);
+  void setScreenerSession({required String token, required ScreenerProfile profile}) {
+    _authToken = token;
+    _screenerProfile = profile;
     notifyListeners();
   }
 
-  void setScreenerContact(String contact) {
-    _screener = _screener.copyWith(email: contact);
+  void clearScreenerSession() {
+    _authToken = null;
+    _screenerProfile = null;
     notifyListeners();
   }
 

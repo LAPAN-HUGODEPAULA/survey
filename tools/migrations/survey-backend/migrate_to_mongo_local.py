@@ -54,6 +54,7 @@ except Exception as e:
     print(e)
 
 db = client[os.getenv("MONGO_DB_NAME", "survey_db")]
+SYSTEM_SCREENER_ID = "000000000000000000000001"
 
 # --- Caminhos para os dados ---
 # Get the absolute path of the script's directory
@@ -126,6 +127,17 @@ def migrate_surveys():
             filepath = os.path.join(SURVEYS_DIR, filename)
             with open(filepath, 'r', encoding='utf-8') as f:
                 survey_data = json.load(f)
+                survey_id = survey_data.get("_id") or survey_data.get("id")
+                if survey_id:
+                    survey_data["_id"] = survey_id
+                survey_data.pop("id", None)
+                creator_id = (
+                    survey_data.get("creatorId")
+                    or survey_data.get("creatorContact")
+                    or survey_data.get("creatorName")
+                    or SYSTEM_SCREENER_ID
+                )
+                survey_data["creatorId"] = creator_id
                 created_at = _parse_datetime(survey_data.get("createdAt"))
                 modified_at = _parse_datetime(survey_data.get("modifiedAt"))
                 if created_at:
@@ -175,11 +187,12 @@ def migrate_responses():
                 )
                 response_doc = {
                     'surveyId': result_data.get('surveyId'),
-                    'creatorName': result_data.get('creatorName'),
-                    'creatorContact': result_data.get('creatorContact'),
+                    'creatorId': result_data.get('creatorId')
+                    or result_data.get('creatorContact')
+                    or result_data.get('creatorName')
+                    or '',
                     'testDate': _parse_datetime(result_data.get('testDate')),
-                    'screenerName': result_data.get('screenerName', ''),
-                    'screenerEmail': result_data.get('screenerEmail', ''),
+                    'screenerId': result_data.get('screenerId') or SYSTEM_SCREENER_ID,
                     'patient': {
                         'name': participant_name,
                         'email': result_data.get('patient', {}).get('email'),

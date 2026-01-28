@@ -1,4 +1,37 @@
 services:
+  contracts-openapi-generate:
+    image: openapitools/openapi-generator-cli:v7.9.0
+    container_name: contracts_openapi_generate
+    working_dir: /work
+    entrypoint: ["/bin/sh", "-lc"]
+    command: >
+      rm -rf packages/contracts/generated/dart
+      && mkdir -p packages/contracts/generated/dart
+      && openapi-generator-cli generate
+         -i packages/contracts/survey-backend.openapi.yaml
+         -g dart-dio
+         -o packages/contracts/generated/dart
+         --additional-properties=pubName=survey_backend_api,nullableFields=true
+    volumes:
+      - ./:/work
+    networks:
+      - survey_network
+
+  contracts-dart-build-runner:
+    image: ghcr.io/cirruslabs/flutter:3.38.3
+    container_name: contracts_dart_build_runner
+    working_dir: /work/packages/contracts/generated/dart
+    entrypoint: ["/bin/sh", "-lc"]
+    command: >
+      flutter pub get
+      && flutter pub run build_runner build --delete-conflicting-outputs
+    volumes:
+      - ./:/work
+    depends_on:
+      - contracts-openapi-generate
+    networks:
+      - survey_network
+
   traefik:
     image: traefik:v2.11
     container_name: traefik

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:survey_app/core/providers/api_provider.dart'; // Will be used for logout
-import 'package:survey_backend_api/survey_backend_api.dart'; // Will be used for ScreenerModel
+import 'package:survey_app/core/providers/api_provider.dart';
+import 'package:survey_app/core/providers/app_settings.dart';
 
 class ScreenerProfilePage extends StatefulWidget {
   const ScreenerProfilePage({super.key});
@@ -12,31 +12,10 @@ class ScreenerProfilePage extends StatefulWidget {
 }
 
 class _ScreenerProfilePageState extends State<ScreenerProfilePage> {
-  // Placeholder data for the screener profile
-  // In a real application, this would be fetched from the backend for the logged-in user.
-  final ScreenerModel _screener = ScreenerModel((b) => b
-    ..cpf = '111.111.111-11'
-    ..firstName = 'Maria'
-    ..surname = 'Henriques Moreira Vale'
-    ..email = 'maria.vale@holhos.com'
-    ..password = '' // Password should not be displayed
-    ..phone = '31988447613'
-    ..address.postalCode = '27090639'
-    ..address.street = 'Praça da Liberdade'
-    ..address.number = '932'
-    ..address.complement = 'Apto 101'
-    ..address.neighborhood = 'Savassi'
-    ..address.city = 'Belo Horizonte'
-    ..address.state = 'MG'
-    ..professionalCouncil.type = 'CRP'
-    ..professionalCouncil.registrationNumber = '12543'
-    ..jobTitle = 'Psychologist'
-    ..degree = 'Psychology'
-    ..darvCourseYear = 2019
-  );
-
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<AppSettings>();
+    final profile = settings.screenerProfile;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Perfil do Screener'),
@@ -44,40 +23,76 @@ class _ScreenerProfilePageState extends State<ScreenerProfilePage> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              // TODO: Implement actual logout logic (clear token, navigate to login)
+              settings.clearScreenerSession();
+              context.read<ApiProvider>().clearAuthToken();
               context.go('/login');
             },
             tooltip: 'Sair',
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+      body: profile == null
+          ? _buildLoggedOutState(context)
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildProfileField('CPF', profile.cpf),
+                  _buildProfileField('Nome', '${profile.firstName} ${profile.surname}'),
+                  _buildProfileField('E-mail', profile.email),
+                  _buildProfileField('Telefone', profile.phone),
+                  const Divider(),
+                  Text('Endereço', style: Theme.of(context).textTheme.titleLarge),
+                  _buildProfileField('CEP', profile.address.postalCode),
+                  _buildProfileField('Rua', profile.address.street),
+                  _buildProfileField('Número', profile.address.number),
+                  if ((profile.address.complement ?? '').isNotEmpty)
+                    _buildProfileField('Complemento', profile.address.complement!),
+                  _buildProfileField('Bairro', profile.address.neighborhood),
+                  _buildProfileField('Cidade', profile.address.city),
+                  _buildProfileField('Estado', profile.address.state),
+                  const Divider(),
+                  Text(
+                    'Informações Profissionais',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  _buildProfileField(
+                    'Conselho',
+                    profile.professionalCouncil.type,
+                  ),
+                  _buildProfileField(
+                    'Registro',
+                    profile.professionalCouncil.registrationNumber,
+                  ),
+                  _buildProfileField('Cargo', profile.jobTitle),
+                  _buildProfileField('Formação', profile.degree),
+                  if (profile.darvCourseYear != null)
+                    _buildProfileField('Ano DARV', profile.darvCourseYear.toString()),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildLoggedOutState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _buildProfileField('CPF', _screener.cpf),
-            _buildProfileField('Nome', '${_screener.firstName} ${_screener.surname}'),
-            _buildProfileField('E-mail', _screener.email),
-            _buildProfileField('Telefone', _screener.phone),
-            const Divider(),
-            Text('Endereço', style: Theme.of(context).textTheme.titleLarge),
-            _buildProfileField('CEP', _screener.address.postalCode),
-            _buildProfileField('Rua', _screener.address.street),
-            _buildProfileField('Número', _screener.address.number),
-            if (_screener.address.complement != null && _screener.address.complement!.isNotEmpty)
-              _buildProfileField('Complemento', _screener.address.complement!),
-            _buildProfileField('Bairro', _screener.address.neighborhood),
-            _buildProfileField('Cidade', _screener.address.city),
-            _buildProfileField('Estado', _screener.address.state),
-            const Divider(),
-            Text('Informações Profissionais', style: Theme.of(context).textTheme.titleLarge),
-            _buildProfileField('Conselho', _screener.professionalCouncil.type ?? 'N/A'),
-            _buildProfileField('Registro', _screener.professionalCouncil.registrationNumber ?? 'N/A'),
-            _buildProfileField('Cargo', _screener.jobTitle),
-            _buildProfileField('Formação', _screener.degree),
-            if (_screener.darvCourseYear != null)
-              _buildProfileField('Ano DARV', _screener.darvCourseYear.toString()),
+            const Icon(Icons.lock_outline, size: 48),
+            const SizedBox(height: 12),
+            const Text(
+              'Você precisa fazer login para ver seu perfil.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => context.go('/login'),
+              child: const Text('Ir para Login'),
+            ),
           ],
         ),
       ),

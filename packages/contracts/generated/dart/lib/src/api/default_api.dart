@@ -15,6 +15,7 @@ import 'package:survey_backend_api/src/model/clinical_writer_request.dart';
 import 'package:survey_backend_api/src/model/screener_login.dart';
 import 'package:survey_backend_api/src/model/screener_model.dart';
 import 'package:survey_backend_api/src/model/screener_password_recovery_request.dart';
+import 'package:survey_backend_api/src/model/screener_profile.dart';
 import 'package:survey_backend_api/src/model/screener_register.dart';
 import 'package:survey_backend_api/src/model/survey.dart';
 import 'package:survey_backend_api/src/model/survey_response.dart';
@@ -303,6 +304,82 @@ class DefaultApi {
     }
 
     return Response<SurveyResponseWithAgent>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Get the current screener profile
+  /// 
+  ///
+  /// Parameters:
+  /// * [authorization] - Bearer token in the format `Bearer <token>`
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ScreenerProfile] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ScreenerProfile>> getCurrentScreener({ 
+    required String authorization,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/screeners/me';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        r'Authorization': authorization,
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ScreenerProfile? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(ScreenerProfile),
+      ) as ScreenerProfile;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ScreenerProfile>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

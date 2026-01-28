@@ -1,24 +1,27 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field, EmailStr
-from pydantic_extra_types.brazil import CPF
+from datetime import datetime, timedelta
+import secrets
+import string
 from typing import Optional
+
 import bcrypt
+import jwt
+from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi_mail import MessageSchema, MessageType
+from pydantic import BaseModel, EmailStr, Field
 
 from app.config.logging_config import logger
+from app.config.settings import settings
+from app.integrations.email.service import get_mail_client
 from app.persistence.deps import get_screener_repo
 from app.persistence.repositories.screener_repo import ScreenerRepository
 from app.domain.models.screener_model import ScreenerModel, Address, ProfessionalCouncil
-
-from datetime import datetime, timedelta
-import jwt
-from app.config.settings import settings
 
 
 router = APIRouter()
 
 # Pydantic model for Screener registration request
 class ScreenerRegister(BaseModel):
-    cpf: CPF = Field(..., description="CPF do Screener")
+    cpf: str = Field(..., description="CPF do Screener")
     firstName: str = Field(..., description="Primeiro nome do Screener")
     surname: str = Field(..., description="Sobrenome do Screener")
     email: EmailStr = Field(..., description="Endereço de e-mail do Screener")
@@ -81,6 +84,36 @@ class ScreenerLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+class ScreenerProfile(BaseModel):
+    id: str = Field(..., alias="_id")
+    cpf: str
+    firstName: str
+    surname: str
+    email: EmailStr
+    phone: str
+    address: Address
+    professionalCouncil: ProfessionalCouncil
+    jobTitle: str
+    degree: str
+    darvCourseYear: Optional[int] = None
+
+
+def _get_email_from_authorization_header(authorization: Optional[str]) -> str:
+    if not authorization:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+    scheme, _, token = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication scheme")
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except jwt.PyJWTError as exc:  # pragma: no cover - defensive
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token") from exc
+    subject = payload.get("sub")
+    if not subject:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
+    return subject
 
 
 @router.post("/screeners/register", response_model=ScreenerModel, status_code=status.HTTP_201_CREATED)
@@ -198,7 +231,7 @@ async def recover_password(
 
     # Update screener's password in the database
     updated_screener = repo.update(
-        screener_id=str(screener.id), # Assuming screener.id is available and is the _id
+        screener_id=str(screener.id),
         data_to_update={"password": hashed_new_password.decode('utf-8')}
     )
 
@@ -230,9 +263,22 @@ Por favor, faça login com esta senha e altere-a o mais rápido possível para u
 Atenciosamente,
 Equipe LAPAN
 """,
-        subtype="plain"
+        subtype=MessageType.plain
     )
     await mail_client.send_message(message)
 
     logger.info("New password generated and sent to %s", recovery_request.email)
     return {"message": "Se o e-mail estiver registrado, uma nova senha será enviada."}
+
+
+@router.get("/screeners/me", response_model=ScreenerProfile)
+async def get_current_screener(
+    authorization: Optional[str] = Header(default=None, alias="Authorization"),
+    repo: ScreenerRepository = Depends(get_screener_repo),
+):
+    email = _get_email_from_authorization_header(authorization)
+    screener = repo.find_by_email(email)
+    if not screener or not screener.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Screener not found")
+    profile_data = screener.model_dump(by_alias=True, exclude={"password"})
+    return ScreenerProfile.model_validate(profile_data)

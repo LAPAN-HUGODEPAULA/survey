@@ -15,7 +15,7 @@ class SurveyRepository:
         return [self._normalize(x) for x in self._col.find()]
 
     def get_by_id(self, survey_id: str) -> dict | None:
-        query = {"id": survey_id}
+        query = {"_id": survey_id}
         found = self._col.find_one(query)
         return self._normalize(found) if found else None
 
@@ -24,4 +24,5 @@ class SurveyRepository:
             return {}
         if "_id" in doc and isinstance(doc["_id"], ObjectId):
             doc["_id"] = str(doc["_id"])
+        doc.pop("id", None)
         return doc

@@ -15,8 +15,7 @@ class Survey {
     required this.surveyDisplayName,
     required this.surveyName,
     required this.surveyDescription,
-    required this.creatorName,
-    this.creatorContact,
+    required this.creatorId,
     required this.createdAt,
     required this.modifiedAt,
     required this.instructions,
@@ -28,8 +27,7 @@ class Survey {
   final String surveyDisplayName;
   final String surveyName;
   final String surveyDescription;
-  final String creatorName;
-  final String? creatorContact;
+  final String creatorId;
   final DateTime createdAt;
   final DateTime modifiedAt;
   final Instructions instructions;
@@ -42,8 +40,9 @@ class Survey {
       surveyDisplayName: json['surveyDisplayName']?.toString() ?? '',
       surveyName: json['surveyName']?.toString() ?? '',
       surveyDescription: json['surveyDescription']?.toString() ?? '',
-      creatorName: json['creatorName']?.toString() ?? '',
-      creatorContact: json['creatorContact']?.toString(),
+      creatorId: json['creatorId']?.toString() ??
+          json['creatorName']?.toString() ??
+          '',
       createdAt: _parseDate(json['createdAt']),
       modifiedAt: _parseDate(json['modifiedAt']),
       instructions: Instructions.fromJson(

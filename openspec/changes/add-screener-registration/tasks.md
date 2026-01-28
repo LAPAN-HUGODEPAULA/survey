@@ -1,15 +1,15 @@
-- [ ] **Backend**: Create `Screener` model in `survey-backend`.
-- [ ] **Backend**: Implement `Screener` registration endpoint.
-- [ ] **Backend**: Implement `Screener` login endpoint.
-- [ ] **Backend**: Implement password recovery endpoint.
-- [ ] **Backend**: Update `SurveyResponse` model to reference `Screener` model.
-- [ ] **Backend**: Create "System Screener" user on startup.
-- [ ] **Frontend**: Create `Screener` registration page in `survey-frontend`.
-- [ ] **Frontend**: Create `Screener` login page in `survey-frontend`.
-- [ ] **Frontend**: Create `Screener` profile page in `survey-frontend`.
-- [ ] **Frontend**: Update `settings_page.dart` to remove screener info.
-- [ ] **Frontend**: Update top menu with profile icon and login/settings options.
-- [ ] **Frontend**: Update `survey-patient` to use "System Screener" by default.
-- [ ] **Database**: Create migration script for `screeners` collection and "System Screener" user.
-- [ ] **Contracts**: Update `survey-backend.openapi.yaml` with new endpoints and models.
-- [ ] **Tooling**: Regenerate clients using `./tools/scripts/generate_clients.sh`.
+- [x] **Backend**: Create `Screener` model in `survey-backend`.
+- [x] **Backend**: Implement `Screener` registration endpoint.
+- [x] **Backend**: Implement `Screener` login endpoint.
+- [x] **Backend**: Implement password recovery endpoint.
+- [x] **Backend**: Update `SurveyResponse` model to reference `Screener` model.
+- [x] **Backend**: Create "System Screener" user on startup.
+- [x] **Frontend**: Create `Screener` registration page in `survey-frontend`.
+- [x] **Frontend**: Create `Screener` login page in `survey-frontend`.
+- [x] **Frontend**: Create `Screener` profile page in `survey-frontend`.
+- [x] **Frontend**: Update `settings_page.dart` to remove screener info.
+- [x] **Frontend**: Update top menu with profile icon and login/settings options.
+- [x] **Frontend**: Update `survey-patient` to use "System Screener" by default.
+- [x] **Database**: Create migration script for `screeners` collection and "System Screener" user.
+- [x] **Contracts**: Update `survey-backend.openapi.yaml` with new endpoints and models.
+- [x] **Tooling**: Regenerate clients using `./tools/scripts/generate_clients.sh`.

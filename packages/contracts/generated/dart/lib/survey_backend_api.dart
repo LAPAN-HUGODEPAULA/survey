@@ -24,6 +24,7 @@ export 'package:survey_backend_api/src/model/question.dart';
 export 'package:survey_backend_api/src/model/screener_login.dart';
 export 'package:survey_backend_api/src/model/screener_model.dart';
 export 'package:survey_backend_api/src/model/screener_password_recovery_request.dart';
+export 'package:survey_backend_api/src/model/screener_profile.dart';
 export 'package:survey_backend_api/src/model/screener_register.dart';
 export 'package:survey_backend_api/src/model/survey.dart';
 export 'package:survey_backend_api/src/model/survey_response.dart';

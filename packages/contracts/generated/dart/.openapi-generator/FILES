@@ -15,6 +15,7 @@ doc/Question.md
 doc/ScreenerLogin.md
 doc/ScreenerModel.md
 doc/ScreenerPasswordRecoveryRequest.md
+doc/ScreenerProfile.md
 doc/ScreenerRegister.md
 doc/Survey.md
 doc/SurveyResponse.md
@@ -42,6 +43,7 @@ lib/src/model/question.dart
 lib/src/model/screener_login.dart
 lib/src/model/screener_model.dart
 lib/src/model/screener_password_recovery_request.dart
+lib/src/model/screener_profile.dart
 lib/src/model/screener_register.dart
 lib/src/model/survey.dart
 lib/src/model/survey_response.dart
@@ -63,6 +65,7 @@ test/question_test.dart
 test/screener_login_test.dart
 test/screener_model_test.dart
 test/screener_password_recovery_request_test.dart
+test/screener_profile_test.dart
 test/screener_register_test.dart
 test/survey_response_test.dart
 test/survey_response_with_agent_test.dart

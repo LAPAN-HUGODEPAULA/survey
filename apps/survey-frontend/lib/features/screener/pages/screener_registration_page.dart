@@ -2,19 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:survey_app/core/providers/api_provider.dart';
-import 'package:survey_app/core/utils/form_validators.dart';
-import 'package:survey_app/core/utils/validator_sets.dart';
-import 'package:survey_app/shared/widgets/custom_text_form_field.dart';
-import 'package:survey_app/shared/widgets/loading_button.dart';
-import 'package:survey_app/shared/widgets/progress_indicator_modal.dart';
-import 'package:survey_backend_api/survey_backend_api.dart'; // Generated client
-
 
 class ScreenerRegistrationPage extends StatefulWidget {
   const ScreenerRegistrationPage({super.key});
 
   @override
-  State<ScreenerRegistrationPage> createState() => _ScreenerRegistrationPageState();
+  State<ScreenerRegistrationPage> createState() =>
+      _ScreenerRegistrationPageState();
 }
 
 class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
@@ -33,12 +27,13 @@ class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
   final _professionalCouncilTypeController = TextEditingController();
-  final _professionalCouncilRegistrationNumberController = TextEditingController();
+  final _professionalCouncilRegistrationNumberController =
+      TextEditingController();
   final _jobTitleController = TextEditingController();
   final _degreeController = TextEditingController();
   final _darvCourseYearController = TextEditingController();
 
-  bool _isLoading = false; // State for loading indicator
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -64,212 +59,235 @@ class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
   }
 
   Future<void> _registerScreener() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() {
-        _isLoading = true;
-      });
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
 
-      final apiProvider = Provider.of<ApiProvider>(context, listen: false);
-      final api = apiProvider.api;
+    setState(() => _isLoading = true);
 
-      try {
-        final screenerRegister = ScreenerRegister((b) => b
-          ..cpf = _cpfController.text.replaceAll('.', '').replaceAll('-', '')
-          ..firstName = _firstNameController.text
-          ..surname = _surnameController.text
-          ..email = _emailController.text
-          ..password = _passwordController.text
-          ..phone = _phoneController.text
-          ..address.postalCode = _postalCodeController.text
-          ..address.street = _streetController.text
-          ..address.number = _numberController.text
-          ..address.complement = _complementController.text
-          ..address.neighborhood = _neighborhoodController.text
-          ..address.city = _cityController.text
-          ..address.state = _stateController.text
-          ..professionalCouncil.type = _professionalCouncilTypeController.text
-          ..professionalCouncil.registrationNumber = _professionalCouncilRegistrationNumberController.text
-          ..jobTitle = _jobTitleController.text
-          ..degree = _degreeController.text
-          ..darvCourseYear = int.tryParse(_darvCourseYearController.text));
+    final dio = context.read<ApiProvider>().api.dio;
 
-        await api.getDefaultApi().registerScreener(screenerRegister: screenerRegister);
+    try {
+      final darvCourseYear = int.tryParse(_darvCourseYearController.text.trim());
+      final councilTypeRaw = _professionalCouncilTypeController.text.trim();
+      final councilType = councilTypeRaw.isEmpty ? 'none' : councilTypeRaw;
 
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Screener registered successfully!')),
-          );
-          context.go('/login'); // Navigate to login page
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Registration failed: $e')),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
+      final payload = <String, dynamic>{
+        'cpf': _cpfController.text.replaceAll('.', '').replaceAll('-', ''),
+        'firstName': _firstNameController.text.trim(),
+        'surname': _surnameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'password': _passwordController.text,
+        'phone': _phoneController.text.trim(),
+        'address': {
+          'postalCode': _postalCodeController.text.trim(),
+          'street': _streetController.text.trim(),
+          'number': _numberController.text.trim(),
+          'complement': _complementController.text.trim(),
+          'neighborhood': _neighborhoodController.text.trim(),
+          'city': _cityController.text.trim(),
+          'state': _stateController.text.trim(),
+        },
+        'professionalCouncil': {
+          'type': councilType,
+          'registrationNumber':
+              _professionalCouncilRegistrationNumberController.text.trim(),
+        },
+        'jobTitle': _jobTitleController.text.trim(),
+        'degree': _degreeController.text.trim(),
+        'darvCourseYear': darvCourseYear,
+      };
+
+      await dio.post('/screeners/register', data: payload);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Screener registrado com sucesso!')),
+      );
+      context.go('/login');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Falha no registro: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return ProgressIndicatorModal(
-      inAsyncCall: _isLoading,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Registro de Screener'),
-        ),
-        body: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  CustomTextFormField(
-                    controller: _cpfController,
-                    labelText: 'CPF',
-                    keyboardType: TextInputType.number,
-                    validator: FormValidators.compose([
-                      ValidatorSets.required,
-                      FormValidators.cpf,
-                    ]),
-                  ),
-                  CustomTextFormField(
-                    controller: _firstNameController,
-                    labelText: 'Nome',
-                    validator: ValidatorSets.required,
-                  ),
-                  CustomTextFormField(
-                    controller: _surnameController,
-                    labelText: 'Sobrenome',
-                    validator: ValidatorSets.required,
-                  ),
-                  CustomTextFormField(
-                    controller: _emailController,
-                    labelText: 'E-mail',
-                    keyboardType: TextInputType.emailAddress,
-                    validator: FormValidators.compose([
-                      ValidatorSets.required,
-                      ValidatorSets.email,
-                    ]),
-                  ),
-                  CustomTextFormField(
-                    controller: _passwordController,
-                    labelText: 'Senha',
-                    obscureText: true,
-                    validator: ValidatorSets.required,
-                  ),
-                  CustomTextFormField(
-                    controller: _phoneController,
-                    labelText: 'Telefone',
-                    keyboardType: TextInputType.phone,
-                    validator: ValidatorSets.required,
-                  ),
-                  // Address Fields
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text('Endereço Profissional', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ),
-                  CustomTextFormField(
-                    controller: _postalCodeController,
-                    labelText: 'CEP',
-                    keyboardType: TextInputType.number,
-                    validator: ValidatorSets.required,
-                  ),
-                  CustomTextFormField(
-                    controller: _streetController,
-                    labelText: 'Rua',
-                    validator: ValidatorSets.required,
-                  ),
-                  CustomTextFormField(
-                    controller: _numberController,
-                    labelText: 'Número',
-                    keyboardType: TextInputType.number,
-                    validator: ValidatorSets.required,
-                  ),
-                  CustomTextFormField(
-                    controller: _complementController,
-                    labelText: 'Complemento (Opcional)',
-                  ),
-                  CustomTextFormField(
-                    controller: _neighborhoodController,
-                    labelText: 'Bairro',
-                    validator: ValidatorSets.required,
-                  ),
-                  CustomTextFormField(
-                    controller: _cityController,
-                    labelText: 'Cidade',
-                    validator: ValidatorSets.required,
-                  ),
-                  CustomTextFormField(
-                    controller: _stateController,
-                    labelText: 'Estado (UF)',
-                    validator: FormValidators.compose([
-                      ValidatorSets.required,
-                      FormValidators.maxLength(2), // Assuming UF is 2 letters
-                    ]),
-                  ),
-                  // Professional Council Fields
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text('Conselho Profissional', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ),
-                  CustomTextFormField(
-                    controller: _professionalCouncilTypeController,
-                    labelText: 'Tipo do Conselho (Ex: CRP, CRM)',
-                    validator: ValidatorSets.required,
-                  ),
-                  CustomTextFormField(
-                    controller: _professionalCouncilRegistrationNumberController,
-                    labelText: 'Número de Registro no Conselho',
-                    validator: ValidatorSets.required,
-                  ),
-                  CustomTextFormField(
-                    controller: _jobTitleController,
-                    labelText: 'Cargo/Profissão',
-                    validator: ValidatorSets.required,
-                  ),
-                  CustomTextFormField(
-                    controller: _degreeController,
-                    labelText: 'Formação Acadêmica/Grau',
-                    validator: ValidatorSets.required,
-                  ),
-                  CustomTextFormField(
-                    controller: _darvCourseYearController,
-                    labelText: 'Ano de Conclusão DARV (Opcional)',
-                    keyboardType: TextInputType.number,
-                    validator: FormValidators.compose([
-                      FormValidators.numeric,
-                      (value) {
-                        if (value != null && value.isNotEmpty) {
-                          final year = int.tryParse(value);
-                          if (year != null && year < 2000) {
-                            return 'Ano deve ser 2000 ou posterior.';
-                          }
-                        }
-                        return null;
-                      },
-                    ]),
-                  ),
-                  const SizedBox(height: 16.0),
-                  LoadingButton(
-                    onPressed: _registerScreener,
-                    isLoading: _isLoading,
-                    text: 'Registrar',
-                  ),
-                ],
+    return Scaffold(
+      appBar: AppBar(title: const Text('Registro de Screener')),
+      body: Stack(
+        children: [
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildTextField(
+                      controller: _cpfController,
+                      label: 'CPF',
+                      keyboardType: TextInputType.number,
+                    ),
+                    _buildTextField(
+                      controller: _firstNameController,
+                      label: 'Primeiro Nome',
+                    ),
+                    _buildTextField(
+                      controller: _surnameController,
+                      label: 'Sobrenome',
+                    ),
+                    _buildTextField(
+                      controller: _emailController,
+                      label: 'E-mail',
+                      keyboardType: TextInputType.emailAddress,
+                      validator: _emailValidator,
+                    ),
+                    _buildTextField(
+                      controller: _passwordController,
+                      label: 'Senha',
+                      obscureText: true,
+                    ),
+                    _buildTextField(
+                      controller: _phoneController,
+                      label: 'Telefone',
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 12.0),
+                    Text('Endereço', style: Theme.of(context).textTheme.titleLarge),
+                    _buildTextField(
+                      controller: _postalCodeController,
+                      label: 'CEP',
+                      keyboardType: TextInputType.number,
+                    ),
+                    _buildTextField(
+                      controller: _streetController,
+                      label: 'Rua',
+                    ),
+                    _buildTextField(
+                      controller: _numberController,
+                      label: 'Número',
+                    ),
+                    _buildTextField(
+                      controller: _complementController,
+                      label: 'Complemento (Opcional)',
+                      required: false,
+                    ),
+                    _buildTextField(
+                      controller: _neighborhoodController,
+                      label: 'Bairro',
+                    ),
+                    _buildTextField(
+                      controller: _cityController,
+                      label: 'Cidade',
+                    ),
+                    _buildTextField(
+                      controller: _stateController,
+                      label: 'Estado (UF)',
+                    ),
+                    const SizedBox(height: 12.0),
+                    Text(
+                      'Informações Profissionais',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    _buildTextField(
+                      controller: _professionalCouncilTypeController,
+                      label: 'Tipo de Conselho (ex: CRP, CRM, none)',
+                    ),
+                    _buildTextField(
+                      controller: _professionalCouncilRegistrationNumberController,
+                      label: 'Número de Registro no Conselho',
+                    ),
+                    _buildTextField(
+                      controller: _jobTitleController,
+                      label: 'Cargo/Profissão',
+                    ),
+                    _buildTextField(
+                      controller: _degreeController,
+                      label: 'Formação Acadêmica/Grau',
+                    ),
+                    _buildTextField(
+                      controller: _darvCourseYearController,
+                      label: 'Ano de Conclusão do Curso DARV (Opcional)',
+                      keyboardType: TextInputType.number,
+                      required: false,
+                      validator: _yearValidator,
+                    ),
+                    const SizedBox(height: 16.0),
+                    ElevatedButton(
+                      onPressed: _isLoading ? null : _registerScreener,
+                      child: const Text('Registrar'),
+                    ),
+                    TextButton(
+                      onPressed: () => context.go('/login'),
+                      child: const Text('Já tem uma conta? Faça login'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
+          if (_isLoading)
+            Positioned.fill(
+              child: ColoredBox(
+                color: Colors.black.withValues(alpha: 0.1),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  String? _requiredValidator(String? value) {
+    if ((value ?? '').trim().isEmpty) {
+      return 'Campo obrigatório.';
+    }
+    return null;
+  }
+
+  String? _emailValidator(String? value) {
+    final text = value?.trim() ?? '';
+    if (text.isEmpty) return 'Campo obrigatório.';
+    if (!text.contains('@')) return 'E-mail inválido.';
+    return null;
+  }
+
+  String? _yearValidator(String? value) {
+    final text = value?.trim() ?? '';
+    if (text.isEmpty) return null;
+    final parsed = int.tryParse(text);
+    if (parsed == null) return 'Informe um ano válido.';
+    if (parsed < 2000) return 'Ano deve ser 2000 ou posterior.';
+    return null;
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType? keyboardType,
+    bool obscureText = false,
+    bool required = true,
+    String? Function(String?)? validator,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        obscureText: obscureText,
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
         ),
+        validator: validator ?? (required ? _requiredValidator : null),
       ),
     );
   }

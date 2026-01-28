@@ -101,10 +101,9 @@ class _ReportPageState extends State<ReportPage> {
 
       final surveyResponse = SurveyResponse(
         surveyId: widget.survey.id,
-        creatorName: widget.survey.creatorName,
-        creatorContact: widget.survey.creatorContact ?? 'Nao informado',
+        creatorId: widget.survey.creatorId,
         testDate: DateTime.now(),
-        screener: settings.screener,
+        screenerId: settings.screener.id,
         patient: patient,
         answers: _buildAnswers(),
       );
@@ -159,10 +158,9 @@ class _ReportPageState extends State<ReportPage> {
       final patient = _resolvePatient(settings);
       final surveyResponse = SurveyResponse(
         surveyId: widget.survey.id,
-        creatorName: widget.survey.creatorName,
-        creatorContact: widget.survey.creatorContact ?? 'Nao informado',
+        creatorId: widget.survey.creatorId,
         testDate: DateTime.now(),
-        screener: settings.screener,
+        screenerId: settings.screener.id,
         patient: patient,
         answers: _buildAnswers(),
       );
@@ -281,9 +279,7 @@ class _ReportPageState extends State<ReportPage> {
       return ReportDocument.fromPlainText(
         text: medicalRecord,
         title: 'Relatorio de Triagem Sensorial',
-        subtitle: settings.screener.name.isNotEmpty
-            ? 'Para: ${settings.screener.name}'
-            : 'Para: Especialista responsavel',
+        subtitle: 'Para: Especialista responsavel',
         patient: patient == null
             ? null
             : ReportPatientInfo(
@@ -495,7 +491,7 @@ class _StatusBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: scheme.outline),
       ),

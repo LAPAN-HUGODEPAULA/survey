@@ -202,6 +202,28 @@ paths:
           description: Password recovery initiated (email sent if user exists)
         '500':
           description: Internal server error or email service not configured
+  /screeners/me:
+    get:
+      summary: Get the current screener profile
+      operationId: getCurrentScreener
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: Bearer token in the format `Bearer <token>`
+      responses:
+        '200':
+          description: Current screener profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenerProfile'
+        '401':
+          description: Not authenticated or invalid token
+        '404':
+          description: Screener not found
 components:
   schemas:
     Survey:
@@ -452,6 +474,51 @@ components:
         registrationNumber:
           type: string
           description: Número de registro no conselho profissional
+    ScreenerProfile:
+      type: object
+      required:
+        - _id
+        - cpf
+        - firstName
+        - surname
+        - email
+        - phone
+        - address
+        - professionalCouncil
+        - jobTitle
+        - degree
+      properties:
+        _id:
+          type: string
+        cpf:
+          type: string
+          description: CPF do Screener
+        firstName:
+          type: string
+          description: Primeiro nome do Screener
+        surname:
+          type: string
+          description: Sobrenome do Screener
+        email:
+          type: string
+          format: email
+          description: Endereço de e-mail do Screener
+        phone:
+          type: string
+          description: Número de telefone do Screener
+        address:
+          $ref: '#/components/schemas/Address'
+        professionalCouncil:
+          $ref: '#/components/schemas/ProfessionalCouncil'
+        jobTitle:
+          type: string
+          description: Cargo/profissão do Screener
+        degree:
+          type: string
+          description: Formação acadêmica/grau do Screener
+        darvCourseYear:
+          type: integer
+          description: Ano de conclusão do curso DARV (opcional)
     ScreenerModel:
       type: object
       required:

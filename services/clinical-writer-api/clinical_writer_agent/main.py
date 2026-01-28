@@ -44,19 +44,13 @@ API_TOKEN = os.getenv("API_TOKEN")
 # Middleware
 # ======================================================================================
 
-class RequestIdMiddleware(BaseHTTPMiddleware):
-    """Injects a unique request ID into every request context."""
-
-    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint):
-        request_id = str(uuid.uuid4())
-        context["request_id"] = request_id
-        response = await call_next(request)
-        response.headers["X-Request-ID"] = request_id
-        return response
 
 # The order of middleware is important. RawContextMiddleware should be first.
-app.add_middleware(RawContextMiddleware, plugins=(plugins.RequestIdPlugin(),))
-app.add_middleware(RequestIdMiddleware)
+app.add_middleware(
+    RawContextMiddleware,
+    plugins=(plugins.RequestIdPlugin(),)
+)
+
 
 # ======================================================================================
 # API Models
@@ -155,7 +149,8 @@ async def root():
 
 @app.post("/process", response_model=ProcessResponse, dependencies=[Depends(verify_token)], tags=["Processing"])
 async def process_content(
-    request: ProcessRequest,
+    body: ProcessRequest,
+    request: Request,
     graph=Depends(get_graph),
     observer=Depends(get_observer),
     prompt_registry=Depends(get_prompt_registry),
@@ -163,30 +158,31 @@ async def process_content(
     """
     Process clinical content (conversation or JSON) to generate a structured report.
     """
-    request_id = context.get("request_id")
+    request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
+    context["request_id"] = request_id
     logger.info(
         "Process request received: input_type=%s, prompt_key=%s, request_id=%s, content_length=%s",
-        request.input_type,
-        request.prompt_key,
+        body.input_type,
+        body.prompt_key,
         request_id,
-        len(request.content),
+        len(body.content),
     )
     try:
-        prompt_text, prompt_version = prompt_registry.get_prompt(request.prompt_key)
+        prompt_text, prompt_version = prompt_registry.get_prompt(body.prompt_key)
     except PromptNotFoundError as exc:
         logger.warning(
             "Prompt not found: prompt_key=%s, request_id=%s",
-            request.prompt_key,
+            body.prompt_key,
             request_id,
         )
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
     initial_state = {
-        "input_content": request.content,
+        "input_content": body.content,
         "observer": observer,
-        "input_type": request.input_type,
+        "input_type": body.input_type,
         "request_id": request_id,
-        "prompt_key": request.prompt_key,
+        "prompt_key": body.prompt_key,
         "prompt_version": prompt_version,
         "prompt_text": prompt_text,
     }
@@ -199,7 +195,7 @@ async def process_content(
         logger.error(
             "Writer error: request_id=%s, input_type=%s, error=%s",
             request_id,
-            request.input_type,
+            body.input_type,
             error_message,
         )
         raise HTTPException(
@@ -211,7 +207,7 @@ async def process_content(
         logger.error(
             "Missing report payload: request_id=%s, input_type=%s",
             request_id,
-            request.input_type,
+            body.input_type,
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -223,7 +219,7 @@ async def process_content(
     response = ProcessResponse(
         ok=True,
         request_id=request_id,
-        input_type=request.input_type,
+        input_type=body.input_type,
         prompt_version=final_state.get("prompt_version", prompt_version),
         model_version=final_state.get("model_version", MODEL_VERSION),
         report=report,

@@ -1,7 +1,8 @@
-from typing import Optional, List
-from pydantic import BaseModel, Field, EmailStr, validator
-from pydantic_extra_types.brazil import CPF
-from services.survey-backend.app.domain.models.abstract_model import AbstractModel
+from datetime import datetime
+import re
+from typing import Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, validator
 
 
 class ProfessionalCouncil(BaseModel):
@@ -53,11 +54,12 @@ class Address(BaseModel):
     state: str = Field(..., description="Estado (UF)")
 
 
-class ScreenerModel(AbstractModel):
+class ScreenerModel(BaseModel):
     """
     Modelo de dados para um Screener.
     """
-    cpf: CPF = Field(..., description="CPF do Screener", unique=True)
+    id: Optional[str] = Field(default=None, alias="_id")
+    cpf: str = Field(..., description="CPF do Screener", unique=True)
     firstName: str = Field(..., description="Primeiro nome do Screener")
     surname: str = Field(..., description="Sobrenome do Screener")
     email: EmailStr = Field(..., description="Endereço de e-mail do Screener", unique=True)
@@ -82,5 +84,14 @@ class ScreenerModel(AbstractModel):
             raise ValueError("Número de telefone inválido.")
         return value
 
-    class Settings:
-        name = "screeners"
+    @validator("cpf")
+    def validate_cpf(cls, value: str) -> str:
+        digits = re.sub(r"\D", "", value or "")
+        if len(digits) != 11:
+            raise ValueError("CPF deve conter 11 dígitos.")
+        return digits
+
+    createdAt: Optional[datetime] = Field(default=None, alias="createdAt")
+    updatedAt: Optional[datetime] = Field(default=None, alias="updatedAt")
+
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")

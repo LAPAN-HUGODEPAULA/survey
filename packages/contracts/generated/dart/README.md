@@ -68,6 +68,7 @@ Class | Method | HTTP request | Description
 [*DefaultApi*](doc/DefaultApi.md) | [**createPatientResponse**](doc/DefaultApi.md#createpatientresponse) | **POST** /patient_responses/ | Create patient response
 [*DefaultApi*](doc/DefaultApi.md) | [**createSurvey**](doc/DefaultApi.md#createsurvey) | **POST** /surveys/ | Create survey
 [*DefaultApi*](doc/DefaultApi.md) | [**createSurveyResponse**](doc/DefaultApi.md#createsurveyresponse) | **POST** /survey_responses/ | Create survey response
+[*DefaultApi*](doc/DefaultApi.md) | [**getCurrentScreener**](doc/DefaultApi.md#getcurrentscreener) | **GET** /screeners/me | Get the current screener profile
 [*DefaultApi*](doc/DefaultApi.md) | [**getSurvey**](doc/DefaultApi.md#getsurvey) | **GET** /surveys/{surveyId} | Get survey by id
 [*DefaultApi*](doc/DefaultApi.md) | [**getSurveyResponse**](doc/DefaultApi.md#getsurveyresponse) | **GET** /survey_responses/{responseId} | Get survey response by id
 [*DefaultApi*](doc/DefaultApi.md) | [**listSurveyResponses**](doc/DefaultApi.md#listsurveyresponses) | **GET** /survey_responses/ | List survey responses
@@ -93,6 +94,7 @@ Class | Method | HTTP request | Description
  - [ScreenerLogin](doc/ScreenerLogin.md)
  - [ScreenerModel](doc/ScreenerModel.md)
  - [ScreenerPasswordRecoveryRequest](doc/ScreenerPasswordRecoveryRequest.md)
+ - [ScreenerProfile](doc/ScreenerProfile.md)
  - [ScreenerRegister](doc/ScreenerRegister.md)
  - [Survey](doc/Survey.md)
  - [SurveyResponse](doc/SurveyResponse.md)

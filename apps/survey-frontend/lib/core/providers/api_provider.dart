@@ -14,6 +14,13 @@ class ApiProvider extends ChangeNotifier {
     );
   }
 
-  // You might want to add methods to update the base URL or add interceptors
-  // if your app requires dynamic API configurations or authentication headers.
+  void setAuthToken(String token) {
+    _api.dio.options.headers['Authorization'] = 'Bearer $token';
+    notifyListeners();
+  }
+
+  void clearAuthToken() {
+    _api.dio.options.headers.remove('Authorization');
+    notifyListeners();
+  }
 }

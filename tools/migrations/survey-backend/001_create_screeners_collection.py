@@ -1,20 +1,48 @@
-from pymongo import MongoClient
-import bcrypt
 from datetime import datetime
 import os
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+import bcrypt
+from bson import ObjectId
+from pymongo import MongoClient
+from dotenv import load_dotenv
+from urllib.parse import urlparse
+
+load_dotenv()
+
+MONGO_URI = os.getenv("MONGO_URI")
+if not MONGO_URI:
+    root_user = os.getenv("MONGO_INITDB_ROOT_USERNAME")
+    root_pass = os.getenv("MONGO_INITDB_ROOT_PASSWORD")
+    if root_user and root_pass:
+        MONGO_URI = (
+            f"mongodb://{root_user}:{root_pass}@localhost:27017/?authSource=admin"
+        )
+    else:
+        MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
+
 MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "survey_db")
+
+if MONGO_URI and MONGO_URI.startswith(("mongodb://", "mongodb+srv://")):
+    parsed = urlparse(MONGO_URI)
+    if parsed.hostname == "mongodb":
+        host = "localhost"
+        if parsed.port:
+            host = f"{host}:{parsed.port}"
+        auth = f"{parsed.username}:{parsed.password}@" if parsed.username else ""
+        MONGO_URI = f"{parsed.scheme}://{auth}{host}{parsed.path or '/'}"
+SYSTEM_SCREENER_ID = "000000000000000000000001"
+SYSTEM_SCREENER_EMAIL = "lapan.hugodepaula@gmail.com"
 
 def create_system_screener_data():
     system_screener_password = os.getenv("SYSTEM_SCREENER_PASSWORD", "SystemPassword123!")
     hashed_password = bcrypt.hashpw(system_screener_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
     
     return {
+        "_id": ObjectId(SYSTEM_SCREENER_ID),
         "cpf": "00000000000",
         "firstName": "LAPAN",
         "surname": "System Screener",
-        "email": "lapan.hugodepaula@gmail.com",
+        "email": SYSTEM_SCREENER_EMAIL,
         "password": hashed_password,
         "phone": "31984831284",
         "address": {
@@ -79,11 +107,14 @@ def upgrade():
 
     # Insert System Screener
     system_screener_data = create_system_screener_data()
-    if not screeners_collection.find_one({"email": system_screener_data["email"]}):
+    system_exists = screeners_collection.find_one({"_id": system_screener_data["_id"]}) or screeners_collection.find_one(
+        {"email": system_screener_data["email"]}
+    )
+    if not system_exists:
         screeners_collection.insert_one(system_screener_data)
-        print(f"System Screener inserted with email: {system_screener_data['email']}")
+        print(f"System Screener inserted with id: {SYSTEM_SCREENER_ID}")
     else:
-        print(f"System Screener with email {system_screener_data['email']} already exists.")
+        print(f"System Screener already exists (id: {SYSTEM_SCREENER_ID}).")
 
     # Insert Sample Screener
     sample_screener_data = create_sample_screener_data()
@@ -100,8 +131,9 @@ def downgrade():
     db = client[MONGO_DB_NAME]
     
     # Remove System Screener
-    db["screeners"].delete_one({"email": "lapan.hugodepaula@gmail.com"})
-    print("System Screener removed.")
+    db["screeners"].delete_one({"_id": ObjectId(SYSTEM_SCREENER_ID)})
+    db["screeners"].delete_one({"email": SYSTEM_SCREENER_EMAIL})
+    print(f"System Screener removed (id: {SYSTEM_SCREENER_ID}).")
 
     # Remove Sample Screener
     db["screeners"].delete_one({"email": "maria.vale@holhos.com"})

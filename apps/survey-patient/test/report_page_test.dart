@@ -48,8 +48,7 @@ void main() {
       surveyDisplayName: 'Survey Demo',
       surveyName: 'Survey Demo',
       surveyDescription: '',
-      creatorName: 'Creator',
-      creatorContact: 'creator@example.com',
+      creatorId: 'Creator',
       createdAt: DateTime(2024, 1, 1),
       modifiedAt: DateTime(2024, 1, 2),
       instructions: Instructions(

@@ -125,10 +125,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
       final surveyResponse = SurveyResponse(
         surveyId: widget.survey.id,
-        creatorName: widget.survey.creatorName,
-        creatorContact: widget.survey.creatorContact ?? 'Não informado',
+        creatorId: widget.survey.creatorId,
         testDate: DateTime.now(),
-        screener: settings.screener,
+        screenerId: settings.screenerId,
         patient: patient,
         answers: _buildAnswers(),
       );
@@ -182,10 +181,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
       final settings = Provider.of<AppSettings>(context, listen: false);
       final surveyResponse = SurveyResponse(
         surveyId: widget.survey.id,
-        creatorName: widget.survey.creatorName,
-        creatorContact: widget.survey.creatorContact ?? 'Não informado',
+        creatorId: widget.survey.creatorId,
         testDate: DateTime.now(),
-        screener: settings.screener,
+        screenerId: settings.screenerId,
         patient: settings.patient.withClinicalData(
           familyHistory: settings.clinicalData.familyHistory,
           socialHistory: settings.clinicalData.socialData,
@@ -353,8 +351,8 @@ class _ThankYouPageState extends State<ThankYouPage> {
       return ReportDocument.fromPlainText(
         text: medicalRecord,
         title: 'Relatorio de Triagem Sensorial',
-        subtitle: settings.screener.name.isNotEmpty
-            ? 'Para: ${settings.screener.name}'
+        subtitle: settings.isLoggedIn
+            ? 'Para: ${settings.screenerDisplayName}'
             : 'Para: Especialista responsavel',
         patient: ReportPatientInfo(
           name: settings.patient.name,

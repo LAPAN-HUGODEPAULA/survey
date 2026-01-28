@@ -21,7 +21,6 @@ async def create_survey(survey: Survey, repo: SurveyRepository = Depends(get_sur
         survey_dict = survey.model_dump(by_alias=True)
         new_id = survey.id or str(ObjectId())
         survey_dict["_id"] = new_id
-        survey_dict["id"] = new_id
         survey_dict = {k: v for k, v in survey_dict.items() if v is not None}
         logger.info("Survey data prepared for insertion: %s", survey_dict.get("surveyId"))
 

@@ -88,9 +88,7 @@ class SurveyDetailsPage extends StatelessWidget {
                 children: [
                   _buildDetailRow('ID:', survey.id, context),
                   _buildDetailRow('Nome:', survey.surveyName, context),
-                  _buildDetailRow('Criador:', survey.creatorName, context),
-                  if ((survey.creatorContact ?? '').isNotEmpty)
-                    _buildDetailRow('Contato:', survey.creatorContact!, context),
+                  _buildDetailRow('Criador:', survey.creatorId, context),
                 ],
               ),
               context,

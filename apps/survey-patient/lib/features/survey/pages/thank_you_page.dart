@@ -1,9 +1,8 @@
 library;
 
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import 'package:patient_app/core/navigation/app_navigator.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
@@ -51,7 +50,7 @@ class ThankYouPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Resumo do Questionario'),
+        title: const Text('Relatório clínico do questionário Lapan Q7'),
         automaticallyImplyLeading: false,
       ),
       body: Center(
@@ -64,14 +63,13 @@ class ThankYouPage extends StatelessWidget {
               children: [
                 Text(
                   'Obrigado por responder!',
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Veja o resumo das suas respostas antes de seguir para o relatorio.',
+                  'Veja o resumo das suas respostas antes de seguir para o relatório.',
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
                 const SizedBox(height: 24),
@@ -90,9 +88,7 @@ class ThankYouPage extends StatelessWidget {
                       children: [
                         Text(
                           'Radar das respostas',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
+                          style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 16),
@@ -107,9 +103,7 @@ class ThankYouPage extends StatelessWidget {
                         const SizedBox(height: 24),
                         Text(
                           'Resumo das respostas',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 12),
@@ -121,23 +115,17 @@ class ThankYouPage extends StatelessWidget {
                               children: [
                                 Text(
                                   summary.questionText,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   summary.answerText,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
+                                  style: Theme.of(context).textTheme.bodyMedium
                                       ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                       ),
                                 ),
                               ],
@@ -167,19 +155,13 @@ class ThankYouPage extends StatelessWidget {
                               children: [
                                 Icon(
                                   Icons.info_outline,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .primary,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
                                   'Informacoes importantes',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                               ],
                             ),
@@ -190,9 +172,9 @@ class ThankYouPage extends StatelessWidget {
                                 'body': Style(
                                   fontSize: FontSize(15.0),
                                   lineHeight: const LineHeight(1.5),
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurface,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
                                 ),
                                 'p': Style(margin: Margins.only(bottom: 12.0)),
                                 'a': Style(
@@ -220,9 +202,7 @@ class ThankYouPage extends StatelessWidget {
                     children: [
                       Text(
                         'Quer um relatorio mais detalhado?',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 8),
@@ -235,8 +215,7 @@ class ThankYouPage extends StatelessWidget {
                         children: [
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: () =>
-                                  AppNavigator.toDemographics(
+                              onPressed: () => AppNavigator.toDemographics(
                                 context,
                                 survey: survey,
                                 surveyAnswers: surveyAnswers,
@@ -299,110 +278,40 @@ class RadarChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _RadarChartPainter(
-        values: values,
-        maxValue: maxValue,
-        scheme: Theme.of(context).colorScheme,
+    // Convert values to radar data entries with question numbers as labels
+    final radarDataSets = <RadarDataSet>[
+      RadarDataSet(
+        fillColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+        borderColor: Theme.of(context).colorScheme.primary,
+        borderWidth: 2,
+        dataEntries: values
+            .asMap()
+            .entries
+            .map((entry) => RadarEntry(value: entry.value))
+            .toList(),
+        radarBorderSide: BorderSide(
+          color: Theme.of(context).colorScheme.outline,
+        ),
       ),
-      child: const SizedBox.expand(),
+    ];
+
+    return FlRadarChart(
+      FlRadarChartData(
+        radarBorderSide: BorderSide(
+          color: Theme.of(context).colorScheme.outline,
+        ),
+        getTitle: (index, angle) {
+          return RadarChartTitle(text: 'Q${index + 1}', angle: angle);
+        },
+        dataSets: radarDataSets,
+        maxValue: maxValue.toDouble(),
+        titlePositionPercentageOffset: 0.15,
+        gridBorderData: BorderSide(
+          color: Theme.of(context).colorScheme.outlineVariant,
+          width: 1,
+        ),
+      ),
+      swapAnimationDuration: const Duration(milliseconds: 400),
     );
-  }
-}
-
-class _RadarChartPainter extends CustomPainter {
-  _RadarChartPainter({
-    required this.values,
-    required this.maxValue,
-    required this.scheme,
-  });
-
-  final List<double> values;
-  final int maxValue;
-  final ColorScheme scheme;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (values.isEmpty) {
-      return;
-    }
-
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = min(size.width, size.height) * 0.4;
-    final steps = maxValue > 1 ? maxValue : 1;
-    final angleStep = (2 * pi) / values.length;
-
-    final gridPaint = Paint()
-      ..color = scheme.outlineVariant
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-
-    for (int level = 1; level <= steps; level++) {
-      final levelRadius = radius * (level / steps);
-      final path = Path();
-      for (int i = 0; i < values.length; i++) {
-        final angle = -pi / 2 + angleStep * i;
-        final point = Offset(
-          center.dx + levelRadius * cos(angle),
-          center.dy + levelRadius * sin(angle),
-        );
-        if (i == 0) {
-          path.moveTo(point.dx, point.dy);
-        } else {
-          path.lineTo(point.dx, point.dy);
-        }
-      }
-      path.close();
-      canvas.drawPath(path, gridPaint);
-    }
-
-    final axisPaint = Paint()
-      ..color = scheme.outline
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-
-    for (int i = 0; i < values.length; i++) {
-      final angle = -pi / 2 + angleStep * i;
-      final endPoint = Offset(
-        center.dx + radius * cos(angle),
-        center.dy + radius * sin(angle),
-      );
-      canvas.drawLine(center, endPoint, axisPaint);
-    }
-
-    final dataPath = Path();
-    for (int i = 0; i < values.length; i++) {
-      final normalized = maxValue == 0 ? 0.0 : values[i] / maxValue;
-      final pointRadius = radius * normalized;
-      final angle = -pi / 2 + angleStep * i;
-      final point = Offset(
-        center.dx + pointRadius * cos(angle),
-        center.dy + pointRadius * sin(angle),
-      );
-      if (i == 0) {
-        dataPath.moveTo(point.dx, point.dy);
-      } else {
-        dataPath.lineTo(point.dx, point.dy);
-      }
-    }
-    dataPath.close();
-
-    final fillPaint = Paint()
-      ..color = scheme.primary.withOpacity(0.2)
-      ..style = PaintingStyle.fill;
-    final strokePaint = Paint()
-      ..color = scheme.primary
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-
-    canvas.drawPath(dataPath, fillPaint);
-    canvas.drawPath(dataPath, strokePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _RadarChartPainter oldDelegate) {
-    return oldDelegate.values != values ||
-        oldDelegate.maxValue != maxValue ||
-        oldDelegate.scheme != scheme;
   }
 }

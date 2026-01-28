@@ -1,23 +1,18 @@
 /// Página de configurações da aplicação.
 ///
-/// Permite configurar o nome do responsável pela aplicação do questionário,
-/// seu contato e selecionar qual questionário será utilizado dentre os disponíveis.
-/// Também oferece acesso aos detalhes de cada questionário.
+/// Permite selecionar qual questionário será utilizado dentre os disponíveis
+/// e oferece acesso aos detalhes de cada questionário.
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:survey_app/core/models/survey/survey.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/features/survey/pages/survey_details_page.dart';
-import 'package:survey_app/core/utils/validator_sets.dart';
 
 /// Página de configurações da aplicação de questionários.
 ///
 /// Fornece interface para:
-/// - Definir o nome do profissional responsável (screener)
-/// - Definir o contato do profissional responsável
 /// - Selecionar qual questionário será aplicado
 /// - Visualizar detalhes dos questionários disponíveis
 ///
@@ -185,11 +180,13 @@ class _SettingsPageState extends State<SettingsPage> {
                                 horizontal: 16.0,
                               ),
                             ),
-                            items: settings.availableSurveys.map((survey) {
-                              final displayName = survey.surveyDisplayName.isNotEmpty
-                                  ? survey.surveyDisplayName
-                                  : survey.surveyName;
-                              return DropdownMenuItem(
+                            items: settings.availableSurveys
+                                .map<DropdownMenuItem<String>>((survey) {
+                              final displayName =
+                                  survey.surveyDisplayName.isNotEmpty
+                                      ? survey.surveyDisplayName
+                                      : survey.surveyName;
+                              return DropdownMenuItem<String>(
                                 value: survey.id,
                                 child: Text(displayName),
                               );
