@@ -27,19 +27,15 @@ class InputValidatorAgent:  # pylint: disable=too-few-public-methods
     def validate(self, state: AgentState) -> AgentState:
         """
         Sanitize and run basic checks.
-
-        Returns updated state with:
-        - sanitized `input_content`
-        - `validation_status` set to `validated` when safe to continue
-        - or `flagged` with error message when rejected
         """
         raw_content = state.get("input_content", "")
+        request_id = state.get("request_id")
         new_state = state.copy()
         observer = state.get("observer")
 
         start_time = datetime.now()
         if observer:
-            observer.on_validation_start(start_time, {"raw_length": len(raw_content)})
+            observer.on_validation_start(start_time, {"raw_length": len(raw_content)}, request_id)
 
         sanitized = self._sanitize_content(raw_content)
         new_state["input_content"] = sanitized
@@ -48,7 +44,6 @@ class InputValidatorAgent:  # pylint: disable=too-few-public-methods
             "sanitized_length": len(sanitized),
         }
 
-        # Reject empty/degenerate content after sanitization.
         if not sanitized:
             new_state["validation_status"] = "flagged"
             new_state["error_message"] = "Input content is empty after sanitization."
@@ -56,18 +51,18 @@ class InputValidatorAgent:  # pylint: disable=too-few-public-methods
             duration = (end_time - start_time).total_seconds()
             if observer:
                 metadata["reason"] = "empty_after_sanitization"
-                observer.on_validation_complete(False, duration, end_time, metadata)
+                observer.on_validation_complete(False, duration, end_time, metadata, request_id)
             return new_state
 
         new_state["validation_status"] = "validated"
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
         if observer:
-            observer.on_validation_complete(True, duration, end_time, metadata)
+            observer.on_validation_complete(True, duration, end_time, metadata, request_id)
         return new_state
 
     def _sanitize_content(self, text: str) -> str:
-        """Remove scripts, strip tags, and normalize whitespace to protect downstream processing."""
+        """Remove scripts, strip tags, and normalize whitespace."""
         without_scripts = self._script_pattern.sub(" ", text)
         without_tags = self._tag_pattern.sub(" ", without_scripts)
         collapsed = self._whitespace_pattern.sub(" ", without_tags)

@@ -41,10 +41,6 @@ class ClassificationAgent:  # pylint: disable=too-few-public-methods
     ):
         """
         Initialize classification strategies, honoring dynamic registrations.
-
-        Args:
-            extra_strategies: Strategies to append for this instance.
-            strategy_factories: Factories that create strategies, enabling late binding.
         """
         with open(AgentConfig.BAD_WORDS_FILE, "r", encoding="utf-8") as bad_words_file:
             bad_words = [line.strip() for line in bad_words_file if line.strip()]
@@ -73,6 +69,7 @@ class ClassificationAgent:  # pylint: disable=too-few-public-methods
     def classify(self, state: AgentState) -> AgentState:
         """Classify sanitized input and attach routing metadata."""
         text_input = state.get("input_content", "")
+        request_id = state.get("request_id")
         new_state = state.copy()
         observer = state.get("observer")
 
@@ -82,14 +79,11 @@ class ClassificationAgent:  # pylint: disable=too-few-public-methods
                 "classification",
                 start_time,
                 {"input_length": len(text_input)},
+                request_id,
             )
 
-        logger.debug(
-            "Classification started",
-            extra={"metadata": {"input_length": len(text_input)}},
-        )
         classification = self.classification_context.classify(
-            text_input, observer=observer
+            text_input, observer=observer, request_id=request_id
         )
         new_state["classification"] = classification
 
@@ -112,11 +106,13 @@ class ClassificationAgent:  # pylint: disable=too-few-public-methods
                 metadata["classification_duration"],
                 datetime.now(),
                 metadata,
+                request_id,
             )
-            observer.on_classification(classification, datetime.now(), metadata)
+            observer.on_classification(classification, datetime.now(), metadata, request_id)
 
         logger.info(
-            "Classification completed",
+            "Classification completed for request_id=%s",
+            request_id,
             extra={"metadata": metadata},
         )
 

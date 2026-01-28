@@ -33,38 +33,37 @@ class MetricsMonitor(ProcessingMonitor):
             'start_time': datetime.now()
         }
     
-    def on_classification(self, classification: str, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None):
+    def on_classification(self, classification: str, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
         """Record classification metrics."""
         self.metrics['classifications'][classification] += 1
-        self.metrics['total_requests'] += 1
     
-    def on_processing_start(self, agent_type: str, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None):
+    def on_processing_start(self, agent_type: str, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
         """Record processing start (for counting)."""
         self.metrics['processing_counts'][agent_type] += 1
     
-    def on_processing_complete(self, agent_type: str, duration: float, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None):
+    def on_processing_complete(self, agent_type: str, duration: float, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
         """Record processing duration metrics."""
         self.metrics['processing_times'][agent_type].append(duration)
     
-    def on_error(self, error: Exception, context: Dict[str, Any], timestamp: datetime):
+    def on_error(self, error: Exception, context: Dict[str, Any], timestamp: datetime, request_id: Optional[str] = None):
         """Record error metrics."""
         error_type = type(error).__name__
         self.metrics['errors'][error_type] += 1
     
-    def on_validation_start(self, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None):
-        """Record validation start (tracked in complete)."""
-        pass
+    def on_validation_start(self, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
+        """Validation start increments total requests."""
+        self.metrics['total_requests'] += 1
+
     
-    def on_validation_complete(self, is_valid: bool, duration: float, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None):
+    def on_validation_complete(self, is_valid: bool, duration: float, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
         """Record validation metrics."""
         if is_valid:
             self.metrics['validation_results']['passed'] += 1
         else:
             self.metrics['validation_results']['failed'] += 1
         self.metrics['validation_times'].append(duration)
-        self.metrics['total_requests'] += 1
 
-    def on_event(self, event_name: str, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None):
+    def on_event(self, event_name: str, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
         """Generic events are not tracked by this monitor."""
         pass
     

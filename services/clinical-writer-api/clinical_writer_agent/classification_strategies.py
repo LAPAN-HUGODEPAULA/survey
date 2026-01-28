@@ -290,16 +290,10 @@ class ClassificationContext:
         # Keep strategies sorted by priority
         self.strategies.sort(key=lambda s: s.get_priority())
 
-    def classify(self, text: str, observer: ProcessingMonitor | None = None) -> str:
+    def classify(self, text: str, observer: Optional[ProcessingMonitor] = None, request_id: Optional[str] = None) -> str:
         """
         Classify the input text using registered strategies.
         Strategies are applied in priority order until one succeeds.
-
-        Args:
-            text: The input text to classify
-
-        Returns:
-            Classification type string
         """
         start_time = datetime.now()
         if observer:
@@ -307,6 +301,7 @@ class ClassificationContext:
                 "classification_context_start",
                 start_time,
                 {"strategy_count": len(self.strategies), "input_length": len(text)},
+                request_id,
             )
 
         for strategy in self.strategies:
@@ -322,14 +317,12 @@ class ClassificationContext:
                 "is_valid": is_valid,
             }
 
-            logger.debug(
-                "Strategy %s evaluated", strategy_name, extra={"metadata": metadata}
-            )
             if observer:
                 observer.on_event(
                     f"strategy_evaluated:{strategy_name}",
                     datetime.now(),
                     metadata,
+                    request_id,
                 )
 
             if is_valid:
@@ -338,27 +331,28 @@ class ClassificationContext:
                     "context_duration": (datetime.now() - start_time).total_seconds(),
                 }
                 logger.info(
-                    "Classification resolved via %s",
+                    "Classification resolved via %s for request_id=%s",
                     strategy_name,
+                    request_id,
                     extra={"metadata": result_metadata},
                 )
                 if observer:
                     observer.on_event(
-                        "classification_resolved", datetime.now(), result_metadata
+                        "classification_resolved", datetime.now(), result_metadata, request_id
                     )
                 return classification or "NONE"
 
-        # This should never happen if OtherClassificationStrategy is registered
         fallback_metadata = {
             "context_duration": (datetime.now() - start_time).total_seconds(),
             "reason": "fallback_to_other",
         }
         logger.warning(
-            "No strategy matched; falling back to OTHER",
+            "No strategy matched for request_id=%s; falling back to OTHER",
+            request_id,
             extra={"metadata": fallback_metadata},
         )
         if observer:
             observer.on_event(
-                "classification_fallback", datetime.now(), fallback_metadata
+                "classification_fallback", datetime.now(), fallback_metadata, request_id
             )
         return AgentConfig.CLASSIFICATION_OTHER

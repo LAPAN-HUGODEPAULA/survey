@@ -33,14 +33,14 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
         new_state = state.copy()
         observer = state.get("observer")
         request_id = state.get("request_id")
-        metadata = {"request_id": request_id} if request_id else {}
 
         start_time = datetime.now()
         if observer:
             observer.on_processing_start(
                 self._agent_type,
                 start_time,
-                {"input_length": len(state.get("input_content", "")), **metadata},
+                {"input_length": len(state.get("input_content", ""))},
+                request_id,
             )
 
         try:
@@ -48,7 +48,8 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
                 observer.on_event(
                     "prompt_creation_start",
                     datetime.now(),
-                    {"agent_type": self._agent_type, **metadata},
+                    {"agent_type": self._agent_type},
+                    request_id,
                 )
 
             if self._llm_model is None:
@@ -61,16 +62,14 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
                 observer.on_event(
                     "prompt_creation_complete",
                     datetime.now(),
-                    {
-                        "agent_type": self._agent_type,
-                        "prompt_length": len(prompt),
-                        **metadata,
-                    },
+                    {"agent_type": self._agent_type, "prompt_length": len(prompt)},
+                    request_id,
                 )
                 observer.on_event(
                     "llm_invocation_start",
                     datetime.now(),
-                    {"agent_type": self._agent_type, **metadata},
+                    {"agent_type": self._agent_type},
+                    request_id,
                 )
 
             response = self._llm_model.invoke(prompt)
@@ -91,11 +90,8 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
                 observer.on_event(
                     "llm_invocation_complete",
                     datetime.now(),
-                    {
-                        "agent_type": self._agent_type,
-                        "response_length": len(content),
-                        **metadata,
-                    },
+                    {"agent_type": self._agent_type, "response_length": len(content)},
+                    request_id,
                 )
 
             end_time = datetime.now()
@@ -105,7 +101,8 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
                     self._agent_type,
                     duration,
                     end_time,
-                    {"output_length": len(content), "success": True, **metadata},
+                    {"output_length": len(content), "success": True},
+                    request_id,
                 )
         except Exception as error:  # pylint: disable=broad-exception-caught
             new_state["error_message"] = f"Writer output invalid: {error}"
@@ -113,12 +110,9 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
             if observer:
                 observer.on_error(
                     error,
-                    {
-                        "location": self._agent_type,
-                        "operation": "generate_report_json",
-                        **metadata,
-                    },
+                    {"location": self._agent_type, "operation": "generate_report_json"},
                     datetime.now(),
+                    request_id,
                 )
 
         return new_state

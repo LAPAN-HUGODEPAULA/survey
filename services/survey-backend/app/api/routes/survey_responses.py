@@ -60,6 +60,7 @@ async def create_survey_response(
             agent_result = await send_to_langgraph_agent(
                 response_payload,
                 input_type="survey7",
+                prompt_key="survey7",  # Explicitly set prompt_key for survey7
                 source_app="survey-frontend",
                 patient_ref=survey_response.patient.email if survey_response.patient else None,
             )

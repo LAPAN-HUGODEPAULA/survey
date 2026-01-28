@@ -15,6 +15,7 @@ class DeterministicRouterAgent:  # pylint: disable=too-few-public-methods
         new_state = state.copy()
         observer = state.get("observer")
         input_type = state.get("input_type")
+        request_id = state.get("request_id")
         agent_type = "DeterministicRouter"
 
         start_time = datetime.now()
@@ -23,6 +24,7 @@ class DeterministicRouterAgent:  # pylint: disable=too-few-public-methods
                 agent_type,
                 start_time,
                 {"input_type": input_type},
+                request_id,
             )
 
         if input_type not in self._allowed_types:
@@ -38,6 +40,7 @@ class DeterministicRouterAgent:  # pylint: disable=too-few-public-methods
                 duration,
                 end_time,
                 {"input_type": input_type},
+                request_id,
             )
 
         return new_state
