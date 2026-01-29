@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 import os
 
 import bcrypt
@@ -61,8 +61,8 @@ def create_system_screener_data():
         "jobTitle": "",
         "degree": "",
         "darvCourseYear": None,
-        "createdAt": datetime.utcnow(),
-        "updatedAt": datetime.utcnow(),
+        "createdAt": datetime.now(UTC),
+        "updatedAt": datetime.now(UTC),
     }
 
 def create_sample_screener_data():
@@ -92,8 +92,8 @@ def create_sample_screener_data():
         "jobTitle": "Psychologist",
         "degree": "Psychology",
         "darvCourseYear": 2019,
-        "createdAt": datetime.utcnow(),
-        "updatedAt": datetime.utcnow(),
+        "createdAt": datetime.now(UTC),
+        "updatedAt": datetime.now(UTC),
     }
 
 def upgrade():
