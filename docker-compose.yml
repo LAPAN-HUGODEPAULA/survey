@@ -130,6 +130,8 @@ services:
       - services/clinical-writer-api/clinical_writer_agent/.env
     ports:
       - "9566:8000"
+    volumes:
+      - ./services/clinical-writer-api/clinical_writer_agent/credentials/darv-13c19-740b161e0018.json:/app/clinical_writer_agent/credentials/darv-13c19-740b161e0018.json
     restart: unless-stopped
     networks:
       - survey_network
