@@ -8,6 +8,7 @@ import 'package:patient_app/core/navigation/app_navigator.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/core/models/survey/question.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
+import 'dart:math';
 
 class ThankYouPage extends StatelessWidget {
   const ThankYouPage({
@@ -98,7 +99,7 @@ class ThankYouPage extends StatelessWidget {
                               ? const Center(
                                   child: Text('Sem respostas para exibir.'),
                                 )
-                              : RadarChart(values: values, maxValue: maxValue),
+                              : _SurveyRadarChart(values: values, maxValue: maxValue),
                         ),
                         const SizedBox(height: 24),
                         Text(
@@ -270,8 +271,8 @@ class _AnswerSummary {
   final int maxValue;
 }
 
-class RadarChart extends StatelessWidget {
-  const RadarChart({super.key, required this.values, required this.maxValue});
+class _SurveyRadarChart extends StatelessWidget {
+  const _SurveyRadarChart({required this.values, required this.maxValue});
 
   final List<double> values;
   final int maxValue;
@@ -284,34 +285,32 @@ class RadarChart extends StatelessWidget {
         fillColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
         borderColor: Theme.of(context).colorScheme.primary,
         borderWidth: 2,
-        dataEntries: values
-            .asMap()
-            .entries
-            .map((entry) => RadarEntry(value: entry.value))
-            .toList(),
-        radarBorderSide: BorderSide(
-          color: Theme.of(context).colorScheme.outline,
-        ),
+        dataEntries: [
+          ...values
+              .asMap()
+              .entries
+              .map((entry) => RadarEntry(value: entry.value))
+        ],
       ),
     ];
 
-    return FlRadarChart(
-      FlRadarChartData(
-        radarBorderSide: BorderSide(
+    return RadarChart(
+      RadarChartData(
+        radarBorderData: BorderSide(
           color: Theme.of(context).colorScheme.outline,
         ),
         getTitle: (index, angle) {
           return RadarChartTitle(text: 'Q${index + 1}', angle: angle);
         },
         dataSets: radarDataSets,
-        maxValue: maxValue.toDouble(),
+
         titlePositionPercentageOffset: 0.15,
         gridBorderData: BorderSide(
           color: Theme.of(context).colorScheme.outlineVariant,
           width: 1,
         ),
       ),
-      swapAnimationDuration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 400),
     );
   }
 }
