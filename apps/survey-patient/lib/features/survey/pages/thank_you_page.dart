@@ -1,10 +1,8 @@
 library;
 
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:fl_chart/fl_chart.dart' as fl;
+import 'package:fl_chart/fl_chart.dart';
 import 'package:provider/provider.dart';
 import 'package:patient_app/core/navigation/app_navigator.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
@@ -47,7 +45,7 @@ class ThankYouPage extends StatelessWidget {
     final summaries = _buildSummaries();
     final maxValue = summaries.isEmpty
         ? 1
-        : summaries.map((item) => item.maxValue).reduce((a, b) => max(a,b));
+        : summaries.map((item) => item.maxValue).reduce(max);
     final values = summaries.map((item) => item.value).toList(growable: false);
 
     return Scaffold(
@@ -100,7 +98,7 @@ class ThankYouPage extends StatelessWidget {
                               ? const Center(
                                   child: Text('Sem respostas para exibir.'),
                                 )
-                              : PatientRadarChart(values: values, maxValue: maxValue),
+                              : RadarChart(values: values, maxValue: maxValue),
                         ),
                         const SizedBox(height: 24),
                         Text(
@@ -272,8 +270,8 @@ class _AnswerSummary {
   final int maxValue;
 }
 
-class PatientRadarChart extends StatelessWidget {
-  const PatientRadarChart({super.key, required this.values, required this.maxValue});
+class RadarChart extends StatelessWidget {
+  const RadarChart({super.key, required this.values, required this.maxValue});
 
   final List<double> values;
   final int maxValue;
@@ -281,39 +279,33 @@ class PatientRadarChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Convert values to radar data entries with question numbers as labels
-    final radarDataSets = <fl.RadarDataSet>[
-      fl.RadarDataSet(
-        fillColor: Theme.of(context).colorScheme.primary.withAlpha(50),
+    final radarDataSets = <RadarDataSet>[
+      RadarDataSet(
+        fillColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
         borderColor: Theme.of(context).colorScheme.primary,
         borderWidth: 2,
-        entryRadius: 4,
         dataEntries: values
             .asMap()
             .entries
-            .map((entry) => fl.RadarEntry(value: entry.value))
+            .map((entry) => RadarEntry(value: entry.value))
             .toList(),
+        radarBorderSide: BorderSide(
+          color: Theme.of(context).colorScheme.outline,
+        ),
       ),
     ];
 
-    return fl.RadarChart(
-      fl.RadarChartData(
-        radarShape: fl.RadarShape.circle,
-        radarBorderData: BorderSide(
+    return FlRadarChart(
+      FlRadarChartData(
+        radarBorderSide: BorderSide(
           color: Theme.of(context).colorScheme.outline,
         ),
         getTitle: (index, angle) {
-          return fl.RadarChartTitle(
-            text: 'Q${index + 1}',
-            angle: angle,
-          );
+          return RadarChartTitle(text: 'Q${index + 1}', angle: angle);
         },
         dataSets: radarDataSets,
-        tickCount: maxValue,
-        ticksTextStyle: const TextStyle(color: Colors.transparent, fontSize: 10),
-        tickBorderData: BorderSide(
-          color: Theme.of(context).colorScheme.outlineVariant,
-          width: 1,
-        ),
+        maxValue: maxValue.toDouble(),
+        titlePositionPercentageOffset: 0.15,
         gridBorderData: BorderSide(
           color: Theme.of(context).colorScheme.outlineVariant,
           width: 1,
