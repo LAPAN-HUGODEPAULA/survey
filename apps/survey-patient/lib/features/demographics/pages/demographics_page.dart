@@ -357,7 +357,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _submitForm,
-                child: const Text('Continuar para Instruções'),
+                child: const Text('Ver Resultados'),
               ),
             ],
           ),
