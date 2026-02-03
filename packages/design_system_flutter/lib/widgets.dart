@@ -1,3 +1,6 @@
+export 'widgets/survey_option_button.dart';
+export 'widgets/survey_progress_indicator.dart';
+
 import 'package:flutter/material.dart';
 
 class DsScaffold extends StatelessWidget {
