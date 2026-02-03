@@ -18,6 +18,12 @@ case "$FLAVOR" in
     exit 1
 esac
 
+
+cd ../../packages/contracts/generated/dart
+dart pub run build_runner build --delete-conflicting-outputs
+
+cd ../../../../apps/survey-patient
+
 # ---- 2. optional: clean previous build -------------------------------------
 # echo "Cleaning previous build outputs…"
 # flutter clean
@@ -33,3 +39,5 @@ flutter build web --dart-define=FLAVOR="$FLAVOR"
 # ---- 5. tell the caller where the bundle is ---------------------------------
 OUTPUT_DIR="build/web"
 echo "Build complete. Bundle ready in: $OUTPUT_DIR"
+
+
