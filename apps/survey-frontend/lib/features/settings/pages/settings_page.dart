@@ -5,6 +5,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:survey_app/core/models/survey/survey.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
@@ -112,7 +113,10 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
     );
 
-    Navigator.of(context).pop();
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (!mounted) return;
+      context.go('/');
+    });
   }
 
   @override
