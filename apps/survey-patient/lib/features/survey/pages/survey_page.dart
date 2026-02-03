@@ -5,6 +5,7 @@
 /// e navegação entre perguntas até completar o questionário.
 library;
 
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/navigation/app_navigator.dart';
@@ -82,6 +83,11 @@ class _SurveyPageState extends State<SurveyPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              DsSurveyProgressIndicator(
+                currentIndex: _currentQuestionIndex,
+                total: _survey.questions.length,
+                showLabel: true,
+              ),
               Text(
                 currentQuestion.questionText,
                 style: const TextStyle(
@@ -103,24 +109,17 @@ class _SurveyPageState extends State<SurveyPage> {
   ///
   /// [answers] - Lista de opções de resposta da pergunta atual
   ///
-  /// Returns lista de widgets ElevatedButton, um para cada opção de resposta.
+  /// Returns lista de widgets SurveyOptionButton, um para cada opção de resposta.
   /// Cada botão chama [_answerQuestion] quando pressionado.
   List<Widget> _buildAnswerButtons(List<String> answers) {
-    return answers.map((answer) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: ElevatedButton(
-          onPressed: () => _answerQuestion(answer),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: Text(answer, style: const TextStyle(fontSize: 16)),
-        ),
+    return answers.asMap().entries.map((entry) {
+      final index = entry.key;
+      final answer = entry.value;
+      return SurveyOptionButton(
+        text: answer,
+        onPressed: () => _answerQuestion(answer),
+        optionIndex: index,
+        optionCount: answers.length,
       );
     }).toList();
   }
