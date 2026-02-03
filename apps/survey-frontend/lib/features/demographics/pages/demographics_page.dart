@@ -3,12 +3,15 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:survey_app/core/providers/api_provider.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/core/navigation/app_navigator.dart';
 import 'package:survey_app/core/services/demographics_data_service.dart';
 import 'package:survey_app/core/utils/validator_sets.dart';
-import 'package:survey_app/features/settings/pages/settings_page.dart';
+
+enum _ProfileMenuAction { login, profile, settings, logout }
 
 class DemographicsPage extends StatefulWidget {
   const DemographicsPage({super.key});
@@ -179,17 +182,59 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<AppSettings>();
     return Scaffold(
       appBar: AppBar(
         title: Image.asset('assets/images/lapan_logo_reduced.png', height: 40),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsPage()),
-              );
+          PopupMenuButton<_ProfileMenuAction>(
+            tooltip: 'Perfil',
+            icon: const Icon(Icons.person),
+            onSelected: (action) {
+              switch (action) {
+                case _ProfileMenuAction.login:
+                  context.go('/login');
+                  break;
+                case _ProfileMenuAction.profile:
+                  context.go('/profile');
+                  break;
+                case _ProfileMenuAction.settings:
+                  context.go('/settings');
+                  break;
+                case _ProfileMenuAction.logout:
+                  settings.clearScreenerSession();
+                  context.read<ApiProvider>().clearAuthToken();
+                  context.go('/login');
+                  break;
+              }
+            },
+            itemBuilder: (context) {
+              if (!settings.isLoggedIn) {
+                return const [
+                  PopupMenuItem(
+                    value: _ProfileMenuAction.login,
+                    child: Text('Login'),
+                  ),
+                  PopupMenuItem(
+                    value: _ProfileMenuAction.settings,
+                    child: Text('Configurações'),
+                  ),
+                ];
+              }
+              return const [
+                PopupMenuItem(
+                  value: _ProfileMenuAction.profile,
+                  child: Text('Perfil'),
+                ),
+                PopupMenuItem(
+                  value: _ProfileMenuAction.settings,
+                  child: Text('Configurações'),
+                ),
+                PopupMenuItem(
+                  value: _ProfileMenuAction.logout,
+                  child: Text('Sair'),
+                ),
+              ];
             },
           ),
         ],
