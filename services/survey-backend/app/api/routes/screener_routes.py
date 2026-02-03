@@ -116,7 +116,7 @@ def _get_email_from_authorization_header(authorization: Optional[str]) -> str:
     return subject
 
 
-@router.post("/screeners/register", response_model=ScreenerModel, status_code=status.HTTP_201_CREATED)
+@router.post("/screeners/register", response_model=ScreenerProfile, status_code=status.HTTP_201_CREATED)
 async def register_screener(
     screener_data: ScreenerRegister, repo: ScreenerRepository = Depends(get_screener_repo)
 ):
@@ -146,7 +146,7 @@ async def register_screener(
     try:
         created_screener = repo.create(new_screener)
         logger.info("Screener registered successfully with email: %s", created_screener.email)
-        return created_screener
+        return ScreenerProfile.model_validate(created_screener)
     except ValueError as e:
         logger.warning("Screener registration failed: %s", e)
         raise HTTPException(

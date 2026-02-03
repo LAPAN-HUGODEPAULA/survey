@@ -165,7 +165,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ScreenerModel'
+                $ref: '#/components/schemas/ScreenerProfile'
         '409':
           description: Conflict (e.g., CPF or email already registered)
   /screeners/login:
@@ -519,6 +519,7 @@ components:
         darvCourseYear:
           type: integer
           description: Ano de conclusão do curso DARV (opcional)
+          minimum: 2000
     ScreenerModel:
       type: object
       required:
@@ -567,6 +568,7 @@ components:
         darvCourseYear:
           type: integer
           description: Ano de conclusão do curso DARV (opcional)
+          minimum: 2000
     ScreenerRegister:
       type: object
       required:
@@ -622,6 +624,7 @@ components:
           type: integer
           description: Ano de conclusão do curso DARV (opcional)
           example: 2019
+          minimum: 2000
     ScreenerLogin:
       type: object
       required:
