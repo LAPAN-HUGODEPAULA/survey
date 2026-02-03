@@ -99,7 +99,10 @@ class ThankYouPage extends StatelessWidget {
                               ? const Center(
                                   child: Text('Sem respostas para exibir.'),
                                 )
-                              : _SurveyRadarChart(values: values, maxValue: maxValue),
+                              : _SurveyRadarChart(
+                                  values: values,
+                                  maxValue: maxValue,
+                                ),
                         ),
                         const SizedBox(height: 24),
                         Text(
@@ -160,7 +163,7 @@ class ThankYouPage extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  'Informacoes importantes',
+                                  'Informações importantes',
                                   style: Theme.of(context).textTheme.titleMedium
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
@@ -202,13 +205,13 @@ class ThankYouPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Quer um relatorio mais detalhado?',
+                        'Quer um relatório mais detalhado?',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Voce pode adicionar seus dados pessoais para enriquecer a analise ou seguir direto para o relatorio.',
+                        'Você pode adicionar seus dados pessoais para enriquecer a análise ou seguir direto para o relatório.',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 16),
@@ -222,7 +225,7 @@ class ThankYouPage extends StatelessWidget {
                                 surveyAnswers: surveyAnswers,
                                 surveyQuestions: surveyQuestions,
                               ),
-                              child: const Text('Adicionar Informacoes'),
+                              child: const Text('Adicionar Informações'),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -286,10 +289,9 @@ class _SurveyRadarChart extends StatelessWidget {
         borderColor: Theme.of(context).colorScheme.primary,
         borderWidth: 2,
         dataEntries: [
-          ...values
-              .asMap()
-              .entries
-              .map((entry) => RadarEntry(value: entry.value))
+          ...values.asMap().entries.map(
+            (entry) => RadarEntry(value: entry.value),
+          ),
         ],
       ),
     ];

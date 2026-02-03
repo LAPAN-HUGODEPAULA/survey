@@ -43,10 +43,10 @@ class _WelcomePageState extends State<WelcomePage> {
         return AsyncScaffold(
           isLoading: isLoading,
           error: error != null
-              ? 'Falha ao carregar questionarios: $error'
+              ? 'Falha ao carregar questionários: $error'
               : survey == null
-                  ? 'Nenhum questionario disponivel. Verifique a conexao.'
-                  : null,
+              ? 'Nenhum questionário disponível. Verifique a conexão.'
+              : null,
           appBar: AppBar(
             title: const Text('Bem-vindo'),
             automaticallyImplyLeading: false,
@@ -65,9 +65,7 @@ class _WelcomePageState extends State<WelcomePage> {
                             survey.surveyDisplayName.isNotEmpty
                                 ? survey.surveyDisplayName
                                 : survey.surveyName,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
+                            style: Theme.of(context).textTheme.headlineMedium
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
                           const SizedBox(height: 12),
@@ -79,18 +77,16 @@ class _WelcomePageState extends State<WelcomePage> {
                                   fontSize: FontSize(16.0),
                                   lineHeight: const LineHeight(1.5),
                                 ),
-                                'p': Style(
-                                  margin: Margins.only(bottom: 12.0),
-                                ),
+                                'p': Style(margin: Margins.only(bottom: 12.0)),
                               },
                             ),
                           const SizedBox(height: 24),
                           Container(
                             padding: const EdgeInsets.all(16.0),
                             decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primaryContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primaryContainer,
                               borderRadius: BorderRadius.circular(12.0),
                               border: Border.all(
                                 color: Theme.of(context).colorScheme.outline,
@@ -100,21 +96,21 @@ class _WelcomePageState extends State<WelcomePage> {
                               children: [
                                 Icon(
                                   Icons.info_outline,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimaryContainer,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    'Voce respondera 7 perguntas rapidas. Ao final, sera possivel ver um resumo e gerar um relatorio.',
+                                    'Você responderá 7 perguntas rápidas. Ao final, será possível ver um resumo e gerar um relatório.',
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodyMedium
                                         ?.copyWith(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onPrimaryContainer,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimaryContainer,
                                         ),
                                   ),
                                 ),
@@ -125,14 +121,14 @@ class _WelcomePageState extends State<WelcomePage> {
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton.icon(
-                              onPressed: () => AppNavigator.toInstructions(
-                                context,
-                              ),
+                              onPressed: () =>
+                                  AppNavigator.toInstructions(context),
                               icon: const Icon(Icons.play_arrow),
-                              label: const Text('Iniciar Questionario'),
+                              label: const Text('Iniciar questionário'),
                               style: ElevatedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
                                 ),
