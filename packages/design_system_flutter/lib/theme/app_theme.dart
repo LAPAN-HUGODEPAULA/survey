@@ -1,4 +1,31 @@
+import 'package:design_system_flutter/theme/color_palette.dart';
 import 'package:flutter/material.dart';
+
+@immutable
+class SurveyOptionColors extends ThemeExtension<SurveyOptionColors> {
+  const SurveyOptionColors({
+    required this.palette,
+  });
+
+  final List<Color> palette;
+
+  @override
+  SurveyOptionColors copyWith({List<Color>? palette}) {
+    return SurveyOptionColors(
+      palette: palette ?? this.palette,
+    );
+  }
+
+  @override
+  SurveyOptionColors lerp(ThemeExtension<SurveyOptionColors>? other, double t) {
+    if (other is! SurveyOptionColors) {
+      return this;
+    }
+    // For simplicity, we're not interpolating colors in the palette.
+    // In a real-world scenario, you might want to lerp each color individually.
+    return t < 0.5 ? this : other;
+  }
+}
 
 class AppTheme {
   static ThemeData light() {
@@ -30,6 +57,11 @@ class AppTheme {
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: Colors.orange,
       ),
+      extensions: const <ThemeExtension<dynamic>>[
+        SurveyOptionColors(
+          palette: ColorPalette.greenToRed,
+        ),
+      ],
     );
   }
 }
