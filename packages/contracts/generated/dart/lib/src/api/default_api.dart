@@ -13,7 +13,6 @@ import 'package:survey_backend_api/src/api_util.dart';
 import 'package:survey_backend_api/src/model/agent_response.dart';
 import 'package:survey_backend_api/src/model/clinical_writer_request.dart';
 import 'package:survey_backend_api/src/model/screener_login.dart';
-import 'package:survey_backend_api/src/model/screener_model.dart';
 import 'package:survey_backend_api/src/model/screener_password_recovery_request.dart';
 import 'package:survey_backend_api/src/model/screener_profile.dart';
 import 'package:survey_backend_api/src/model/screener_register.dart';
@@ -956,9 +955,9 @@ class DefaultApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [ScreenerModel] as data
+  /// Returns a [Future] containing a [Response] with a [ScreenerProfile] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ScreenerModel>> registerScreener({ 
+  Future<Response<ScreenerProfile>> registerScreener({ 
     required ScreenerRegister screenerRegister,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1008,14 +1007,14 @@ class DefaultApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    ScreenerModel? _responseData;
+    ScreenerProfile? _responseData;
 
     try {
       final rawResponse = _response.data;
       _responseData = rawResponse == null ? null : _serializers.deserialize(
         rawResponse,
-        specifiedType: const FullType(ScreenerModel),
-      ) as ScreenerModel;
+        specifiedType: const FullType(ScreenerProfile),
+      ) as ScreenerProfile;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -1027,7 +1026,7 @@ class DefaultApi {
       );
     }
 
-    return Response<ScreenerModel>(
+    return Response<ScreenerProfile>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

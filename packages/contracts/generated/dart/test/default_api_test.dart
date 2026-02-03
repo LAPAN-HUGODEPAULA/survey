@@ -86,7 +86,7 @@ void main() {
 
     // Register a new screener
     //
-    //Future<ScreenerModel> registerScreener(ScreenerRegister screenerRegister) async
+    //Future<ScreenerProfile> registerScreener(ScreenerRegister screenerRegister) async
     test('test registerScreener', () async {
       // TODO
     });
