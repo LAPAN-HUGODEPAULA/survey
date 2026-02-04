@@ -18,6 +18,7 @@ import 'package:survey_app/features/screener/pages/screener_login_page.dart';
 import 'package:survey_app/features/screener/pages/screener_profile_page.dart';
 import 'package:survey_app/features/settings/pages/settings_page.dart'; // Added import for SettingsPage
 import 'package:survey_app/shared/widgets/main_layout.dart'; // Added import for MainLayout
+import 'package:survey_app/features/demographics/pages/demographics_page.dart'; // Added import for DemographicsPage
 
 // Define the GoRouter instance
 final _router = GoRouter(
@@ -30,6 +31,10 @@ final _router = GoRouter(
         GoRoute(
           path: '/',
           builder: (context, state) => const SplashScreen(),
+        ),
+        GoRoute(
+          path: '/demographics',
+          builder: (context, state) => const DemographicsPage(),
         ),
         GoRoute(
           path: '/register',

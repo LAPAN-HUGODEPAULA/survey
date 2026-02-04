@@ -18,7 +18,7 @@ class _ScreenerProfilePageState extends State<ScreenerProfilePage> {
     final profile = settings.screenerProfile;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Perfil do Screener'),
+        title: const Text('Perfil do Avaliador'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -33,67 +33,75 @@ class _ScreenerProfilePageState extends State<ScreenerProfilePage> {
       ),
       body: profile == null
           ? _buildLoggedOutState(context)
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildProfileField('CPF', profile.cpf),
-                  _buildProfileField('Nome', '${profile.firstName} ${profile.surname}'),
-                  _buildProfileField('E-mail', profile.email),
-                  _buildProfileField('Telefone', profile.phone),
-                  const Divider(),
-                  Text('Endereço', style: Theme.of(context).textTheme.titleLarge),
-                  _buildProfileField('CEP', profile.address.postalCode),
-                  _buildProfileField('Rua', profile.address.street),
-                  _buildProfileField('Número', profile.address.number),
-                  if ((profile.address.complement ?? '').isNotEmpty)
-                    _buildProfileField('Complemento', profile.address.complement!),
-                  _buildProfileField('Bairro', profile.address.neighborhood),
-                  _buildProfileField('Cidade', profile.address.city),
-                  _buildProfileField('Estado', profile.address.state),
-                  const Divider(),
-                  Text(
-                    'Informações Profissionais',
-                    style: Theme.of(context).textTheme.titleLarge,
+          : Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 700),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildProfileField('CPF', profile.cpf),
+                      _buildProfileField('Nome', '${profile.firstName} ${profile.surname}'),
+                      _buildProfileField('E-mail', profile.email),
+                      _buildProfileField('Telefone', profile.phone),
+                      const Divider(),
+                      Text('Endereço', style: Theme.of(context).textTheme.titleLarge),
+                      _buildProfileField('CEP', profile.address.postalCode),
+                      _buildProfileField('Rua', profile.address.street),
+                      _buildProfileField('Número', profile.address.number),
+                      if ((profile.address.complement ?? '').isNotEmpty)
+                        _buildProfileField('Complemento', profile.address.complement!),
+                      _buildProfileField('Bairro', profile.address.neighborhood),
+                      _buildProfileField('Cidade', profile.address.city),
+                      _buildProfileField('Estado', profile.address.state),
+                      const Divider(),
+                      Text(
+                        'Informações Profissionais',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      _buildProfileField(
+                        'Conselho',
+                        profile.professionalCouncil.type,
+                      ),
+                      _buildProfileField(
+                        'Registro',
+                        profile.professionalCouncil.registrationNumber,
+                      ),
+                      _buildProfileField('Cargo', profile.jobTitle),
+                      _buildProfileField('Formação', profile.degree),
+                      if (profile.darvCourseYear != null)
+                        _buildProfileField('Ano DARV', profile.darvCourseYear.toString()),
+                    ],
                   ),
-                  _buildProfileField(
-                    'Conselho',
-                    profile.professionalCouncil.type,
-                  ),
-                  _buildProfileField(
-                    'Registro',
-                    profile.professionalCouncil.registrationNumber,
-                  ),
-                  _buildProfileField('Cargo', profile.jobTitle),
-                  _buildProfileField('Formação', profile.degree),
-                  if (profile.darvCourseYear != null)
-                    _buildProfileField('Ano DARV', profile.darvCourseYear.toString()),
-                ],
+                ),
               ),
             ),
-    );
+        );
   }
 
   Widget _buildLoggedOutState(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.lock_outline, size: 48),
-            const SizedBox(height: 12),
-            const Text(
-              'Você precisa fazer login para ver seu perfil.',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => context.go('/login'),
-              child: const Text('Ir para Login'),
-            ),
-          ],
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.lock_outline, size: 48),
+              const SizedBox(height: 12),
+              const Text(
+                'Você precisa fazer login para ver seu perfil.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => context.go('/login'),
+                child: const Text('Ir para a tela de login'),
+              ),
+            ],
+          ),
         ),
       ),
     );
