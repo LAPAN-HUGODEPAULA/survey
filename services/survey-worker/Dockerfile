@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.13-slim
 
 # Create a non-privileged user
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup --home /home/appuser appuser

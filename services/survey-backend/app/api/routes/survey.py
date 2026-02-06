@@ -1,4 +1,4 @@
-"""FastAPI router for managing surveys (create, list, retrieve)."""
+"""FastAPI router for managing surveys (create, list, retrieve, update, delete)."""
 
 from typing import List
 from bson.objectid import ObjectId
@@ -81,4 +81,45 @@ async def get_survey(survey_id: str, repo: SurveyRepository = Depends(get_survey
         raise
     except Exception as e:
         logger.error("Unexpected error fetching survey %s: %s", survey_id, e)
+        raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
+
+@router.put("/surveys/{survey_id}", response_model=Survey)
+async def update_survey(
+    survey_id: str, survey: Survey, repo: SurveyRepository = Depends(get_survey_repo)
+):
+    """Update an existing survey."""
+    logger.info("Updating survey with ID: %s", survey_id)
+    try:
+        updated_survey = repo.update(survey_id, survey.model_dump(by_alias=True))
+
+        if updated_survey:
+            logger.info("Successfully updated survey: %s", survey_id)
+            return Survey(**updated_survey)
+
+        logger.warning("Survey not found for update: %s", survey_id)
+        raise HTTPException(status_code=404, detail="Survey not found")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Unexpected error updating survey %s: %s", survey_id, e)
+        raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
+
+@router.delete("/surveys/{survey_id}", status_code=204)
+async def delete_survey(survey_id: str, repo: SurveyRepository = Depends(get_survey_repo)):
+    """Delete a survey by its ID."""
+    logger.info("Deleting survey with ID: %s", survey_id)
+    try:
+        if not repo.get_by_id(survey_id):
+            logger.warning("Survey not found for deletion: %s", survey_id)
+            raise HTTPException(status_code=404, detail="Survey not found")
+
+        repo.delete(survey_id)
+        logger.info("Successfully deleted survey: %s", survey_id)
+        return
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Unexpected error deleting survey %s: %s", survey_id, e)
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from e

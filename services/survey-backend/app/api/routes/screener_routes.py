@@ -7,7 +7,7 @@ import bcrypt
 import jwt
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from fastapi_mail import MessageSchema, MessageType
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.config.logging_config import logger
 from app.config.settings import settings
@@ -37,8 +37,8 @@ class ScreenerRegister(BaseModel):
         None, description="Ano de conclusão do curso DARV (opcional)"
     )
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "cpf": "111.111.111-11",
                 "firstName": "Maria",
@@ -64,6 +64,7 @@ class ScreenerRegister(BaseModel):
                 "darvCourseYear": 2019,
             }
         }
+    )
 
 
 # Pydantic model for Screener login request
@@ -71,13 +72,14 @@ class ScreenerLogin(BaseModel):
     email: EmailStr = Field(..., description="Endereço de e-mail do Screener")
     password: str = Field(..., description="Senha do Screener")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "email": "maria.vale@holhos.com",
                 "password": "StrongPassword123",
             }
         }
+    )
 
 
 # Pydantic model for JWT token response
@@ -98,6 +100,8 @@ class ScreenerProfile(BaseModel):
     jobTitle: str
     degree: str
     darvCourseYear: Optional[int] = None
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
 def _get_email_from_authorization_header(authorization: Optional[str]) -> str:
@@ -146,7 +150,8 @@ async def register_screener(
     try:
         created_screener = repo.create(new_screener)
         logger.info("Screener registered successfully with email: %s", created_screener.email)
-        return ScreenerProfile.model_validate(created_screener)
+        profile_data = created_screener.model_dump(by_alias=True, exclude={"password"})
+        return ScreenerProfile.model_validate(profile_data)
     except ValueError as e:
         logger.warning("Screener registration failed: %s", e)
         raise HTTPException(
@@ -201,12 +206,13 @@ async def login_for_access_token(
 class ScreenerPasswordRecoveryRequest(BaseModel):
     email: EmailStr = Field(..., description="Endereço de e-mail do Screener para recuperação de senha")
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "email": "maria.vale@holhos.com",
             }
         }
+    )
 
 
 @router.post("/screeners/recover-password", status_code=status.HTTP_200_OK)

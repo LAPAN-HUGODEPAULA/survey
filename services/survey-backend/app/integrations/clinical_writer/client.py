@@ -19,6 +19,8 @@ from app.persistence.repositories.clinical_writer_run_log_repo import (
 
 LANGGRAPH_URL = os.getenv("LANGGRAPH_URL")
 DEFAULT_LANGGRAPH_URL = "http://localhost:9566/process"
+DEFAULT_LANGGRAPH_ANALYSIS_URL = "http://localhost:9566/analysis"
+DEFAULT_LANGGRAPH_TRANSCRIPTION_URL = "http://localhost:9566/transcriptions"
 LANGGRAPH_TOKEN = os.getenv("LANGGRAPH_API_TOKEN")
 
 
@@ -223,6 +225,40 @@ async def send_to_langgraph_agent(
             status="error",
         )
         return {"error_message": "Unexpected error contacting AI agent"}
+
+
+async def send_to_langgraph_analysis(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Send analysis request payload to the Clinical Writer analysis endpoint."""
+    headers: Dict[str, str] = {}
+    token = settings.clinical_writer_token or LANGGRAPH_TOKEN
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    configured = os.getenv("LANGGRAPH_ANALYSIS_URL")
+    if not configured and settings.clinical_writer_url:
+        configured = settings.clinical_writer_url.replace("/process", "/analysis")
+    endpoint = configured or DEFAULT_LANGGRAPH_ANALYSIS_URL
+    async with httpx.AsyncClient(timeout=10) as client:
+        response = await client.post(endpoint, json=payload, headers=headers)
+        response.raise_for_status()
+        return response.json()
+
+
+async def send_to_langgraph_transcription(payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Send transcription request payload to the Clinical Writer transcription endpoint."""
+    headers: Dict[str, str] = {}
+    token = settings.clinical_writer_token or LANGGRAPH_TOKEN
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    configured = os.getenv("LANGGRAPH_TRANSCRIPTION_URL") or settings.clinical_writer_transcription_url
+    if not configured and settings.clinical_writer_url:
+        configured = settings.clinical_writer_url.replace("/process", "/transcriptions")
+    endpoint = configured or DEFAULT_LANGGRAPH_TRANSCRIPTION_URL
+    async with httpx.AsyncClient(timeout=30) as client:
+        response = await client.post(endpoint, json=payload, headers=headers)
+        response.raise_for_status()
+        return response.json()
 
 
 def _persist_run_log(

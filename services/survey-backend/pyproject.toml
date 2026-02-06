@@ -78,3 +78,12 @@ dependencies = [
     "werkzeug>=3.1.5",
     "bcrypt>=4.1.2",
 ]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "app"]
+

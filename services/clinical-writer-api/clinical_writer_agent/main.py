@@ -20,6 +20,17 @@ from .agent_graph import (
 )
 from .prompt_registry import PromptNotFoundError, create_prompt_registry
 from .report_models import ReportDocument
+from .analysis_models import AnalysisRequest, AnalysisResponse
+from .analysis_engine import (
+    extract_entities,
+    detect_phase,
+    generate_suggestions,
+    generate_hypotheses,
+    detect_alerts,
+    knowledge_lookup,
+)
+from .transcription_models import TranscriptionRequest, TranscriptionResponse
+from .transcription_service import transcribe
 
 # ======================================================================================
 # FastAPI App Initialization
@@ -230,6 +241,40 @@ async def process_content(
         response.prompt_version,
     )
     return response
+
+
+@app.post("/analysis", response_model=AnalysisResponse, dependencies=[Depends(verify_token)], tags=["Analysis"])
+async def analyze_conversation(body: AnalysisRequest):
+    entities = extract_entities(body.messages)
+    phase = body.phase or detect_phase(body.messages)
+    suggestions = generate_suggestions(body.messages)
+    hypotheses = generate_hypotheses(body.messages)
+    alerts = detect_alerts(body.messages)
+    knowledge = knowledge_lookup(body.messages)
+    return AnalysisResponse(
+        suggestions=suggestions,
+        entities=entities,
+        alerts=alerts,
+        hypotheses=hypotheses,
+        knowledge=knowledge,
+        phase=phase,
+    )
+
+
+@app.post(
+    "/transcriptions",
+    response_model=TranscriptionResponse,
+    dependencies=[Depends(verify_token)],
+    tags=["Transcription"],
+)
+async def transcribe_audio(payload: TranscriptionRequest) -> TranscriptionResponse:
+    """
+    Transcribe audio via configured provider and return metadata.
+    """
+    try:
+        return transcribe(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 @app.get("/metrics", summary="Get Live Metrics", tags=["Monitoring"])
 async def get_metrics(observer=Depends(get_observer)):

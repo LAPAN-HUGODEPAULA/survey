@@ -2,7 +2,7 @@ from datetime import datetime
 import re
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class ProfessionalCouncil(BaseModel):
@@ -14,7 +14,8 @@ class ProfessionalCouncil(BaseModel):
         None, description="Número de registro no conselho profissional"
     )
 
-    @validator("type")
+    @field_validator("type")
+    @classmethod
     def validate_council_type(cls, value):
         if value is not None and value not in [
             "CFEP",
@@ -32,8 +33,10 @@ class ProfessionalCouncil(BaseModel):
             )
         return value
 
-    @validator("registrationNumber")
-    def registration_number_required_if_council_type_not_none(cls, v, values):
+    @field_validator("registrationNumber")
+    @classmethod
+    def registration_number_required_if_council_type_not_none(cls, v, info):
+        values = info.data
         if values.get("type") and values["type"] != "none" and not v:
             raise ValueError(
                 "O número de registro é obrigatório se o tipo de conselho não for 'none'."
@@ -59,10 +62,10 @@ class ScreenerModel(BaseModel):
     Modelo de dados para um Screener.
     """
     id: Optional[str] = Field(default=None, alias="_id")
-    cpf: str = Field(..., description="CPF do Screener", unique=True)
+    cpf: str = Field(..., description="CPF do Screener", json_schema_extra={"unique": True})
     firstName: str = Field(..., description="Primeiro nome do Screener")
     surname: str = Field(..., description="Sobrenome do Screener")
-    email: EmailStr = Field(..., description="Endereço de e-mail do Screener", unique=True)
+    email: EmailStr = Field(..., description="Endereço de e-mail do Screener", json_schema_extra={"unique": True})
     password: str = Field(..., description="Senha do Screener (hash)")
     phone: str = Field(..., description="Número de telefone do Screener")
     address: Address = Field(..., description="Endereço profissional do Screener")
@@ -77,14 +80,16 @@ class ScreenerModel(BaseModel):
         ge=2000,
     )
 
-    @validator("phone")
+    @field_validator("phone")
+    @classmethod
     def validate_phone_number(cls, value):
         # Basic phone number validation (e.g., only digits, min length)
         if not value.isdigit() or len(value) < 8:
             raise ValueError("Número de telefone inválido.")
         return value
 
-    @validator("cpf")
+    @field_validator("cpf")
+    @classmethod
     def validate_cpf(cls, value: str) -> str:
         digits = re.sub(r"\D", "", value or "")
         if len(digits) != 11:
