@@ -14,10 +14,13 @@ class SurveyBuilderApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final baseTheme = AppTheme.light();
     return MaterialApp(
       title: 'Survey Builder',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
+      theme: baseTheme.copyWith(
+        textTheme: baseTheme.textTheme.apply(fontFamily: 'NotoSans'),
+      ),
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

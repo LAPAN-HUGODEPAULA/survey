@@ -127,12 +127,15 @@ class _SurveyListPageState extends State<SurveyListPage> {
           children: [
             Row(
               children: [
-                Expanded(
+                Flexible(
                   child: Text(
                     'Surveys',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
+                const SizedBox(width: 16),
                 DsFilledButton(
                   label: 'Create Survey',
                   onPressed: () => _openForm(draft: _emptyDraft()),
