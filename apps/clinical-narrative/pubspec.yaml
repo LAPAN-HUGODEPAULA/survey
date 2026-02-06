@@ -1,5 +1,5 @@
 name: clinical_narrative_app
-description: "Clinical Narrative App"
+description: "A conversational platform for clinical documentation with features like session management, voice input, AI-driven assistance, and document generation."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

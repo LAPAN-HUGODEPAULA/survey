@@ -4,5 +4,11 @@
   },
   "devDependencies": {
     "markdownlint": "^0.40.0"
+  },
+  "scripts": {
+    "dev:survey-frontend": "cd apps/survey-frontend && flutter run -d chrome --web-port 8080",
+    "dev:survey-patient": "cd apps/survey-patient && flutter run -d chrome --web-port 8081",
+    "dev:clinical-narrative": "cd apps/clinical-narrative && flutter run -d chrome --web-port 8082",
+    "dev:survey-builder": "cd apps/survey-builder && flutter run -d chrome --web-port 8083"
   }
 }
