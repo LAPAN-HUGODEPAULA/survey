@@ -48,13 +48,13 @@ import 'package:survey_backend_api/survey_backend_api.dart';
 
 
 final api = SurveyBackendApi().getDefaultApi();
-final SurveyResponse surveyResponse = ; // SurveyResponse | 
+final ClinicalWriterAnalysisRequest clinicalWriterAnalysisRequest = ; // ClinicalWriterAnalysisRequest | 
 
 try {
-    final response = await api.createPatientResponse(surveyResponse);
+    final response = await api.analyzeClinicalWriter(clinicalWriterAnalysisRequest);
     print(response);
 } catch on DioException (e) {
-    print("Exception when calling DefaultApi->createPatientResponse: $e\n");
+    print("Exception when calling DefaultApi->analyzeClinicalWriter: $e\n");
 }
 
 ```
@@ -65,19 +65,43 @@ All URIs are relative to *http://localhost:8000/api/v1*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+[*DefaultApi*](doc/DefaultApi.md) | [**analyzeClinicalWriter**](doc/DefaultApi.md#analyzeclinicalwriter) | **POST** /clinical_writer/analysis | Analyze conversation context with Clinical Writer
+[*DefaultApi*](doc/DefaultApi.md) | [**approveTemplate**](doc/DefaultApi.md#approvetemplate) | **POST** /templates/{templateId}/approve | Approve template
+[*DefaultApi*](doc/DefaultApi.md) | [**archiveTemplate**](doc/DefaultApi.md#archivetemplate) | **POST** /templates/{templateId}/archive | Archive template
+[*DefaultApi*](doc/DefaultApi.md) | [**completeChatSession**](doc/DefaultApi.md#completechatsession) | **POST** /chat/sessions/{sessionId}/complete | Complete chat session
+[*DefaultApi*](doc/DefaultApi.md) | [**createChatMessage**](doc/DefaultApi.md#createchatmessage) | **POST** /chat/sessions/{sessionId}/messages | Create chat message
+[*DefaultApi*](doc/DefaultApi.md) | [**createChatSession**](doc/DefaultApi.md#createchatsession) | **POST** /chat/sessions | Create chat session
 [*DefaultApi*](doc/DefaultApi.md) | [**createPatientResponse**](doc/DefaultApi.md#createpatientresponse) | **POST** /patient_responses/ | Create patient response
 [*DefaultApi*](doc/DefaultApi.md) | [**createSurvey**](doc/DefaultApi.md#createsurvey) | **POST** /surveys/ | Create survey
 [*DefaultApi*](doc/DefaultApi.md) | [**createSurveyResponse**](doc/DefaultApi.md#createsurveyresponse) | **POST** /survey_responses/ | Create survey response
+[*DefaultApi*](doc/DefaultApi.md) | [**createTemplate**](doc/DefaultApi.md#createtemplate) | **POST** /templates | Create template
+[*DefaultApi*](doc/DefaultApi.md) | [**deleteSurvey**](doc/DefaultApi.md#deletesurvey) | **DELETE** /surveys/{surveyId} | Delete survey
+[*DefaultApi*](doc/DefaultApi.md) | [**exportDocument**](doc/DefaultApi.md#exportdocument) | **POST** /documents/export | Export document
+[*DefaultApi*](doc/DefaultApi.md) | [**getChatSession**](doc/DefaultApi.md#getchatsession) | **GET** /chat/sessions/{sessionId} | Get chat session
 [*DefaultApi*](doc/DefaultApi.md) | [**getCurrentScreener**](doc/DefaultApi.md#getcurrentscreener) | **GET** /screeners/me | Get the current screener profile
+[*DefaultApi*](doc/DefaultApi.md) | [**getDocument**](doc/DefaultApi.md#getdocument) | **GET** /documents/{documentId} | Get document record
 [*DefaultApi*](doc/DefaultApi.md) | [**getSurvey**](doc/DefaultApi.md#getsurvey) | **GET** /surveys/{surveyId} | Get survey by id
 [*DefaultApi*](doc/DefaultApi.md) | [**getSurveyResponse**](doc/DefaultApi.md#getsurveyresponse) | **GET** /survey_responses/{responseId} | Get survey response by id
+[*DefaultApi*](doc/DefaultApi.md) | [**getTemplate**](doc/DefaultApi.md#gettemplate) | **GET** /templates/{templateId} | Get template
+[*DefaultApi*](doc/DefaultApi.md) | [**listChatMessages**](doc/DefaultApi.md#listchatmessages) | **GET** /chat/sessions/{sessionId}/messages | List chat messages
+[*DefaultApi*](doc/DefaultApi.md) | [**listChatSessions**](doc/DefaultApi.md#listchatsessions) | **GET** /chat/sessions | List chat sessions
 [*DefaultApi*](doc/DefaultApi.md) | [**listSurveyResponses**](doc/DefaultApi.md#listsurveyresponses) | **GET** /survey_responses/ | List survey responses
 [*DefaultApi*](doc/DefaultApi.md) | [**listSurveys**](doc/DefaultApi.md#listsurveys) | **GET** /surveys/ | List surveys
+[*DefaultApi*](doc/DefaultApi.md) | [**listTemplateDocumentTypes**](doc/DefaultApi.md#listtemplatedocumenttypes) | **GET** /templates/document-types | List supported template document types
+[*DefaultApi*](doc/DefaultApi.md) | [**listTemplates**](doc/DefaultApi.md#listtemplates) | **GET** /templates | List templates
 [*DefaultApi*](doc/DefaultApi.md) | [**loginScreener**](doc/DefaultApi.md#loginscreener) | **POST** /screeners/login | Authenticate a screener and get an access token
+[*DefaultApi*](doc/DefaultApi.md) | [**previewDocument**](doc/DefaultApi.md#previewdocument) | **POST** /documents/preview | Generate document preview
+[*DefaultApi*](doc/DefaultApi.md) | [**previewTemplate**](doc/DefaultApi.md#previewtemplate) | **POST** /templates/{templateId}/preview | Preview template
 [*DefaultApi*](doc/DefaultApi.md) | [**processClinicalWriter**](doc/DefaultApi.md#processclinicalwriter) | **POST** /clinical_writer/process | Forward content to Clinical Writer
+[*DefaultApi*](doc/DefaultApi.md) | [**recommendTemplates**](doc/DefaultApi.md#recommendtemplates) | **GET** /templates/recommendations | Recommend templates
 [*DefaultApi*](doc/DefaultApi.md) | [**recoverScreenerPassword**](doc/DefaultApi.md#recoverscreenerpassword) | **POST** /screeners/recover-password | Request password recovery for a screener
 [*DefaultApi*](doc/DefaultApi.md) | [**registerScreener**](doc/DefaultApi.md#registerscreener) | **POST** /screeners/register | Register a new screener
 [*DefaultApi*](doc/DefaultApi.md) | [**resendSurveyEmail**](doc/DefaultApi.md#resendsurveyemail) | **POST** /survey_responses/{responseId}/send_email | Resend survey response email
+[*DefaultApi*](doc/DefaultApi.md) | [**transcribeVoiceAudio**](doc/DefaultApi.md#transcribevoiceaudio) | **POST** /voice/transcriptions | Transcribe voice audio
+[*DefaultApi*](doc/DefaultApi.md) | [**updateChatMessage**](doc/DefaultApi.md#updatechatmessage) | **PATCH** /chat/messages/{messageId} | Update chat message
+[*DefaultApi*](doc/DefaultApi.md) | [**updateChatSession**](doc/DefaultApi.md#updatechatsession) | **PATCH** /chat/sessions/{sessionId} | Update chat session
+[*DefaultApi*](doc/DefaultApi.md) | [**updateSurvey**](doc/DefaultApi.md#updatesurvey) | **PUT** /surveys/{surveyId} | Update survey
+[*DefaultApi*](doc/DefaultApi.md) | [**updateTemplate**](doc/DefaultApi.md#updatetemplate) | **PUT** /templates/{templateId} | Update template (new version)
 
 
 ## Documentation For Models
@@ -85,9 +109,28 @@ Class | Method | HTTP request | Description
  - [Address](doc/Address.md)
  - [AgentResponse](doc/AgentResponse.md)
  - [Answer](doc/Answer.md)
+ - [ChatMessage](doc/ChatMessage.md)
+ - [ChatMessageCreate](doc/ChatMessageCreate.md)
+ - [ChatMessageUpdate](doc/ChatMessageUpdate.md)
+ - [ChatSession](doc/ChatSession.md)
+ - [ChatSessionCreate](doc/ChatSessionCreate.md)
+ - [ChatSessionUpdate](doc/ChatSessionUpdate.md)
+ - [ClinicalWriterAlert](doc/ClinicalWriterAlert.md)
+ - [ClinicalWriterAnalysisMessage](doc/ClinicalWriterAnalysisMessage.md)
+ - [ClinicalWriterAnalysisRequest](doc/ClinicalWriterAnalysisRequest.md)
+ - [ClinicalWriterAnalysisResponse](doc/ClinicalWriterAnalysisResponse.md)
+ - [ClinicalWriterEntity](doc/ClinicalWriterEntity.md)
+ - [ClinicalWriterHypothesis](doc/ClinicalWriterHypothesis.md)
+ - [ClinicalWriterKnowledgeItem](doc/ClinicalWriterKnowledgeItem.md)
  - [ClinicalWriterRequest](doc/ClinicalWriterRequest.md)
  - [ClinicalWriterRequestMetadata](doc/ClinicalWriterRequestMetadata.md)
+ - [ClinicalWriterSuggestion](doc/ClinicalWriterSuggestion.md)
+ - [DocumentExportRequest](doc/DocumentExportRequest.md)
+ - [DocumentPreview](doc/DocumentPreview.md)
+ - [DocumentPreviewRequest](doc/DocumentPreviewRequest.md)
+ - [DocumentRecord](doc/DocumentRecord.md)
  - [Instructions](doc/Instructions.md)
+ - [ListTemplateDocumentTypes200ResponseInner](doc/ListTemplateDocumentTypes200ResponseInner.md)
  - [Patient](doc/Patient.md)
  - [ProfessionalCouncil](doc/ProfessionalCouncil.md)
  - [Question](doc/Question.md)
@@ -99,7 +142,16 @@ Class | Method | HTTP request | Description
  - [Survey](doc/Survey.md)
  - [SurveyResponse](doc/SurveyResponse.md)
  - [SurveyResponseWithAgent](doc/SurveyResponseWithAgent.md)
+ - [TemplateCreateRequest](doc/TemplateCreateRequest.md)
+ - [TemplateDocumentType](doc/TemplateDocumentType.md)
+ - [TemplatePreviewRequest](doc/TemplatePreviewRequest.md)
+ - [TemplatePreviewResponse](doc/TemplatePreviewResponse.md)
+ - [TemplateRecord](doc/TemplateRecord.md)
+ - [TemplateUpdateRequest](doc/TemplateUpdateRequest.md)
  - [Token](doc/Token.md)
+ - [TranscriptionRequest](doc/TranscriptionRequest.md)
+ - [TranscriptionResponse](doc/TranscriptionResponse.md)
+ - [TranscriptionSegment](doc/TranscriptionSegment.md)
 
 
 ## Documentation For Authorization

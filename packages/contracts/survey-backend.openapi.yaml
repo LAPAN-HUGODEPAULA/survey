@@ -54,6 +54,44 @@ paths:
                 $ref: '#/components/schemas/Survey'
         '404':
           description: Survey not found
+    put:
+      summary: Update survey
+      operationId: updateSurvey
+      parameters:
+        - in: path
+          name: surveyId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Survey'
+      responses:
+        '200':
+          description: Updated survey
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Survey'
+        '404':
+          description: Survey not found
+    delete:
+      summary: Delete survey
+      operationId: deleteSurvey
+      parameters:
+        - in: path
+          name: surveyId
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Survey deleted
+        '404':
+          description: Survey not found
   /survey_responses/:
     get:
       summary: List survey responses
@@ -149,6 +187,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentResponse'
+  /clinical_writer/analysis:
+    post:
+      summary: Analyze conversation context with Clinical Writer
+      operationId: analyzeClinicalWriter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClinicalWriterAnalysisRequest'
+      responses:
+        '200':
+          description: Analysis response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalWriterAnalysisResponse'
   /screeners/register:
     post:
       summary: Register a new screener
@@ -224,8 +279,635 @@ paths:
           description: Not authenticated or invalid token
         '404':
           description: Screener not found
+  /chat/sessions:
+    post:
+      summary: Create chat session
+      operationId: createChatSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSessionCreate'
+      responses:
+        '200':
+          description: Created chat session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+    get:
+      summary: List chat sessions
+      operationId: listChatSessions
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of chat sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatSession'
+  /chat/sessions/{sessionId}:
+    get:
+      summary: Get chat session
+      operationId: getChatSession
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Chat session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+        '404':
+          description: Session not found
+    patch:
+      summary: Update chat session
+      operationId: updateChatSession
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSessionUpdate'
+      responses:
+        '200':
+          description: Updated chat session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+        '404':
+          description: Session not found
+  /chat/sessions/{sessionId}/complete:
+    post:
+      summary: Complete chat session
+      operationId: completeChatSession
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Completed chat session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+        '404':
+          description: Session not found
+  /chat/sessions/{sessionId}/messages:
+    post:
+      summary: Create chat message
+      operationId: createChatMessage
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatMessageCreate'
+      responses:
+        '200':
+          description: Created chat message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessage'
+    get:
+      summary: List chat messages
+      operationId: listChatMessages
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of chat messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ChatMessage'
+  /chat/messages/{messageId}:
+    patch:
+      summary: Update chat message
+      operationId: updateChatMessage
+      parameters:
+        - in: path
+          name: messageId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatMessageUpdate'
+      responses:
+        '200':
+          description: Updated chat message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessage'
+        '404':
+          description: Message not found
+  /documents/preview:
+    post:
+      summary: Generate document preview
+      operationId: previewDocument
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentPreviewRequest'
+      responses:
+        '200':
+          description: Document preview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentPreview'
+  /documents/export:
+    post:
+      summary: Export document
+      operationId: exportDocument
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentExportRequest'
+      responses:
+        '200':
+          description: Document record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentRecord'
+  /documents/{documentId}:
+    get:
+      summary: Get document record
+      operationId: getDocument
+      parameters:
+        - in: path
+          name: documentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Document record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentRecord'
+        '404':
+          description: Document not found
+  /templates/document-types:
+    get:
+      summary: List supported template document types
+      operationId: listTemplateDocumentTypes
+      responses:
+        '200':
+          description: Document types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      $ref: '#/components/schemas/TemplateDocumentType'
+                    label:
+                      type: string
+  /templates:
+    get:
+      summary: List templates
+      operationId: listTemplates
+      parameters:
+        - in: query
+          name: documentType
+          schema:
+            $ref: '#/components/schemas/TemplateDocumentType'
+        - in: query
+          name: q
+          schema:
+            type: string
+        - in: query
+          name: includeAll
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Template list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TemplateRecord'
+    post:
+      summary: Create template
+      operationId: createTemplate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateCreateRequest'
+      responses:
+        '201':
+          description: Template created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateRecord'
+  /templates/recommendations:
+    get:
+      summary: Recommend templates
+      operationId: recommendTemplates
+      parameters:
+        - in: query
+          name: documentType
+          schema:
+            $ref: '#/components/schemas/TemplateDocumentType'
+      responses:
+        '200':
+          description: Recommended templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TemplateRecord'
+  /templates/{templateId}:
+    get:
+      summary: Get template
+      operationId: getTemplate
+      parameters:
+        - in: path
+          name: templateId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Template record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateRecord'
+        '404':
+          description: Template not found
+    put:
+      summary: Update template (new version)
+      operationId: updateTemplate
+      parameters:
+        - in: path
+          name: templateId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateUpdateRequest'
+      responses:
+        '200':
+          description: Template record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateRecord'
+        '404':
+          description: Template not found
+  /templates/{templateId}/approve:
+    post:
+      summary: Approve template
+      operationId: approveTemplate
+      parameters:
+        - in: path
+          name: templateId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Template record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateRecord'
+        '404':
+          description: Template not found
+  /templates/{templateId}/archive:
+    post:
+      summary: Archive template
+      operationId: archiveTemplate
+      parameters:
+        - in: path
+          name: templateId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Template record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateRecord'
+        '404':
+          description: Template not found
+  /templates/{templateId}/preview:
+    post:
+      summary: Preview template
+      operationId: previewTemplate
+      parameters:
+        - in: path
+          name: templateId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplatePreviewRequest'
+      responses:
+        '200':
+          description: Template preview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplatePreviewResponse'
+  /voice/transcriptions:
+    post:
+      summary: Transcribe voice audio
+      operationId: transcribeVoiceAudio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranscriptionRequest'
+      responses:
+        '200':
+          description: Transcription response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TranscriptionResponse'
 components:
   schemas:
+    TemplateDocumentType:
+      type: string
+      enum:
+        - consultation_record
+        - prescription
+        - referral
+        - certificate
+        - technical_report
+        - clinical_progress
+    TemplateRecord:
+      type: object
+      required:
+        - name
+        - documentType
+        - version
+        - status
+        - body
+        - placeholders
+        - createdAt
+        - updatedAt
+      properties:
+        _id:
+          type: string
+        templateGroupId:
+          type: string
+        name:
+          type: string
+        documentType:
+          $ref: '#/components/schemas/TemplateDocumentType'
+        version:
+          type: string
+        status:
+          type: string
+        body:
+          type: string
+        placeholders:
+          type: array
+          items:
+            type: string
+        conditions:
+          type: array
+          items:
+            type: object
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        approvedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdBy:
+          type: string
+          nullable: true
+        updatedBy:
+          type: string
+          nullable: true
+        approvedBy:
+          type: string
+          nullable: true
+    TemplateCreateRequest:
+      type: object
+      required:
+        - name
+        - documentType
+        - body
+      properties:
+        name:
+          type: string
+        documentType:
+          $ref: '#/components/schemas/TemplateDocumentType'
+        body:
+          type: string
+        placeholders:
+          type: array
+          items:
+            type: string
+        conditions:
+          type: array
+          items:
+            type: object
+    TemplateUpdateRequest:
+      type: object
+      required:
+        - body
+      properties:
+        name:
+          type: string
+          nullable: true
+        documentType:
+          $ref: '#/components/schemas/TemplateDocumentType'
+        body:
+          type: string
+        placeholders:
+          type: array
+          items:
+            type: string
+        conditions:
+          type: array
+          items:
+            type: object
+    TemplatePreviewRequest:
+      type: object
+      properties:
+        sampleData:
+          type: object
+          additionalProperties: true
+    TemplatePreviewResponse:
+      type: object
+      required:
+        - html
+        - title
+        - body
+        - missingFields
+      properties:
+        html:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        missingFields:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          additionalProperties: true
+    TranscriptionRequest:
+      type: object
+      required:
+        - audioBase64
+        - audioFormat
+      properties:
+        audioBase64:
+          type: string
+        audioFormat:
+          type: string
+        sampleRate:
+          type: integer
+        channels:
+          type: integer
+        durationSeconds:
+          type: number
+          format: float
+        language:
+          type: string
+        clinicalMode:
+          type: boolean
+        confidenceThreshold:
+          type: number
+          format: float
+        previewText:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+    TranscriptionSegment:
+      type: object
+      required:
+        - startSeconds
+        - endSeconds
+        - text
+      properties:
+        startSeconds:
+          type: number
+          format: float
+        endSeconds:
+          type: number
+          format: float
+        text:
+          type: string
+        confidence:
+          type: number
+          format: float
+          nullable: true
+    TranscriptionResponse:
+      type: object
+      required:
+        - requestId
+        - text
+        - processingTimeMs
+        - provider
+        - language
+      properties:
+        requestId:
+          type: string
+        text:
+          type: string
+        confidence:
+          type: number
+          format: float
+          nullable: true
+        segments:
+          type: array
+          items:
+            $ref: '#/components/schemas/TranscriptionSegment'
+        processingTimeMs:
+          type: integer
+        provider:
+          type: string
+        language:
+          type: string
+        warnings:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          additionalProperties: true
     Survey:
       type: object
       required:
@@ -418,6 +1100,110 @@ components:
               type: string
             patient_ref:
               type: string
+    ClinicalWriterAnalysisRequest:
+      type: object
+      required:
+        - messages
+      properties:
+        sessionId:
+          type: string
+        phase:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClinicalWriterAnalysisMessage'
+    ClinicalWriterAnalysisMessage:
+      type: object
+      required:
+        - role
+        - content
+        - messageType
+      properties:
+        role:
+          type: string
+        content:
+          type: string
+        messageType:
+          type: string
+    ClinicalWriterAnalysisResponse:
+      type: object
+      properties:
+        suggestions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClinicalWriterSuggestion'
+        entities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClinicalWriterEntity'
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClinicalWriterAlert'
+        hypotheses:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClinicalWriterHypothesis'
+        knowledge:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClinicalWriterKnowledgeItem'
+        phase:
+          type: string
+    ClinicalWriterSuggestion:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        category:
+          type: string
+        confidence:
+          type: number
+    ClinicalWriterEntity:
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string
+        confidence:
+          type: number
+    ClinicalWriterAlert:
+      type: object
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        severity:
+          type: string
+        evidence:
+          type: string
+    ClinicalWriterHypothesis:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        confidence:
+          type: number
+        evidence:
+          type: string
+    ClinicalWriterKnowledgeItem:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        source:
+          type: string
+        reference:
+          type: string
     SurveyResponseWithAgent:
       allOf:
         - $ref: '#/components/schemas/SurveyResponse'
@@ -660,3 +1446,204 @@ components:
           format: email
           description: Endereço de e-mail do Screener para recuperação de senha
           example: maria.vale@holhos.com
+    ChatSession:
+      type: object
+      required:
+        - status
+        - phase
+        - createdAt
+        - updatedAt
+      properties:
+        _id:
+          type: string
+        status:
+          type: string
+        phase:
+          type: string
+        patientId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+    ChatSessionCreate:
+      type: object
+      properties:
+        patientId:
+          type: string
+          nullable: true
+        phase:
+          type: string
+        metadata:
+          type: object
+          nullable: true
+    ChatSessionUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+        phase:
+          type: string
+        metadata:
+          type: object
+          nullable: true
+    ChatMessage:
+      type: object
+      required:
+        - sessionId
+        - role
+        - messageType
+        - content
+        - createdAt
+        - updatedAt
+      properties:
+        _id:
+          type: string
+        sessionId:
+          type: string
+        role:
+          type: string
+        messageType:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+        metadata:
+          type: object
+          nullable: true
+        editHistory:
+          type: array
+          items:
+            type: object
+          nullable: true
+    ChatMessageCreate:
+      type: object
+      required:
+        - role
+        - messageType
+        - content
+      properties:
+        role:
+          type: string
+        messageType:
+          type: string
+        content:
+          type: string
+        metadata:
+          type: object
+          nullable: true
+    ChatMessageUpdate:
+      type: object
+      properties:
+        content:
+          type: string
+        metadata:
+          type: object
+          nullable: true
+    DocumentPreviewRequest:
+      type: object
+      required:
+        - sessionId
+        - documentType
+      properties:
+        sessionId:
+          type: string
+        documentType:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+    DocumentExportRequest:
+      type: object
+      required:
+        - sessionId
+        - documentType
+        - title
+        - body
+      properties:
+        sessionId:
+          type: string
+        documentType:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        metadata:
+          type: object
+          nullable: true
+    DocumentPreview:
+      type: object
+      required:
+        - html
+        - title
+        - body
+      properties:
+        html:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        missingFields:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          nullable: true
+    DocumentRecord:
+      type: object
+      required:
+        - sessionId
+        - documentType
+        - title
+        - body
+        - html
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        _id:
+          type: string
+        sessionId:
+          type: string
+        documentType:
+          type: string
+        title:
+          type: string
+        body:
+          type: string
+        html:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          nullable: true

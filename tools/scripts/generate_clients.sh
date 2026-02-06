@@ -20,7 +20,7 @@ docker run --rm \
   -i "${SPEC}" \
   -g dart-dio \
   -o "${OUT_DIR}" \
-  --additional-properties=pubName=survey_backend_api,nullableFields=true
+  --additional-properties=pubName=survey_backend_api,nullableFields=true,basePath=
 
 cd "${OUT_DIR}"
 dart pub run build_runner build --delete-conflicting-outputs
