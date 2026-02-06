@@ -61,6 +61,27 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 - RESTful JSON APIs under `/api/v1`; OpenAPI contract is authoritative.
 - Generated SDKs are the supported consumption method for Flutter clients; manual HTTP clients are discouraged.
 
+### API Client Generation
+
+The frontend applications consume the backend API via a generated Dart client. This client is created from the OpenAPI specification and requires an additional code generation step to create the necessary data models.
+
+The entire generation process is automated via a script. This script uses a Docker image to run the `openapi-generator` and then executes `build_runner` to generate the Dart data models (`.g.dart` files).
+
+To regenerate the client, run the following command from the project root:
+
+```bash
+./tools/scripts/generate_clients.sh
+```
+
+This script will:
+
+1.  Remove the old generated client in `packages/contracts/generated/dart`.
+2.  Generate a new client from `packages/contracts/survey-backend.openapi.yaml`.
+3.  Run `dart pub get` inside the generated code directory.
+4.  Run `dart pub run build_runner build --delete-conflicting-outputs` to generate the required `*.g.dart` model and serializer files.
+
+It's important to run this script whenever the `survey-backend.openapi.yaml` contract is modified to ensure the frontend applications are using the latest API definitions.
+
 ## Non-Goals
 
 - Authentication/authorization and multi-tenancy are not implemented.

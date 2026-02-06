@@ -10,7 +10,7 @@
 
 ## Backend Design (`services/survey-backend`)
 
-- **Entry point**: `app/main.py` wires CORS, routers, and lifecycle logging.
+- **Entry point**: `app/main.py` wires CORS, routers, lifecycle logging, and an HTTPS-only guard when `ENVIRONMENT=production`.
 - **Routing**: `/api/v1/surveys`, `/api/v1/survey_responses`, `/api/v1/patient_responses` plus `/survey_responses/{id}/send_email` for re-sends.
 - **Domain models**: `app/domain/models/*` define Pydantic schemas for surveys, patients, and agent responses.
 - **Persistence**: repositories under `app/persistence/repositories` encapsulate MongoDB CRUD; injected via `app.persistence.deps` to keep handlers decoupled from storage.

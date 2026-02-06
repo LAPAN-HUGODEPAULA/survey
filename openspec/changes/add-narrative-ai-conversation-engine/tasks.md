@@ -1,0 +1,11 @@
+## 1. Implementation
+- [x] 1.1 Define structured schemas for suggestions, entities, alerts, and hypotheses.
+- [x] 1.2 Implement analysis endpoints for conversation context processing.
+- [x] 1.3 Add entity extraction and phase detection pipeline.
+- [x] 1.4 Add missing information and follow-up suggestion generation.
+- [x] 1.5 Add diagnostic hypothesis suggestions with evidence.
+- [x] 1.6 Add clinical alert detection and severity handling.
+- [x] 1.7 Integrate knowledge lookups for codes and interactions.
+- [x] 1.8 Add UI integration for suggestions, alerts, and context panels.
+- [x] 1.9 Update contracts and generated clients if needed.
+- [x] 1.10 Add tests for NLP extraction, alert logic, and suggestion quality.

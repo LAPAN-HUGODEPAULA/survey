@@ -1,5 +1,22 @@
 # Weekly Change Log
 
+## Week of 2026-02-01
+
+### Features
+- **Screener Management**: Implemented screener registration, login, and profile management functionality.
+- **Survey UX**: Added a progress indicator to the survey flow for better user feedback.
+- **Database Migrations**: Introduced a consolidated script for running database migrations.
+
+### Fixes
+- **Clinical Writer**: Resolved a bug causing internal errors by ensuring a `request_id` is always present.
+- **Screener**: The screener's profile is now correctly returned after registration.
+- **UI**: Addressed various UI issues, including button labels and navigation bugs.
+- **Dependencies**: Updated deprecated `datetime` calls and upgraded the `fl_chart` library, refactoring the Radar Chart implementation.
+
+### Tooling & Build Process
+- **API Client Generation**: The `generate_clients.sh` script has been updated to be a single, unified command that now automatically runs `build_runner` to generate Dart data models after producing the client code from the OpenAPI spec.
+- **Web Build**: The build process for the web applications now correctly triggers the code generation step (`build_runner`) before compiling.
+
 ## Week of 2025-12-27
 
 ### Backend

@@ -8,7 +8,7 @@
 ## Prerequisites
 
 - Docker and Docker Compose installed.
-- `.env` populated (copy from `.env.example`); at minimum set `MONGO_URI`, `MONGO_INITDB_ROOT_USERNAME`, `MONGO_INITDB_ROOT_PASSWORD`. Optional build args: `DEFAULT_SCREENER_NAME`, `DEFAULT_SCREENER_CONTACT`, `FLAVOR`.
+- `.env` populated (copy from `.env.example`); at minimum set `MONGO_URI`, `MONGO_INITDB_ROOT_USERNAME`, `MONGO_INITDB_ROOT_PASSWORD`. Optional build args: `DEFAULT_SCREENER_NAME`, `DEFAULT_SCREENER_CONTACT`, `FLAVOR`. Set `ENVIRONMENT=production` to enforce HTTPS-only requests in the backend.
 - Ports available: 27017 (Mongo), 8000 (API), 8080/8081/8082 (web apps), 9566 (Clinical Writer when enabled).
 
 ## Services (root `docker-compose.yml`)

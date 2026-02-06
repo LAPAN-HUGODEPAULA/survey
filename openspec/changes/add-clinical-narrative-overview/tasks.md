@@ -1,0 +1,13 @@
+## 1. Implementation
+- [x] 1.1 Map the current `clinical-narrative` flow and identify extension points for session and history.
+- [x] 1.2 Define API contracts for session, messages, and clinical context.
+- [x] 1.3 Implement the frontend chat core with basic session persistence.
+- [x] 1.4 Implement browser audio capture with preview and send for final transcription.
+- [x] 1.5 Integrate the transcription pipeline in the backend/AI service.
+- [x] 1.6 Implement template management (CRUD, versioning, permissions).
+- [x] 1.7 Implement template-based document generation and export (PDF/print).
+- [x] 1.8 Add clinical assistance (suggestions, follow-up questions, gaps).
+- [x] 1.9 Implement security, audit, and LGPD requirements.
+- [x] 1.10 Adjust UI/UX according to the shared design system guidelines.
+- [x] 1.11 Update contracts and generated clients if needed.
+- [x] 1.12 Validate with relevant tests and build/analyze commands.
