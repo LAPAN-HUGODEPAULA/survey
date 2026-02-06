@@ -84,8 +84,8 @@ async def create_privacy_request(
 
 @router.get("/privacy/requests", response_model=list[PrivacyRequest])
 async def list_privacy_requests(
-    status: Optional[str] = None,
     request: Request,
+    status: Optional[str] = None,
     admin_token: Optional[str] = Header(default=None, alias="X-Privacy-Admin-Token"),
     repo: PrivacyRequestRepository = Depends(get_privacy_request_repo),
     audit_repo: SecurityAuditRepository = Depends(get_security_audit_repo),
