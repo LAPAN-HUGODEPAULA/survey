@@ -36,7 +36,8 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 
 - `survey-frontend`: screener-focused survey UI.
 - `survey-patient`: patient-facing response flow (build args allow screener identity defaults).
-- `clinical-narrative`: displays generated narratives.
+- `clinical-narrative`: A conversational platform for clinical documentation. It supports session management, voice input with transcription, AI-driven clinical assistance, and document generation.
+- `survey-builder`: An application for administrators and researchers to create and manage surveys. It provides a user-friendly interface for editing all aspects of a survey, including questions and instructions.
 - All apps use the shared design system and generated Dart SDK from the OpenAPI contract.
 
 ### Shared Packages (`packages/`)
@@ -44,6 +45,11 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 - `contracts`: OpenAPI contract and generated Dart/Python SDKs.
 - `design_system_flutter`: Flutter theming and widgets (seed color `Colors.orange`).
 - `shared_python`: shared Python utilities (if consumed by services).
+
+## Security and Privacy
+
+- The platform now has a stronger focus on security and privacy, with platform-wide access control, encryption, and audit logging.
+- All services and applications are designed to be compliant with LGPD.
 
 ## Data Model & Persistence
 

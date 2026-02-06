@@ -44,7 +44,13 @@
 - **Apps**:
   - `survey-frontend`: screener dashboard for creating surveys and viewing responses.
   - `survey-patient`: patient-facing flow with configurable screener name/contact build args.
-  - `clinical-narrative`: renders AI-generated narratives.
+  - `clinical-narrative`: A conversational platform for clinical documentation. It supports session management, voice input with transcription, AI-driven clinical assistance, and document generation.
+  - `survey-builder`: An application for administrators and researchers to create and manage surveys. It provides a user-friendly interface for editing all aspects of a survey, including questions and instructions.
+
+## Security and Privacy
+
+- The platform now has a stronger focus on security and privacy, with platform-wide access control, encryption, and audit logging.
+- All services and applications are designed to be compliant with LGPD.
 
 ## Contracts & Tooling
 

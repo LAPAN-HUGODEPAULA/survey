@@ -55,15 +55,23 @@ A professional-facing assessment platform for qualified screeners (healthcare an
 
 ### 3. Clinical-Narrative Application
 
-A conversational documentation tool that transforms clinician-patient interactions into structured medical records:
+A conversational documentation tool that transforms clinician-patient interactions into structured medical records. It is now a complete clinical transcription and documentation platform with a conversational interface and integrated workflow.
 
-- Transcript processing of clinical conversations between screeners and patients
-- Natural language processing for extracting relevant clinical information and observations
-- Automated generation of formal medical documentation following standardized templates
-- Research-focused data collection with anonymized medical record registry storage
-- Integration with the multi-agent AI system for context-aware narrative interpretation
+- **Conversational Platform**: The application is structured as a conversational platform with sessions, history, and clinical context.
+- **Voice Capture**: It has voice capture with hybrid transcription (browser preview + final server processing).
+- **Clinical Assistance**: It includes clinical assistance with suggestions and gap detection.
+- **Document Generation**: It can generate multiple clinical document types and allow export/printing.
+- **Template Management**: It has a centralized template management system with versioning and approvals.
 
-### 4. Clinical Writer AI Multi-Agent System
+### 4. Survey-Builder Application
+
+A dedicated application for administrators or researchers to create, view, update, and delete surveys directly within the LAPAN Survey Platform ecosystem.
+
+- **Full Survey Editing**: It allows editing of all survey fields, including instructions and questions.
+- **Validation**: It enforces that a survey must contain at least one question and each question must have at least one answer.
+- **Consistent UI/UX**: It leverages the existing design system to ensure UI/UX consistency with other platform applications.
+
+### 5. Clinical Writer AI Multi-Agent System
 
 A centralized AI processing engine that powers all three applications through specialized agent workflows:
 

@@ -6,7 +6,7 @@ Monorepo for the LAPAN healthcare survey and clinical narrative platform. It inc
 - `services/survey-backend` – FastAPI API for surveys, survey responses, and patient responses (MongoDB persistence via repositories).
 - `services/survey-worker` – background processor that enriches responses via the Clinical Writer API.
 - `services/clinical-writer-api` – LangGraph/LLM-based clinical narrative service (runs separately when AI enrichment is needed).
-- `apps/` – Flutter web apps (`survey-frontend`, `survey-patient`, `clinical-narrative`) using the shared design system.
+- `apps/` – Flutter web apps (`survey-frontend`, `survey-patient`, `clinical-narrative`, `survey-builder`) using the shared design system.
 - `packages/` – OpenAPI contract + generated SDKs (`contracts`), Flutter design system, and shared Python utilities.
 - `tools/` – scripts for client generation and CI tooling.
 
@@ -14,7 +14,7 @@ Monorepo for the LAPAN healthcare survey and clinical narrative platform. It inc
 ```bash
 # 1) Populate .env with Mongo credentials and service endpoints
 # 2) Start the core stack
-docker compose up -d mongodb survey-backend survey-frontend survey-patient clinical-narrative survey-worker
+docker compose up -d mongodb survey-backend survey-frontend survey-patient clinical-narrative survey-builder survey-worker
 # 3) Optional: start the Clinical Writer AI service (same compose file)
 docker compose up -d clinical-writer-api
 ```
@@ -23,6 +23,7 @@ docker compose up -d clinical-writer-api
 - Screener app: http://localhost:8080
 - Patient app: http://localhost:8081
 - Clinical narrative app: http://localhost:8082
+- Survey builder app: http://localhost:8083
 - Clinical Writer (optional): http://localhost:9566
 
 ## Development Notes

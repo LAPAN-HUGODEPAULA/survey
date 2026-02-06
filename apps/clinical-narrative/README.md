@@ -1,59 +1,26 @@
-# Sistema de Survey para Análise Clínica
+# Clinical Narrative Application
 
-[![pt-br](https://img.shields.io/badge/lang-pt--br-green.svg)](https://github.com/HHerauto/survey/blob/main/README.md)
+This application is part of the LAPAN Survey Platform. It is a conversational platform for clinical documentation, designed to help healthcare professionals transform clinician-patient interactions into structured medical records.
 
-Este projeto é um sistema de análise clínica projetado para coletar e analisar dados de pacientes através de questionários padronizados. Ele é composto por um backend em Python (FastAPI) com MongoDB e um frontend em Flutter.
+## Features
 
-## Visão Geral
+- **Conversational Platform**: The application is structured as a conversational platform with sessions, history, and clinical context.
+- **Voice Capture**: It has voice capture with hybrid transcription (browser preview + final server processing).
+- **Clinical Assistance**: It includes clinical assistance with suggestions and gap detection.
+- **Document Generation**: It can generate multiple clinical document types and allow export/printing.
+- **Template Management**: It has a centralized template management system with versioning and approvals.
 
-O sistema permite que um profissional de saúde (**Screener**) colete informações de um **Paciente** por meio de um aplicativo. As respostas são armazenadas para análise posterior.
+## Tech Stack
 
-O projeto é dividido em três componentes principais:
+- **Frontend**: Flutter for Web
+- **Backend**: The application consumes the `survey-backend` API.
 
-1.  **`db`**: O backend da aplicação, contendo a API REST e a configuração do banco de dados MongoDB.
-2.  **`survey_app`**: O frontend principal em Flutter, que se conecta ao backend.
+## Running the Application
 
-## Documentação
+To run the application, you need to have Docker and Docker Compose installed. From the root of the project, run:
 
-Para uma visão completa da arquitetura, modelos de dados, e guias de configuração, consulte a **[documentação detalhada na pasta `docs`](./docs/index.md)**.
-
-A documentação inclui:
-*   [Visão Geral do Projeto](./docs/index.md)
-*   [Arquitetura do Sistema](./docs/architecture.md)
-*   [Modelo de Dados](./docs/data_model.md)
-*   [Guia de Instalação](./docs/setup.md)
-
-## Guia Rápido de Instalação
-
-### Pré-requisitos
-*   Git
-*   Flutter SDK
-*   Docker e Docker Compose
-*   Firebase CLI
-
-### Backend (Local com Docker)
 ```bash
-cd db
-docker-compose up -d --build
+docker compose up -d clinical-narrative
 ```
 
-### Backend (Deploy no Firebase)
-```bash
-# Instale as dependências
-cd survey_api
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-# Deploy para o Firebase
-firebase deploy --only functions
-```
-
-### Frontend (`survey_app`)
-```bash
-cd survey_app
-flutter pub get
-flutter run
-```
-
-Para mais detalhes, siga o [Guia de Instalação completo](./docs/setup.md).
+The application will be available at `http://localhost:8082`.

@@ -12,6 +12,7 @@ Authoritative documentation for the LAPAN Survey Platform. This repository is a 
 - [Deployment Plan](deployment-plan.md)
 - [Release Notes](release-notes.md)
 - [Weekly Changelog](changelog-weekly.md)
+- [Proposals Summary](proposals-summary.md)
 
 ## How to Use
 

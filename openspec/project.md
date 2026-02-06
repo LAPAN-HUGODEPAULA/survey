@@ -60,11 +60,20 @@ Always prioritize loose coupling, testability, and maintainability over prematur
 
 ### Application Components
 
-The system consists of three interconnected web applications:
+The system consists of four interconnected web applications:
 
 - **`survey-patient`:** A public-facing, 7-question screening tool for preliminary assessment. It requires no patient identification and generates a simplified summary to encourage professional follow-up.
 - **`survey-frontend`:** A professional-facing platform for qualified screeners (e.g., doctors, psychologists) to administer validated questionnaires like the 20-item CHYPS-Br, manage patient records, and generate formal medical reports.
-- **`clinical-narrative`:** A conversational tool for clinicians to transform interview transcripts into structured, AI-generated medical records.
+- **`clinical-narrative`:** A conversational documentation tool that transforms clinician-patient interactions into structured medical records. It is a complete clinical transcription and documentation platform with a conversational interface and integrated workflow.
+  - **Conversational Platform**: The application is structured as a conversational platform with sessions, history, and clinical context.
+  - **Voice Capture**: It has voice capture with hybrid transcription (browser preview + final server processing).
+  - **Clinical Assistance**: It includes clinical assistance with suggestions and gap detection.
+  - **Document Generation**: It can generate multiple clinical document types and allow export/printing.
+  - **Template Management**: It has a centralized template management system with versioning and approvals.
+- **`survey-builder`:** A dedicated application for administrators or researchers to create, view, update, and delete surveys directly within the LAPAN Survey Platform ecosystem.
+  - **Full Survey Editing**: It allows editing of all survey fields, including instructions and questions.
+  - **Validation**: It enforces that a survey must contain at least one question and each question must have at least one answer.
+  - **Consistent UI/UX**: It leverages the existing design system to ensure UI/UX consistency with other platform applications.
 
 ### Clinical Writer AI Multi-Agent System
 
@@ -75,6 +84,15 @@ A centralized AI engine that powers the applications with specialized agents:
 - **`ConsultWriterNode`**: Generates consultation reports from `clinical-narrative` inputs.
 - **`Survey7WriterNode`**: Creates medical summaries from the 7-question `survey-patient` screening.
 - **`FullIntakeWriterNode`**: Produces comprehensive records from `survey-frontend` assessments.
+
+## Security and Privacy
+
+The platform has a strong focus on security and privacy, with platform-wide access control, encryption, and audit logging. All services and applications are designed to be compliant with LGPD.
+
+- **Access Control**: Platform-wide access control and session security.
+- **Encryption**: Encryption at rest and in transit with centralized key management expectations.
+- **Audit Logging**: Audit logging and security monitoring requirements.
+- **Data Lifecycle**: Data lifecycle and deletion workflows without fixed retention periods.
 
 ## Project Conventions
 
