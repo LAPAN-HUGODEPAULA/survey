@@ -11,7 +11,7 @@ services:
          -i packages/contracts/survey-backend.openapi.yaml
          -g dart-dio
          -o packages/contracts/generated/dart
-         --additional-properties=pubName=survey_backend_api,nullableFields=true
+         --additional-properties=pubName=survey_backend_api,nullableFields=true,basePath=
     volumes:
       - ./:/work
     networks:
@@ -93,7 +93,8 @@ services:
       context: .
       dockerfile: ./apps/survey-frontend/Dockerfile
       args:
-        API_BASE_URL: ${SURVEY_FRONTEND_API_BASE_URL:-/api/v1/}
+        API_BASE_URL: ${API_BASE_URL}
+        VIACEP_BASE_URL: ${VIACEP_BASE_URL}
     container_name: survey_frontend
     restart: always
     expose:
@@ -119,7 +120,8 @@ services:
         DEFAULT_SCREENER_NAME: ${DEFAULT_SCREENER_NAME:-self}
         DEFAULT_SCREENER_CONTACT: ${DEFAULT_SCREENER_CONTACT:-contact@lapan.com.br}
         FLAVOR: ${FLAVOR:-dockerVps}
-        API_BASE_URL: ${SURVEY_PATIENT_API_BASE_URL:-/api/v1/}
+        API_BASE_URL: ${API_BASE_URL}
+        VIACEP_BASE_URL: ${VIACEP_BASE_URL}
     container_name: survey_patient
     restart: always
     expose:
@@ -172,7 +174,7 @@ services:
       context: .
       dockerfile: ./apps/clinical-narrative/Dockerfile
       args:
-        API_BASE_URL: ${CLINICAL_NARRATIVE_API_BASE_URL:-/api/v1/}
+        API_BASE_URL: ${API_BASE_URL}
     container_name: clinical_narrative
     restart: always
     expose:

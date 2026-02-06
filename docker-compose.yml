@@ -60,7 +60,8 @@ services:
       context: .
       dockerfile: ./apps/survey-frontend/Dockerfile
       args:
-        API_BASE_URL: ${SURVEY_FRONTEND_API_BASE_URL:-http://localhost:8000/api/v1}
+        API_BASE_URL: ${API_BASE_URL}
+        VIACEP_BASE_URL: ${VIACEP_BASE_URL}
     container_name: survey_frontend
     restart: always
     ports:
@@ -86,7 +87,8 @@ services:
         DEFAULT_SCREENER_NAME: ${DEFAULT_SCREENER_NAME:-self}
         DEFAULT_SCREENER_CONTACT: ${DEFAULT_SCREENER_CONTACT:-contact@lapan.com.br}
         FLAVOR: ${FLAVOR:-dockerVps}
-        API_BASE_URL: ${SURVEY_PATIENT_API_BASE_URL:-http://localhost:8000/api/v1}
+        API_BASE_URL: ${API_BASE_URL}
+        VIACEP_BASE_URL: ${VIACEP_BASE_URL}
     container_name: survey_patient
     restart: always
     ports:
@@ -103,6 +105,23 @@ services:
       - traefik.http.routers.survey-patient.entrypoints=websecure
       - traefik.http.routers.survey-patient.tls.certresolver=le
       - traefik.http.services.survey-patient.loadbalancer.server.port=80
+
+  survey-builder:
+    build:
+      context: .
+      dockerfile: ./apps/survey-builder/Dockerfile
+      args:
+        API_BASE_URL: ${API_BASE_URL}
+    container_name: survey_builder
+    restart: always
+    ports:
+      - "8082:80"
+    volumes:
+      - ./infra/docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - survey-backend
+    networks:
+      - survey_network
 
   survey-worker:
     build: ./services/survey-worker
@@ -141,7 +160,7 @@ services:
       context: .
       dockerfile: ./apps/clinical-narrative/Dockerfile
       args:
-        API_BASE_URL: ${CLINICAL_NARRATIVE_API_BASE_URL:-http://localhost:8000/api/v1}
+        API_BASE_URL: ${API_BASE_URL}
     container_name: clinical_narrative
     restart: always
     ports:
@@ -158,6 +177,29 @@ services:
       - traefik.http.routers.clinical-narrative.entrypoints=websecure
       - traefik.http.routers.clinical-narrative.tls.certresolver=le
       - traefik.http.services.clinical-narrative.loadbalancer.server.port=80
+
+  survey-builder:
+    build:
+      context: .
+      dockerfile: ./apps/survey_builder/Dockerfile
+      args:
+        API_BASE_URL: ${API_BASE_URL}
+    container_name: survey_builder
+    restart: always
+    ports:
+      - "8083:80" # Assign a new port, e.g., 8083
+    volumes:
+      - ./infra/docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - survey-backend
+    networks:
+      - survey_network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.survey-builder.rule=Host(`builder.lapan.cloud`)
+      - traefik.http.routers.survey-builder.entrypoints=websecure
+      - traefik.http.routers.survey-builder.tls.certresolver=le
+      - traefik.http.services.survey-builder.loadbalancer.server.port=80
 
 volumes:
   mongodb_data:
