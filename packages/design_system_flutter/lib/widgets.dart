@@ -1,5 +1,10 @@
 export 'widgets/survey_option_button.dart';
 export 'widgets/survey_progress_indicator.dart';
+export 'widgets/ds_buttons.dart';
+export 'widgets/ds_chip.dart';
+export 'widgets/ds_indicator.dart';
+export 'widgets/ds_dialog.dart';
+export 'widgets/ds_chat_bubble.dart';
 
 import 'package:flutter/material.dart';
 
