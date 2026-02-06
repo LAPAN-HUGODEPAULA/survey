@@ -21,7 +21,7 @@ class SurveyRepository {
           api.DefaultApi(
             Dio(
               BaseOptions(
-                baseUrl: ApiConfig.baseUrl,
+                baseUrl: ApiConfig.dioBaseUrl,
                 headers: ApiConfig.defaultHeaders,
               ),
             ),
@@ -31,7 +31,7 @@ class SurveyRepository {
           rawClient ??
           Dio(
             BaseOptions(
-              baseUrl: ApiConfig.baseUrl,
+              baseUrl: ApiConfig.dioBaseUrl,
               headers: ApiConfig.defaultHeaders,
             ),
           );

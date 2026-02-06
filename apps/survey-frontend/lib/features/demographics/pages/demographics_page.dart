@@ -213,7 +213,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                 return const [
                   PopupMenuItem(
                     value: _ProfileMenuAction.login,
-                    child: Text('Login'),
+                    child: Text('Entrar'),
                   ),
                   PopupMenuItem(
                     value: _ProfileMenuAction.settings,
@@ -239,11 +239,14 @@ class _DemographicsPageState extends State<DemographicsPage> {
           ),
         ],
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 700),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextFormField(
@@ -388,7 +391,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                 TextFormField(
                   controller: _medicationNameController,
                   decoration: const InputDecoration(
-                    labelText: 'Nome dos Medicamentos',
+                    labelText: 'Nome do(s) medicamento(s)',
                   ),
                   validator: (value) => value == null || value.isEmpty
                       ? 'Campo obrigatório'
@@ -402,7 +405,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
             ],
           ),
         ),
-      ),
+      ),),),
     );
   }
 }

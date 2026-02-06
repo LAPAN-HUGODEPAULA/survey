@@ -126,11 +126,14 @@ class _SettingsPageState extends State<SettingsPage> {
 
         return Scaffold(
           appBar: AppBar(title: const Text('Configurações')),
-          body: Form(
-            key: _formKey,
-            child: ListView(
-              padding: const EdgeInsets.all(24.0),
-              children: [
+          body: Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 700),
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  padding: const EdgeInsets.all(24.0),
+                  children: [
                 // Seção de seleção do questionário
                 const Text(
                   'Questionário Ativo',
@@ -336,7 +339,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
               ],
-            ),
+            ),),),
           ),
         );
       },

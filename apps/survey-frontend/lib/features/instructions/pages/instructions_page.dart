@@ -67,7 +67,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
         return AsyncScaffold(
           isLoading: isLoading,
           error: error != null
-              ? 'Falha ao carregar questionários: $error'
+              ? 'Falha ao carregar questionário: $error'
               : survey == null
                   ? 'Nenhum questionário disponível. Verifique a conexão com o servidor.'
                   : null,

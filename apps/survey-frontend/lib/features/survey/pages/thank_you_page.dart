@@ -328,7 +328,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
         return;
       }
       setState(() {
-        _demoReportError = 'Falha ao carregar relatorio de exemplo.';
+        _demoReportError = 'Falha ao carregar relatório de exemplo.';
       });
     }
   }
@@ -350,10 +350,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
     if (medicalRecord != null && medicalRecord.isNotEmpty) {
       return ReportDocument.fromPlainText(
         text: medicalRecord,
-        title: 'Relatorio de Triagem Sensorial',
+        title: 'Relatório de Triagem Sensorial',
         subtitle: settings.isLoggedIn
             ? 'Para: ${settings.screenerDisplayName}'
-            : 'Para: Especialista responsavel',
+            : 'Para: Especialista responsável',
         patient: ReportPatientInfo(
           name: settings.patient.name,
           reference: _savedResponseId,
@@ -369,7 +369,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
   String _buildReportText(ReportDocument report) {
     return report.toPlainText(
       footer:
-          'Gerado por LAPAN - Labotatório de Pesquisa Aplicada à Neurociências da Visão',
+          'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
     );
   }
 
@@ -408,7 +408,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
       }
       return await _saveReportToNativeDirectory(fileName, content);
     } catch (e) {
-      return 'Falha ao exportar relatorio: $e';
+      return 'Falha ao exportar relatório: $e';
     }
   }
 
@@ -459,8 +459,8 @@ class _ThankYouPageState extends State<ThankYouPage> {
         automaticallyImplyLeading: false,
       ),
       body: Center(
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 700),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -581,7 +581,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                     ReportView(
                       report: reportDocument,
                       footer:
-                          'Gerado por LAPAN - Labotatório de Pesquisa Aplicada à Neurociências da Visão',
+                          'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
                       onPrint: kIsWeb ? _printReport : null,
                       onExport: () => _exportReport(settings, reportDocument),
                     ),
@@ -606,7 +606,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                       const SizedBox(height: 16),
                       ReportView(
                         report: _demoReport!,
-                        footer: 'Exemplo local - nao representa dados reais.',
+                        footer: 'Exemplo local - não representa dados reais.',
                       ),
                       const SizedBox(height: 24),
                     ],
@@ -675,7 +675,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                 // Mensagem de confirmação com nome do questionário se disponível
                 Text(
                   widget.survey.surveyDisplayName.isNotEmpty
-                      ? 'Suas respostas do questionário "${widget.survey.surveyDisplayName}" foram registradas.'
+                      ? 'Suas respostas para o questionário "${widget.survey.surveyDisplayName}" foram registradas.'
                       : 'Suas respostas foram registradas com sucesso.',
                   style: const TextStyle(fontSize: 18),
                   textAlign: TextAlign.center,

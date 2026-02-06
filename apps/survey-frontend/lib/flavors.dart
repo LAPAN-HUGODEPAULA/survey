@@ -6,14 +6,9 @@ final deployment = Deployment.values.byName(flavor);
 
 extension DeploymentExtension on Deployment {
   String get apiBaseUrl {
-    if (apiBaseUrlEnv.isNotEmpty) {
-      return apiBaseUrlEnv;
+    if (apiBaseUrlEnv.isEmpty) {
+      throw StateError('API_BASE_URL is not set.');
     }
-    switch (this) {
-      case Deployment.dockerVps:
-        return '/api/v1';
-      case Deployment.firebase:
-        return 'https://us-central1-darv-13c19.cloudfunctions.net/api';
-    }
+    return apiBaseUrlEnv;
   }
 }

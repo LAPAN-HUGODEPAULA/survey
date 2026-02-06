@@ -92,14 +92,16 @@ class _ScreenerLoginPageState extends State<ScreenerLoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login de Screener'),
+        title: const Text('Login do Avaliador'),
       ),
       body: Stack(
         children: [
           Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -149,7 +151,7 @@ class _ScreenerLoginPageState extends State<ScreenerLoginPage> {
                   ],
                 ),
               ),
-            ),
+            ),),
           ),
           if (_isLoading)
             Positioned.fill(

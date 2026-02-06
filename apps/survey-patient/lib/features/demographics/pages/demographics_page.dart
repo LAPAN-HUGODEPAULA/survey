@@ -199,61 +199,61 @@ class _DemographicsPageState extends State<DemographicsPage> {
           'Informações Demográficas: ${widget.survey.surveyDisplayName.isNotEmpty ? widget.survey.surveyDisplayName : widget.survey.surveyName}',
         ),
       ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nome Completo *'),
-                validator: ValidatorSets.patientName,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email *'),
-                validator: ValidatorSets.patientEmail,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _dobController,
-                decoration: const InputDecoration(
-                  labelText: 'Data de Nascimento *',
-                  hintText: 'DD/MM/AAAA',
-                ),
-                keyboardType: TextInputType.datetime,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(8),
-                ],
-                onChanged: _formatDateInput,
-                validator: ValidatorSets.patientBirthDate,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                key: const ValueKey('sex'), // Unique key
-                initialValue: _selectedSex,
-                decoration: const InputDecoration(labelText: 'Sexo *'),
-                items: ['Feminino', 'Masculino', 'Outro']
-                    .map(
-                      (label) =>
-                          DropdownMenuItem(value: label, child: Text(label)),
-                    )
-                    .toList(),
-                onChanged: (value) => setState(() => _selectedSex = value),
-                validator: (value) =>
-                    value == null ? 'Campo obrigatório' : null,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                key: const ValueKey('race'), // Unique key
-                initialValue: _selectedRace,
-                decoration: const InputDecoration(labelText: 'Raça/Etnia *'),
-                items:
-                    ['Branca', 'Preta', 'Parda', 'Amarela', 'Indígena', 'Outra']
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 700),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(labelText: 'Nome Completo *'),
+                    validator: ValidatorSets.patientName,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(labelText: 'E-mail *'),
+                    validator: ValidatorSets.patientEmail,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _dobController,
+                    decoration: const InputDecoration(
+                      labelText: 'Data de Nascimento *',
+                      hintText: 'DD/MM/AAAA',
+                    ),
+                    keyboardType: TextInputType.datetime,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(8),
+                    ],
+                    onChanged: _formatDateInput,
+                    validator: ValidatorSets.patientBirthDate,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    key: const ValueKey('sex'),
+                    initialValue: _selectedSex,
+                    decoration: const InputDecoration(labelText: 'Sexo *'),
+                    items: ['Feminino', 'Masculino', 'Outro']
+                        .map(
+                          (label) => DropdownMenuItem(value: label, child: Text(label)),
+                        )
+                        .toList(),
+                    onChanged: (value) => setState(() => _selectedSex = value),
+                    validator: (value) => value == null ? 'Campo obrigatório' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    key: const ValueKey('race'),
+                    initialValue: _selectedRace,
+                    decoration: const InputDecoration(labelText: 'Raça/Etnia *'),
+                    items: ['Branca', 'Preta', 'Parda', 'Amarela', 'Indígena', 'Outra']
                         .map(
                           (label) => DropdownMenuItem(
                             value: label,
@@ -261,45 +261,40 @@ class _DemographicsPageState extends State<DemographicsPage> {
                           ),
                         )
                         .toList(),
-                onChanged: (value) => setState(() => _selectedRace = value),
-                validator: (value) =>
-                    value == null ? 'Campo obrigatório' : null,
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                key: const ValueKey('education'), // Unique key
-                initialValue: _selectedEducationLevel,
-                decoration: const InputDecoration(
-                  labelText: 'Grau de Escolaridade *',
-                ),
-                items: _educationLevels
-                    .map(
-                      (label) =>
-                          DropdownMenuItem(value: label, child: Text(label)),
-                    )
-                    .toList(),
-                onChanged: (value) =>
-                    setState(() => _selectedEducationLevel = value),
-                validator: (value) =>
-                    value == null ? 'Campo obrigatório' : null,
-              ),
-              const SizedBox(height: 16),
-              Autocomplete<String>(
-                optionsBuilder: (TextEditingValue textEditingValue) {
-                  if (textEditingValue.text.isEmpty) {
-                    return const Iterable<String>.empty();
-                  }
-                  return _professions.where((String option) {
-                    return option.toLowerCase().contains(
-                      textEditingValue.text.toLowerCase(),
-                    );
-                  });
-                },
-                onSelected: (String selection) {
-                  _professionController.text = selection;
-                },
-                fieldViewBuilder:
-                    (context, controller, focusNode, onFieldSubmitted) {
+                    onChanged: (value) => setState(() => _selectedRace = value),
+                    validator: (value) => value == null ? 'Campo obrigatório' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    key: const ValueKey('education'),
+                    initialValue: _selectedEducationLevel,
+                    decoration: const InputDecoration(
+                      labelText: 'Grau de Escolaridade *',
+                    ),
+                    items: _educationLevels
+                        .map(
+                          (label) => DropdownMenuItem(value: label, child: Text(label)),
+                        )
+                        .toList(),
+                    onChanged: (value) => setState(() => _selectedEducationLevel = value),
+                    validator: (value) => value == null ? 'Campo obrigatório' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  Autocomplete<String>(
+                    optionsBuilder: (TextEditingValue textEditingValue) {
+                      if (textEditingValue.text.isEmpty) {
+                        return const Iterable<String>.empty();
+                      }
+                      return _professions.where((String option) {
+                        return option.toLowerCase().contains(
+                          textEditingValue.text.toLowerCase(),
+                        );
+                      });
+                    },
+                    onSelected: (String selection) {
+                      _professionController.text = selection;
+                    },
+                    fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
                       return TextFormField(
                         controller: _professionController,
                         focusNode: focusNode,
@@ -308,58 +303,59 @@ class _DemographicsPageState extends State<DemographicsPage> {
                         ),
                       );
                     },
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Informações de Saúde',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              const Text('Diagnósticos Prévios'),
-              Wrap(
-                spacing: 8.0,
-                children: _diagnosesList.map((diagnosis) {
-                  return ChoiceChip(
-                    label: Text(diagnosis),
-                    selected: _selectedDiagnoses[diagnosis] ?? false,
-                    onSelected: (bool selected) {
-                      setState(() {
-                        _selectedDiagnoses[diagnosis] = selected;
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
-              const Text('Faz uso de medicamento psiquiátrico? *'),
-              RadioGroup<String>(
-                groupValue: _usesMedication,
-                onChanged: (value) => setState(() => _usesMedication = value),
-                child: Row(
-                  children: const [
-                    Radio<String>(value: 'Sim'),
-                    Text('Sim'),
-                    Radio<String>(value: 'Não'),
-                    Text('Não'),
-                  ],
-                ),
-              ),
-              if (_usesMedication == 'Sim')
-                TextFormField(
-                  controller: _medicationNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nome dos Medicamentos',
                   ),
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'Campo obrigatório'
-                      : null,
-                ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: const Text('Ver Resultados'),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Informações de Saúde',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Diagnósticos Prévios'),
+                  Wrap(
+                    spacing: 8.0,
+                    children: _diagnosesList.map((diagnosis) {
+                      return ChoiceChip(
+                        label: Text(diagnosis),
+                        selected: _selectedDiagnoses[diagnosis] ?? false,
+                        onSelected: (bool selected) {
+                          setState(() {
+                            _selectedDiagnoses[diagnosis] = selected;
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('Faz uso de medicamento psiquiátrico? *'),
+                  RadioGroup<String>(
+                    groupValue: _usesMedication,
+                    onChanged: (value) => setState(() => _usesMedication = value),
+                    child: Row(
+                      children: const [
+                        Radio<String>(value: 'Sim'),
+                        Text('Sim'),
+                        Radio<String>(value: 'Não'),
+                        Text('Não'),
+                      ],
+                    ),
+                  ),
+                  if (_usesMedication == 'Sim')
+                    TextFormField(
+                      controller: _medicationNameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nome do(s) medicamento(s)',
+                      ),
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Campo obrigatório' : null,
+                    ),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: _submitForm,
+                    child: const Text('Ver Resultados'),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

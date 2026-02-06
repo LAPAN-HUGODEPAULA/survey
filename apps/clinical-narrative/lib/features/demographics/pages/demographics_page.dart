@@ -37,7 +37,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
         medicalRecordId: _medicalRecordIdController.text.trim(),
       );
 
-      AppNavigator.toNarrative(context);
+      AppNavigator.toChat(context);
     }
   }
 
@@ -74,7 +74,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
               const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _submitForm,
-                child: const Text('Continuar para a Narrativa'),
+                child: const Text('Continuar para o Chat'),
               ),
             ],
           ),
@@ -83,4 +83,3 @@ class _DemographicsPageState extends State<DemographicsPage> {
     );
   }
 }
-

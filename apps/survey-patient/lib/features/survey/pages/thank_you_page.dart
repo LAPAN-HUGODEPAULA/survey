@@ -51,7 +51,7 @@ class ThankYouPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Relatório clínico do questionário Lapan Q7'),
+        title: const Text('Relatório Clínico do Questionário Lapan Q7'),
         automaticallyImplyLeading: false,
       ),
       body: Center(

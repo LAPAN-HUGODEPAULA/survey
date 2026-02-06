@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:survey_backend_api/survey_backend_api.dart';
+import 'package:survey_app/core/services/api_config.dart';
 
 class ApiProvider extends ChangeNotifier {
   late SurveyBackendApi _api;
@@ -9,7 +10,9 @@ class ApiProvider extends ChangeNotifier {
 
   ApiProvider({String? baseUrl}) {
     _api = SurveyBackendApi(
-      dio: Dio(BaseOptions(baseUrl: baseUrl ?? 'http://localhost:8000/api/v1')),
+      dio: Dio(
+        BaseOptions(baseUrl: baseUrl ?? ApiConfig.dioBaseUrl),
+      ),
       serializers: standardSerializers,
     );
   }

@@ -13,13 +13,13 @@ class ApiConfig {
 
   /// Builds a [Uri] for the provided [path] relative to [baseUrl].
   static Uri resolve(String path, [Map<String, dynamic>? queryParameters]) {
-    final sanitizedPath = _stripDuplicatedApiPrefix(path);
-    final uri = Uri.parse(baseUrl).resolve(sanitizedPath);
+    final sanitizedPath = _stripLeadingSlash(path);
+    final normalizedUri = Uri.parse(baseUrl).resolve(sanitizedPath);
     if (queryParameters == null || queryParameters.isEmpty) {
-      return uri;
+      return normalizedUri;
     }
 
-    return uri.replace(
+    return normalizedUri.replace(
       queryParameters: queryParameters.map(
         (key, value) => MapEntry(key, value?.toString()),
       ),
@@ -32,6 +32,12 @@ class ApiConfig {
         'Accept': 'application/json',
       };
 
+  /// Base URL without trailing slash for HTTP clients that already
+  /// prefix request paths with a leading slash.
+  static String get dioBaseUrl {
+    return baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+  }
+
   /// Helper to log the resolved URL when debugging.
   static void debugLogResolved(String path) {
     if (kDebugMode) {
@@ -39,22 +45,14 @@ class ApiConfig {
     }
   }
 
-  static String _stripDuplicatedApiPrefix(String path) {
-    var sanitized = path.startsWith('/') ? path.substring(1) : path;
-    final normalizedBase = baseUrl.endsWith('/')
-        ? baseUrl.substring(0, baseUrl.length - 1)
-        : baseUrl;
-    if (normalizedBase.endsWith('/api/v1') && sanitized.startsWith('api/v1/')) {
-      sanitized = sanitized.substring('api/v1/'.length);
-    } else if (normalizedBase.endsWith('/api/v1') && sanitized == 'api/v1') {
-      sanitized = '';
-    }
-    return sanitized;
+  static String _stripLeadingSlash(String path) {
+    return path.startsWith('/') ? path.substring(1) : path;
   }
 
   static String _normalizeBaseUrl(String rawBaseUrl) {
-    var normalized = rawBaseUrl.endsWith('/') ? rawBaseUrl : '$rawBaseUrl/';
-    normalized = normalized.replaceAll(RegExp(r'(/api/v1/){2,}'), '/api/v1/');
-    return normalized;
+    if (rawBaseUrl.isEmpty) {
+      throw StateError('API_BASE_URL is not set.');
+    }
+    return rawBaseUrl.endsWith('/') ? rawBaseUrl : '$rawBaseUrl/';
   }
 }

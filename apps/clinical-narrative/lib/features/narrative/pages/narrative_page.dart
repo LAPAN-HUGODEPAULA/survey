@@ -35,27 +35,29 @@ class _NarrativePageState extends State<NarrativePage> {
       return;
     }
 
+    final settings = Provider.of<AppSettings>(context, listen: false);
     setState(() => _isGenerating = true);
     try {
       final service = ClinicalWriterService();
       final response = await service.processContent(rawContent);
-      final settings = Provider.of<AppSettings>(context, listen: false);
       final report = _resolveReportDocument(settings, response);
       if (report == null) {
         final message = response.errorMessage ?? 'Resposta vazia do agente.';
         throw Exception(message);
       }
       settings.setNarrative(report.toPlainText());
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Narrativa gerada com sucesso.')),
-      );
       if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Narrativa gerada com sucesso.')),
+        );
         AppNavigator.toReport(context, report);
       }
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao gerar narrativa: $error')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao gerar narrativa: $error')),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isGenerating = false);

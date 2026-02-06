@@ -41,13 +41,12 @@ class _WelcomePageState extends State<WelcomePage> {
         final isLoading = settings.isLoadingSurveys;
 
         return AsyncScaffold(
-          isLoading: isLoading,
-          error: error != null
-              ? 'Falha ao carregar questionários: $error'
-              : survey == null
-              ? 'Nenhum questionário disponível. Verifique a conexão.'
-              : null,
-          appBar: AppBar(
+                    isLoading: isLoading,
+                              error: error != null
+                                  ? 'Falha ao carregar questionário: $error'
+                                  : survey == null
+                                      ? 'Nenhum questionário disponível. Verifique sua conexão com a internet.'
+                                      : null,          appBar: AppBar(
             title: const Text('Bem-vindo'),
             automaticallyImplyLeading: false,
           ),

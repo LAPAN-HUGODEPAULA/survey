@@ -10,6 +10,7 @@ import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/models/survey_response.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/core/repositories/survey_repository.dart';
+import 'package:patient_app/core/services/api_config.dart';
 import 'package:patient_app/features/report/pages/report_page.dart';
 import 'package:survey_backend_api/survey_backend_api.dart' as api;
 
@@ -17,10 +18,10 @@ class _FakeSurveyRepository extends SurveyRepository {
   _FakeSurveyRepository()
       : super(
           apiClient: api.DefaultApi(
-            Dio(BaseOptions(baseUrl: 'http://localhost')),
+            Dio(BaseOptions(baseUrl: ApiConfig.dioBaseUrl)),
             api.standardSerializers,
           ),
-          rawClient: Dio(BaseOptions(baseUrl: 'http://localhost')),
+          rawClient: Dio(BaseOptions(baseUrl: ApiConfig.dioBaseUrl)),
         );
 
   @override

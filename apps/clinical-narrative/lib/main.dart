@@ -10,6 +10,7 @@ import 'package:design_system_flutter/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
+import 'package:clinical_narrative_app/core/providers/chat_provider.dart';
 import 'package:clinical_narrative_app/features/demographics/pages/demographics_page.dart';
 
 /// Ponto de entrada principal da aplicação.
@@ -18,8 +19,11 @@ import 'package:clinical_narrative_app/features/demographics/pages/demographics_
 /// de estado global das configurações do questionário.
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => AppSettings(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppSettings()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+      ],
       child: const MyApp(),
     ),
   );

@@ -176,7 +176,7 @@ class _ReportPageState extends State<ReportPage> {
         _saveSuccess = true;
         _savedFilePath = filePath;
         _saveError =
-            'Nao foi possivel enviar para o servidor (${originalError.toString()}). '
+            'Não foi possível enviar para o servidor (${originalError.toString()}). '
             'As respostas foram salvas localmente.';
       });
     } catch (fallbackError) {
@@ -254,7 +254,7 @@ class _ReportPageState extends State<ReportPage> {
         html.window.localStorage['survey_response_$fileName'] = jsonString;
         return 'Salvo no armazenamento do navegador: $fileName';
       } catch (e) {
-        return 'Dados preparados (nao foi possivel salvar): $fileName';
+        return 'Dados preparados (não foi possível salvar): $fileName';
       }
     }
     return 'Dados preparados para salvamento: $fileName';
@@ -278,8 +278,8 @@ class _ReportPageState extends State<ReportPage> {
       final patient = _resolvePatient(settings);
       return ReportDocument.fromPlainText(
         text: medicalRecord,
-        title: 'Relatorio de Triagem Sensorial',
-        subtitle: 'Para: Especialista responsavel',
+        title: 'Relatório de Triagem Sensorial',
+        subtitle: 'Para: Especialista responsável',
         patient: patient == null
             ? null
             : ReportPatientInfo(
@@ -297,7 +297,7 @@ class _ReportPageState extends State<ReportPage> {
   String _buildReportText(ReportDocument report) {
     return report.toPlainText(
       footer:
-          'Gerado por LAPAN - Labotatorio de Pesquisa Aplicada a Neurociencias da Visao',
+          'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
     );
   }
 
@@ -333,7 +333,7 @@ class _ReportPageState extends State<ReportPage> {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Exportacao em PDF disponivel no navegador.')),
+      const SnackBar(content: Text('Exportação em PDF disponível apenas no navegador.')),
     );
   }
 
@@ -344,7 +344,7 @@ class _ReportPageState extends State<ReportPage> {
       }
       return await _saveReportToNativeDirectory(fileName, content);
     } catch (e) {
-      return 'Falha ao exportar relatorio: $e';
+      return 'Falha ao exportar relatório: $e';
     }
   }
 
@@ -389,7 +389,7 @@ class _ReportPageState extends State<ReportPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Relatorio'),
+        title: const Text('Relatório'),
         automaticallyImplyLeading: false,
       ),
       body: Center(
@@ -404,7 +404,7 @@ class _ReportPageState extends State<ReportPage> {
                   const Center(child: CircularProgressIndicator()),
                   const SizedBox(height: 16),
                   const Text(
-                    'Gerando relatorio...',
+                    'Gerando relatório...',
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
@@ -434,7 +434,7 @@ class _ReportPageState extends State<ReportPage> {
                   ReportView(
                     report: reportDocument,
                     footer:
-                        'Gerado por LAPAN - Labotatorio de Pesquisa Aplicada a Neurociencias da Visao',
+                        'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
                   ),
                   const SizedBox(height: 16),
                   Wrap(
@@ -458,7 +458,7 @@ class _ReportPageState extends State<ReportPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 24.0),
                     child: Text(
-                      'Ainda estamos processando o relatorio. Aguarde alguns instantes.',
+                      'Ainda estamos processando o seu relatório. Aguarde alguns instantes.',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
