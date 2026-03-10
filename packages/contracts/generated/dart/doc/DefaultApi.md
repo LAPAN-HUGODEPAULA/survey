@@ -16,11 +16,13 @@ Method | HTTP request | Description
 [**createChatMessage**](DefaultApi.md#createchatmessage) | **POST** /chat/sessions/{sessionId}/messages | Create chat message
 [**createChatSession**](DefaultApi.md#createchatsession) | **POST** /chat/sessions | Create chat session
 [**createPatientResponse**](DefaultApi.md#createpatientresponse) | **POST** /patient_responses/ | Create patient response
+[**createScreenerAccessLink**](DefaultApi.md#createscreeneraccesslink) | **POST** /screener_access_links/ | Create a prepared screener access link
 [**createSurvey**](DefaultApi.md#createsurvey) | **POST** /surveys/ | Create survey
 [**createSurveyResponse**](DefaultApi.md#createsurveyresponse) | **POST** /survey_responses/ | Create survey response
 [**createTemplate**](DefaultApi.md#createtemplate) | **POST** /templates | Create template
 [**deleteSurvey**](DefaultApi.md#deletesurvey) | **DELETE** /surveys/{surveyId} | Delete survey
 [**exportDocument**](DefaultApi.md#exportdocument) | **POST** /documents/export | Export document
+[**exportSurveys**](DefaultApi.md#exportsurveys) | **GET** /surveys/export | Export surveys
 [**getChatSession**](DefaultApi.md#getchatsession) | **GET** /chat/sessions/{sessionId} | Get chat session
 [**getCurrentScreener**](DefaultApi.md#getcurrentscreener) | **GET** /screeners/me | Get the current screener profile
 [**getDocument**](DefaultApi.md#getdocument) | **GET** /documents/{documentId} | Get document record
@@ -41,6 +43,7 @@ Method | HTTP request | Description
 [**recoverScreenerPassword**](DefaultApi.md#recoverscreenerpassword) | **POST** /screeners/recover-password | Request password recovery for a screener
 [**registerScreener**](DefaultApi.md#registerscreener) | **POST** /screeners/register | Register a new screener
 [**resendSurveyEmail**](DefaultApi.md#resendsurveyemail) | **POST** /survey_responses/{responseId}/send_email | Resend survey response email
+[**resolveScreenerAccessLink**](DefaultApi.md#resolvescreeneraccesslink) | **GET** /screener_access_links/{token} | Resolve a prepared screener access link
 [**transcribeVoiceAudio**](DefaultApi.md#transcribevoiceaudio) | **POST** /voice/transcriptions | Transcribe voice audio
 [**updateChatMessage**](DefaultApi.md#updatechatmessage) | **PATCH** /chat/messages/{messageId} | Update chat message
 [**updateChatSession**](DefaultApi.md#updatechatsession) | **PATCH** /chat/sessions/{sessionId} | Update chat session
@@ -337,6 +340,49 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **createScreenerAccessLink**
+> ScreenerAccessLink createScreenerAccessLink(authorization, createScreenerAccessLinkRequest)
+
+Create a prepared screener access link
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String authorization = authorization_example; // String | Bearer token in the format `Bearer <token>`
+final CreateScreenerAccessLinkRequest createScreenerAccessLinkRequest = ; // CreateScreenerAccessLinkRequest | 
+
+try {
+    final response = api.createScreenerAccessLink(authorization, createScreenerAccessLinkRequest);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->createScreenerAccessLink: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **authorization** | **String**| Bearer token in the format `Bearer <token>` | 
+ **createScreenerAccessLinkRequest** | [**CreateScreenerAccessLinkRequest**](CreateScreenerAccessLinkRequest.md)|  | 
+
+### Return type
+
+[**ScreenerAccessLink**](ScreenerAccessLink.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **createSurvey**
 > Survey createSurvey(survey)
 
@@ -537,6 +583,43 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **exportSurveys**
+> BuiltList<Survey> exportSurveys()
+
+Export surveys
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+
+try {
+    final response = api.exportSurveys();
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->exportSurveys: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**BuiltList&lt;Survey&gt;**](Survey.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -1350,6 +1433,47 @@ No authorization required
 
  - **Content-Type**: Not defined
  - **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **resolveScreenerAccessLink**
+> ScreenerAccessLink resolveScreenerAccessLink(token)
+
+Resolve a prepared screener access link
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String token = token_example; // String | 
+
+try {
+    final response = api.resolveScreenerAccessLink(token);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->resolveScreenerAccessLink: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **token** | **String**|  | 
+
+### Return type
+
+[**ScreenerAccessLink**](ScreenerAccessLink.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

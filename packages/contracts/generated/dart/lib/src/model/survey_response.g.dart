@@ -24,6 +24,9 @@ abstract class SurveyResponseBuilder {
   String? get screenerId;
   set screenerId(String? screenerId);
 
+  String? get accessLinkToken;
+  set accessLinkToken(String? accessLinkToken);
+
   PatientBuilder get patient;
   set patient(PatientBuilder? patient);
 
@@ -43,6 +46,8 @@ class _$$SurveyResponse extends $SurveyResponse {
   @override
   final String screenerId;
   @override
+  final String? accessLinkToken;
+  @override
   final Patient? patient;
   @override
   final BuiltList<Answer> answers;
@@ -56,6 +61,7 @@ class _$$SurveyResponse extends $SurveyResponse {
       required this.creatorId,
       this.testDate,
       required this.screenerId,
+      this.accessLinkToken,
       this.patient,
       required this.answers})
       : super._();
@@ -75,6 +81,7 @@ class _$$SurveyResponse extends $SurveyResponse {
         creatorId == other.creatorId &&
         testDate == other.testDate &&
         screenerId == other.screenerId &&
+        accessLinkToken == other.accessLinkToken &&
         patient == other.patient &&
         answers == other.answers;
   }
@@ -87,6 +94,7 @@ class _$$SurveyResponse extends $SurveyResponse {
     _$hash = $jc(_$hash, creatorId.hashCode);
     _$hash = $jc(_$hash, testDate.hashCode);
     _$hash = $jc(_$hash, screenerId.hashCode);
+    _$hash = $jc(_$hash, accessLinkToken.hashCode);
     _$hash = $jc(_$hash, patient.hashCode);
     _$hash = $jc(_$hash, answers.hashCode);
     _$hash = $jf(_$hash);
@@ -101,6 +109,7 @@ class _$$SurveyResponse extends $SurveyResponse {
           ..add('creatorId', creatorId)
           ..add('testDate', testDate)
           ..add('screenerId', screenerId)
+          ..add('accessLinkToken', accessLinkToken)
           ..add('patient', patient)
           ..add('answers', answers))
         .toString();
@@ -134,6 +143,11 @@ class $SurveyResponseBuilder
   set screenerId(covariant String? screenerId) =>
       _$this._screenerId = screenerId;
 
+  String? _accessLinkToken;
+  String? get accessLinkToken => _$this._accessLinkToken;
+  set accessLinkToken(covariant String? accessLinkToken) =>
+      _$this._accessLinkToken = accessLinkToken;
+
   PatientBuilder? _patient;
   PatientBuilder get patient => _$this._patient ??= PatientBuilder();
   set patient(covariant PatientBuilder? patient) => _$this._patient = patient;
@@ -155,6 +169,7 @@ class $SurveyResponseBuilder
       _creatorId = $v.creatorId;
       _testDate = $v.testDate;
       _screenerId = $v.screenerId;
+      _accessLinkToken = $v.accessLinkToken;
       _patient = $v.patient?.toBuilder();
       _answers = $v.answers.toBuilder();
       _$v = null;
@@ -188,6 +203,7 @@ class $SurveyResponseBuilder
             testDate: testDate,
             screenerId: BuiltValueNullFieldError.checkNotNull(
                 screenerId, r'$SurveyResponse', 'screenerId'),
+            accessLinkToken: accessLinkToken,
             patient: _patient?.build(),
             answers: answers.build(),
           );

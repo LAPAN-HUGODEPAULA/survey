@@ -31,6 +31,7 @@ export 'package:survey_backend_api/src/model/clinical_writer_knowledge_item.dart
 export 'package:survey_backend_api/src/model/clinical_writer_request.dart';
 export 'package:survey_backend_api/src/model/clinical_writer_request_metadata.dart';
 export 'package:survey_backend_api/src/model/clinical_writer_suggestion.dart';
+export 'package:survey_backend_api/src/model/create_screener_access_link_request.dart';
 export 'package:survey_backend_api/src/model/document_export_request.dart';
 export 'package:survey_backend_api/src/model/document_preview.dart';
 export 'package:survey_backend_api/src/model/document_preview_request.dart';
@@ -40,6 +41,7 @@ export 'package:survey_backend_api/src/model/list_template_document_types200_res
 export 'package:survey_backend_api/src/model/patient.dart';
 export 'package:survey_backend_api/src/model/professional_council.dart';
 export 'package:survey_backend_api/src/model/question.dart';
+export 'package:survey_backend_api/src/model/screener_access_link.dart';
 export 'package:survey_backend_api/src/model/screener_login.dart';
 export 'package:survey_backend_api/src/model/screener_model.dart';
 export 'package:survey_backend_api/src/model/screener_password_recovery_request.dart';

@@ -6,6 +6,7 @@ from app.persistence.repositories.survey_repo import SurveyRepository
 from app.persistence.repositories.survey_response_repo import SurveyResponseRepository
 from app.persistence.repositories.patient_response_repo import PatientResponseRepository
 from app.persistence.repositories.screener_repo import ScreenerRepository # Added import
+from app.persistence.repositories.screener_access_link_repo import ScreenerAccessLinkRepository
 from app.persistence.repositories.template_repo import TemplateRepository
 from app.persistence.repositories.template_audit_repo import TemplateAuditRepository
 from app.persistence.repositories.chat_session_repo import ChatSessionRepository
@@ -29,6 +30,12 @@ def get_patient_response_repo(db: Database = Depends(get_database)) -> PatientRe
 
 def get_screener_repo(db: Database = Depends(get_database)) -> ScreenerRepository: # Added function
     return ScreenerRepository(db)
+
+
+def get_screener_access_link_repo(
+    db: Database = Depends(get_database),
+) -> ScreenerAccessLinkRepository:
+    return ScreenerAccessLinkRepository(db)
 
 
 def get_template_repo(db: Database = Depends(get_database)) -> TemplateRepository:

@@ -13,6 +13,7 @@ from app.api.routes.survey_responses import router as survey_results_router
 from app.api.routes.patient_responses import router as patient_results_router
 from app.api.routes.clinical_writer import router as clinical_writer_router
 from app.api.routes.screener_routes import router as screeners_router
+from app.api.routes.screener_access_links import router as screener_access_links_router
 from app.api.routes.chat_sessions import router as chat_sessions_router
 from app.api.routes.chat_messages import router as chat_messages_router
 from app.api.routes.documents import router as documents_router
@@ -100,6 +101,7 @@ app.include_router(survey_results_router, prefix="/api/v1", tags=["survey_result
 app.include_router(patient_results_router, prefix="/api/v1", tags=["patient_results"])
 app.include_router(clinical_writer_router, prefix="/api/v1", tags=["clinical_writer"])
 app.include_router(screeners_router, prefix="/api/v1", tags=["screeners"])
+app.include_router(screener_access_links_router, prefix="/api/v1", tags=["screener_access_links"])
 app.include_router(chat_sessions_router, prefix="/api/v1", tags=["chat_sessions"])
 app.include_router(chat_messages_router, prefix="/api/v1", tags=["chat_messages"])
 app.include_router(documents_router, prefix="/api/v1", tags=["documents"])

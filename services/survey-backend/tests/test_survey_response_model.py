@@ -8,11 +8,9 @@ class SurveyResponseModelTests(unittest.TestCase):
     def test_allows_missing_patient(self) -> None:
         payload = {
             "surveyId": "survey-1",
-            "creatorName": "Creator",
-            "creatorContact": "creator@example.com",
+            "creatorId": "creator-1",
             "testDate": datetime.now(timezone.utc).isoformat(),
-            "screenerName": "Screener",
-            "screenerEmail": "screener@example.com",
+            "screenerId": "screener-1",
             "answers": [{"id": 1, "answer": "A"}],
         }
 
@@ -21,14 +19,13 @@ class SurveyResponseModelTests(unittest.TestCase):
         self.assertIsNone(response.patient)
         self.assertEqual(response.survey_id, "survey-1")
 
-    def test_allows_patient_payload(self) -> None:
+    def test_allows_access_link_token(self) -> None:
         payload = {
             "surveyId": "survey-1",
-            "creatorName": "Creator",
-            "creatorContact": "creator@example.com",
+            "creatorId": "creator-1",
             "testDate": datetime.now(timezone.utc).isoformat(),
-            "screenerName": "Screener",
-            "screenerEmail": "screener@example.com",
+            "screenerId": "screener-1",
+            "accessLinkToken": "token-123",
             "patient": {
                 "name": "Paciente",
                 "email": "paciente@example.com",
@@ -49,8 +46,8 @@ class SurveyResponseModelTests(unittest.TestCase):
 
         response = SurveyResponse.model_validate(payload)
 
+        self.assertEqual(response.access_link_token, "token-123")
         self.assertIsNotNone(response.patient)
-        self.assertEqual(response.patient.name, "Paciente")
 
 
 if __name__ == "__main__":

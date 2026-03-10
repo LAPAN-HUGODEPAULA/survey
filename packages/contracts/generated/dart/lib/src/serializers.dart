@@ -33,6 +33,7 @@ import 'package:survey_backend_api/src/model/clinical_writer_knowledge_item.dart
 import 'package:survey_backend_api/src/model/clinical_writer_request.dart';
 import 'package:survey_backend_api/src/model/clinical_writer_request_metadata.dart';
 import 'package:survey_backend_api/src/model/clinical_writer_suggestion.dart';
+import 'package:survey_backend_api/src/model/create_screener_access_link_request.dart';
 import 'package:survey_backend_api/src/model/document_export_request.dart';
 import 'package:survey_backend_api/src/model/document_preview.dart';
 import 'package:survey_backend_api/src/model/document_preview_request.dart';
@@ -42,6 +43,7 @@ import 'package:survey_backend_api/src/model/list_template_document_types200_res
 import 'package:survey_backend_api/src/model/patient.dart';
 import 'package:survey_backend_api/src/model/professional_council.dart';
 import 'package:survey_backend_api/src/model/question.dart';
+import 'package:survey_backend_api/src/model/screener_access_link.dart';
 import 'package:survey_backend_api/src/model/screener_login.dart';
 import 'package:survey_backend_api/src/model/screener_model.dart';
 import 'package:survey_backend_api/src/model/screener_password_recovery_request.dart';
@@ -83,6 +85,7 @@ part 'serializers.g.dart';
   ClinicalWriterRequest,
   ClinicalWriterRequestMetadata,
   ClinicalWriterSuggestion,
+  CreateScreenerAccessLinkRequest,
   DocumentExportRequest,
   DocumentPreview,
   DocumentPreviewRequest,
@@ -92,6 +95,7 @@ part 'serializers.g.dart';
   Patient,
   ProfessionalCouncil,
   Question,
+  ScreenerAccessLink,
   ScreenerLogin,
   ScreenerModel,
   ScreenerPasswordRecoveryRequest,

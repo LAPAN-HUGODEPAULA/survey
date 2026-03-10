@@ -1,4 +1,4 @@
-# survey_backend_api.model.SurveyResponse
+# survey_backend_api.model.ScreenerAccessLink
 
 ## Load the model package
 ```dart
@@ -8,14 +8,12 @@ import 'package:survey_backend_api/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**id** | **String** |  | [optional] 
-**surveyId** | **String** |  | 
-**creatorId** | **String** |  | 
-**testDate** | [**DateTime**](DateTime.md) |  | [optional] 
+**token** | **String** |  | 
 **screenerId** | **String** |  | 
-**accessLinkToken** | **String** |  | [optional] 
-**patient** | [**Patient**](Patient.md) |  | [optional] 
-**answers** | [**BuiltList&lt;Answer&gt;**](Answer.md) |  | 
+**screenerName** | **String** |  | 
+**surveyId** | **String** |  | 
+**surveyDisplayName** | **String** |  | 
+**createdAt** | [**DateTime**](DateTime.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

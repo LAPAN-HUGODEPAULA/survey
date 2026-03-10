@@ -19,6 +19,7 @@ part 'survey_response.g.dart';
 /// * [creatorId] 
 /// * [testDate] 
 /// * [screenerId] 
+/// * [accessLinkToken] 
 /// * [patient] 
 /// * [answers] 
 @BuiltValue(instantiable: false)
@@ -37,6 +38,9 @@ abstract class SurveyResponse  {
 
   @BuiltValueField(wireName: r'screenerId')
   String get screenerId;
+
+  @BuiltValueField(wireName: r'accessLinkToken')
+  String? get accessLinkToken;
 
   @BuiltValueField(wireName: r'patient')
   Patient? get patient;
@@ -89,6 +93,13 @@ class _$SurveyResponseSerializer implements PrimitiveSerializer<SurveyResponse> 
       object.screenerId,
       specifiedType: const FullType(String),
     );
+    if (object.accessLinkToken != null) {
+      yield r'accessLinkToken';
+      yield serializers.serialize(
+        object.accessLinkToken,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
     if (object.patient != null) {
       yield r'patient';
       yield serializers.serialize(
@@ -198,6 +209,14 @@ class _$$SurveyResponseSerializer implements PrimitiveSerializer<$SurveyResponse
             specifiedType: const FullType(String),
           ) as String;
           result.screenerId = valueDes;
+          break;
+        case r'accessLinkToken':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.accessLinkToken = valueDes;
           break;
         case r'patient':
           final valueDes = serializers.deserialize(

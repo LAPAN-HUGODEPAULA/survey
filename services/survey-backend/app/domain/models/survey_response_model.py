@@ -11,7 +11,8 @@ class SurveyResponse(BaseModel):
     creator_id: str = Field(..., alias="creatorId")
     test_date: datetime = Field(..., alias="testDate")
     screener_id: str = Field(..., alias="screenerId")
+    access_link_token: Optional[str] = Field(default=None, alias="accessLinkToken")
     patient: Optional[Patient] = None
     answers: List[Answer]
 
-    model_config = ConfigDict(extra='forbid')
+    model_config = ConfigDict(extra='forbid', populate_by_name=True)

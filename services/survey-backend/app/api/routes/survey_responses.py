@@ -13,7 +13,15 @@ from app.domain.models.survey_response_model import SurveyResponse
 from app.domain.models.survey_response_with_agent import SurveyResponseWithAgent
 from app.integrations.clinical_writer.client import send_to_langgraph_agent
 from app.integrations.email.service import send_survey_response_email
-from app.persistence.deps import get_survey_response_repo
+from app.persistence.deps import (
+    get_screener_access_link_repo,
+    get_screener_repo,
+    get_survey_repo,
+    get_survey_response_repo,
+)
+from app.persistence.repositories.screener_access_link_repo import ScreenerAccessLinkRepository
+from app.persistence.repositories.screener_repo import ScreenerRepository
+from app.persistence.repositories.survey_repo import SurveyRepository
 from app.persistence.repositories.survey_response_repo import SurveyResponseRepository
 
 router = APIRouter()
@@ -24,6 +32,9 @@ async def create_survey_response(
     survey_response: SurveyResponse,
     background_tasks: BackgroundTasks,
     repo: SurveyResponseRepository = Depends(get_survey_response_repo),
+    access_link_repo: ScreenerAccessLinkRepository = Depends(get_screener_access_link_repo),
+    screener_repo: ScreenerRepository = Depends(get_screener_repo),
+    survey_repo: SurveyRepository = Depends(get_survey_repo),
 ):
     """
     Create a survey response, persist it, trigger an email, and enrich with AI agent output.
@@ -32,6 +43,21 @@ async def create_survey_response(
     patient_name = survey_response.patient.name if survey_response.patient else "Anonymous"
     logger.info("Survey ID: %s, Patient: %s", survey_response.survey_id, patient_name)
     try:
+        if survey_response.access_link_token:
+            link = access_link_repo.find_by_token(survey_response.access_link_token)
+            if not link:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Prepared assessment is no longer available",
+                )
+            if not screener_repo.find_by_id(link.screener_id) or not survey_repo.get_by_id(link.survey_id):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Prepared assessment is no longer available",
+                )
+            survey_response.screener_id = link.screener_id
+            survey_response.survey_id = link.survey_id
+
         logger.info("Dumping survey response model to dict...")
         survey_response_dict = survey_response.model_dump(by_alias=True)
         if survey_response_dict.get("_id") is None:
@@ -75,6 +101,8 @@ async def create_survey_response(
         logger.info("--- Returning created survey response with agent output ---")
         return SurveyResponseWithAgent(**response_payload, agent_response=agent_response)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error("Unexpected error creating survey response for survey %s: %s", survey_response.survey_id, e)
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from e

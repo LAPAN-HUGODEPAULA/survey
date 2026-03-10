@@ -29,12 +29,25 @@ paths:
             schema:
               $ref: '#/components/schemas/Survey'
       responses:
-        '200':
+        '201':
           description: Created survey
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Survey'
+  /surveys/export:
+    get:
+      summary: Export surveys
+      operationId: exportSurveys
+      responses:
+        '200':
+          description: Exported surveys JSON
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Survey'
   /surveys/{surveyId}:
     get:
       summary: Get survey by id
@@ -279,6 +292,53 @@ paths:
           description: Not authenticated or invalid token
         '404':
           description: Screener not found
+  /screener_access_links/:
+    post:
+      summary: Create a prepared screener access link
+      operationId: createScreenerAccessLink
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: Bearer token in the format `Bearer <token>`
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateScreenerAccessLinkRequest'
+      responses:
+        '201':
+          description: Access link created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenerAccessLink'
+        '401':
+          description: Not authenticated or invalid token
+        '404':
+          description: Screener or survey not found
+  /screener_access_links/{token}:
+    get:
+      summary: Resolve a prepared screener access link
+      operationId: resolveScreenerAccessLink
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Access link resolved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenerAccessLink'
+        '404':
+          description: Prepared assessment is no longer available
   /chat/sessions:
     post:
       summary: Create chat session
@@ -1036,12 +1096,45 @@ components:
           format: date-time
         screenerId:
           type: string
+        accessLinkToken:
+          type: string
+          nullable: true
         patient:
           $ref: '#/components/schemas/Patient'
         answers:
           type: array
           items:
             $ref: '#/components/schemas/Answer'
+    CreateScreenerAccessLinkRequest:
+      type: object
+      required:
+        - surveyId
+      properties:
+        surveyId:
+          type: string
+    ScreenerAccessLink:
+      type: object
+      required:
+        - token
+        - screenerId
+        - screenerName
+        - surveyId
+        - surveyDisplayName
+        - createdAt
+      properties:
+        token:
+          type: string
+        screenerId:
+          type: string
+        screenerName:
+          type: string
+        surveyId:
+          type: string
+        surveyDisplayName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
     AgentResponse:
       type: object
       properties:

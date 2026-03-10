@@ -32,6 +32,11 @@ void main() {
       // TODO
     });
 
+    // String accessLinkToken
+    test('to test the property `accessLinkToken`', () async {
+      // TODO
+    });
+
     // Patient patient
     test('to test the property `patient`', () async {
       // TODO

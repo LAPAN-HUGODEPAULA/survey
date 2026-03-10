@@ -72,11 +72,13 @@ Class | Method | HTTP request | Description
 [*DefaultApi*](doc/DefaultApi.md) | [**createChatMessage**](doc/DefaultApi.md#createchatmessage) | **POST** /chat/sessions/{sessionId}/messages | Create chat message
 [*DefaultApi*](doc/DefaultApi.md) | [**createChatSession**](doc/DefaultApi.md#createchatsession) | **POST** /chat/sessions | Create chat session
 [*DefaultApi*](doc/DefaultApi.md) | [**createPatientResponse**](doc/DefaultApi.md#createpatientresponse) | **POST** /patient_responses/ | Create patient response
+[*DefaultApi*](doc/DefaultApi.md) | [**createScreenerAccessLink**](doc/DefaultApi.md#createscreeneraccesslink) | **POST** /screener_access_links/ | Create a prepared screener access link
 [*DefaultApi*](doc/DefaultApi.md) | [**createSurvey**](doc/DefaultApi.md#createsurvey) | **POST** /surveys/ | Create survey
 [*DefaultApi*](doc/DefaultApi.md) | [**createSurveyResponse**](doc/DefaultApi.md#createsurveyresponse) | **POST** /survey_responses/ | Create survey response
 [*DefaultApi*](doc/DefaultApi.md) | [**createTemplate**](doc/DefaultApi.md#createtemplate) | **POST** /templates | Create template
 [*DefaultApi*](doc/DefaultApi.md) | [**deleteSurvey**](doc/DefaultApi.md#deletesurvey) | **DELETE** /surveys/{surveyId} | Delete survey
 [*DefaultApi*](doc/DefaultApi.md) | [**exportDocument**](doc/DefaultApi.md#exportdocument) | **POST** /documents/export | Export document
+[*DefaultApi*](doc/DefaultApi.md) | [**exportSurveys**](doc/DefaultApi.md#exportsurveys) | **GET** /surveys/export | Export surveys
 [*DefaultApi*](doc/DefaultApi.md) | [**getChatSession**](doc/DefaultApi.md#getchatsession) | **GET** /chat/sessions/{sessionId} | Get chat session
 [*DefaultApi*](doc/DefaultApi.md) | [**getCurrentScreener**](doc/DefaultApi.md#getcurrentscreener) | **GET** /screeners/me | Get the current screener profile
 [*DefaultApi*](doc/DefaultApi.md) | [**getDocument**](doc/DefaultApi.md#getdocument) | **GET** /documents/{documentId} | Get document record
@@ -97,6 +99,7 @@ Class | Method | HTTP request | Description
 [*DefaultApi*](doc/DefaultApi.md) | [**recoverScreenerPassword**](doc/DefaultApi.md#recoverscreenerpassword) | **POST** /screeners/recover-password | Request password recovery for a screener
 [*DefaultApi*](doc/DefaultApi.md) | [**registerScreener**](doc/DefaultApi.md#registerscreener) | **POST** /screeners/register | Register a new screener
 [*DefaultApi*](doc/DefaultApi.md) | [**resendSurveyEmail**](doc/DefaultApi.md#resendsurveyemail) | **POST** /survey_responses/{responseId}/send_email | Resend survey response email
+[*DefaultApi*](doc/DefaultApi.md) | [**resolveScreenerAccessLink**](doc/DefaultApi.md#resolvescreeneraccesslink) | **GET** /screener_access_links/{token} | Resolve a prepared screener access link
 [*DefaultApi*](doc/DefaultApi.md) | [**transcribeVoiceAudio**](doc/DefaultApi.md#transcribevoiceaudio) | **POST** /voice/transcriptions | Transcribe voice audio
 [*DefaultApi*](doc/DefaultApi.md) | [**updateChatMessage**](doc/DefaultApi.md#updatechatmessage) | **PATCH** /chat/messages/{messageId} | Update chat message
 [*DefaultApi*](doc/DefaultApi.md) | [**updateChatSession**](doc/DefaultApi.md#updatechatsession) | **PATCH** /chat/sessions/{sessionId} | Update chat session
@@ -125,6 +128,7 @@ Class | Method | HTTP request | Description
  - [ClinicalWriterRequest](doc/ClinicalWriterRequest.md)
  - [ClinicalWriterRequestMetadata](doc/ClinicalWriterRequestMetadata.md)
  - [ClinicalWriterSuggestion](doc/ClinicalWriterSuggestion.md)
+ - [CreateScreenerAccessLinkRequest](doc/CreateScreenerAccessLinkRequest.md)
  - [DocumentExportRequest](doc/DocumentExportRequest.md)
  - [DocumentPreview](doc/DocumentPreview.md)
  - [DocumentPreviewRequest](doc/DocumentPreviewRequest.md)
@@ -134,6 +138,7 @@ Class | Method | HTTP request | Description
  - [Patient](doc/Patient.md)
  - [ProfessionalCouncil](doc/ProfessionalCouncil.md)
  - [Question](doc/Question.md)
+ - [ScreenerAccessLink](doc/ScreenerAccessLink.md)
  - [ScreenerLogin](doc/ScreenerLogin.md)
  - [ScreenerModel](doc/ScreenerModel.md)
  - [ScreenerPasswordRecoveryRequest](doc/ScreenerPasswordRecoveryRequest.md)

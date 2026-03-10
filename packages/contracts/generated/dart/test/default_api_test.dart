@@ -56,6 +56,13 @@ void main() {
       // TODO
     });
 
+    // Create a prepared screener access link
+    //
+    //Future<ScreenerAccessLink> createScreenerAccessLink(String authorization, CreateScreenerAccessLinkRequest createScreenerAccessLinkRequest) async
+    test('test createScreenerAccessLink', () async {
+      // TODO
+    });
+
     // Create survey
     //
     //Future<Survey> createSurvey(Survey survey) async
@@ -88,6 +95,13 @@ void main() {
     //
     //Future<DocumentRecord> exportDocument(DocumentExportRequest documentExportRequest) async
     test('test exportDocument', () async {
+      // TODO
+    });
+
+    // Export surveys
+    //
+    //Future<BuiltList<Survey>> exportSurveys() async
+    test('test exportSurveys', () async {
       // TODO
     });
 
@@ -228,6 +242,13 @@ void main() {
     //
     //Future resendSurveyEmail(String responseId) async
     test('test resendSurveyEmail', () async {
+      // TODO
+    });
+
+    // Resolve a prepared screener access link
+    //
+    //Future<ScreenerAccessLink> resolveScreenerAccessLink(String token) async
+    test('test resolveScreenerAccessLink', () async {
       // TODO
     });
 
