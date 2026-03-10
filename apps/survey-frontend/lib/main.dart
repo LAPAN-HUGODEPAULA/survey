@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/core/providers/api_provider.dart';
+import 'package:survey_app/features/access_links/pages/access_link_launch_page.dart';
 import 'package:survey_app/features/splash/splash_screen.dart';
 import 'package:go_router/go_router.dart';
 import 'package:survey_app/features/screener/pages/screener_registration_page.dart';
@@ -35,6 +36,12 @@ final _router = GoRouter(
         GoRoute(
           path: '/demographics',
           builder: (context, state) => const DemographicsPage(),
+        ),
+        GoRoute(
+          path: '/access/:token',
+          builder: (context, state) => AccessLinkLaunchPage(
+            token: state.pathParameters['token'] ?? '',
+          ),
         ),
         GoRoute(
           path: '/register',
@@ -86,7 +93,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router( // Changed to MaterialApp.router
-      title: 'Aplicação de Questionário',
+      title: 'LAPAN Questionários (Profissional)',
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

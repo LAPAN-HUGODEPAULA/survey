@@ -5,6 +5,7 @@ class SurveyResponse {
   const SurveyResponse({
     this.id,
     this.agentResponse,
+    this.accessLinkToken,
     required this.surveyId,
     required this.creatorId,
     required this.testDate,
@@ -15,6 +16,7 @@ class SurveyResponse {
 
   final String? id;
   final AgentResponse? agentResponse;
+  final String? accessLinkToken;
   final String surveyId;
   final String creatorId;
   final DateTime testDate;
@@ -35,6 +37,7 @@ class SurveyResponse {
           '',
       testDate: _parseDate(json['testDate']),
       screenerId: json['screenerId']?.toString() ?? '',
+      accessLinkToken: json['accessLinkToken']?.toString(),
       patient: json['patient'] is Map<String, dynamic>
           ? Patient.fromJson(json['patient'] as Map<String, dynamic>)
           : Patient.fromJson(json),
@@ -51,6 +54,7 @@ class SurveyResponse {
       'creatorId': creatorId,
       'testDate': testDate.toIso8601String(),
       'screenerId': screenerId,
+      'accessLinkToken': accessLinkToken,
       'patient': patient.toJson(),
       'answers': answers.map((answer) => answer.toJson()).toList(),
     };
@@ -62,6 +66,7 @@ class SurveyResponse {
     String? creatorId,
     DateTime? testDate,
     String? screenerId,
+    String? accessLinkToken,
     Patient? patient,
     List<Answer>? answers,
     AgentResponse? agentResponse,
@@ -72,6 +77,7 @@ class SurveyResponse {
       creatorId: creatorId ?? this.creatorId,
       testDate: testDate ?? this.testDate,
       screenerId: screenerId ?? this.screenerId,
+      accessLinkToken: accessLinkToken ?? this.accessLinkToken,
       patient: patient ?? this.patient,
       answers: answers ?? this.answers,
       agentResponse: agentResponse ?? this.agentResponse,

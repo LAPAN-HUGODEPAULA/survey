@@ -10,6 +10,7 @@ library;
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:js_interop';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,7 +19,7 @@ import 'package:design_system_flutter/report/report_models.dart';
 import 'package:design_system_flutter/report/report_view.dart';
 import 'package:provider/provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:universal_html/html.dart' as html;
+import 'package:web/web.dart' as web;
 import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/core/models/survey/question.dart';
 import 'package:survey_app/core/models/survey/survey.dart';
@@ -128,6 +129,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
         creatorId: widget.survey.creatorId,
         testDate: DateTime.now(),
         screenerId: settings.screenerId,
+        accessLinkToken: settings.accessLinkToken,
         patient: patient,
         answers: _buildAnswers(),
       );
@@ -184,6 +186,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
         creatorId: widget.survey.creatorId,
         testDate: DateTime.now(),
         screenerId: settings.screenerId,
+        accessLinkToken: settings.accessLinkToken,
         patient: settings.patient.withClinicalData(
           familyHistory: settings.clinicalData.familyHistory,
           socialHistory: settings.clinicalData.socialData,
@@ -254,11 +257,18 @@ class _ThankYouPageState extends State<ThankYouPage> {
   Future<String> _saveToWebBrowser(String fileName, String jsonString) async {
     try {
       // Create blob and trigger download
-      final bytes = utf8.encode(jsonString);
-      final blob = html.Blob([bytes]);
-      final url = html.Url.createObjectUrlFromBlob(blob);
+      final parts = <web.BlobPart>[jsonString.toJS as web.BlobPart].toJS;
+      final blob = web.Blob(parts, web.BlobPropertyBag(type: 'application/json'));
+      final url = web.URL.createObjectURL(blob);
+      final anchor = web.HTMLAnchorElement()
+        ..href = url
+        ..download = fileName
+        ..style.display = 'none';
 
-      html.Url.revokeObjectUrl(url);
+      web.document.body?.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      web.URL.revokeObjectURL(url);
 
       return 'Download iniciado: $fileName';
     } catch (e) {
@@ -301,7 +311,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
     if (kIsWeb) {
       // Web fallback - try to save to browser storage or show data
       try {
-        html.window.localStorage['survey_response_$fileName'] = jsonString;
+        web.window.localStorage.setItem('survey_response_$fileName', jsonString);
         return 'Salvo no armazenamento do navegador: $fileName';
       } catch (e) {
         return 'Dados preparados (não foi possível salvar): $fileName';
@@ -397,7 +407,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
   void _printReport() {
     if (kIsWeb) {
-      html.window.print();
+      web.window.print();
     }
   }
 
@@ -413,17 +423,18 @@ class _ThankYouPageState extends State<ThankYouPage> {
   }
 
   Future<String> _saveReportToWebBrowser(String fileName, String content) async {
-    final bytes = utf8.encode(content);
-    final blob = html.Blob([bytes]);
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    final anchor = html.AnchorElement(href: url)
+    final parts = <web.BlobPart>[content.toJS as web.BlobPart].toJS;
+    final blob = web.Blob(parts, web.BlobPropertyBag(type: 'text/plain'));
+    final url = web.URL.createObjectURL(blob);
+    final anchor = web.HTMLAnchorElement()
+      ..href = url
       ..download = fileName
       ..style.display = 'none';
 
-    html.document.body?.children.add(anchor);
+    web.document.body?.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    html.Url.revokeObjectUrl(url);
+    web.URL.revokeObjectURL(url);
 
     return 'Download iniciado: $fileName';
   }

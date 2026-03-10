@@ -209,28 +209,31 @@ class _DemographicsPageState extends State<DemographicsPage> {
               }
             },
             itemBuilder: (context) {
+              final isLocked = settings.isLockedAssessmentMode;
               if (!settings.isLoggedIn) {
-                return const [
-                  PopupMenuItem(
+                return <PopupMenuEntry<_ProfileMenuAction>>[
+                  const PopupMenuItem(
                     value: _ProfileMenuAction.login,
                     child: Text('Entrar'),
                   ),
-                  PopupMenuItem(
-                    value: _ProfileMenuAction.settings,
-                    child: Text('Configurações'),
-                  ),
+                  if (!isLocked)
+                    const PopupMenuItem(
+                      value: _ProfileMenuAction.settings,
+                      child: Text('Configurações'),
+                    ),
                 ];
               }
-              return const [
-                PopupMenuItem(
+              return <PopupMenuEntry<_ProfileMenuAction>>[
+                const PopupMenuItem(
                   value: _ProfileMenuAction.profile,
                   child: Text('Perfil'),
                 ),
-                PopupMenuItem(
-                  value: _ProfileMenuAction.settings,
-                  child: Text('Configurações'),
-                ),
-                PopupMenuItem(
+                if (!isLocked)
+                  const PopupMenuItem(
+                    value: _ProfileMenuAction.settings,
+                    child: Text('Configurações'),
+                  ),
+                const PopupMenuItem(
                   value: _ProfileMenuAction.logout,
                   child: Text('Sair'),
                 ),
@@ -249,6 +252,24 @@ class _DemographicsPageState extends State<DemographicsPage> {
               child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (settings.isLockedAssessmentMode) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Este acesso foi preparado para ${settings.screenerDisplayName} e o questionário ${settings.selectedSurveyName}. As configurações estão protegidas durante esta sessão.',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+              ],
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Nome Completo *'),

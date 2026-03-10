@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 
 import 'package:survey_app/core/models/clinical_data.dart';
 import 'package:survey_app/core/models/patient.dart';
+import 'package:survey_app/core/models/screener_access_link.dart';
 import 'package:survey_app/core/models/screener_profile.dart';
 import 'package:survey_app/core/models/survey/survey.dart';
 import 'package:survey_app/core/repositories/survey_repository.dart';
@@ -39,14 +40,26 @@ class AppSettings extends ChangeNotifier {
 
   List<Survey> _surveys = const [];
   String? _selectedSurveyId;
+  String? _preparedAccessLinkToken;
+  String? _preparedScreenerId;
+  String? _preparedScreenerName;
   bool _isLoadingSurveys = false;
   String? _loadError;
 
   String? get authToken => _authToken;
   ScreenerProfile? get screenerProfile => _screenerProfile;
   bool get isLoggedIn => (_authToken?.isNotEmpty ?? false) && _screenerProfile != null;
-  String get screenerId => _screenerProfile?.id ?? systemScreenerId;
+  bool get isLockedAssessmentMode =>
+      _preparedAccessLinkToken != null &&
+      _preparedScreenerId != null &&
+      _selectedSurveyId != null;
+  String? get accessLinkToken => _preparedAccessLinkToken;
+  String get screenerId => _preparedScreenerId ?? _screenerProfile?.id ?? systemScreenerId;
   String get screenerDisplayName {
+    final preparedName = _preparedScreenerName;
+    if (preparedName != null && preparedName.isNotEmpty) {
+      return preparedName;
+    }
     final profile = _screenerProfile;
     if (profile == null) return 'System Screener';
     return '${profile.firstName} ${profile.surname}'.trim();
@@ -89,7 +102,9 @@ class AppSettings extends ChangeNotifier {
     try {
       final surveys = await _surveyRepository.fetchAll();
       _surveys = surveys;
-      if (_selectedSurveyId == null ||
+      if (_selectedSurveyId == null) {
+        _selectedSurveyId = surveys.isEmpty ? null : surveys.first.id;
+      } else if (!isLockedAssessmentMode &&
           !_surveys.any((survey) => survey.id == _selectedSurveyId)) {
         _selectedSurveyId = surveys.isEmpty ? null : surveys.first.id;
       }
@@ -102,6 +117,9 @@ class AppSettings extends ChangeNotifier {
   }
 
   void selectSurvey(String? id) {
+    if (isLockedAssessmentMode) {
+      return;
+    }
     if (id == null || id.isEmpty) {
       _selectedSurveyId = null;
     } else if (_selectedSurveyId != id) {
@@ -119,6 +137,21 @@ class AppSettings extends ChangeNotifier {
   void clearScreenerSession() {
     _authToken = null;
     _screenerProfile = null;
+    notifyListeners();
+  }
+
+  void applyPreparedAccessLink(ScreenerAccessLink link) {
+    _preparedAccessLinkToken = link.token;
+    _preparedScreenerId = link.screenerId;
+    _preparedScreenerName = link.screenerName;
+    _selectedSurveyId = link.surveyId;
+    notifyListeners();
+  }
+
+  void clearPreparedAccessLink() {
+    _preparedAccessLinkToken = null;
+    _preparedScreenerId = null;
+    _preparedScreenerName = null;
     notifyListeners();
   }
 
