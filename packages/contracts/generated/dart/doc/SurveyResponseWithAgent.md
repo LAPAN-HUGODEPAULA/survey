@@ -14,6 +14,7 @@ Name | Type | Description | Notes
 **testDate** | [**DateTime**](DateTime.md) |  | [optional] 
 **screenerId** | **String** |  | 
 **accessLinkToken** | **String** |  | [optional] 
+**promptKey** | **String** |  | [optional] 
 **patient** | [**Patient**](Patient.md) |  | [optional] 
 **answers** | [**BuiltList&lt;Answer&gt;**](Answer.md) |  | 
 **agentResponse** | [**AgentResponse**](AgentResponse.md) |  | [optional] 

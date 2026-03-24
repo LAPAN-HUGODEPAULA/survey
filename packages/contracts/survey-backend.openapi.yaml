@@ -6,6 +6,98 @@ info:
 servers:
   - url: http://localhost:8000/api/v1
 paths:
+  /survey_prompts/:
+    get:
+      summary: List reusable survey prompts
+      operationId: listSurveyPrompts
+      responses:
+        '200':
+          description: List of reusable survey prompts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SurveyPrompt'
+    post:
+      summary: Create reusable survey prompt
+      operationId: createSurveyPrompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SurveyPromptUpsert'
+      responses:
+        '201':
+          description: Created survey prompt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurveyPrompt'
+        '409':
+          description: Duplicate prompt key
+  /survey_prompts/{promptKey}:
+    get:
+      summary: Get reusable survey prompt by key
+      operationId: getSurveyPrompt
+      parameters:
+        - in: path
+          name: promptKey
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Survey prompt found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurveyPrompt'
+        '404':
+          description: Survey prompt not found
+    put:
+      summary: Update reusable survey prompt
+      operationId: updateSurveyPrompt
+      parameters:
+        - in: path
+          name: promptKey
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SurveyPromptUpsert'
+      responses:
+        '200':
+          description: Updated survey prompt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SurveyPrompt'
+        '404':
+          description: Survey prompt not found
+        '409':
+          description: Duplicate prompt key
+    delete:
+      summary: Delete reusable survey prompt
+      operationId: deleteSurveyPrompt
+      parameters:
+        - in: path
+          name: promptKey
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Survey prompt deleted
+        '404':
+          description: Survey prompt not found
+        '409':
+          description: Survey prompt still associated with a survey
   /surveys/:
     get:
       summary: List surveys
@@ -980,6 +1072,7 @@ components:
         - instructions
         - questions
         - finalNotes
+        - promptAssociations
       properties:
         _id:
           type: string
@@ -1005,6 +1098,61 @@ components:
             $ref: '#/components/schemas/Question'
         finalNotes:
           type: string
+        promptAssociations:
+          type: array
+          items:
+            $ref: '#/components/schemas/SurveyPromptAssociation'
+    SurveyPromptUpsert:
+      type: object
+      required:
+        - promptKey
+        - name
+        - outcomeType
+        - promptText
+      properties:
+        promptKey:
+          type: string
+        name:
+          type: string
+        outcomeType:
+          $ref: '#/components/schemas/SurveyPromptOutcomeType'
+        promptText:
+          type: string
+    SurveyPrompt:
+      allOf:
+        - $ref: '#/components/schemas/SurveyPromptUpsert'
+        - type: object
+          required:
+            - createdAt
+            - modifiedAt
+          properties:
+            createdAt:
+              type: string
+              format: date-time
+            modifiedAt:
+              type: string
+              format: date-time
+    SurveyPromptAssociation:
+      type: object
+      required:
+        - promptKey
+        - name
+        - outcomeType
+      properties:
+        promptKey:
+          type: string
+        name:
+          type: string
+        outcomeType:
+          $ref: '#/components/schemas/SurveyPromptOutcomeType'
+    SurveyPromptOutcomeType:
+      type: string
+      enum:
+        - patient_condition_overview
+        - clinical_diagnostic_report
+        - clinical_referral_letter
+        - parental_guidance
+        - educational_support_summary
     Instructions:
       type: object
       required:
@@ -1097,6 +1245,9 @@ components:
         screenerId:
           type: string
         accessLinkToken:
+          type: string
+          nullable: true
+        promptKey:
           type: string
           nullable: true
         patient:

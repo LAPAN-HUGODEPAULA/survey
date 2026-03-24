@@ -29,15 +29,23 @@ class SurveyOptionColors extends ThemeExtension<SurveyOptionColors> {
 
 class AppTheme {
   static ThemeData light() {
+    final baseScheme = ColorScheme.fromSeed(
+      seedColor: Colors.orange,
+      brightness: Brightness.light,
+    );
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
+      colorScheme: baseScheme.copyWith(
+        onPrimary: Colors.black,
+        onSecondary: Colors.black,
+        onTertiary: Colors.black,
+      ),
       scaffoldBackgroundColor: Colors.white,
       focusColor: Colors.orange.withOpacity(0.15),
       hoverColor: Colors.orange.withOpacity(0.08),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
         centerTitle: true,
         surfaceTintColor: Colors.transparent,
@@ -45,29 +53,31 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.orange,
-          foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(48),
+          foregroundColor: Colors.black,
+          minimumSize: const Size(0, 48),
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: Colors.orange,
-          foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(44),
+          foregroundColor: Colors.black,
+          minimumSize: const Size(0, 44),
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(44),
+          minimumSize: const Size(0, 44),
           side: const BorderSide(color: Colors.orange),
+          foregroundColor: Colors.black,
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          minimumSize: const Size.fromHeight(44),
+          minimumSize: const Size(0, 44),
+          foregroundColor: Colors.black,
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),

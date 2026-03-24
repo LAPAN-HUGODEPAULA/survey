@@ -22,6 +22,8 @@ class _$SurveyResponseWithAgent extends SurveyResponseWithAgent {
   @override
   final String? accessLinkToken;
   @override
+  final String? promptKey;
+  @override
   final Patient? patient;
   @override
   final BuiltList<Answer> answers;
@@ -38,6 +40,7 @@ class _$SurveyResponseWithAgent extends SurveyResponseWithAgent {
       this.testDate,
       required this.screenerId,
       this.accessLinkToken,
+      this.promptKey,
       this.patient,
       required this.answers})
       : super._();
@@ -61,6 +64,7 @@ class _$SurveyResponseWithAgent extends SurveyResponseWithAgent {
         testDate == other.testDate &&
         screenerId == other.screenerId &&
         accessLinkToken == other.accessLinkToken &&
+        promptKey == other.promptKey &&
         patient == other.patient &&
         answers == other.answers;
   }
@@ -75,6 +79,7 @@ class _$SurveyResponseWithAgent extends SurveyResponseWithAgent {
     _$hash = $jc(_$hash, testDate.hashCode);
     _$hash = $jc(_$hash, screenerId.hashCode);
     _$hash = $jc(_$hash, accessLinkToken.hashCode);
+    _$hash = $jc(_$hash, promptKey.hashCode);
     _$hash = $jc(_$hash, patient.hashCode);
     _$hash = $jc(_$hash, answers.hashCode);
     _$hash = $jf(_$hash);
@@ -91,6 +96,7 @@ class _$SurveyResponseWithAgent extends SurveyResponseWithAgent {
           ..add('testDate', testDate)
           ..add('screenerId', screenerId)
           ..add('accessLinkToken', accessLinkToken)
+          ..add('promptKey', promptKey)
           ..add('patient', patient)
           ..add('answers', answers))
         .toString();
@@ -135,6 +141,10 @@ class SurveyResponseWithAgentBuilder
   set accessLinkToken(covariant String? accessLinkToken) =>
       _$this._accessLinkToken = accessLinkToken;
 
+  String? _promptKey;
+  String? get promptKey => _$this._promptKey;
+  set promptKey(covariant String? promptKey) => _$this._promptKey = promptKey;
+
   PatientBuilder? _patient;
   PatientBuilder get patient => _$this._patient ??= PatientBuilder();
   set patient(covariant PatientBuilder? patient) => _$this._patient = patient;
@@ -158,6 +168,7 @@ class SurveyResponseWithAgentBuilder
       _testDate = $v.testDate;
       _screenerId = $v.screenerId;
       _accessLinkToken = $v.accessLinkToken;
+      _promptKey = $v.promptKey;
       _patient = $v.patient?.toBuilder();
       _answers = $v.answers.toBuilder();
       _$v = null;
@@ -193,6 +204,7 @@ class SurveyResponseWithAgentBuilder
             screenerId: BuiltValueNullFieldError.checkNotNull(
                 screenerId, r'SurveyResponseWithAgent', 'screenerId'),
             accessLinkToken: accessLinkToken,
+            promptKey: promptKey,
             patient: _patient?.build(),
             answers: answers.build(),
           );

@@ -49,5 +49,36 @@ void main() {
 
       expect(surveyOptionColors!.palette, equals(ColorPalette.greenToRed));
     });
+
+    testWidgets('DsStatusBar renders the shared copyright text', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light(),
+          home: const Scaffold(bottomNavigationBar: DsStatusBar()),
+        ),
+      );
+
+      expect(find.text(dsSharedStatusBarText), findsOneWidget);
+    });
+
+    testWidgets('DsScaffold composes app bar body and shared footer', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light(),
+          home: const DsScaffold(
+            title: 'Demo',
+            body: Text('Body'),
+          ),
+        ),
+      );
+
+      expect(find.byType(AppBar), findsOneWidget);
+      expect(find.text('Body'), findsOneWidget);
+      expect(find.text(dsSharedStatusBarText), findsOneWidget);
+    });
   });
 }

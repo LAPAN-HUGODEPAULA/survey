@@ -50,6 +50,10 @@ import 'package:survey_backend_api/src/model/screener_password_recovery_request.
 import 'package:survey_backend_api/src/model/screener_profile.dart';
 import 'package:survey_backend_api/src/model/screener_register.dart';
 import 'package:survey_backend_api/src/model/survey.dart';
+import 'package:survey_backend_api/src/model/survey_prompt.dart';
+import 'package:survey_backend_api/src/model/survey_prompt_association.dart';
+import 'package:survey_backend_api/src/model/survey_prompt_outcome_type.dart';
+import 'package:survey_backend_api/src/model/survey_prompt_upsert.dart';
 import 'package:survey_backend_api/src/model/survey_response.dart';
 import 'package:survey_backend_api/src/model/survey_response_with_agent.dart';
 import 'package:survey_backend_api/src/model/template_create_request.dart';
@@ -102,6 +106,10 @@ part 'serializers.g.dart';
   ScreenerProfile,
   ScreenerRegister,
   Survey,
+  SurveyPrompt,
+  SurveyPromptAssociation,
+  SurveyPromptOutcomeType,
+  SurveyPromptUpsert,$SurveyPromptUpsert,
   SurveyResponse,$SurveyResponse,
   SurveyResponseWithAgent,
   TemplateCreateRequest,
@@ -125,6 +133,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<Survey>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(SurveyPrompt)]),
+        () => ListBuilder<SurveyPrompt>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ListTemplateDocumentTypes200ResponseInner)]),
         () => ListBuilder<ListTemplateDocumentTypes200ResponseInner>(),
       )
@@ -140,12 +152,13 @@ Serializers serializers = (_$serializers.toBuilder()
         const FullType(BuiltList, [FullType(ChatMessage)]),
         () => ListBuilder<ChatMessage>(),
       )
+      ..add(SurveyPromptUpsert.serializer)
       ..add(SurveyResponse.serializer)
       ..add(const OneOfSerializer())
       ..add(const AnyOfSerializer())
       ..add(const DateSerializer())
-      ..add(Iso8601DateTimeSerializer()))
-    .build();
+      ..add(Iso8601DateTimeSerializer())
+    ).build();
 
 Serializers standardSerializers =
     (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();

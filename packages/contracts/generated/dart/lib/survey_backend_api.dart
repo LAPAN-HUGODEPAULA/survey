@@ -48,6 +48,10 @@ export 'package:survey_backend_api/src/model/screener_password_recovery_request.
 export 'package:survey_backend_api/src/model/screener_profile.dart';
 export 'package:survey_backend_api/src/model/screener_register.dart';
 export 'package:survey_backend_api/src/model/survey.dart';
+export 'package:survey_backend_api/src/model/survey_prompt.dart';
+export 'package:survey_backend_api/src/model/survey_prompt_association.dart';
+export 'package:survey_backend_api/src/model/survey_prompt_outcome_type.dart';
+export 'package:survey_backend_api/src/model/survey_prompt_upsert.dart';
 export 'package:survey_backend_api/src/model/survey_response.dart';
 export 'package:survey_backend_api/src/model/survey_response_with_agent.dart';
 export 'package:survey_backend_api/src/model/template_create_request.dart';

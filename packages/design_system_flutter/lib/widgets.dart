@@ -8,23 +8,83 @@ export 'widgets/ds_chat_bubble.dart';
 
 import 'package:flutter/material.dart';
 
+const dsSharedStatusBarText =
+    'COPYRIGHT © 2026. Laboratório de Pesquisa Aplicada às Neurociências da Visão - Todos os direitos reservados.';
+
+class DsStatusBar extends StatelessWidget {
+  const DsStatusBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: colorScheme.surfaceContainerHighest,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Text(
+            dsSharedStatusBarText,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class DsScaffold extends StatelessWidget {
-  final String title;
+  final String? title;
   final Widget body;
   final List<Widget>? actions;
+  final PreferredSizeWidget? appBar;
+  final bool isLoading;
+  final String? error;
+  final Widget? loading;
+  final Widget? errorWidget;
+  final bool useSafeArea;
+  final Color? backgroundColor;
+  final Widget? footer;
 
   const DsScaffold({
     super.key,
-    required this.title,
     required this.body,
+    this.title,
     this.actions,
+    this.appBar,
+    this.isLoading = false,
+    this.error,
+    this.loading,
+    this.errorWidget,
+    this.useSafeArea = false,
+    this.backgroundColor,
+    this.footer,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget resolvedBody;
+    if (isLoading) {
+      resolvedBody = Center(child: loading ?? const CircularProgressIndicator());
+    } else if (error != null) {
+      resolvedBody = Center(child: errorWidget ?? Text(error!));
+    } else {
+      resolvedBody = body;
+    }
+
+    if (useSafeArea) {
+      resolvedBody = SafeArea(child: resolvedBody);
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Text(title), actions: actions),
-      body: SafeArea(child: body),
+      backgroundColor: backgroundColor,
+      appBar: appBar ?? (title != null ? AppBar(title: Text(title!), actions: actions) : null),
+      body: resolvedBody,
+      bottomNavigationBar: footer ?? const DsStatusBar(),
     );
   }
 }

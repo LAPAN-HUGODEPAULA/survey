@@ -6,6 +6,7 @@
 import 'package:survey_backend_api/src/model/question.dart';
 import 'package:built_collection/built_collection.dart';
 import 'package:survey_backend_api/src/model/instructions.dart';
+import 'package:survey_backend_api/src/model/survey_prompt_association.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -24,6 +25,7 @@ part 'survey.g.dart';
 /// * [instructions] 
 /// * [questions] 
 /// * [finalNotes] 
+/// * [promptAssociations] 
 @BuiltValue()
 abstract class Survey implements Built<Survey, SurveyBuilder> {
   @BuiltValueField(wireName: r'_id')
@@ -55,6 +57,9 @@ abstract class Survey implements Built<Survey, SurveyBuilder> {
 
   @BuiltValueField(wireName: r'finalNotes')
   String get finalNotes;
+
+  @BuiltValueField(wireName: r'promptAssociations')
+  BuiltList<SurveyPromptAssociation> get promptAssociations;
 
   Survey._();
 
@@ -130,6 +135,11 @@ class _$SurveySerializer implements PrimitiveSerializer<Survey> {
     yield serializers.serialize(
       object.finalNotes,
       specifiedType: const FullType(String),
+    );
+    yield r'promptAssociations';
+    yield serializers.serialize(
+      object.promptAssociations,
+      specifiedType: const FullType(BuiltList, [FullType(SurveyPromptAssociation)]),
     );
   }
 
@@ -223,6 +233,13 @@ class _$SurveySerializer implements PrimitiveSerializer<Survey> {
             specifiedType: const FullType(String),
           ) as String;
           result.finalNotes = valueDes;
+          break;
+        case r'promptAssociations':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(SurveyPromptAssociation)]),
+          ) as BuiltList<SurveyPromptAssociation>;
+          result.promptAssociations.replace(valueDes);
           break;
         default:
           unhandled.add(key);

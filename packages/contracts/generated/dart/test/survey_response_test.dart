@@ -37,6 +37,11 @@ void main() {
       // TODO
     });
 
+    // String promptKey
+    test('to test the property `promptKey`', () async {
+      // TODO
+    });
+
     // Patient patient
     test('to test the property `patient`', () async {
       // TODO

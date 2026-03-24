@@ -22,6 +22,7 @@ part 'survey_response_with_agent.g.dart';
 /// * [testDate] 
 /// * [screenerId] 
 /// * [accessLinkToken] 
+/// * [promptKey] 
 /// * [patient] 
 /// * [answers] 
 /// * [agentResponse] 
@@ -53,6 +54,13 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
     SurveyResponseWithAgent object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
+    if (object.promptKey != null) {
+      yield r'promptKey';
+      yield serializers.serialize(
+        object.promptKey,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
     yield r'surveyId';
     yield serializers.serialize(
       object.surveyId,
@@ -131,6 +139,14 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
       final key = serializedList[i] as String;
       final value = serializedList[i + 1];
       switch (key) {
+        case r'promptKey':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.promptKey = valueDes;
+          break;
         case r'surveyId':
           final valueDes = serializers.deserialize(
             value,

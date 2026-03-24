@@ -7,6 +7,7 @@ part of 'serializers.dart';
 // **************************************************************************
 
 Serializers _$serializers = (Serializers().toBuilder()
+      ..add($SurveyPromptUpsert.serializer)
       ..add($SurveyResponse.serializer)
       ..add(Address.serializer)
       ..add(AgentResponse.serializer)
@@ -47,6 +48,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ScreenerProfile.serializer)
       ..add(ScreenerRegister.serializer)
       ..add(Survey.serializer)
+      ..add(SurveyPrompt.serializer)
+      ..add(SurveyPromptAssociation.serializer)
+      ..add(SurveyPromptOutcomeType.serializer)
       ..add(SurveyResponseWithAgent.serializer)
       ..add(TemplateCreateRequest.serializer)
       ..add(TemplateDocumentType.serializer)
@@ -94,6 +98,10 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Question)]),
           () => ListBuilder<Question>())
+      ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(SurveyPromptAssociation)]),
+          () => ListBuilder<SurveyPromptAssociation>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())

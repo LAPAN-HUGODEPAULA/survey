@@ -1,0 +1,13 @@
+name: runtime_app_config
+description: Shared runtime config loading helpers for LAPAN Flutter apps.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  dio: ^5.9.2
+
+dev_dependencies:
+  test: ^1.25.8

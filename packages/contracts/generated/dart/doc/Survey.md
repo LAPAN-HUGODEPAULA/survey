@@ -18,6 +18,7 @@ Name | Type | Description | Notes
 **instructions** | [**Instructions**](Instructions.md) |  | 
 **questions** | [**BuiltList&lt;Question&gt;**](Question.md) |  | 
 **finalNotes** | **String** |  | 
+**promptAssociations** | [**BuiltList&lt;SurveyPromptAssociation&gt;**](SurveyPromptAssociation.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

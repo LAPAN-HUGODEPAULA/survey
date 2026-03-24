@@ -70,6 +70,13 @@ void main() {
       // TODO
     });
 
+    // Create reusable survey prompt
+    //
+    //Future<SurveyPrompt> createSurveyPrompt(SurveyPromptUpsert surveyPromptUpsert) async
+    test('test createSurveyPrompt', () async {
+      // TODO
+    });
+
     // Create survey response
     //
     //Future<SurveyResponseWithAgent> createSurveyResponse(SurveyResponse surveyResponse) async
@@ -88,6 +95,13 @@ void main() {
     //
     //Future deleteSurvey(String surveyId) async
     test('test deleteSurvey', () async {
+      // TODO
+    });
+
+    // Delete reusable survey prompt
+    //
+    //Future deleteSurveyPrompt(String promptKey) async
+    test('test deleteSurveyPrompt', () async {
       // TODO
     });
 
@@ -133,6 +147,13 @@ void main() {
       // TODO
     });
 
+    // Get reusable survey prompt by key
+    //
+    //Future<SurveyPrompt> getSurveyPrompt(String promptKey) async
+    test('test getSurveyPrompt', () async {
+      // TODO
+    });
+
     // Get survey response by id
     //
     //Future<SurveyResponse> getSurveyResponse(String responseId) async
@@ -158,6 +179,13 @@ void main() {
     //
     //Future<BuiltList<ChatSession>> listChatSessions({ String status }) async
     test('test listChatSessions', () async {
+      // TODO
+    });
+
+    // List reusable survey prompts
+    //
+    //Future<BuiltList<SurveyPrompt>> listSurveyPrompts() async
+    test('test listSurveyPrompts', () async {
       // TODO
     });
 
@@ -277,6 +305,13 @@ void main() {
     //
     //Future<Survey> updateSurvey(String surveyId, Survey survey) async
     test('test updateSurvey', () async {
+      // TODO
+    });
+
+    // Update reusable survey prompt
+    //
+    //Future<SurveyPrompt> updateSurveyPrompt(String promptKey, SurveyPromptUpsert surveyPromptUpsert) async
+    test('test updateSurveyPrompt', () async {
       // TODO
     });
 
