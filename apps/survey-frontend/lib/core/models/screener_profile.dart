@@ -9,14 +9,6 @@ class ScreenerAddress {
     required this.state,
   });
 
-  final String postalCode;
-  final String street;
-  final String number;
-  final String? complement;
-  final String neighborhood;
-  final String city;
-  final String state;
-
   factory ScreenerAddress.fromJson(Map<String, dynamic> json) {
     return ScreenerAddress(
       postalCode: json['postalCode']?.toString() ?? '',
@@ -28,6 +20,14 @@ class ScreenerAddress {
       state: json['state']?.toString() ?? '',
     );
   }
+
+  final String postalCode;
+  final String street;
+  final String number;
+  final String? complement;
+  final String neighborhood;
+  final String city;
+  final String state;
 }
 
 class ScreenerProfessionalCouncil {
@@ -36,15 +36,15 @@ class ScreenerProfessionalCouncil {
     required this.registrationNumber,
   });
 
-  final String type;
-  final String registrationNumber;
-
   factory ScreenerProfessionalCouncil.fromJson(Map<String, dynamic> json) {
     return ScreenerProfessionalCouncil(
       type: json['type']?.toString() ?? 'none',
       registrationNumber: json['registrationNumber']?.toString() ?? '',
     );
   }
+
+  final String type;
+  final String registrationNumber;
 }
 
 class ScreenerProfile {
@@ -61,18 +61,6 @@ class ScreenerProfile {
     required this.degree,
     required this.darvCourseYear,
   });
-
-  final String id;
-  final String cpf;
-  final String firstName;
-  final String surname;
-  final String email;
-  final String phone;
-  final ScreenerAddress address;
-  final ScreenerProfessionalCouncil professionalCouncil;
-  final String jobTitle;
-  final String degree;
-  final int? darvCourseYear;
 
   factory ScreenerProfile.fromJson(Map<String, dynamic> json) {
     final addressJson = json['address'] is Map<String, dynamic>
@@ -97,4 +85,16 @@ class ScreenerProfile {
           : int.tryParse(json['darvCourseYear']?.toString() ?? ''),
     );
   }
+
+  final String id;
+  final String cpf;
+  final String firstName;
+  final String surname;
+  final String email;
+  final String phone;
+  final ScreenerAddress address;
+  final ScreenerProfessionalCouncil professionalCouncil;
+  final String jobTitle;
+  final String degree;
+  final int? darvCourseYear;
 }

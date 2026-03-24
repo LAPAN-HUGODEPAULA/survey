@@ -1,4 +1,3 @@
-library;
 
 import 'dart:typed_data';
 
@@ -10,10 +9,7 @@ Future<void> saveTextDownload({
   required String fileName,
   required String content,
 }) {
-  return file_download.saveTextDownload(
-    fileName: fileName,
-    content: content,
-  );
+  return file_download.saveTextDownload(fileName: fileName, content: content);
 }
 
 Future<void> saveBytesDownload({

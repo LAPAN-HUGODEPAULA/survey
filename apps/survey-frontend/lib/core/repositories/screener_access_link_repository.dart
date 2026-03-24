@@ -1,5 +1,3 @@
-library;
-
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
@@ -8,14 +6,7 @@ import 'package:survey_app/core/services/api_config.dart';
 
 class ScreenerAccessLinkRepository {
   ScreenerAccessLinkRepository({Dio? rawClient})
-    : _rawClient =
-          rawClient ??
-          Dio(
-            BaseOptions(
-              baseUrl: ApiConfig.dioBaseUrl,
-              headers: ApiConfig.defaultHeaders,
-            ),
-          );
+    : _rawClient = rawClient ?? ApiConfig.createDio();
 
   final Dio _rawClient;
 
@@ -23,8 +14,8 @@ class ScreenerAccessLinkRepository {
     required String authToken,
     required String surveyId,
   }) async {
-    final response = await _rawClient.postUri(
-      ApiConfig.resolve('screener_access_links/'),
+    final response = await _rawClient.post<Object?>(
+      ApiConfig.requestPath('/screener_access_links/'),
       data: <String, dynamic>{'surveyId': surveyId},
       options: Options(
         headers: <String, dynamic>{'Authorization': 'Bearer $authToken'},
@@ -34,8 +25,8 @@ class ScreenerAccessLinkRepository {
   }
 
   Future<ScreenerAccessLink> resolve(String token) async {
-    final response = await _rawClient.getUri(
-      ApiConfig.resolve('screener_access_links/$token'),
+    final response = await _rawClient.get<Object?>(
+      ApiConfig.requestPath('/screener_access_links/$token'),
     );
     return ScreenerAccessLink.fromJson(_asMap(response.data));
   }

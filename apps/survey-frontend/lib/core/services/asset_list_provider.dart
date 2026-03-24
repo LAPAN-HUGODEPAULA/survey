@@ -1,4 +1,3 @@
-library;
 
 import 'package:survey_app/core/services/asset_loader.dart';
 

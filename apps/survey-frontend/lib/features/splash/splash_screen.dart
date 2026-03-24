@@ -1,8 +1,7 @@
-
 import 'dart:async';
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:survey_app/features/demographics/pages/demographics_page.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -25,16 +24,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return DsScaffold(
       backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/images/logo_rect.png',
-              height: 200,
-            ),
+            Image.asset('assets/images/logo_rect.png', height: 200),
             const SizedBox(height: 20),
             const Text(
               "Laboratório de Pesquisa Aplicada a Neurovisão",
@@ -48,10 +44,7 @@ class _SplashScreenState extends State<SplashScreen> {
             const SizedBox(height: 10),
             const Text(
               "Prof. Hugo de Paula, Ph. D.",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.black,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.black),
               textAlign: TextAlign.center,
             ),
           ],

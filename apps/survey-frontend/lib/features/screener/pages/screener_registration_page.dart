@@ -1,14 +1,12 @@
+import 'package:design_system_flutter/widgets.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:survey_app/core/config/runtime_config.dart';
 import 'package:survey_app/core/providers/api_provider.dart';
-
-const _viaCepBaseUrlEnv = String.fromEnvironment(
-  'VIACEP_BASE_URL',
-  defaultValue: '',
-);
+import 'package:survey_app/core/services/api_config.dart';
 
 class ScreenerRegistrationPage extends StatefulWidget {
   const ScreenerRegistrationPage({super.key});
@@ -48,6 +46,8 @@ class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
   String? _selectedState;
   bool _cpfEditing = false;
   int? _selectedDarvYear;
+  bool _isLookingUpCep = false;
+  String? _lastLookedUpCep;
 
   bool _isLoading = false;
 
@@ -127,15 +127,19 @@ class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
         },
         'professionalCouncil': {
           'type': councilType,
-          'registrationNumber':
-              _professionalCouncilRegistrationNumberController.text.trim(),
+          'registrationNumber': _professionalCouncilRegistrationNumberController
+              .text
+              .trim(),
         },
         'jobTitle': _jobTitleController.text.trim(),
         'degree': _degreeController.text.trim(),
         'darvCourseYear': _selectedDarvYear,
       };
 
-      await dio.post('/screeners/register', data: payload);
+      await dio.post<Object?>(
+        ApiConfig.requestPath('/screeners/register'),
+        data: payload,
+      );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -145,14 +149,14 @@ class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
     } on DioException catch (e) {
       if (!mounted) return;
       final message = _buildDioErrorMessage(e);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Falha no registro: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Falha no registro: $e')));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -162,7 +166,7 @@ class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return DsScaffold(
       appBar: AppBar(title: const Text('Registro de Avaliador')),
       body: Stack(
         children: [
@@ -172,147 +176,195 @@ class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _buildTextField(
-                      fieldKey: _cpfFieldKey,
-                      controller: _cpfController,
-                      wrapperKey: const ValueKey('screener-registration-cpf'),
-                      label: 'CPF',
-                      keyboardType: TextInputType.number,
-                      focusNode: _cpfFocusNode,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(11),
-                      ],
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      validator: _cpfValidator,
-                    ),
-                    _buildTextField(
-                      controller: _firstNameController,
-                      wrapperKey: const ValueKey('screener-registration-first-name'),
-                      label: 'Primeiro Nome',
-                    ),
-                    _buildTextField(
-                      controller: _surnameController,
-                      wrapperKey: const ValueKey('screener-registration-surname'),
-                      label: 'Sobrenome',
-                    ),
-                    _buildTextField(
-                      controller: _emailController,
-                      wrapperKey: const ValueKey('screener-registration-email'),
-                      label: 'E-mail',
-                      keyboardType: TextInputType.emailAddress,
-                      validator: _emailValidator,
-                    ),
-                    _buildTextField(
-                      controller: _passwordController,
-                      wrapperKey: const ValueKey('screener-registration-password'),
-                      label: 'Senha',
-                      obscureText: true,
-                    ),
-                    _buildTextField(
-                      controller: _phoneController,
-                      wrapperKey: const ValueKey('screener-registration-phone'),
-                      label: 'Telefone',
-                      keyboardType: TextInputType.phone,
-                      inputFormatters: [_PhoneNumberInputFormatter()],
-                    ),
-                    const SizedBox(height: 12.0),
-                    Text('Endereço', style: Theme.of(context).textTheme.titleLarge),
-                    _buildTextField(
-                      fieldKey: _postalCodeFieldKey,
-                      controller: _postalCodeController,
-                      wrapperKey: const ValueKey('screener-registration-postal-code'),
-                      label: 'CEP',
-                      keyboardType: TextInputType.number,
-                      focusNode: _postalCodeFocusNode,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(8),
-                      ],
-                      validator: _cepValidator,
-                    ),
-                    _buildTextField(
-                      controller: _streetController,
-                      wrapperKey: const ValueKey('screener-registration-street'),
-                      label: 'Rua',
-                    ),
-                    _buildTextField(
-                      controller: _numberController,
-                      wrapperKey: const ValueKey('screener-registration-number'),
-                      label: 'Número',
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    ),
-                    _buildTextField(
-                      controller: _complementController,
-                      wrapperKey: const ValueKey('screener-registration-complement'),
-                      label: 'Complemento (Opcional)',
-                      required: false,
-                    ),
-                    _buildTextField(
-                      controller: _neighborhoodController,
-                      wrapperKey:
-                          const ValueKey('screener-registration-neighborhood'),
-                      label: 'Bairro',
-                    ),
-                    _buildTextField(
-                      controller: _cityController,
-                      wrapperKey: const ValueKey('screener-registration-city'),
-                      label: 'Cidade',
-                    ),
-                    _buildStateDropdown(),
-                    const SizedBox(height: 12.0),
-                    Text(
-                      'Informações Profissionais',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    _buildTextField(
-                      controller: _professionalCouncilTypeController,
-                      wrapperKey:
-                          const ValueKey('screener-registration-council-type'),
-                      label: 'Tipo de Conselho (ex: CRP, CRM) ou "Nenhum"',
-                      required: false,
-                      validator: _councilTypeValidator,
-                    ),
-                    _buildTextField(
-                      controller: _professionalCouncilRegistrationNumberController,
-                      wrapperKey: const ValueKey(
-                        'screener-registration-council-registration',
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildTextField(
+                        fieldKey: _cpfFieldKey,
+                        controller: _cpfController,
+                        wrapperKey: const ValueKey('screener-registration-cpf'),
+                        label: 'CPF',
+                        keyboardType: TextInputType.number,
+                        focusNode: _cpfFocusNode,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(11),
+                        ],
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        validator: _cpfValidator,
                       ),
-                      label: 'Número de Registro no Conselho',
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      required: false,
-                      validator: _councilRegistrationValidator,
-                    ),
-                    _buildTextField(
-                      controller: _jobTitleController,
-                      wrapperKey: const ValueKey('screener-registration-job-title'),
-                      label: 'Cargo/Profissão',
-                    ),
-                    _buildTextField(
-                      controller: _degreeController,
-                      wrapperKey: const ValueKey('screener-registration-degree'),
-                      label: 'Formação Acadêmica/Grau',
-                    ),
-                    _buildDarvYearDropdown(),
-                    const SizedBox(height: 16.0),
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _registerScreener,
-                      child: const Text('Registrar'),
-                    ),
-                    TextButton(
-                      onPressed: () => context.go('/login'),
-                      child: const Text('Já tem uma conta? Entre'),
-                    ),
-                  ],
+                      _buildTextField(
+                        controller: _firstNameController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-first-name',
+                        ),
+                        label: 'Primeiro Nome',
+                      ),
+                      _buildTextField(
+                        controller: _surnameController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-surname',
+                        ),
+                        label: 'Sobrenome',
+                      ),
+                      _buildTextField(
+                        controller: _emailController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-email',
+                        ),
+                        label: 'E-mail',
+                        keyboardType: TextInputType.emailAddress,
+                        validator: _emailValidator,
+                      ),
+                      _buildTextField(
+                        controller: _passwordController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-password',
+                        ),
+                        label: 'Senha',
+                        obscureText: true,
+                      ),
+                      _buildTextField(
+                        controller: _phoneController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-phone',
+                        ),
+                        label: 'Telefone',
+                        keyboardType: TextInputType.phone,
+                        inputFormatters: [_PhoneNumberInputFormatter()],
+                      ),
+                      const SizedBox(height: 12.0),
+                      Text(
+                        'Endereço',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      _buildTextField(
+                        fieldKey: _postalCodeFieldKey,
+                        controller: _postalCodeController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-postal-code',
+                        ),
+                        label: 'CEP',
+                        keyboardType: TextInputType.number,
+                        focusNode: _postalCodeFocusNode,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(8),
+                        ],
+                        validator: _cepValidator,
+                        onChanged: (value) {
+                          final digits = _digitsOnly(value);
+                          if (digits.length != 8) {
+                            _lastLookedUpCep = null;
+                            return;
+                          }
+                          if (_lastLookedUpCep != digits) {
+                            _lookupCep();
+                          }
+                        },
+                      ),
+                      _buildTextField(
+                        controller: _streetController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-street',
+                        ),
+                        label: 'Rua',
+                        readOnly: _isLookingUpCep,
+                      ),
+                      _buildTextField(
+                        controller: _numberController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-number',
+                        ),
+                        label: 'Número',
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                      ),
+                      _buildTextField(
+                        controller: _complementController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-complement',
+                        ),
+                        label: 'Complemento (Opcional)',
+                        required: false,
+                      ),
+                      _buildTextField(
+                        controller: _neighborhoodController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-neighborhood',
+                        ),
+                        label: 'Bairro',
+                        readOnly: _isLookingUpCep,
+                      ),
+                      _buildTextField(
+                        controller: _cityController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-city',
+                        ),
+                        label: 'Cidade',
+                        readOnly: _isLookingUpCep,
+                      ),
+                      _buildStateDropdown(),
+                      const SizedBox(height: 12.0),
+                      Text(
+                        'Informações Profissionais',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      _buildTextField(
+                        controller: _professionalCouncilTypeController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-council-type',
+                        ),
+                        label: 'Tipo de Conselho (ex: CRP, CRM) ou "Nenhum"',
+                        required: false,
+                        validator: _councilTypeValidator,
+                      ),
+                      _buildTextField(
+                        controller:
+                            _professionalCouncilRegistrationNumberController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-council-registration',
+                        ),
+                        label: 'Número de Registro no Conselho',
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        required: false,
+                        validator: _councilRegistrationValidator,
+                      ),
+                      _buildTextField(
+                        controller: _jobTitleController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-job-title',
+                        ),
+                        label: 'Cargo/Profissão',
+                      ),
+                      _buildTextField(
+                        controller: _degreeController,
+                        wrapperKey: const ValueKey(
+                          'screener-registration-degree',
+                        ),
+                        label: 'Formação Acadêmica/Grau',
+                      ),
+                      _buildDarvYearDropdown(),
+                      const SizedBox(height: 16.0),
+                      ElevatedButton(
+                        onPressed: _isLoading ? null : _registerScreener,
+                        child: const Text('Registrar'),
+                      ),
+                      TextButton(
+                        onPressed: () => context.go('/login'),
+                        child: const Text('Já tem uma conta? Entre'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),),
+            ),
           ),
           if (_isLoading)
             Positioned.fill(
@@ -365,8 +417,9 @@ class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
   }
 
   String? _councilRegistrationValidator(String? value) {
-    final normalizedType =
-        _normalizeCouncilType(_professionalCouncilTypeController.text.trim());
+    final normalizedType = _normalizeCouncilType(
+      _professionalCouncilTypeController.text.trim(),
+    );
     final registration = (value ?? '').trim();
     if (registration.isNotEmpty && normalizedType == 'none') {
       return 'Informe o tipo de conselho.';
@@ -390,21 +443,24 @@ class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
   }
 
   Uri _buildViaCepUri(String digits) {
-    if (_viaCepBaseUrlEnv.isEmpty) {
-      throw StateError('VIACEP_BASE_URL is not set.');
-    }
-    final baseUrl = _viaCepBaseUrlEnv.endsWith('/')
-        ? _viaCepBaseUrlEnv
-        : '$_viaCepBaseUrlEnv/';
+    final runtimeBaseUrl = RuntimeConfig.instance.viaCepBaseUrl;
+    final baseUrl = runtimeBaseUrl.endsWith('/')
+        ? runtimeBaseUrl
+        : '$runtimeBaseUrl/';
     return Uri.parse(baseUrl).resolve('ws/$digits/json/');
   }
 
   Future<void> _lookupCep() async {
     final digits = _digitsOnly(_postalCodeController.text);
     if (digits.length != 8) return;
+    if (_isLookingUpCep || _lastLookedUpCep == digits) return;
+
+    setState(() {
+      _isLookingUpCep = true;
+    });
 
     try {
-      final response = await Dio().getUri(
+      final response = await Dio().getUri<Object?>(
         _buildViaCepUri(digits),
         options: Options(responseType: ResponseType.json),
       );
@@ -421,8 +477,17 @@ class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
           _stateController.text = uf;
         });
       }
+      _lastLookedUpCep = digits;
     } catch (_) {
       // Ignore lookup errors to avoid blocking the form.
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLookingUpCep = false;
+        });
+      } else {
+        _isLookingUpCep = false;
+      }
     }
   }
 
@@ -461,18 +526,18 @@ class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
         ),
         items: _brazilStates
             .map(
-              (state) => DropdownMenuItem<String>(
-                value: state,
-                child: Text(state),
-              ),
+              (state) =>
+                  DropdownMenuItem<String>(value: state, child: Text(state)),
             )
             .toList(),
-        onChanged: (value) {
-          setState(() {
-            _selectedState = value;
-            _stateController.text = value ?? '';
-          });
-        },
+        onChanged: _isLookingUpCep
+            ? null
+            : (value) {
+                setState(() {
+                  _selectedState = value;
+                  _stateController.text = value ?? '';
+                });
+              },
         validator: (value) {
           if ((value ?? '').trim().isEmpty) return 'Campo obrigatório.';
           if (!_brazilStates.contains(value)) return 'UF inválida.';
@@ -484,9 +549,7 @@ class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
 
   Widget _buildDarvYearDropdown() {
     final currentYear = DateTime.now().year;
-    final years = [
-      for (var year = currentYear; year >= 2001; year--) year,
-    ];
+    final years = [for (var year = currentYear; year >= 2001; year--) year];
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: DropdownButtonFormField<int>(
@@ -519,9 +582,11 @@ class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
     FocusNode? focusNode,
     bool obscureText = false,
     bool required = true,
+    bool readOnly = false,
     String? Function(String?)? validator,
     List<TextInputFormatter>? inputFormatters,
     AutovalidateMode? autovalidateMode,
+    ValueChanged<String>? onChanged,
   }) {
     final labelText = required ? '$label *' : label;
     return Padding(
@@ -533,8 +598,10 @@ class _ScreenerRegistrationPageState extends State<ScreenerRegistrationPage> {
         keyboardType: keyboardType,
         focusNode: focusNode,
         obscureText: obscureText,
+        readOnly: readOnly,
         inputFormatters: inputFormatters,
         autovalidateMode: autovalidateMode,
+        onChanged: onChanged,
         decoration: InputDecoration(
           labelText: labelText,
           border: const OutlineInputBorder(),

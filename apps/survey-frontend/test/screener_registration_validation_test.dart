@@ -39,11 +39,7 @@ Future<void> _enterTextByKey(
 
 Future<void> _fillRequiredFields(WidgetTester tester) async {
   await _enterTextByKey(tester, 'screener-registration-cpf', '52998224725');
-  await _enterTextByKey(
-    tester,
-    'screener-registration-first-name',
-    'Ana',
-  );
+  await _enterTextByKey(tester, 'screener-registration-first-name', 'Ana');
   await _enterTextByKey(tester, 'screener-registration-surname', 'Silva');
   await _enterTextByKey(
     tester,
@@ -55,11 +51,7 @@ Future<void> _fillRequiredFields(WidgetTester tester) async {
     'screener-registration-password',
     'StrongPassword123',
   );
-  await _enterTextByKey(
-    tester,
-    'screener-registration-phone',
-    '31988447613',
-  );
+  await _enterTextByKey(tester, 'screener-registration-phone', '31988447613');
   await _enterTextByKey(
     tester,
     'screener-registration-postal-code',
@@ -68,31 +60,23 @@ Future<void> _fillRequiredFields(WidgetTester tester) async {
   await _enterTextByKey(tester, 'screener-registration-street', 'Rua Teste');
   await _enterTextByKey(tester, 'screener-registration-number', '123');
   await _enterTextByKey(tester, 'screener-registration-neighborhood', 'Centro');
-  await _enterTextByKey(
-    tester,
-    'screener-registration-city',
-    'Belo Horizonte',
-  );
-  await _enterTextByKey(
-    tester,
-    'screener-registration-job-title',
-    'Psicologo',
-  );
-  await _enterTextByKey(
-    tester,
-    'screener-registration-degree',
-    'Psicologia',
-  );
+  await _enterTextByKey(tester, 'screener-registration-city', 'Belo Horizonte');
+  await _enterTextByKey(tester, 'screener-registration-job-title', 'Psicologo');
+  await _enterTextByKey(tester, 'screener-registration-degree', 'Psicologia');
 
   // State selection is optional for these tests to avoid dropdown flakiness.
 }
 
 void main() {
   testWidgets('CPF invalid message clears when typing again', (tester) async {
-    await tester.pumpWidget(_wrapWithProviders(const ScreenerRegistrationPage()));
+    await tester.pumpWidget(
+      _wrapWithProviders(const ScreenerRegistrationPage()),
+    );
 
     final cpfField = _editableTextByKey('screener-registration-cpf');
-    final firstNameField = _editableTextByKey('screener-registration-first-name');
+    final firstNameField = _editableTextByKey(
+      'screener-registration-first-name',
+    );
 
     await tester.enterText(cpfField, '11111111111');
     await tester.tap(firstNameField);
@@ -109,7 +93,9 @@ void main() {
   });
 
   testWidgets('Telefone input is masked and digits only', (tester) async {
-    await tester.pumpWidget(_wrapWithProviders(const ScreenerRegistrationPage()));
+    await tester.pumpWidget(
+      _wrapWithProviders(const ScreenerRegistrationPage()),
+    );
 
     final phoneField = _editableTextByKey('screener-registration-phone');
     await tester.enterText(phoneField, '31a9848b31284');
@@ -120,7 +106,9 @@ void main() {
   });
 
   testWidgets('CEP validates for 8 digits on blur', (tester) async {
-    await tester.pumpWidget(_wrapWithProviders(const ScreenerRegistrationPage()));
+    await tester.pumpWidget(
+      _wrapWithProviders(const ScreenerRegistrationPage()),
+    );
 
     final cepField = _editableTextByKey('screener-registration-postal-code');
     final streetField = _editableTextByKey('screener-registration-street');
@@ -133,11 +121,16 @@ void main() {
     expect(find.text('CEP deve ter 8 dígitos.'), findsOneWidget);
   });
 
-  testWidgets('Conselho registration number accepts only digits', (tester) async {
-    await tester.pumpWidget(_wrapWithProviders(const ScreenerRegistrationPage()));
+  testWidgets('Conselho registration number accepts only digits', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrapWithProviders(const ScreenerRegistrationPage()),
+    );
 
-    final councilNumberField =
-        _editableTextByKey('screener-registration-council-registration');
+    final councilNumberField = _editableTextByKey(
+      'screener-registration-council-registration',
+    );
     await tester.enterText(councilNumberField, 'ab12cd');
     await tester.pump();
 
@@ -145,8 +138,12 @@ void main() {
     expect(fieldWidget.controller.text, '12');
   });
 
-  testWidgets('Conselho type required when registration is filled', (tester) async {
-    await tester.pumpWidget(_wrapWithProviders(const ScreenerRegistrationPage()));
+  testWidgets('Conselho type required when registration is filled', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrapWithProviders(const ScreenerRegistrationPage()),
+    );
 
     await _fillRequiredFields(tester);
     await _enterTextByKey(
@@ -161,15 +158,15 @@ void main() {
     expect(find.text('Informe o tipo de conselho.'), findsOneWidget);
   });
 
-  testWidgets('Conselho registration required when type is filled', (tester) async {
-    await tester.pumpWidget(_wrapWithProviders(const ScreenerRegistrationPage()));
+  testWidgets('Conselho registration required when type is filled', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrapWithProviders(const ScreenerRegistrationPage()),
+    );
 
     await _fillRequiredFields(tester);
-    await _enterTextByKey(
-      tester,
-      'screener-registration-council-type',
-      'CRM',
-    );
+    await _enterTextByKey(tester, 'screener-registration-council-type', 'CRM');
 
     await tester.tap(find.text('Registrar'));
     await tester.pumpAndSettle();
@@ -178,14 +175,12 @@ void main() {
   });
 
   testWidgets('Conselho type validates allowed values', (tester) async {
-    await tester.pumpWidget(_wrapWithProviders(const ScreenerRegistrationPage()));
+    await tester.pumpWidget(
+      _wrapWithProviders(const ScreenerRegistrationPage()),
+    );
 
     await _fillRequiredFields(tester);
-    await _enterTextByKey(
-      tester,
-      'screener-registration-council-type',
-      'ABC',
-    );
+    await _enterTextByKey(tester, 'screener-registration-council-type', 'ABC');
 
     await tester.tap(find.text('Registrar'));
     await tester.pumpAndSettle();

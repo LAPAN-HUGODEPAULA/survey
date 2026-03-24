@@ -1,11 +1,11 @@
 {
-    "name": "survey_app",
-    "short_name": "survey_app",
+    "name": "LAPAN Questionários Profissional",
+    "short_name": "LAPAN Profissional",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FF9800",
+    "theme_color": "#FF9800",
+    "description": "Aplicação profissional para questionários e relatórios clínicos.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

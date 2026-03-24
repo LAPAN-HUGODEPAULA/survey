@@ -1,11 +1,12 @@
-/// Página de configurações da aplicação.
+/// Lets a screener choose the active survey and generate a prepared access link.
 ///
-/// Permite selecionar o questionário ativo e gerar um link preparado
-/// para uso com screener autenticado e questionário bloqueados.
+/// Prepared links lock the screener identity and survey selection so assisted
+/// sessions can start with minimal setup friction.
 library;
 
 import 'dart:ui' as ui;
 
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +18,7 @@ import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/core/repositories/screener_access_link_repository.dart';
 import 'package:survey_app/core/services/file_download.dart';
 import 'package:survey_app/features/survey/pages/survey_details_page.dart';
+import 'package:survey_app/shared/widgets/screener_navigation_app_bar.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key, this.accessLinkRepository});
@@ -45,15 +47,17 @@ class _SettingsPageState extends State<SettingsPage> {
     });
   }
 
+  /// Opens the read-only survey details dialog without leaving settings.
   void _showSurveyDetails(Survey survey) {
     Navigator.push(
       context,
-      MaterialPageRoute(
+      MaterialPageRoute<void>(
         builder: (context) => SurveyDetailsPage(survey: survey),
       ),
     );
   }
 
+  /// Requests a backend token that pre-binds the screener and survey choice.
   Future<void> _generatePreparedLink() async {
     final settings = context.read<AppSettings>();
     final token = settings.authToken;
@@ -184,8 +188,11 @@ class _SettingsPageState extends State<SettingsPage> {
             ? null
             : _accessLinkRepository.buildShareableUrl(_generatedLink!.token);
 
-        return Scaffold(
-          appBar: AppBar(title: const Text('Configurações')),
+        return DsScaffold(
+          appBar: const ScreenerNavigationAppBar(
+            currentRoute: '/settings',
+            title: Text('Configurações'),
+          ),
           body: Center(
             child: Container(
               constraints: const BoxConstraints(maxWidth: 700),
@@ -218,17 +225,17 @@ class _SettingsPageState extends State<SettingsPage> {
                       const Center(child: CircularProgressIndicator()),
                     ] else if (settings.availableSurveys.isEmpty) ...[
                       Card(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .surfaceContainerHighest,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
                             'Nenhum questionário foi encontrado no servidor. Verifique se o backend está em execução.',
                             style: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ),
@@ -253,15 +260,16 @@ class _SettingsPageState extends State<SettingsPage> {
                                 ),
                                 items: settings.availableSurveys
                                     .map<DropdownMenuItem<String>>((survey) {
-                                  final displayName =
-                                      survey.surveyDisplayName.isNotEmpty
-                                      ? survey.surveyDisplayName
-                                      : survey.surveyName;
-                                  return DropdownMenuItem<String>(
-                                    value: survey.id,
-                                    child: Text(displayName),
-                                  );
-                                }).toList(),
+                                      final displayName =
+                                          survey.surveyDisplayName.isNotEmpty
+                                          ? survey.surveyDisplayName
+                                          : survey.surveyName;
+                                      return DropdownMenuItem<String>(
+                                        value: survey.id,
+                                        child: Text(displayName),
+                                      );
+                                    })
+                                    .toList(),
                                 validator: (value) =>
                                     value == null ? 'Campo obrigatório' : null,
                                 onChanged: settings.isLockedAssessmentMode
@@ -278,7 +286,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                       )
                                     : null,
                                 icon: const Icon(Icons.info_outline),
-                                label: const Text('Ver Detalhes do Questionário'),
+                                label: const Text(
+                                  'Ver Detalhes do Questionário',
+                                ),
                               ),
                             ],
                           ),
@@ -301,9 +311,9 @@ class _SettingsPageState extends State<SettingsPage> {
                               children: [
                                 Icon(
                                   Icons.info_outline,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onPrimaryContainer,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimaryContainer,
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
@@ -311,9 +321,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onPrimaryContainer,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimaryContainer,
                                   ),
                                 ),
                               ],
@@ -356,9 +366,9 @@ class _SettingsPageState extends State<SettingsPage> {
                         children: [
                           Icon(
                             Icons.info_outline,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSecondaryContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSecondaryContainer,
                             size: 20,
                           ),
                           const SizedBox(width: 8),

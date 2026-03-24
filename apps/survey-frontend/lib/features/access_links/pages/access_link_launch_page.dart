@@ -1,5 +1,5 @@
-library;
 
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -8,11 +8,7 @@ import 'package:survey_app/core/repositories/screener_access_link_repository.dar
 import 'package:survey_app/features/access_links/pages/access_link_unavailable_page.dart';
 
 class AccessLinkLaunchPage extends StatefulWidget {
-  const AccessLinkLaunchPage({
-    super.key,
-    required this.token,
-    this.repository,
-  });
+  const AccessLinkLaunchPage({super.key, required this.token, this.repository});
 
   final String token;
   final ScreenerAccessLinkRepository? repository;
@@ -24,7 +20,6 @@ class AccessLinkLaunchPage extends StatefulWidget {
 class _AccessLinkLaunchPageState extends State<AccessLinkLaunchPage> {
   late final ScreenerAccessLinkRepository _repository =
       widget.repository ?? ScreenerAccessLinkRepository();
-  bool _isLoading = true;
   bool _isUnavailable = false;
 
   @override
@@ -48,7 +43,6 @@ class _AccessLinkLaunchPageState extends State<AccessLinkLaunchPage> {
         return;
       }
       setState(() {
-        _isLoading = false;
         _isUnavailable = true;
       });
     }
@@ -60,11 +54,9 @@ class _AccessLinkLaunchPageState extends State<AccessLinkLaunchPage> {
       return const AccessLinkUnavailablePage();
     }
 
-    return Scaffold(
+    return const DsScaffold(
       body: Center(
-        child: _isLoading
-            ? const CircularProgressIndicator()
-            : const SizedBox.shrink(),
+        child: CircularProgressIndicator(),
       ),
     );
   }

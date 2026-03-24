@@ -15,20 +15,6 @@ class Patient {
     this.medicationHistory = '',
   });
 
-  final String name;
-  final String email;
-  final String birthDate;
-  final String gender;
-  final String ethnicity;
-  final String educationLevel;
-  final String profession;
-  final List<String> medication;
-  final List<String> diagnoses;
-  final String familyHistory;
-  final String socialHistory;
-  final String medicalHistory;
-  final String medicationHistory;
-
   factory Patient.initial() {
     return const Patient(
       name: '',
@@ -42,6 +28,58 @@ class Patient {
       diagnoses: <String>[],
     );
   }
+
+  factory Patient.fromJson(Map<String, dynamic> json) {
+    return Patient(
+      name: json['name']?.toString() ?? json['patientName']?.toString() ?? '',
+      email:
+          json['email']?.toString() ?? json['patientEmail']?.toString() ?? '',
+      birthDate:
+          json['birthDate']?.toString() ??
+          json['patientBirthDate']?.toString() ??
+          '',
+      gender:
+          json['gender']?.toString() ?? json['patientGender']?.toString() ?? '',
+      ethnicity:
+          json['ethnicity']?.toString() ??
+          json['patientEthnicity']?.toString() ??
+          '',
+      educationLevel:
+          json['educationLevel']?.toString() ??
+          json['patientEducationLevel']?.toString() ??
+          '',
+      profession:
+          json['profession']?.toString() ??
+          json['patientProfession']?.toString() ??
+          '',
+      medication:
+          _parseStringList(json['medication']) ??
+          _parseStringList(json['patientMedication']) ??
+          const <String>[],
+      diagnoses:
+          _parseStringList(json['diagnoses']) ??
+          _parseStringList(json['patientDiagnoses']) ??
+          const <String>[],
+      familyHistory: json['family_history']?.toString() ?? '',
+      socialHistory: json['social_history']?.toString() ?? '',
+      medicalHistory: json['medical_history']?.toString() ?? '',
+      medicationHistory: json['medication_history']?.toString() ?? '',
+    );
+  }
+
+  final String name;
+  final String email;
+  final String birthDate;
+  final String gender;
+  final String ethnicity;
+  final String educationLevel;
+  final String profession;
+  final List<String> medication;
+  final List<String> diagnoses;
+  final String familyHistory;
+  final String socialHistory;
+  final String medicalHistory;
+  final String medicationHistory;
 
   Patient copyWith({
     String? name,
@@ -72,33 +110,6 @@ class Patient {
       socialHistory: socialHistory ?? this.socialHistory,
       medicalHistory: medicalHistory ?? this.medicalHistory,
       medicationHistory: medicationHistory ?? this.medicationHistory,
-    );
-  }
-
-  factory Patient.fromJson(Map<String, dynamic> json) {
-    return Patient(
-      name: json['name']?.toString() ?? json['patientName']?.toString() ?? '',
-      email: json['email']?.toString() ?? json['patientEmail']?.toString() ?? '',
-      birthDate:
-          json['birthDate']?.toString() ?? json['patientBirthDate']?.toString() ?? '',
-      gender: json['gender']?.toString() ?? json['patientGender']?.toString() ?? '',
-      ethnicity:
-          json['ethnicity']?.toString() ?? json['patientEthnicity']?.toString() ?? '',
-      educationLevel: json['educationLevel']?.toString() ??
-          json['patientEducationLevel']?.toString() ??
-          '',
-      profession:
-          json['profession']?.toString() ?? json['patientProfession']?.toString() ?? '',
-      medication: _parseStringList(json['medication']) ??
-          _parseStringList(json['patientMedication']) ??
-          const <String>[],
-      diagnoses: _parseStringList(json['diagnoses']) ??
-          _parseStringList(json['patientDiagnoses']) ??
-          const <String>[],
-      familyHistory: json['family_history']?.toString() ?? '',
-      socialHistory: json['social_history']?.toString() ?? '',
-      medicalHistory: json['medical_history']?.toString() ?? '',
-      medicationHistory: json['medication_history']?.toString() ?? '',
     );
   }
 
@@ -140,7 +151,11 @@ class Patient {
       return raw.map((item) => item.toString()).toList();
     }
     if (raw is String && raw.trim().isNotEmpty) {
-      return raw.split(',').map((value) => value.trim()).where((value) => value.isNotEmpty).toList();
+      return raw
+          .split(',')
+          .map((value) => value.trim())
+          .where((value) => value.isNotEmpty)
+          .toList();
     }
     return null;
   }

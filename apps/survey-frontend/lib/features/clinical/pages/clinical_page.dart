@@ -1,17 +1,11 @@
-library;
 
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:survey_app/core/navigation/app_navigator.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
 
-/// Página de dados clínicos opcionais.
-///
-/// Coleta quatro campos de texto multilinha opcionais:
-/// - Histórico médico
-/// - Histórico familiar
-/// - Dados sociais
-/// - Histórico de medicação
+/// Collects optional clinical notes before showing the survey instructions.
 class ClinicalPage extends StatefulWidget {
   const ClinicalPage({super.key});
 
@@ -33,7 +27,7 @@ class _ClinicalPageState extends State<ClinicalPage> {
   @override
   void initState() {
     super.initState();
-    // Pré-carrega dados existentes (se houver)
+    // Rehydrate previously entered notes when the user returns to this screen.
     final clinical = Provider.of<AppSettings>(
       context,
       listen: false,
@@ -56,7 +50,7 @@ class _ClinicalPageState extends State<ClinicalPage> {
   void _goNext() {
     final settings = Provider.of<AppSettings>(context, listen: false);
 
-    // Salva dados clínicos (todos opcionais)
+    // Persist optional notes so the report can include them later in the flow.
     settings.setClinicalData(
       medicalHistory: _medicalHistoryController.text.trim(),
       familyHistory: _familyHistoryController.text.trim(),
@@ -64,7 +58,7 @@ class _ClinicalPageState extends State<ClinicalPage> {
       medicationHistory: _medicationHistoryController.text.trim(),
     );
 
-    // Avança para as instruções
+    // The instructions screen still enforces the comprehension check.
     AppNavigator.toInstructions(context);
   }
 
@@ -91,7 +85,7 @@ class _ClinicalPageState extends State<ClinicalPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return DsScaffold(
       appBar: AppBar(title: const Text('Dados Clínicos (opcional)')),
       body: Center(
         child: Container(

@@ -55,10 +55,6 @@ abstract class FormDataService<T> {
 /// This service specializes in loading lists of strings from JSON files,
 /// which is a common pattern for form dropdown options.
 class StringListDataService extends FormDataService<List<String>> {
-  final String assetPath;
-  final String jsonKey;
-  final String dataTypeName;
-
   /// Creates a new string list data service.
   ///
   /// [assetPath] - Path to the JSON asset file
@@ -69,6 +65,9 @@ class StringListDataService extends FormDataService<List<String>> {
     required this.jsonKey,
     required this.dataTypeName,
   });
+  final String assetPath;
+  final String jsonKey;
+  final String dataTypeName;
 
   @override
   Future<List<String>> loadFromAssets() async {
@@ -85,11 +84,11 @@ class StringListDataService extends FormDataService<List<String>> {
 /// This class provides a centralized way to manage multiple data services
 /// and perform bulk operations like loading all data or clearing all caches.
 class FormDataServiceRegistry {
-  final Map<String, FormDataService> _services = {};
+  final Map<String, FormDataService<Object?>> _services = {};
 
   /// Registers a data service with a given key.
   void register<T>(String key, FormDataService<T> service) {
-    _services[key] = service;
+    _services[key] = service as FormDataService<Object?>;
   }
 
   /// Gets a registered service by key.

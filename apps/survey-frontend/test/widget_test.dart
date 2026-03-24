@@ -4,6 +4,7 @@
 /// dos widgets principais da aplicação.
 library;
 
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:survey_app/main.dart';
 
@@ -20,7 +21,9 @@ void main() {
   /// **Nota**: Este teste precisa ser atualizado para refletir
   /// a funcionalidade real da aplicação de questionários, pois
   /// atualmente testa um contador que não existe na aplicação.
-  testWidgets('Splash screen renders expected texts', (WidgetTester tester) async {
+  testWidgets('Splash screen renders expected texts', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const MyApp());
 
     expect(
@@ -28,5 +31,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Prof. Hugo de Paula, Ph. D.'), findsOneWidget);
+    expect(find.byType(DsScaffold), findsOneWidget);
+    expect(find.text(dsSharedStatusBarText), findsOneWidget);
   });
 }

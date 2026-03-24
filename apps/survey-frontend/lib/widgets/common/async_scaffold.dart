@@ -1,14 +1,8 @@
-library;
 
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 
 class AsyncScaffold extends StatelessWidget {
-  final bool isLoading;
-  final String? error;
-  final PreferredSizeWidget? appBar;
-  final Widget? loading;
-  final Widget? errorWidget;
-  final Widget child;
 
   const AsyncScaffold({
     super.key,
@@ -19,21 +13,22 @@ class AsyncScaffold extends StatelessWidget {
     this.loading,
     this.errorWidget,
   });
+  final bool isLoading;
+  final String? error;
+  final PreferredSizeWidget? appBar;
+  final Widget? loading;
+  final Widget? errorWidget;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return Scaffold(
-        appBar: appBar,
-        body: Center(child: loading ?? const CircularProgressIndicator()),
-      );
-    }
-    if (error != null) {
-      return Scaffold(
-        appBar: appBar,
-        body: Center(child: errorWidget ?? Text(error!)),
-      );
-    }
-    return Scaffold(appBar: appBar, body: child);
+    return DsScaffold(
+      appBar: appBar,
+      isLoading: isLoading,
+      error: error,
+      loading: loading,
+      errorWidget: errorWidget,
+      body: child,
+    );
   }
 }

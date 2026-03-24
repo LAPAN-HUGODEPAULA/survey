@@ -1,25 +1,8 @@
-library;
-
-/// Modelo para dados clínicos opcionais do paciente.
+/// Stores optional clinical notes collected alongside patient demographics.
 ///
-/// Campos em pt-BR conforme solicitado:
-/// - Histórico médico
-/// - Histórico familiar
-/// - Dados sociais
-/// - Histórico de medicação
+/// The model keeps the text payload separate from the main patient fields so
+/// optional notes can be added without complicating the demographic form.
 class ClinicalData {
-  /// Histórico médico (texto livre, opcional)
-  final String medicalHistory;
-
-  /// Histórico familiar (texto livre, opcional)
-  final String familyHistory;
-
-  /// Dados sociais (texto livre, opcional)
-  final String socialData;
-
-  /// Histórico de medicação (texto livre, opcional)
-  final String medicationHistory;
-
   ClinicalData({
     required this.medicalHistory,
     required this.familyHistory,
@@ -27,13 +10,51 @@ class ClinicalData {
     required this.medicationHistory,
   });
 
-  /// Instância inicial com todos os campos vazios
+  /// Returns an empty instance used to reset or initialize app state.
   factory ClinicalData.initial() => ClinicalData(
     medicalHistory: '',
     familyHistory: '',
     socialData: '',
     medicationHistory: '',
   );
+
+  factory ClinicalData.fromJson(Map<String, dynamic>? json) {
+    if (json == null) return ClinicalData.initial();
+    return ClinicalData(
+      medicalHistory: _readString(
+        json,
+        camelKey: 'medicalHistory',
+        snakeKey: 'medical_history',
+      ),
+      familyHistory: _readString(
+        json,
+        camelKey: 'familyHistory',
+        snakeKey: 'family_history',
+      ),
+      socialData: _readString(
+        json,
+        camelKey: 'socialData',
+        snakeKey: 'social_history',
+      ),
+      medicationHistory: _readString(
+        json,
+        camelKey: 'medicationHistory',
+        snakeKey: 'medication_history',
+      ),
+    );
+  }
+
+  /// Free-text medical history entered by the screener.
+  final String medicalHistory;
+
+  /// Free-text family history entered by the screener.
+  final String familyHistory;
+
+  /// Free-text social context entered by the screener.
+  final String socialData;
+
+  /// Free-text medication history entered by the screener.
+  final String medicationHistory;
 
   ClinicalData copyWith({
     String? medicalHistory,
@@ -49,17 +70,6 @@ class ClinicalData {
     );
   }
 
-  factory ClinicalData.fromJson(Map<String, dynamic>? json) {
-    if (json == null) return ClinicalData.initial();
-    return ClinicalData(
-      medicalHistory: json['medicalHistory'] ?? json['medical_history'] ?? '',
-      familyHistory: json['familyHistory'] ?? json['family_history'] ?? '',
-      socialData: json['socialData'] ?? json['social_history'] ?? '',
-      medicationHistory:
-          json['medicationHistory'] ?? json['medication_history'] ?? '',
-    );
-  }
-
   Map<String, dynamic> toJson() {
     return {
       'clinicalData': {
@@ -69,5 +79,14 @@ class ClinicalData {
         'medicationHistory': medicationHistory,
       },
     };
+  }
+
+  static String _readString(
+    Map<String, dynamic> json, {
+    required String camelKey,
+    required String snakeKey,
+  }) {
+    final value = json[camelKey] ?? json[snakeKey];
+    return value?.toString() ?? '';
   }
 }

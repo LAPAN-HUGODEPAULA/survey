@@ -4,8 +4,9 @@
 /// the application, making it easy to manage asset paths, service registrations,
 /// and providing convenient access to commonly used data services.
 library;
-import 'package:survey_app/core/services/form_data_service.dart';
+
 import 'package:survey_app/core/services/demographics_data_service.dart';
+import 'package:survey_app/core/services/form_data_service.dart';
 
 /// Global configuration for form data services.
 ///
@@ -103,7 +104,7 @@ class FormDataServiceConfig {
 
     for (final serviceKey in registry.getRegisteredKeys()) {
       try {
-        await registry.loadData(serviceKey);
+        await registry.loadData<List<String>>(serviceKey);
       } catch (e) {
         invalidAssets.add('$serviceKey: $e');
       }

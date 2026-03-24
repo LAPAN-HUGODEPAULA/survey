@@ -1,65 +1,46 @@
-// lib/thank_you_page.dart
+/// Final screen shown after the respondent completes the survey.
 ///
-/// Página de agradecimento exibida após completar o questionário.
-///
-/// Página final da aplicação, apresentada quando o usuário completa
-/// todas as perguntas do questionário, confirmando que as respostas
-/// foram registradas com sucesso e exibindo notas finais específicas
-/// do questionário quando disponíveis.
+/// The page persists responses, optionally renders final notes, and offers
+/// export actions once the submission lifecycle has finished.
 library;
 
 import 'dart:convert';
 import 'dart:io';
 import 'dart:js_interop';
+
+import 'package:design_system_flutter/report/report_models.dart';
+import 'package:design_system_flutter/report/report_view.dart';
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:design_system_flutter/report/report_models.dart';
-import 'package:design_system_flutter/report/report_view.dart';
-import 'package:provider/provider.dart';
 import 'package:path/path.dart' as path;
-import 'package:web/web.dart' as web;
-import 'package:survey_app/core/providers/app_settings.dart';
+import 'package:provider/provider.dart';
+import 'package:survey_app/core/models/agent_response.dart';
 import 'package:survey_app/core/models/survey/question.dart';
 import 'package:survey_app/core/models/survey/survey.dart';
-import 'package:survey_app/core/models/agent_response.dart';
 import 'package:survey_app/core/models/survey_response.dart';
+import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/core/repositories/survey_repository.dart';
+import 'package:web/web.dart' as web;
 
-/// Página de agradecimento final do questionário.
-///
-/// Exibe uma mensagem de agradecimento ao usuário após completar
-/// o questionário, confirmando que as respostas foram registradas
-/// com sucesso. Esta é a página terminal do fluxo da aplicação.
-///
-/// Opcionalmente exibe notas finais específicas do questionário
-/// quando fornecidas, com suporte para formatação HTML.
-///
-/// A página não possui navegação de retorno, indicando que o
-/// processo foi finalizado.
+/// Confirms submission state and handles post-survey exports.
 class ThankYouPage extends StatefulWidget {
-  final Survey survey;
-
-  /// Lista das respostas do usuário
-  final List<String> surveyAnswers;
-
-  /// Lista das questões do questionário
-  final List<Question> surveyQuestions;
-
-  /// Cria uma página de agradecimento.
-  ///
-  /// [finalNotes] - Notas finais em HTML específicas do questionário
-  /// [surveyName] - Nome do questionário para personalização
-  /// [surveyId] - ID do questionário
-  /// [surveyAnswers] - Lista das respostas do usuário
-  /// [surveyQuestions] - Lista das questões do questionário
+  /// Creates the terminal survey screen with the completed response payload.
   const ThankYouPage({
     super.key,
     required this.survey,
     required this.surveyAnswers,
     required this.surveyQuestions,
   });
+  final Survey survey;
+
+  /// Ordered answers captured during the survey flow.
+  final List<String> surveyAnswers;
+
+  /// Question definitions used to rebuild the exported answer structure.
+  final List<Question> surveyQuestions;
 
   @override
   State<ThankYouPage> createState() => _ThankYouPageState();
@@ -72,6 +53,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
   String? _savedFilePath;
   String? _savedResponseId;
   AgentResponse? _agentResponse;
+  String? _selectedPromptKey;
   ReportDocument? _demoReport;
   String? _demoReportError;
   final SurveyRepository _surveyRepository = SurveyRepository();
@@ -79,10 +61,15 @@ class _ThankYouPageState extends State<ThankYouPage> {
   @override
   void initState() {
     super.initState();
-    // Envia a resposta automaticamente quando a página carrega
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _submitResponse();
-    });
+    final promptAssociations = widget.survey.promptAssociations;
+    if (promptAssociations.length <= 1) {
+      _selectedPromptKey = promptAssociations.isEmpty
+          ? null
+          : promptAssociations.first.promptKey;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _submitResponse();
+      });
+    }
   }
 
   List<Answer> _buildAnswers() {
@@ -130,6 +117,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
         testDate: DateTime.now(),
         screenerId: settings.screenerId,
         accessLinkToken: settings.accessLinkToken,
+        promptKey: _selectedPromptKey,
         patient: patient,
         answers: _buildAnswers(),
       );
@@ -164,7 +152,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
     try {
       final content = jsonEncode(surveyResponse.toJson());
-      final response = await _surveyRepository.processClinicalWriter(content);
+      final response = await _surveyRepository.processClinicalWriter(
+        content,
+        promptKey: surveyResponse.promptKey,
+      );
       if (!mounted) {
         return;
       }
@@ -187,6 +178,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
         testDate: DateTime.now(),
         screenerId: settings.screenerId,
         accessLinkToken: settings.accessLinkToken,
+        promptKey: _selectedPromptKey,
         patient: settings.patient.withClinicalData(
           familyHistory: settings.clinicalData.familyHistory,
           socialHistory: settings.clinicalData.socialData,
@@ -200,7 +192,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
         widget.survey.id,
         settings.patient.name,
       );
-      final filePath = await _writeResponseFile(fileName, surveyResponse.toJson());
+      final filePath = await _writeResponseFile(
+        fileName,
+        surveyResponse.toJson(),
+      );
 
       setState(() {
         _isSaving = false;
@@ -220,19 +215,16 @@ class _ThankYouPageState extends State<ThankYouPage> {
     }
   }
 
-  /// Gera o nome do arquivo baseado no surveyId e nome do paciente.
-  ///
-  /// Formato: surveyId_nome_do_paciente.json
-  /// Substitui espaços por sublinhado e remove caracteres especiais.
+  /// Builds a stable export filename from the survey id and patient name.
   String _generateFileName(String surveyId, String patientName) {
     final cleanName = patientName
         .toLowerCase()
         .replaceAll(' ', '_')
-        .replaceAll(RegExp(r'[^\w\s]'), ''); // Remove caracteres especiais
+        .replaceAll(RegExp(r'[^\w\s]'), '');
     return '${surveyId}_$cleanName.json';
   }
 
-  /// Escreve o arquivo de resposta no diretório apropriado.
+  /// Writes the response export using the best storage option per platform.
   Future<String> _writeResponseFile(
     String fileName,
     Map<String, dynamic> data,
@@ -241,24 +233,27 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
     try {
       if (kIsWeb) {
-        // Web platform - use browser download
+        // Browsers can only persist the export through a download flow.
         return await _saveToWebBrowser(fileName, jsonString);
       } else {
-        // Native platform - use file system
+        // Native targets can write to a temporary local directory.
         return await _saveToNativeDirectory(fileName, jsonString);
       }
     } catch (e) {
-      // Last resort fallback
+      // Fall back to the simplest available storage path before surfacing an error.
       return await _saveWithFallback(fileName, jsonString);
     }
   }
 
-  /// Salva arquivo usando download do navegador (Web).
+  /// Starts a browser download for web builds.
   Future<String> _saveToWebBrowser(String fileName, String jsonString) async {
     try {
-      // Create blob and trigger download
+      // Use a Blob URL so the browser treats the generated JSON as a file.
       final parts = <web.BlobPart>[jsonString.toJS as web.BlobPart].toJS;
-      final blob = web.Blob(parts, web.BlobPropertyBag(type: 'application/json'));
+      final blob = web.Blob(
+        parts,
+        web.BlobPropertyBag(type: 'application/json'),
+      );
       final url = web.URL.createObjectURL(blob);
       final anchor = web.HTMLAnchorElement()
         ..href = url
@@ -276,13 +271,13 @@ class _ThankYouPageState extends State<ThankYouPage> {
     }
   }
 
-  /// Salva arquivo no sistema de arquivos nativo (Mobile/Desktop).
+  /// Stores the generated JSON in a temporary native directory.
   Future<String> _saveToNativeDirectory(
     String fileName,
     String jsonString,
   ) async {
     try {
-      // Use system temp directory
+      // Keep exports in a dedicated temp subdirectory to avoid collisions.
       final tempDir = Directory.systemTemp;
       final responsesDir = Directory(
         path.join(tempDir.path, 'survey_responses'),
@@ -311,7 +306,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
     if (kIsWeb) {
       // Web fallback - try to save to browser storage or show data
       try {
-        web.window.localStorage.setItem('survey_response_$fileName', jsonString);
+        web.window.localStorage.setItem(
+          'survey_response_$fileName',
+          jsonString,
+        );
         return 'Salvo no armazenamento do navegador: $fileName';
       } catch (e) {
         return 'Dados preparados (não foi possível salvar): $fileName';
@@ -384,11 +382,17 @@ class _ThankYouPageState extends State<ThankYouPage> {
   }
 
   String _generateReportFileName(String surveyId, String patientName) {
-    final baseName = _generateFileName(surveyId, patientName).replaceAll('.json', '');
+    final baseName = _generateFileName(
+      surveyId,
+      patientName,
+    ).replaceAll('.json', '');
     return '${baseName}_relatorio.txt';
   }
 
-  Future<void> _exportReport(AppSettings settings, ReportDocument report) async {
+  Future<void> _exportReport(
+    AppSettings settings,
+    ReportDocument report,
+  ) async {
     final fileName = _generateReportFileName(
       widget.survey.id,
       settings.patient.name,
@@ -400,9 +404,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(result)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
   }
 
   void _printReport() {
@@ -422,7 +424,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
     }
   }
 
-  Future<String> _saveReportToWebBrowser(String fileName, String content) async {
+  Future<String> _saveReportToWebBrowser(
+    String fileName,
+    String content,
+  ) async {
     final parts = <web.BlobPart>[content.toJS as web.BlobPart].toJS;
     final blob = web.Blob(parts, web.BlobPropertyBag(type: 'text/plain'));
     final url = web.URL.createObjectURL(blob);
@@ -458,15 +463,16 @@ class _ThankYouPageState extends State<ThankYouPage> {
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<AppSettings>(context);
+    final promptAssociations = widget.survey.promptAssociations;
     final reportDocument = _agentResponse == null
         ? null
         : _resolveReportDocument(settings, _agentResponse!);
 
-    return Scaffold(
+    return DsScaffold(
       appBar: AppBar(
         title: const Text('Finalizado'),
         backgroundColor: Colors.orange,
-        // Remove botão de voltar para indicar fim do processo
+        // Hide back navigation because the survey flow is complete here.
         automaticallyImplyLeading: false,
       ),
       body: Center(
@@ -477,13 +483,60 @@ class _ThankYouPageState extends State<ThankYouPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Status do salvamento
+                // Surface submission progress before the final confirmation UI.
                 if (_isSaving) ...[
                   const CircularProgressIndicator(),
                   const SizedBox(height: 16),
                   const Text(
                     'Salvando respostas...',
                     style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 24),
+                ] else if (!_saveSuccess && promptAssociations.length > 1) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Escolha o tipo de relatório',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          initialValue: _selectedPromptKey,
+                          decoration: const InputDecoration(
+                            labelText: 'Resultado desejado',
+                          ),
+                          items: promptAssociations
+                              .map(
+                                (prompt) => DropdownMenuItem<String>(
+                                  value: prompt.promptKey,
+                                  child: Text(prompt.name),
+                                ),
+                              )
+                              .toList(growable: false),
+                          onChanged: (value) {
+                            setState(() => _selectedPromptKey = value);
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        DsFilledButton(
+                          label: 'Gerar relatório',
+                          onPressed: _selectedPromptKey == null
+                              ? null
+                              : _submitResponse,
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 24),
                 ] else if (_saveSuccess) ...[
@@ -532,7 +585,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                           'Questionário: ${widget.survey.surveyDisplayName.isNotEmpty ? widget.survey.surveyDisplayName : widget.survey.surveyName}',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Theme.of(context).colorScheme.onTertiaryContainer,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onTertiaryContainer,
                           ),
                         ),
                         if (_savedResponseId != null) ...[
@@ -544,7 +599,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                                   'Protocolo da submissão: $_savedResponseId',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Theme.of(context).colorScheme.onTertiaryContainer,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onTertiaryContainer,
                                     fontFamily: 'monospace',
                                   ),
                                 ),
@@ -560,7 +617,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                                   'Arquivo salvo em: $_savedFilePath',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Theme.of(context).colorScheme.onTertiaryContainer,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onTertiaryContainer,
                                     fontFamily: 'monospace',
                                   ),
                                 ),
@@ -577,7 +636,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                                   _saveError!,
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Theme.of(context).colorScheme.onTertiaryContainer,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onTertiaryContainer,
                                   ),
                                 ),
                               ),
@@ -657,7 +718,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                   const SizedBox(height: 24),
                 ],
 
-                // Ícone de confirmação principal (sempre visível)
+                // Keep the success icon visible unless a richer success panel already shows it.
                 if (!_isSaving && _saveSuccess)
                   const SizedBox.shrink()
                 else if (!_isSaving)
@@ -672,7 +733,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                     ],
                   ),
 
-                // Mensagem principal de agradecimento
+                // Primary confirmation message shown for every completion state.
                 Text(
                   'Obrigado por responder!',
                   style: const TextStyle(
@@ -683,7 +744,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                 ),
                 const SizedBox(height: 16),
 
-                // Mensagem de confirmação com nome do questionário se disponível
+                // Include the survey name when it helps disambiguate the completed form.
                 Text(
                   widget.survey.surveyDisplayName.isNotEmpty
                       ? 'Suas respostas para o questionário "${widget.survey.surveyDisplayName}" foram registradas.'
@@ -692,7 +753,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                   textAlign: TextAlign.center,
                 ),
 
-                // Notas finais do questionário (se disponíveis)
+                // Render optional survey-specific closing guidance supplied by the backend.
                 if (widget.survey.finalNotes != null &&
                     widget.survey.finalNotes!.isNotEmpty) ...[
                   const SizedBox(height: 32),
@@ -754,10 +815,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
                 const SizedBox(height: 40),
 
-                // Botão opcional para fechar a aplicação ou voltar ao início
+                // Let staff reset the workflow for the next respondent.
                 ElevatedButton(
                   onPressed: () {
-                    // Limpa os dados do paciente antes de voltar ao início
+                    // Clear shared patient state before returning to the first screen.
                     final settings = Provider.of<AppSettings>(
                       context,
                       listen: false,

@@ -1,46 +1,42 @@
-
-/// Modelo que representa as instruções de um questionário.
+/// Holds the introductory instructions and comprehension check for a survey.
 ///
-/// Contém o preâmbulo em HTML, pergunta de compreensão e opções de resposta.
+/// The last answer in [answers] is treated as the expected comprehension
+/// response during the instructions step.
 class Instructions {
-  /// Preâmbulo em formato HTML explicando o questionário
-  final String preamble;
-
-  /// Texto da pergunta de compreensão
-  final String questionText;
-
-  /// Lista de opções de resposta para a pergunta de compreensão
-  final List<String> answers;
-
-  /// Cria uma nova instância de Instructions.
-  ///
-  /// [preamble] - Texto explicativo em HTML
-  /// [questionText] - Pergunta de verificação de compreensão
-  /// [answers] - Opções de resposta, sendo a última sempre a correta
+  /// Creates an instruction block from backend-provided content.
   Instructions({
     required this.preamble,
     required this.questionText,
     required this.answers,
   });
 
-  /// Cria Instructions a partir de um Map JSON.
+  /// Creates an [Instructions] object from a backend JSON payload.
   ///
-  /// [json] - Map contendo os dados das instruções
-  ///
-  /// Expected JSON structure:
+  /// Expected shape:
   /// ```json
   /// {
-  ///   "preamble": "<p>Texto em HTML</p>",
-  ///   "questionText": "Pergunta de compreensão?",
-  ///   "answers": ["Opção 1", "Opção 2", "Resposta Correta"]
+  ///   "preamble": "<p>Introductory HTML</p>",
+  ///   "questionText": "Comprehension question?",
+  ///   "answers": ["Option 1", "Option 2", "Correct answer"]
   /// }
   /// ```
   factory Instructions.fromJson(Map<String, dynamic> json) => Instructions(
-    preamble: json["preamble"],
-    questionText: json["questionText"],
-    answers: List<String>.from(json["answers"].map((x) => x)),
+    preamble: json['preamble']?.toString() ?? '',
+    questionText: json['questionText']?.toString() ?? '',
+    answers: ((json['answers'] as List<dynamic>? ?? const <dynamic>[])
+        .map((dynamic answer) => answer.toString())
+        .toList(growable: false)),
   );
 
-  /// Retorna a resposta correta (sempre a última da lista).
+  /// Introductory HTML rendered before the questionnaire starts.
+  final String preamble;
+
+  /// Question used to confirm the respondent understood the instructions.
+  final String questionText;
+
+  /// Answer options for the comprehension check.
+  final List<String> answers;
+
+  /// Returns the expected answer used to unlock the survey flow.
   String get correctAnswer => answers.last;
 }

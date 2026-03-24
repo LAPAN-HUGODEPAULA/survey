@@ -1,8 +1,7 @@
-/// Página de instruções e verificação de compreensão.
+/// Presents survey instructions and validates the comprehension answer.
 ///
-/// Apresenta as instruções do questionário ao usuário e verifica
-/// se ele compreendeu antes de permitir o início das perguntas.
-/// As instruções são carregadas dinamicamente do arquivo JSON do questionário.
+/// The page renders instruction HTML from the selected survey and blocks
+/// navigation until the expected answer is chosen.
 library;
 
 import 'package:flutter/material.dart';
@@ -24,6 +23,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
   String? _comprehensionAnswer;
   bool _showError = false;
 
+  /// Unlocks the questionnaire only when the selected answer matches the rule.
   void _startSurvey(Survey survey) {
     final correctAnswer = survey.instructions.correctAnswer;
 
@@ -37,6 +37,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
     });
   }
 
+  /// Builds a selectable answer row for the comprehension check.
   Widget _buildAnswerTile(String option) {
     final theme = Theme.of(context);
     final isSelected = _comprehensionAnswer == option;
@@ -69,8 +70,8 @@ class _InstructionsPageState extends State<InstructionsPage> {
           error: error != null
               ? 'Falha ao carregar questionário: $error'
               : survey == null
-                  ? 'Nenhum questionário disponível. Verifique a conexão com o servidor.'
-                  : null,
+              ? 'Nenhum questionário disponível. Verifique a conexão com o servidor.'
+              : null,
           appBar: AppBar(
             title: const Text('Instruções'),
             automaticallyImplyLeading: false,
@@ -104,8 +105,12 @@ class _InstructionsPageState extends State<InstructionsPage> {
                                           margin: Margins.only(bottom: 12.0),
                                         ),
                                         'ul': Style(
-                                          margin: Margins.symmetric(vertical: 8.0),
-                                          padding: HtmlPaddings.only(left: 20.0),
+                                          margin: Margins.symmetric(
+                                            vertical: 8.0,
+                                          ),
+                                          padding: HtmlPaddings.only(
+                                            left: 20.0,
+                                          ),
                                         ),
                                         'li': Style(
                                           margin: Margins.only(bottom: 4.0),
@@ -121,32 +126,36 @@ class _InstructionsPageState extends State<InstructionsPage> {
                                       ),
                                     ),
                                     const SizedBox(height: 16),
-                                    ...activeInstructions.answers
-                                        .map(_buildAnswerTile),
+                                    ...activeInstructions.answers.map(
+                                      _buildAnswerTile,
+                                    ),
                                     if (_showError)
                                       Padding(
-                                        padding: const EdgeInsets.only(top: 16.0),
+                                        padding: const EdgeInsets.only(
+                                          top: 16.0,
+                                        ),
                                         child: Container(
                                           padding: const EdgeInsets.all(12.0),
                                           decoration: BoxDecoration(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .errorContainer,
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.errorContainer,
                                             border: Border.all(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .outline,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.outline,
                                             ),
-                                            borderRadius:
-                                                BorderRadius.circular(8.0),
+                                            borderRadius: BorderRadius.circular(
+                                              8.0,
+                                            ),
                                           ),
                                           child: Row(
                                             children: [
                                               Icon(
                                                 Icons.error_outline,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onErrorContainer,
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.onErrorContainer,
                                                 size: 20,
                                               ),
                                               const SizedBox(width: 8),
@@ -174,8 +183,9 @@ class _InstructionsPageState extends State<InstructionsPage> {
                               child: ElevatedButton(
                                 onPressed: () => _startSurvey(activeSurvey),
                                 style: ElevatedButton.styleFrom(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8),
                                   ),

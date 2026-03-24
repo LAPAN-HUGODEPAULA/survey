@@ -1,10 +1,7 @@
-// lib/providers/app_settings.dart
+/// Global application settings for the screener-facing app.
 ///
-/// Provedor de configurações globais da aplicação.
-///
-/// Gerencia o estado das configurações do questionário, incluindo
-/// o nome do responsável pela aplicação e qual questionário está ativo.
-/// Utiliza o padrão Provider para notificação de mudanças de estado.
+/// This store keeps authentication, prepared access-link state, selected
+/// survey metadata, and patient context synchronized across screens.
 library;
 
 import 'package:flutter/material.dart';
@@ -16,19 +13,13 @@ import 'package:survey_app/core/models/screener_profile.dart';
 import 'package:survey_app/core/models/survey/survey.dart';
 import 'package:survey_app/core/repositories/survey_repository.dart';
 
-/// Classe que gerencia as configurações globais da aplicação de questionários.
+/// Coordinates cross-screen state for screener sessions and survey selection.
 ///
-/// Extends [ChangeNotifier] para permitir notificação automática de widgets
-/// quando as configurações são alteradas.
-///
-/// Principais responsabilidades:
-/// - Gerenciar a sessão do screener autenticado
-/// - Gerenciar dados demográficos do paciente
-/// - Carregar questionários disponíveis dinamicamente
-/// - Controlar qual questionário está selecionado
+/// Widgets listen to this class to react to login changes, prepared access
+/// links, available surveys, and patient data updates.
 class AppSettings extends ChangeNotifier {
   AppSettings({SurveyRepository? surveyRepository})
-      : _surveyRepository = surveyRepository ?? SurveyRepository();
+    : _surveyRepository = surveyRepository ?? SurveyRepository();
 
   final SurveyRepository _surveyRepository;
   static const String systemScreenerId = '000000000000000000000001';
@@ -48,13 +39,15 @@ class AppSettings extends ChangeNotifier {
 
   String? get authToken => _authToken;
   ScreenerProfile? get screenerProfile => _screenerProfile;
-  bool get isLoggedIn => (_authToken?.isNotEmpty ?? false) && _screenerProfile != null;
+  bool get isLoggedIn =>
+      (_authToken?.isNotEmpty ?? false) && _screenerProfile != null;
   bool get isLockedAssessmentMode =>
       _preparedAccessLinkToken != null &&
       _preparedScreenerId != null &&
       _selectedSurveyId != null;
   String? get accessLinkToken => _preparedAccessLinkToken;
-  String get screenerId => _preparedScreenerId ?? _screenerProfile?.id ?? systemScreenerId;
+  String get screenerId =>
+      _preparedScreenerId ?? _screenerProfile?.id ?? systemScreenerId;
   String get screenerDisplayName {
     final preparedName = _preparedScreenerName;
     if (preparedName != null && preparedName.isNotEmpty) {
@@ -64,6 +57,7 @@ class AppSettings extends ChangeNotifier {
     if (profile == null) return 'System Screener';
     return '${profile.firstName} ${profile.surname}'.trim();
   }
+
   Patient get patient => _patient;
   ClinicalData get clinicalData => _clinicalData;
   bool get isLoadingSurveys => _isLoadingSurveys;
@@ -93,6 +87,7 @@ class AppSettings extends ChangeNotifier {
   }
 
   Future<void> loadAvailableSurveys() async {
+    // Avoid duplicate refreshes while a survey load is already in flight.
     if (_isLoadingSurveys) return;
 
     _isLoadingSurveys = true;
@@ -128,7 +123,10 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setScreenerSession({required String token, required ScreenerProfile profile}) {
+  void setScreenerSession({
+    required String token,
+    required ScreenerProfile profile,
+  }) {
     _authToken = token;
     _screenerProfile = profile;
     notifyListeners();

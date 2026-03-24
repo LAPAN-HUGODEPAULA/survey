@@ -13,13 +13,12 @@ import 'package:survey_app/core/services/form_data_service.dart';
 /// used in forms, with caching capabilities to avoid repeated asset loading.
 /// Uses the generic FormDataServiceRegistry for efficient data management.
 class DemographicsDataService {
-  static DemographicsDataService? _instance;
-  late final FormDataServiceRegistry _registry;
-
   /// Private constructor for singleton pattern
   DemographicsDataService._() {
     _initializeRegistry();
   }
+  static DemographicsDataService? _instance;
+  late final FormDataServiceRegistry _registry;
 
   /// Singleton instance getter
   static DemographicsDataService get instance {
@@ -157,11 +156,12 @@ class DemographicsDataService {
 
   /// Checks if specific data is cached.
   bool isDiagnosesCached() =>
-      _registry.getService(_diagnosesKey)?.isCached() ?? false;
+      _registry.getService<List<String>>(_diagnosesKey)?.isCached() ?? false;
   bool isEducationLevelsCached() =>
-      _registry.getService(_educationLevelsKey)?.isCached() ?? false;
+      _registry.getService<List<String>>(_educationLevelsKey)?.isCached() ??
+      false;
   bool isProfessionsCached() =>
-      _registry.getService(_professionsKey)?.isCached() ?? false;
+      _registry.getService<List<String>>(_professionsKey)?.isCached() ?? false;
 
   /// Checks if all data is cached.
   bool isAllDataCached() => _registry.isAllDataCached();
@@ -172,6 +172,13 @@ class DemographicsDataService {
 /// This class holds all the loaded demographic data in a single object,
 /// making it easy to pass around and access all data at once.
 class DemographicsData {
+  /// Creates a new [DemographicsData] instance.
+  const DemographicsData({
+    required this.diagnoses,
+    required this.educationLevels,
+    required this.professions,
+  });
+
   /// List of available medical diagnoses
   final List<String> diagnoses;
 
@@ -180,13 +187,6 @@ class DemographicsData {
 
   /// List of available professions
   final List<String> professions;
-
-  /// Creates a new [DemographicsData] instance.
-  const DemographicsData({
-    required this.diagnoses,
-    required this.educationLevels,
-    required this.professions,
-  });
 
   /// Creates a copy of this data with optional field updates.
   DemographicsData copyWith({

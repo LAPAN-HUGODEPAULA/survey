@@ -1,5 +1,5 @@
-library;
 
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 
 class AccessLinkUnavailablePage extends StatelessWidget {
@@ -7,7 +7,7 @@ class AccessLinkUnavailablePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return DsScaffold(
       appBar: AppBar(title: const Text('Link indisponível')),
       body: Center(
         child: Container(

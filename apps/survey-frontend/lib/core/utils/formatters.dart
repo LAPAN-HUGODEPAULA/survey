@@ -1,4 +1,3 @@
-library;
 
 class Formatters {
   static String surveyFileStem(String path) {

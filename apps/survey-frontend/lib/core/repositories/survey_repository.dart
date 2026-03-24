@@ -1,5 +1,3 @@
-library;
-
 import 'dart:convert';
 import 'dart:math';
 
@@ -7,6 +5,7 @@ import 'package:built_collection/built_collection.dart';
 import 'package:dio/dio.dart';
 import 'package:survey_app/core/models/agent_response.dart';
 import 'package:survey_app/core/models/survey/instructions.dart' as ui;
+import 'package:survey_app/core/models/survey/prompt_association.dart' as ui;
 import 'package:survey_app/core/models/survey/question.dart' as ui;
 import 'package:survey_app/core/models/survey/survey.dart' as ui;
 import 'package:survey_app/core/models/survey_response.dart' as ui;
@@ -18,23 +17,8 @@ class SurveyRepository {
   SurveyRepository({api.DefaultApi? apiClient, Dio? rawClient})
     : _api =
           apiClient ??
-          api.DefaultApi(
-            Dio(
-              BaseOptions(
-                baseUrl: ApiConfig.dioBaseUrl,
-                headers: ApiConfig.defaultHeaders,
-              ),
-            ),
-            api.standardSerializers,
-          ),
-      _rawClient =
-          rawClient ??
-          Dio(
-            BaseOptions(
-              baseUrl: ApiConfig.dioBaseUrl,
-              headers: ApiConfig.defaultHeaders,
-            ),
-          );
+          api.DefaultApi(ApiConfig.createDio(), api.standardSerializers),
+      _rawClient = rawClient ?? ApiConfig.createDio();
 
   final api.DefaultApi _api;
   final Dio _rawClient;
@@ -51,7 +35,7 @@ class SurveyRepository {
     final response = await _api.getSurvey(surveyId: surveyId);
     final api.Survey? data = response.data;
     if (data == null) {
-      throw const FormatException('Survey not found');
+      throw const FormatException('Questionário não encontrado');
     }
     return _mapSurvey(data);
   }
@@ -64,18 +48,18 @@ class SurveyRepository {
   }
 
   /// Sends content to the Clinical Writer agent via backend proxy.
-  Future<AgentResponse> processClinicalWriter(String content) async {
+  Future<AgentResponse> processClinicalWriter(
+    String content, {
+    String? promptKey,
+  }) async {
     final requestId = _generateRequestId();
     final body = {
       'input_type': 'survey7',
       'content': content,
       'locale': 'pt-BR',
-      'prompt_key': 'default',
+      'prompt_key': promptKey ?? 'survey7',
       'output_format': 'report_json',
-      'metadata': {
-        'source_app': 'survey-frontend',
-        'request_id': requestId,
-      },
+      'metadata': {'source_app': 'survey-frontend', 'request_id': requestId},
     };
     final data = await _postJson('clinical_writer/process', body);
     return AgentResponse.fromJson(data);
@@ -104,6 +88,15 @@ class SurveyRepository {
             ),
           )
           .toList(growable: false),
+      promptAssociations: source.promptAssociations
+          .map(
+            (association) => ui.SurveyPromptAssociation(
+              promptKey: association.promptKey,
+              name: association.name,
+              outcomeType: _mapOutcomeTypeValue(association.outcomeType),
+            ),
+          )
+          .toList(growable: false),
       finalNotes: source.finalNotes,
     );
   }
@@ -112,8 +105,8 @@ class SurveyRepository {
     String path,
     Map<String, dynamic> payload,
   ) async {
-    final response = await _rawClient.postUri(
-      ApiConfig.resolve(path),
+    final response = await _rawClient.post<Object?>(
+      ApiConfig.requestPath(path),
       data: payload,
     );
     final data = response.data;
@@ -134,5 +127,21 @@ class SurveyRepository {
 
   void dispose() {
     // currently no disposable resources
+  }
+
+  String _mapOutcomeTypeValue(api.SurveyPromptOutcomeType outcomeType) {
+    switch (outcomeType) {
+      case api.SurveyPromptOutcomeType.patientConditionOverview:
+        return 'patient_condition_overview';
+      case api.SurveyPromptOutcomeType.clinicalDiagnosticReport:
+        return 'clinical_diagnostic_report';
+      case api.SurveyPromptOutcomeType.clinicalReferralLetter:
+        return 'clinical_referral_letter';
+      case api.SurveyPromptOutcomeType.parentalGuidance:
+        return 'parental_guidance';
+      case api.SurveyPromptOutcomeType.educationalSupportSummary:
+        return 'educational_support_summary';
+    }
+    throw ArgumentError.value(outcomeType, 'outcomeType', 'Unsupported outcome type');
   }
 }

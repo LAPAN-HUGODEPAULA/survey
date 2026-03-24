@@ -1,53 +1,48 @@
-
-/// Modelo que representa uma pergunta individual do questionário.
+/// Represents a single survey question and its selectable answers.
 ///
-/// Cada pergunta possui um ID único, texto da pergunta e uma lista
-/// de possíveis respostas que o usuário pode selecionar.
+/// The backend sends the question text together with the ordered answer
+/// options that should be shown to the respondent.
 ///
-/// Exemplo de uso:
+/// Example:
 /// ```dart
 /// final question = Question(
 ///   id: 1,
-///   questionText: "Como você se sente hoje?",
-///   answers: ["Bem", "Regular", "Mal"]
+///   questionText: 'How do you feel today?',
+///   answers: ['Good', 'Neutral', 'Bad'],
 /// );
 /// ```
 class Question {
-  /// Identificador único da pergunta
-  final int id;
-
-  /// Texto da pergunta apresentada ao usuário
-  final String questionText;
-
-  /// Lista de opções de resposta disponíveis
-  final List<String> answers;
-
-  /// Cria uma nova instância de Question.
-  ///
-  /// [id] - Identificador único da pergunta
-  /// [questionText] - Texto da pergunta
-  /// [answers] - Lista de opções de resposta
+  /// Creates a question from API-provided identifiers, text, and answers.
   Question({
     required this.id,
     required this.questionText,
     required this.answers,
   });
 
-  /// Cria uma Question a partir de um Map JSON.
+  /// Creates a [Question] from a JSON payload returned by the backend.
   ///
-  /// [json] - Map contendo os dados da pergunta
-  ///
-  /// Expected JSON structure:
+  /// Expected shape:
   /// ```json
   /// {
   ///   "id": 1,
-  ///   "questionText": "Texto da pergunta",
-  ///   "answers": ["Opção 1", "Opção 2", "Opção 3"]
+  ///   "questionText": "Question text",
+  ///   "answers": ["Option 1", "Option 2", "Option 3"]
   /// }
   /// ```
   factory Question.fromJson(Map<String, dynamic> json) => Question(
-    id: json["id"],
-    questionText: json["questionText"],
-    answers: List<String>.from(json["answers"].map((x) => x)),
+    id: (json['id'] as num?)?.toInt() ?? 0,
+    questionText: json['questionText']?.toString() ?? '',
+    answers: ((json['answers'] as List<dynamic>? ?? const <dynamic>[])
+        .map((dynamic answer) => answer.toString())
+        .toList(growable: false)),
   );
+
+  /// Backend identifier used to keep answers in question order.
+  final int id;
+
+  /// Prompt displayed to the respondent.
+  final String questionText;
+
+  /// Ordered answer options shown as survey buttons.
+  final List<String> answers;
 }

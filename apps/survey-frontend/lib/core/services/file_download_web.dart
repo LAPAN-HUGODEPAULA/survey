@@ -1,4 +1,3 @@
-library;
 
 import 'dart:js_interop';
 import 'dart:typed_data';

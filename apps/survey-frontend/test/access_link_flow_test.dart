@@ -1,4 +1,3 @@
-library;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -60,6 +59,7 @@ Survey _buildSurvey() {
     questions: <Question>[
       Question(id: 1, questionText: 'Pergunta 1', answers: <String>['A', 'B']),
     ],
+    promptAssociations: const [],
   );
 }
 
@@ -123,10 +123,7 @@ void main() {
     );
 
     await tester.pumpWidget(
-      _wrap(
-        SettingsPage(accessLinkRepository: repository),
-        settings,
-      ),
+      _wrap(SettingsPage(accessLinkRepository: repository), settings),
     );
     await tester.pumpAndSettle();
 
