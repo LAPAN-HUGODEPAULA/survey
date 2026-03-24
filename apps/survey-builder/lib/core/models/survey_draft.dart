@@ -1,3 +1,5 @@
+import 'package:survey_builder/core/models/survey_prompt_draft.dart';
+
 class SurveyDraft {
   SurveyDraft({
     this.id,
@@ -10,6 +12,7 @@ class SurveyDraft {
     required this.instructions,
     required this.questions,
     required this.finalNotes,
+    required this.promptAssociations,
   });
 
   final String? id;
@@ -22,6 +25,7 @@ class SurveyDraft {
   InstructionsDraft instructions;
   List<QuestionDraft> questions;
   String finalNotes;
+  List<SurveyPromptAssociationDraft> promptAssociations;
 
   SurveyDraft copy() {
     return SurveyDraft(
@@ -35,6 +39,7 @@ class SurveyDraft {
       instructions: instructions.copy(),
       questions: questions.map((q) => q.copy()).toList(),
       finalNotes: finalNotes,
+      promptAssociations: promptAssociations.map((item) => item.copy()).toList(),
     );
   }
 }

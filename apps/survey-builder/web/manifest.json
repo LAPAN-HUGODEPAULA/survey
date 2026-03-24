@@ -1,11 +1,11 @@
 {
-    "name": "survey_builder",
-    "short_name": "survey_builder",
+    "name": "LAPAN Construtor de Questionários",
+    "short_name": "LAPAN Construtor",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FF9800",
+    "theme_color": "#FF9800",
+    "description": "Criação e edição de questionários da plataforma LAPAN.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

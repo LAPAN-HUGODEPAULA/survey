@@ -1,9 +1,10 @@
-library;
-
-import 'package:flutter/material.dart';
 import 'package:design_system_flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:survey_builder/core/models/survey_draft.dart';
+import 'package:survey_builder/core/models/survey_prompt_draft.dart';
+import 'package:survey_builder/core/repositories/survey_prompt_repository.dart';
 import 'package:survey_builder/core/repositories/survey_repository.dart';
+import 'package:survey_builder/features/survey/widgets/html_rich_text_editor.dart';
 
 class SurveyFormPage extends StatefulWidget {
   const SurveyFormPage({super.key, this.initialDraft, this.repository});
@@ -18,26 +19,38 @@ class SurveyFormPage extends StatefulWidget {
 class _SurveyFormPageState extends State<SurveyFormPage> {
   final _formKey = GlobalKey<FormState>();
   late final SurveyRepository _repo;
+  late final SurveyPromptRepository _promptRepo;
 
   late SurveyDraft _draft;
   bool _saving = false;
   bool _isDirty = false;
+  bool _loadingPrompts = true;
+  String? _promptLoadError;
 
   late TextEditingController _displayNameController;
   late TextEditingController _nameController;
-  late TextEditingController _descriptionController;
   late TextEditingController _creatorIdController;
-  late TextEditingController _finalNotesController;
-  late TextEditingController _instructionsPreambleController;
   late TextEditingController _instructionsQuestionController;
+  final _descriptionEditorKey = GlobalKey<HtmlRichTextEditorState>();
+  final _instructionsPreambleEditorKey = GlobalKey<HtmlRichTextEditorState>();
+  final _finalNotesEditorKey = GlobalKey<HtmlRichTextEditorState>();
+
+  String _descriptionHtml = '';
+  String _instructionsPreambleHtml = '';
+  String _finalNotesHtml = '';
 
   List<String> _instructionAnswers = [];
   List<QuestionDraft> _questions = [];
+  List<SurveyPromptDraft> _availablePrompts = [];
+  final Map<SurveyPromptOutcome, String?> _selectedPromptKeys = {
+    for (final outcome in SurveyPromptOutcome.values) outcome: null,
+  };
 
   @override
   void initState() {
     super.initState();
     _repo = widget.repository ?? SurveyRepository();
+    _promptRepo = SurveyPromptRepository();
     _draft = widget.initialDraft?.copy() ?? _emptyDraft();
     _questions = _draft.questions.map((q) => q.copy()).toList();
     _instructionAnswers = List<String>.from(_draft.instructions.answers);
@@ -45,39 +58,40 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
       _instructionAnswers.add('');
     }
 
-    _displayNameController = TextEditingController(text: _draft.surveyDisplayName);
+    _displayNameController = TextEditingController(
+      text: _draft.surveyDisplayName,
+    );
     _nameController = TextEditingController(text: _draft.surveyName);
-    _descriptionController = TextEditingController(text: _draft.surveyDescription);
     _creatorIdController = TextEditingController(text: _draft.creatorId);
-    _finalNotesController = TextEditingController(text: _draft.finalNotes);
-    _instructionsPreambleController =
-        TextEditingController(text: _draft.instructions.preamble);
-    _instructionsQuestionController =
-        TextEditingController(text: _draft.instructions.questionText);
+    _instructionsQuestionController = TextEditingController(
+      text: _draft.instructions.questionText,
+    );
+    _descriptionHtml = _normalizeHtml(_draft.surveyDescription);
+    _instructionsPreambleHtml = _normalizeHtml(_draft.instructions.preamble);
+    _finalNotesHtml = _normalizeHtml(_draft.finalNotes);
+    for (final association in _draft.promptAssociations) {
+      _selectedPromptKeys[association.outcomeType] = association.promptKey;
+    }
 
     for (final controller in [
       _displayNameController,
       _nameController,
-      _descriptionController,
       _creatorIdController,
-      _finalNotesController,
-      _instructionsPreambleController,
       _instructionsQuestionController,
     ]) {
       controller.addListener(_markDirty);
     }
+    _loadPrompts();
   }
 
   @override
   void dispose() {
     _displayNameController.dispose();
     _nameController.dispose();
-    _descriptionController.dispose();
     _creatorIdController.dispose();
-    _finalNotesController.dispose();
-    _instructionsPreambleController.dispose();
     _instructionsQuestionController.dispose();
     _repo.dispose();
+    _promptRepo.dispose();
     super.dispose();
   }
 
@@ -90,10 +104,42 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
       creatorId: '',
       createdAt: now,
       modifiedAt: now,
-      instructions: InstructionsDraft(preamble: '', questionText: '', answers: ['']),
+      instructions: InstructionsDraft(
+        preamble: '',
+        questionText: '',
+        answers: [''],
+      ),
       questions: [],
       finalNotes: '',
+      promptAssociations: [],
     );
+  }
+
+  Future<void> _loadPrompts() async {
+    setState(() {
+      _loadingPrompts = true;
+      _promptLoadError = null;
+    });
+    try {
+      final prompts = await _promptRepo.listPrompts();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _availablePrompts = prompts;
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _promptLoadError = error.toString();
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _loadingPrompts = false);
+      }
+    }
   }
 
   void _markDirty() {
@@ -113,13 +159,34 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     if (formState == null || !formState.validate()) {
       return;
     }
+    final descriptionHtml =
+        await _descriptionEditorKey.currentState?.getHtml() ?? _descriptionHtml;
+    final preambleHtml =
+        await _instructionsPreambleEditorKey.currentState?.getHtml() ??
+        _instructionsPreambleHtml;
+    final finalNotesHtml =
+        await _finalNotesEditorKey.currentState?.getHtml() ?? _finalNotesHtml;
+
+    if (_isHtmlEmpty(descriptionHtml)) {
+      _showError('Descrição do questionário é obrigatória.');
+      return;
+    }
+    if (_isHtmlEmpty(preambleHtml)) {
+      _showError('Preâmbulo é obrigatório.');
+      return;
+    }
+    if (_isHtmlEmpty(finalNotesHtml)) {
+      _showError('Notas finais são obrigatórias.');
+      return;
+    }
+
     if (_questions.isEmpty) {
-      _showError('A survey must contain at least one question.');
+      _showError('Um questionário deve conter pelo menos uma pergunta.');
       return;
     }
     for (final question in _questions) {
       if (question.answers.where((a) => a.trim().isNotEmpty).isEmpty) {
-        _showError('Each question must contain at least one answer.');
+        _showError('Cada pergunta deve conter pelo menos uma resposta.');
         return;
       }
     }
@@ -129,13 +196,13 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
       _draft
         ..surveyDisplayName = _displayNameController.text.trim()
         ..surveyName = _nameController.text.trim()
-        ..surveyDescription = _descriptionController.text.trim()
+        ..surveyDescription = descriptionHtml.trim()
         ..creatorId = _creatorIdController.text.trim()
-        ..finalNotes = _finalNotesController.text.trim()
+        ..finalNotes = finalNotesHtml.trim()
         ..modifiedAt = DateTime.now();
 
       _draft.instructions
-        ..preamble = _instructionsPreambleController.text.trim()
+        ..preamble = preambleHtml.trim()
         ..questionText = _instructionsQuestionController.text.trim()
         ..answers = _instructionAnswers
             .map((answer) => answer.trim())
@@ -154,6 +221,19 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
             ),
           )
           .toList();
+      _draft.promptAssociations = _selectedPromptKeys.entries
+          .where((entry) => entry.value != null && entry.value!.isNotEmpty)
+          .map((entry) {
+            final prompt = _availablePrompts.firstWhere(
+              (item) => item.promptKey == entry.value,
+            );
+            return SurveyPromptAssociationDraft(
+              promptKey: prompt.promptKey,
+              name: prompt.name,
+              outcomeType: prompt.outcomeType,
+            );
+          })
+          .toList(growable: false);
 
       if (_draft.id == null || _draft.id!.isEmpty) {
         await _repo.createSurvey(_draft);
@@ -164,7 +244,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
       if (!mounted) return;
       Navigator.of(context).pop();
     } catch (error) {
-      _showError('Failed to save: $error');
+      _showError('Falha ao salvar: $error');
     } finally {
       if (mounted) {
         setState(() => _saving = false);
@@ -174,7 +254,40 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  bool _isHtmlEmpty(String html) {
+    final stripped = html
+        .replaceAll(RegExp(r'<[^>]*>'), ' ')
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll(RegExp(r'\\s+'), ' ')
+        .trim();
+    return stripped.isEmpty;
+  }
+
+  String _normalizeHtml(String html) {
+    final trimmed = html.trim();
+    if (trimmed.isEmpty) {
+      return '';
+    }
+    if (trimmed.contains('<')) {
+      return trimmed;
+    }
+    return '<p>${trimmed.replaceAll('\n', '<br>')}</p>';
+  }
+
+  void _moveQuestion(int fromIndex, int toIndex) {
+    if (toIndex < 0 || toIndex >= _questions.length) {
+      return;
+    }
+    setState(() {
+      final moved = _questions.removeAt(fromIndex);
+      _questions.insert(toIndex, moved);
+      _markDirty();
+    });
   }
 
   Future<void> _confirmCancel() async {
@@ -185,15 +298,17 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => DsDialog(
-        title: 'Discard changes?',
-        content: const Text('You have unsaved changes. Discard them?'),
+        title: 'Descartar alterações?',
+        content: const Text(
+          'Você tem alterações não salvas. Deseja descartá-las?',
+        ),
         actions: [
           DsTextButton(
-            label: 'Keep editing',
+            label: 'Continuar editando',
             onPressed: () => Navigator.pop(context, false),
           ),
           DsOutlinedButton(
-            label: 'Discard',
+            label: 'Descartar',
             onPressed: () => Navigator.pop(context, true),
           ),
         ],
@@ -207,9 +322,9 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
   @override
   Widget build(BuildContext context) {
     final isEditing = _draft.id != null && _draft.id!.isNotEmpty;
-    return Scaffold(
+    return DsScaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit Survey' : 'Create Survey'),
+        title: Text(isEditing ? 'Editar questionário' : 'Criar questionário'),
       ),
       body: Form(
         key: _formKey,
@@ -224,7 +339,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                   SizedBox(
                     width: 140,
                     child: DsOutlinedButton(
-                      label: 'Cancel',
+                      label: 'Cancelar',
                       onPressed: _saving ? null : _confirmCancel,
                     ),
                   ),
@@ -232,70 +347,95 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                   SizedBox(
                     width: 140,
                     child: DsFilledButton(
-                      label: _saving ? 'Saving...' : 'Save',
+                      label: _saving ? 'Salvando...' : 'Salvar',
                       onPressed: _saving ? null : _save,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              Text('Survey Details', style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                'Detalhes do questionário',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _displayNameController,
-                decoration: const InputDecoration(labelText: 'Survey Display Name *'),
-                validator: (value) =>
-                    value == null || value.trim().isEmpty ? 'Required field' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Nome de exibição do questionário *',
+                ),
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'Campo obrigatório'
+                    : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Survey Name *'),
-                validator: (value) =>
-                    value == null || value.trim().isEmpty ? 'Required field' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Nome do questionário *',
+                ),
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'Campo obrigatório'
+                    : null,
               ),
               const SizedBox(height: 12),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Survey Description *'),
-                maxLines: 2,
-                validator: (value) =>
-                    value == null || value.trim().isEmpty ? 'Required field' : null,
+              HtmlRichTextEditor(
+                key: _descriptionEditorKey,
+                label: 'Descrição do questionário *',
+                initialHtml: _descriptionHtml,
+                onChanged: (value) {
+                  _descriptionHtml = value;
+                  _markDirty();
+                },
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _creatorIdController,
-                decoration: const InputDecoration(labelText: 'Creator ID *'),
-                validator: (value) =>
-                    value == null || value.trim().isEmpty ? 'Required field' : null,
+                decoration: const InputDecoration(labelText: 'ID do criador *'),
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'Campo obrigatório'
+                    : null,
               ),
               const SizedBox(height: 12),
-              TextFormField(
-                controller: _finalNotesController,
-                decoration: const InputDecoration(labelText: 'Final Notes *'),
-                maxLines: 2,
-                validator: (value) =>
-                    value == null || value.trim().isEmpty ? 'Required field' : null,
+              HtmlRichTextEditor(
+                key: _finalNotesEditorKey,
+                label: 'Notas finais *',
+                initialHtml: _finalNotesHtml,
+                onChanged: (value) {
+                  _finalNotesHtml = value;
+                  _markDirty();
+                },
               ),
               const SizedBox(height: 24),
-              Text('Instructions', style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                'Instruções',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: 12),
-              TextFormField(
-                controller: _instructionsPreambleController,
-                decoration: const InputDecoration(labelText: 'Preamble *'),
-                maxLines: 2,
-                validator: (value) =>
-                    value == null || value.trim().isEmpty ? 'Required field' : null,
+              HtmlRichTextEditor(
+                key: _instructionsPreambleEditorKey,
+                label: 'Preâmbulo *',
+                initialHtml: _instructionsPreambleHtml,
+                onChanged: (value) {
+                  _instructionsPreambleHtml = value;
+                  _markDirty();
+                },
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _instructionsQuestionController,
-                decoration: const InputDecoration(labelText: 'Question Text *'),
-                validator: (value) =>
-                    value == null || value.trim().isEmpty ? 'Required field' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Texto da pergunta *',
+                ),
+                validator: (value) => value == null || value.trim().isEmpty
+                    ? 'Campo obrigatório'
+                    : null,
               ),
               const SizedBox(height: 12),
-              Text('Instruction Answers', style: Theme.of(context).textTheme.titleSmall),
+              Text(
+                'Respostas das instruções',
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
               const SizedBox(height: 8),
               ListView.separated(
                 shrinkWrap: true,
@@ -307,9 +447,13 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                     children: [
                       Expanded(
                         child: TextFormField(
-                          key: ValueKey('instruction-answer-$index-${_instructionAnswers[index]}'),
+                          key: ValueKey(
+                            'instruction-answer-$index-${_instructionAnswers[index]}',
+                          ),
                           initialValue: _instructionAnswers[index],
-                          decoration: const InputDecoration(labelText: 'Answer'),
+                          decoration: const InputDecoration(
+                            labelText: 'Resposta',
+                          ),
                           onChanged: (value) {
                             _markDirty();
                             _instructionAnswers[index] = value;
@@ -317,7 +461,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                         ),
                       ),
                       IconButton(
-                        tooltip: 'Remove answer',
+                        tooltip: 'Remover resposta',
                         icon: const Icon(Icons.delete_outline),
                         onPressed: _instructionAnswers.length <= 1
                             ? null
@@ -342,22 +486,110 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                     });
                   },
                   icon: const Icon(Icons.add),
-                  label: const Text('Add Instruction Answer'),
+                  label: const Text('Adicionar resposta de instrução'),
                 ),
               ),
               const SizedBox(height: 24),
+              Text(
+                'Prompts de IA',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              if (_loadingPrompts)
+                const LinearProgressIndicator()
+              else if (_promptLoadError != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Não foi possível carregar os prompts: $_promptLoadError',
+                  ),
+                )
+              else ...[
+                if (_availablePrompts.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Nenhum prompt disponível. O questionário usará o fluxo legado até que prompts sejam cadastrados.',
+                    ),
+                  ),
+                ...SurveyPromptOutcome.values.map((outcome) {
+                  final prompts = _availablePrompts
+                      .where((item) => item.outcomeType == outcome)
+                      .toList(growable: false);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: DropdownButtonFormField<String?>(
+                      initialValue: _selectedPromptKeys[outcome],
+                      decoration: InputDecoration(
+                        labelText: outcome.label,
+                        helperText: prompts.isEmpty
+                            ? 'Nenhum prompt disponível para este tipo.'
+                            : 'Selecione um prompt reutilizável para este resultado.',
+                      ),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('Nenhum prompt'),
+                        ),
+                        ...prompts.map(
+                          (prompt) => DropdownMenuItem<String?>(
+                            value: prompt.promptKey,
+                            child: Text(prompt.name),
+                          ),
+                        ),
+                      ],
+                      onChanged: _saving
+                          ? null
+                          : (value) {
+                              setState(() {
+                                _selectedPromptKeys[outcome] = value;
+                                _markDirty();
+                              });
+                            },
+                    ),
+                  );
+                }),
+                if (_selectedPromptKeys.values.every(
+                  (value) => value == null || value.isEmpty,
+                ))
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(
+                      'Nenhum prompt associado. O questionário poderá continuar usando o comportamento legado.',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+              ],
+              const SizedBox(height: 24),
               Row(
                 children: [
-                  Text('Questions', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'Perguntas',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const Spacer(),
                   SizedBox(
                     width: 160,
                     child: DsOutlinedButton(
-                      label: 'Add Question',
+                      label: 'Adicionar pergunta',
                       onPressed: () {
                         setState(() {
                           _questions.add(
-                            QuestionDraft(id: _nextQuestionId(), questionText: '', answers: ['']),
+                            QuestionDraft(
+                              id: _nextQuestionId(),
+                              questionText: '',
+                              answers: [''],
+                            ),
                           );
                           _markDirty();
                         });
@@ -369,7 +601,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
               const SizedBox(height: 12),
               if (_questions.isEmpty)
                 Text(
-                  'No questions added yet.',
+                  'Nenhuma pergunta adicionada ainda.',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ListView.builder(
@@ -379,6 +611,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                 itemBuilder: (context, questionIndex) {
                   final question = _questions[questionIndex];
                   return Card(
+                    key: ValueKey('question-card-${question.id}'),
                     margin: const EdgeInsets.only(bottom: 12),
                     child: Padding(
                       padding: const EdgeInsets.all(12),
@@ -387,13 +620,39 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                         children: [
                           Row(
                             children: [
+                              IconButton(
+                                tooltip: 'Mover para cima',
+                                icon: const Icon(Icons.arrow_upward),
+                                onPressed: questionIndex == 0
+                                    ? null
+                                    : () => _moveQuestion(
+                                        questionIndex,
+                                        questionIndex - 1,
+                                      ),
+                              ),
+                              IconButton(
+                                tooltip: 'Mover para baixo',
+                                icon: const Icon(Icons.arrow_downward),
+                                onPressed:
+                                    questionIndex == _questions.length - 1
+                                    ? null
+                                    : () => _moveQuestion(
+                                        questionIndex,
+                                        questionIndex + 1,
+                                      ),
+                              ),
                               Expanded(
                                 child: TextFormField(
-                                  key: ValueKey('question-$questionIndex-${question.id}'),
+                                  key: ValueKey(
+                                    'question-$questionIndex-${question.id}',
+                                  ),
                                   initialValue: question.questionText,
-                                  decoration: const InputDecoration(labelText: 'Question Text *'),
-                                  validator: (value) => value == null || value.trim().isEmpty
-                                      ? 'Required field'
+                                  decoration: const InputDecoration(
+                                    labelText: 'Texto da pergunta *',
+                                  ),
+                                  validator: (value) =>
+                                      value == null || value.trim().isEmpty
+                                      ? 'Campo obrigatório'
                                       : null,
                                   onChanged: (value) {
                                     _markDirty();
@@ -402,7 +661,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                                 ),
                               ),
                               IconButton(
-                                tooltip: 'Remove question',
+                                tooltip: 'Remover pergunta',
                                 icon: const Icon(Icons.delete_outline),
                                 onPressed: () {
                                   setState(() {
@@ -414,24 +673,33 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          Text('Answers', style: Theme.of(context).textTheme.titleSmall),
+                          Text(
+                            'Respostas',
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
                           const SizedBox(height: 8),
                           ListView.separated(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: question.answers.length,
-                            separatorBuilder: (context, index) => const SizedBox(height: 8),
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 8),
                             itemBuilder: (context, answerIndex) {
                               return Row(
                                 children: [
                                   Expanded(
                                     child: TextFormField(
                                       key: ValueKey(
-                                          'question-$questionIndex-answer-$answerIndex-${question.answers[answerIndex]}'),
-                                      initialValue: question.answers[answerIndex],
-                                      decoration: const InputDecoration(labelText: 'Answer *'),
-                                      validator: (value) => value == null || value.trim().isEmpty
-                                          ? 'Required field'
+                                        'question-$questionIndex-answer-$answerIndex-${question.answers[answerIndex]}',
+                                      ),
+                                      initialValue:
+                                          question.answers[answerIndex],
+                                      decoration: const InputDecoration(
+                                        labelText: 'Resposta *',
+                                      ),
+                                      validator: (value) =>
+                                          value == null || value.trim().isEmpty
+                                          ? 'Campo obrigatório'
                                           : null,
                                       onChanged: (value) {
                                         _markDirty();
@@ -440,13 +708,15 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                                     ),
                                   ),
                                   IconButton(
-                                    tooltip: 'Remove answer',
+                                    tooltip: 'Remover resposta',
                                     icon: const Icon(Icons.delete_outline),
                                     onPressed: question.answers.length <= 1
                                         ? null
                                         : () {
                                             setState(() {
-                                              question.answers.removeAt(answerIndex);
+                                              question.answers.removeAt(
+                                                answerIndex,
+                                              );
                                               _markDirty();
                                             });
                                           },
@@ -465,7 +735,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                                 });
                               },
                               icon: const Icon(Icons.add),
-                              label: const Text('Add Answer'),
+                              label: const Text('Adicionar resposta'),
                             ),
                           ),
                         ],

@@ -9,10 +9,15 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  dio: ^5.7.0
+  dio: ^5.9.2
   built_collection: ^5.1.1
+  web: ^1.0.0
   design_system_flutter:
     path: ../../packages/design_system_flutter
+  runtime_app_config:
+    path: ../../packages/runtime_app_config
+  runtime_api_url:
+    path: ../../packages/runtime_api_url
   survey_backend_api:
     path: ../../packages/contracts/generated/dart
 
