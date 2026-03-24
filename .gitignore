@@ -22,6 +22,10 @@ venv/
 # Environment variables
 .env
 .env.*
+.env.vps
+config/runtime/config.private.json
+config/runtime/generated/
+apps/**/web/config.json
 
 # Virtualenv
 venv/

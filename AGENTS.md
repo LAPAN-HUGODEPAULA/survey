@@ -30,6 +30,19 @@
 - Dart/Flutter: prefer feature-first structure (`app/`, `features/<feature>/data|domain|presentation`, `shared/`). Use the shared `design_system_flutter` theme with `Colors.orange` primary.
 - Filenames: snake_case for Python modules; lower_snake_case for Dart files; use PascalCase for classes/types.
 
+## Commenting Standards
+
+- Write all comments and docstrings in English.
+- Prefer comments that explain intent, invariants, edge cases, or non-obvious behavior; avoid narrating obvious code.
+- Use language-native documentation formats:
+  - Python: `"""triple double quote"""` docstrings following PEP 257.
+  - Dart: `///` doc comments for libraries, public types, and members that benefit from context.
+  - Java: `/** ... */` Javadoc when editing handwritten Java code.
+- Keep comments concise and maintain them when code changes.
+- Replace stale implementation-history comments such as `Added`, `Changed`, or similar patch notes with intent-focused documentation or remove them.
+- Exclude generated or scaffolded files from manual comment cleanup unless they contain custom handwritten logic.
+- Add author tags only when a tool or format explicitly requires them; use `Hugo de Paula`.
+
 ## Architecture Principles (Guidance)
 
 - Separation of concerns: keep UI, business logic, and data access in distinct modules.

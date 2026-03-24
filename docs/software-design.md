@@ -12,11 +12,12 @@
 
 - **Entry point**: `app/main.py` wires CORS, routers, lifecycle logging, and an HTTPS-only guard when `ENVIRONMENT=production`.
 - **Routing**: `/api/v1/surveys`, `/api/v1/survey_responses`, `/api/v1/patient_responses` plus `/survey_responses/{id}/send_email` for re-sends.
+- **Screener auth**: `/api/v1/screeners/register`, `/api/v1/screeners/login`, `/api/v1/screeners/me`, and `/api/v1/screeners/recover-password` support screener registration, authentication, profile lookup, and password recovery.
 - **Domain models**: `app/domain/models/*` define Pydantic schemas for surveys, patients, and agent responses.
 - **Persistence**: repositories under `app/persistence/repositories` encapsulate MongoDB CRUD; injected via `app.persistence.deps` to keep handlers decoupled from storage.
 - **Integrations**:
   - `app.integrations.clinical_writer.client` submits responses for AI enrichment.
-  - `app.integrations.email.service` dispatches response emails using FastAPI `BackgroundTasks`.
+  - `app.integrations.email.service` dispatches response emails using FastAPI `BackgroundTasks` and exposes the shared `FastMail` client used by screener password recovery.
 - **Error handling**: routers translate validation errors into HTTP 400/404, unexpected issues into 500s with structured logs.
 
 ## Worker Design (`services/survey-worker`)
@@ -39,10 +40,11 @@
 ## Flutter Design (`apps/*`)
 
 - **Structure**: feature-first (e.g., `features/<feature>/data|domain|presentation`) with shared utilities under `shared/`.
-- **Design system**: `packages/design_system_flutter` provides the `AppTheme.light()` theme seeded with `Colors.orange`, common widgets, and input/button styling.
+- **Design system**: `packages/design_system_flutter` provides the `AppTheme.light()` theme seeded with `Colors.orange`, common widgets, input/button styling, and the shared `DsScaffold` page shell.
+- **Shared scaffold contract**: full-screen Flutter pages should render through `DsScaffold`, which standardizes `appBar + body + mandatory footer/status bar` while allowing each app to provide its own app bar widgets, route configuration, and workflow-specific content.
 - **API consumption**: use generated Dart SDK from `packages/contracts/generated/dart`; manual HTTP clients are discouraged.
 - **Apps**:
-  - `survey-frontend`: screener dashboard for creating surveys and viewing responses.
+  - `survey-frontend`: screener dashboard for creating surveys and viewing responses. The screener login page includes registration, login, and forgot-password flows wired to the backend screener endpoints.
   - `survey-patient`: patient-facing flow with configurable screener name/contact build args.
   - `clinical-narrative`: A conversational platform for clinical documentation. It supports session management, voice input with transcription, AI-driven clinical assistance, and document generation.
   - `survey-builder`: An application for administrators and researchers to create and manage surveys. It provides a user-friendly interface for editing all aspects of a survey, including questions and instructions.
@@ -63,3 +65,7 @@
 - All services log structured messages for start/stop and failure cases.
 - MongoDB object IDs are validated in routes; malformed IDs return 400, missing documents 404, unexpected errors 500.
 - Background tasks (email, AI enrichment) are best-effort but do not block the main response after persistence succeeds.
+- Local screener seed data is created by `tools/migrations/survey-backend/002_consolidated_migration.py`, including:
+  - `lapan.hugodepaula@gmail.com` with default password `SystemPassword123!`
+  - `maria.vale@holhos.com` with default password `SamplePassword123!`
+- Those default passwords are only valid immediately after migration; any manual reset or use of `/screeners/recover-password` replaces the stored bcrypt hash in MongoDB.

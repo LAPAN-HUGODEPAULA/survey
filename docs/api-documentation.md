@@ -12,6 +12,12 @@
 
 ## Endpoints
 
+- **Screeners**
+  - `POST /screeners/register` - create a screener account.
+  - `POST /screeners/login` - authenticate a screener and return a bearer token.
+  - `GET /screeners/me` - return the authenticated screener profile.
+  - `POST /screeners/recover-password` - generate a new random password and email it to the screener when SMTP is configured. Returns a generic success message even when the email is unknown.
+
 - **Surveys**
   - `POST /surveys/` – create survey (body: `Survey`); returns created survey.
   - `GET /surveys/` – list all surveys.
@@ -69,3 +75,5 @@ Samples:
 
 - Prefer SDKs generated from the OpenAPI contract over ad-hoc HTTP calls.
 - Clients should not attempt direct MongoDB or Clinical Writer access; all interactions go through the backend or worker.
+- Screener password recovery uses the same SMTP/FastMail configuration as survey and patient response emails (`SMTP_*` or `MAIL_*` environment variables).
+- On a fresh local database migrated with `tools/migrations/survey-backend/002_consolidated_migration.py`, the seeded screeners are `lapan.hugodepaula@gmail.com` / `SystemPassword123!` and `maria.vale@holhos.com` / `SamplePassword123!` until those passwords are changed or recovered.
