@@ -1,8 +1,9 @@
-# ui-ux-theme-fixes Specification
+# Spec: UI/UX and Theme Fixes for Survey Builder
 
-## Purpose
-TBD - created by archiving change add-question-edit-to-builder. Update Purpose after archive.
-## Requirements
+This spec defines the requirements for improving the user interface, user experience, and theme consistency of the `survey_builder` application.
+
+## MODIFIED Requirements
+
 ### Requirement: The application theme MUST be consistent with the LAPAN Survey Platform.
 
 The application's color scheme, particularly the top app bar, MUST match the established theme of other applications.
@@ -36,4 +37,3 @@ To prevent accidental data loss and provide a clear user flow, there MUST be an 
 -   **Given** a user has not made any changes to the survey form
 -   **When** they click the "Cancel" button
 -   **Then** the `SurveyFormScreen` MUST be closed immediately, without a confirmation dialog.
-

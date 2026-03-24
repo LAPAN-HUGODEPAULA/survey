@@ -1,8 +1,9 @@
-# full-survey-editing Specification
+# Spec: Full Survey Editing in Builder
 
-## Purpose
-TBD - created by archiving change add-question-edit-to-builder. Update Purpose after archive.
-## Requirements
+This spec defines the requirements for editing the full survey structure, including instructions and questions, in the `survey_builder` application.
+
+## MODIFIED Requirements
+
 ### Requirement: The system MUST provide an interface for editing survey instructions.
 
 This interface MUST allow users to edit all fields of the `instructions` object.
@@ -52,4 +53,3 @@ The system MUST ensure that a survey meets minimum content requirements before i
 -   **When** they attempt to save the survey
 -   **Then** a validation error MUST be displayed for that question, indicating that at least one answer is required.
 -   **And** the survey MUST NOT be saved.
-

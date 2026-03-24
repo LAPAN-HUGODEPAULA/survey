@@ -11,6 +11,11 @@ The system MUST associate a survey response with the screener who administered i
 **When** the screener creates a new survey response
 **Then** the survey response MUST be associated with the logged-in screener's ID.
 
+#### Scenario: Create a survey response through a prepared access link
+**Given** a user opened `survey-frontend` through a valid prepared access link
+**When** the user submits the survey response
+**Then** the survey response MUST be associated with the screener linked to that access link.
+
 #### Scenario: Create a survey response without a logged-in screener (patient app)
 **Given** a survey response is created from the `survey-patient` app
 **When** the survey response is saved

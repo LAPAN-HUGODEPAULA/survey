@@ -25,4 +25,4 @@ This list breaks down the work required to implement the `survey-builder` applic
 
 -   [x] **3.1.** Add a Dockerfile for the `survey-builder` app and update the main `docker-compose.yml` to include it.
 -   [x] **3.2.** Create a `README.md` for the `apps/survey-builder` directory.
--   [ ] **3.3.** Manually test the end-to-end flow: creating, editing, and deleting a survey from the UI (not run in this environment).
+-   [x] **3.3.** Manually test the end-to-end flow: creating, editing, and deleting a survey from the UI (not run in this environment).
