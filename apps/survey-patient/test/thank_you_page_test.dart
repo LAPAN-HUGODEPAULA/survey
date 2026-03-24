@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
 import 'package:patient_app/core/models/survey/instructions.dart';
 import 'package:patient_app/core/models/survey/question.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/features/survey/pages/thank_you_page.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   testWidgets('ThankYouPage shows summary and CTA buttons', (tester) async {
@@ -26,6 +26,7 @@ void main() {
         Question(id: 1, questionText: 'Pergunta 1', answers: ['A', 'B']),
         Question(id: 2, questionText: 'Pergunta 2', answers: ['A', 'B']),
       ],
+      promptAssociations: const [],
       finalNotes: null,
     );
 

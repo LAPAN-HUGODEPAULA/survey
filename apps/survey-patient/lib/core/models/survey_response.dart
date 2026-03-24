@@ -5,6 +5,7 @@ class SurveyResponse {
   const SurveyResponse({
     this.id,
     this.agentResponse,
+    this.promptKey,
     required this.surveyId,
     required this.creatorId,
     required this.testDate,
@@ -12,15 +13,6 @@ class SurveyResponse {
     this.patient,
     required this.answers,
   });
-
-  final String? id;
-  final AgentResponse? agentResponse;
-  final String surveyId;
-  final String creatorId;
-  final DateTime testDate;
-  final String screenerId;
-  final Patient? patient;
-  final List<Answer> answers;
 
   factory SurveyResponse.fromJson(Map<String, dynamic> json) {
     final answersRaw = json['answers'] as List<dynamic>? ?? const <dynamic>[];
@@ -33,6 +25,7 @@ class SurveyResponse {
       creatorId: json['creatorId']?.toString() ?? '',
       testDate: _parseDate(json['testDate']),
       screenerId: json['screenerId']?.toString() ?? '',
+      promptKey: json['promptKey']?.toString(),
       patient: _parsePatient(json),
       answers: answersRaw
           .whereType<Map<String, dynamic>>()
@@ -41,12 +34,23 @@ class SurveyResponse {
     );
   }
 
+  final String? id;
+  final AgentResponse? agentResponse;
+  final String? promptKey;
+  final String surveyId;
+  final String creatorId;
+  final DateTime testDate;
+  final String screenerId;
+  final Patient? patient;
+  final List<Answer> answers;
+
   Map<String, dynamic> toJson() {
     return {
       'surveyId': surveyId,
       'creatorId': creatorId,
       'testDate': testDate.toIso8601String(),
       'screenerId': screenerId,
+      'promptKey': promptKey,
       if (patient != null) 'patient': patient!.toJson(),
       'answers': answers.map((answer) => answer.toJson()).toList(),
     };
@@ -58,6 +62,7 @@ class SurveyResponse {
     String? creatorId,
     DateTime? testDate,
     String? screenerId,
+    String? promptKey,
     Patient? patient,
     List<Answer>? answers,
     AgentResponse? agentResponse,
@@ -68,6 +73,7 @@ class SurveyResponse {
       creatorId: creatorId ?? this.creatorId,
       testDate: testDate ?? this.testDate,
       screenerId: screenerId ?? this.screenerId,
+      promptKey: promptKey ?? this.promptKey,
       patient: patient ?? this.patient,
       answers: answers ?? this.answers,
       agentResponse: agentResponse ?? this.agentResponse,
@@ -78,15 +84,15 @@ class SurveyResponse {
 class Answer {
   const Answer({required this.id, required this.answer});
 
-  final int id;
-  final String answer;
-
   factory Answer.fromJson(Map<String, dynamic> json) {
     return Answer(
       id: json['id'] is int ? json['id'] as int : int.parse(json['id'].toString()),
       answer: json['answer']?.toString() ?? '',
     );
   }
+
+  final int id;
+  final String answer;
 
   Map<String, dynamic> toJson() {
     return {

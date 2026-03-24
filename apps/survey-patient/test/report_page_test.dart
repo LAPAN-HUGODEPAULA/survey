@@ -1,8 +1,8 @@
 import 'package:design_system_flutter/report/report_models.dart';
+import 'package:design_system_flutter/widgets.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
-import 'package:dio/dio.dart';
 import 'package:patient_app/core/models/agent_response.dart';
 import 'package:patient_app/core/models/survey/instructions.dart';
 import 'package:patient_app/core/models/survey/question.dart';
@@ -12,6 +12,7 @@ import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/core/repositories/survey_repository.dart';
 import 'package:patient_app/core/services/api_config.dart';
 import 'package:patient_app/features/report/pages/report_page.dart';
+import 'package:provider/provider.dart';
 import 'package:survey_backend_api/survey_backend_api.dart' as api;
 
 class _FakeSurveyRepository extends SurveyRepository {
@@ -37,8 +38,16 @@ class _FakeSurveyRepository extends SurveyRepository {
   }
 
   @override
-  Future<AgentResponse> processClinicalWriter(String content) async {
-    return AgentResponse(report: ReportDocument.fromPlainText(text: content, title: 'Relatorio'));
+  Future<AgentResponse> processClinicalWriter(
+    String content, {
+    String? promptKey,
+  }) async {
+    return AgentResponse(
+      report: ReportDocument.fromPlainText(
+        text: content,
+        title: 'Relatorio',
+      ),
+    );
   }
 }
 
@@ -60,6 +69,7 @@ void main() {
       questions: [
         Question(id: 1, questionText: 'Pergunta 1', answers: ['A', 'B']),
       ],
+      promptAssociations: const [],
       finalNotes: null,
     );
 
@@ -83,5 +93,6 @@ void main() {
 
     expect(find.text('Salvar como texto'), findsOneWidget);
     expect(find.text('Exportar PDF'), findsOneWidget);
+    expect(find.text(dsSharedStatusBarText), findsOneWidget);
   });
 }

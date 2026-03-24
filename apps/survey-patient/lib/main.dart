@@ -1,22 +1,23 @@
-/// Aplicação Flutter para coleta de respostas de questionários.
+/// Entry point for the patient-facing survey Flutter application.
 ///
-/// Esta é a aplicação principal que gerencia questionários de pesquisa,
-/// incluindo coleta de dados demográficos, instruções e apresentação de perguntas.
-/// A aplicação é configurada com localização em português brasileiro.
+/// This app loads runtime configuration and starts the patient workflow used
+/// after a survey has been completed.
 library;
 
-import 'package:flutter/material.dart';
 import 'package:design_system_flutter/theme/app_theme.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:patient_app/core/config/runtime_config.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/features/welcome/pages/welcome_page.dart';
+import 'package:provider/provider.dart';
 
-/// Ponto de entrada principal da aplicação.
+/// Boots Flutter bindings, loads runtime config, and starts the app tree.
 ///
-/// Inicializa a aplicação com o provider [AppSettings] para gerenciamento
-/// de estado global das configurações do questionário.
-void main() {
+/// [AppSettings] keeps the patient-side survey and demographic state in sync.
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await RuntimeConfig.load();
   runApp(
     ChangeNotifierProvider(
       create: (context) => AppSettings(),
@@ -25,19 +26,16 @@ void main() {
   );
 }
 
-/// Widget raiz da aplicação de questionários.
+/// Root widget for the patient-facing survey app.
 ///
-/// Configura o MaterialApp com:
-/// - Localização para português brasileiro
-/// - Tema personalizado com cores teal
-/// - Página inicial sendo [WelcomePage]
+/// The widget configures the shared LAPAN theme and starts on [WelcomePage].
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aplicação de Questionário',
+      title: 'LAPAN Triagem do Paciente',
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

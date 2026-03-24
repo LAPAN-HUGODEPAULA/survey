@@ -1,14 +1,15 @@
-library;
 
+import 'dart:math';
+
+import 'package:design_system_flutter/widgets.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:provider/provider.dart';
-import 'package:patient_app/core/navigation/app_navigator.dart';
-import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/core/models/survey/question.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
-import 'dart:math';
+import 'package:patient_app/core/navigation/app_navigator.dart';
+import 'package:patient_app/core/providers/app_settings.dart';
+import 'package:provider/provider.dart';
 
 class ThankYouPage extends StatelessWidget {
   const ThankYouPage({
@@ -49,7 +50,7 @@ class ThankYouPage extends StatelessWidget {
         : summaries.map((item) => item.maxValue).reduce(max);
     final values = summaries.map((item) => item.value).toList(growable: false);
 
-    return Scaffold(
+    return DsScaffold(
       appBar: AppBar(
         title: const Text('Relatório Clínico do Questionário Lapan Q7'),
         automaticallyImplyLeading: false,

@@ -11,16 +11,6 @@ class Patient {
     required this.diagnoses,
   });
 
-  final String name;
-  final String email;
-  final String birthDate;
-  final String gender;
-  final String ethnicity;
-  final String educationLevel;
-  final String profession;
-  final List<String> medication;
-  final List<String> diagnoses;
-
   factory Patient.initial() {
     return const Patient(
       name: '',
@@ -32,30 +22,6 @@ class Patient {
       profession: '',
       medication: <String>[],
       diagnoses: <String>[],
-    );
-  }
-
-  Patient copyWith({
-    String? name,
-    String? email,
-    String? birthDate,
-    String? gender,
-    String? ethnicity,
-    String? educationLevel,
-    String? profession,
-    List<String>? medication,
-    List<String>? diagnoses,
-  }) {
-    return Patient(
-      name: name ?? this.name,
-      email: email ?? this.email,
-      birthDate: birthDate ?? this.birthDate,
-      gender: gender ?? this.gender,
-      ethnicity: ethnicity ?? this.ethnicity,
-      educationLevel: educationLevel ?? this.educationLevel,
-      profession: profession ?? this.profession,
-      medication: medication ?? this.medication,
-      diagnoses: diagnoses ?? this.diagnoses,
     );
   }
 
@@ -79,6 +45,40 @@ class Patient {
       diagnoses: _parseStringList(json['diagnoses']) ??
           _parseStringList(json['patientDiagnoses']) ??
           const <String>[],
+    );
+  }
+
+  final String name;
+  final String email;
+  final String birthDate;
+  final String gender;
+  final String ethnicity;
+  final String educationLevel;
+  final String profession;
+  final List<String> medication;
+  final List<String> diagnoses;
+
+  Patient copyWith({
+    String? name,
+    String? email,
+    String? birthDate,
+    String? gender,
+    String? ethnicity,
+    String? educationLevel,
+    String? profession,
+    List<String>? medication,
+    List<String>? diagnoses,
+  }) {
+    return Patient(
+      name: name ?? this.name,
+      email: email ?? this.email,
+      birthDate: birthDate ?? this.birthDate,
+      gender: gender ?? this.gender,
+      ethnicity: ethnicity ?? this.ethnicity,
+      educationLevel: educationLevel ?? this.educationLevel,
+      profession: profession ?? this.profession,
+      medication: medication ?? this.medication,
+      diagnoses: diagnoses ?? this.diagnoses,
     );
   }
 

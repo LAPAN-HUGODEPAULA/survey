@@ -1,8 +1,7 @@
-// lib/survey_page.dart (versão atualizada)
-/// Página principal do questionário onde as perguntas são apresentadas.
+/// Screen that presents the active survey one question at a time.
 ///
-/// Gerencia a apresentação sequencial das perguntas, coleta das respostas
-/// e navegação entre perguntas até completar o questionário.
+/// It tracks the current question index, collects answers in order, and hands
+/// the completed payload to the thank-you flow.
 library;
 
 import 'package:design_system_flutter/widgets.dart';
@@ -10,13 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/navigation/app_navigator.dart';
 
-/// Página que apresenta as perguntas do questionário sequencialmente.
-///
-/// Carrega o questionário a partir de um arquivo JSON, apresenta uma
-/// pergunta por vez e coleta as respostas do usuário. Ao final,
-/// navega para a página de agradecimento.
-///
-/// O progresso é mostrado no AppBar com contador de perguntas.
+/// Renders the selected survey in a linear, button-based questionnaire flow.
 class SurveyPage extends StatefulWidget {
   const SurveyPage({super.key, required this.survey});
 
@@ -26,25 +19,16 @@ class SurveyPage extends StatefulWidget {
   State<SurveyPage> createState() => _SurveyPageState();
 }
 
-/// Estado da página do questionário.
-///
-/// Controla o carregamento do questionário, navegação entre perguntas,
-/// coleta de respostas e finalização do processo.
+/// Holds the transient answer list until the survey is completed.
 class _SurveyPageState extends State<SurveyPage> {
   int _currentQuestionIndex = 0;
 
-  /// Lista das respostas coletadas do usuário
+  /// Ordered answers matching the sequence of displayed questions.
   final List<String> _answers = [];
 
   late final Survey _survey = widget.survey;
 
-  /// Processa a resposta do usuário e avança para próxima pergunta.
-  ///
-  /// [answer] - Resposta selecionada pelo usuário
-  ///
-  /// Adiciona a resposta à lista de respostas coletadas. Se ainda há
-  /// perguntas, avança para a próxima. Se foi a última pergunta,
-  /// navega para a página de agradecimento com as notas finais.
+  /// Records the selected answer and advances or completes the survey.
   void _answerQuestion(String answer) {
     _answers.add(answer);
 
@@ -53,7 +37,7 @@ class _SurveyPageState extends State<SurveyPage> {
         _currentQuestionIndex++;
       });
     } else {
-      // Chegou ao final do questionário
+      // Preserve answer order when handing the full response to the next step.
       AppNavigator.replaceWithThankYou(
         context,
         survey: _survey,
@@ -67,7 +51,7 @@ class _SurveyPageState extends State<SurveyPage> {
   Widget build(BuildContext context) {
     final currentQuestion = _survey.questions[_currentQuestionIndex];
 
-    return Scaffold(
+    return DsScaffold(
       appBar: AppBar(
         title: Text(
           '${_survey.surveyDisplayName.isNotEmpty ? _survey.surveyDisplayName : _survey.surveyName}: '
@@ -105,12 +89,7 @@ class _SurveyPageState extends State<SurveyPage> {
     );
   }
 
-  /// Constrói os botões de resposta para a pergunta atual.
-  ///
-  /// [answers] - Lista de opções de resposta da pergunta atual
-  ///
-  /// Returns lista de widgets SurveyOptionButton, um para cada opção de resposta.
-  /// Cada botão chama [_answerQuestion] quando pressionado.
+  /// Builds the answer buttons for the active question.
   List<Widget> _buildAnswerButtons(List<String> answers) {
     return answers.asMap().entries.map((entry) {
       final index = entry.key;

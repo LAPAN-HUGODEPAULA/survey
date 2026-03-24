@@ -1,11 +1,10 @@
-library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:provider/provider.dart';
 import 'package:patient_app/core/navigation/app_navigator.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/widgets/common/async_scaffold.dart';
+import 'package:provider/provider.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});

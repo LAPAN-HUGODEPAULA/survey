@@ -1,10 +1,7 @@
-// lib/providers/app_settings.dart
+/// Global application settings for the patient-facing app.
 ///
-/// Provedor de configurações globais da aplicação.
-///
-/// Gerencia o estado das configurações do questionário, incluindo
-/// o nome do responsável pela aplicação e qual questionário está ativo.
-/// Utiliza o padrão Provider para notificação de mudanças de estado.
+/// This store keeps the patient profile, available surveys, and selected
+/// survey synchronized for the report-generation flow.
 library;
 
 import 'package:flutter/material.dart';
@@ -14,16 +11,10 @@ import 'package:patient_app/core/models/screener.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/repositories/survey_repository.dart';
 
-/// Classe que gerencia as configurações globais da aplicação de questionários.
+/// Coordinates cross-screen state for the patient workflow.
 ///
-/// Extends [ChangeNotifier] para permitir notificação automática de widgets
-/// quando as configurações são alteradas.
-///
-/// Principais responsabilidades:
-/// - Gerenciar o ID do Screener padrão (System Screener)
-/// - Gerenciar dados demográficos do paciente
-/// - Carregar questionários disponíveis dinamicamente
-/// - Controlar qual questionário está selecionado
+/// Widgets subscribe to this class to react to available survey changes and
+/// updates to the patient demographic payload.
 class AppSettings extends ChangeNotifier {
   AppSettings({SurveyRepository? surveyRepository})
       : _surveyRepository = surveyRepository ?? SurveyRepository();

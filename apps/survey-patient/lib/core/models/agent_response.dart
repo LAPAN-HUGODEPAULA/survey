@@ -13,16 +13,6 @@ class AgentResponse {
     this.errorMessage,
   });
 
-  final bool? ok;
-  final String? inputType;
-  final String? promptVersion;
-  final String? modelVersion;
-  final ReportDocument? report;
-  final List<String> warnings;
-  final String? classification;
-  final String? medicalRecord;
-  final String? errorMessage;
-
   factory AgentResponse.fromJson(Map<String, dynamic> json) {
     final reportJson = json['report'];
     final warningsRaw = json['warnings'] as List<dynamic>? ?? const <dynamic>[];
@@ -44,4 +34,14 @@ class AgentResponse {
           json['errorMessage']?.toString() ?? json['error_message']?.toString(),
     );
   }
+
+  final bool? ok;
+  final String? inputType;
+  final String? promptVersion;
+  final String? modelVersion;
+  final ReportDocument? report;
+  final List<String> warnings;
+  final String? classification;
+  final String? medicalRecord;
+  final String? errorMessage;
 }

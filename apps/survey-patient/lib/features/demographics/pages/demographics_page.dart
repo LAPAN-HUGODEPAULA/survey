@@ -1,15 +1,16 @@
-/// Página de coleta de informações demográficas do usuário.
+/// Collects demographic data before generating the patient report.
 library;
 
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
-import 'package:patient_app/core/providers/app_settings.dart';
-import 'package:patient_app/core/navigation/app_navigator.dart';
 import 'package:patient_app/core/models/survey/question.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
+import 'package:patient_app/core/navigation/app_navigator.dart';
+import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/core/services/demographics_data_service.dart';
 import 'package:patient_app/core/utils/validator_sets.dart';
+import 'package:provider/provider.dart';
 
 class DemographicsPage extends StatefulWidget {
   const DemographicsPage({
@@ -30,25 +31,25 @@ class DemographicsPage extends StatefulWidget {
 class _DemographicsPageState extends State<DemographicsPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Text Controllers
+  // Controllers keep the form fields synchronized with reset operations.
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _dobController = TextEditingController();
   final _professionController = TextEditingController();
   final _medicationNameController = TextEditingController();
 
-  // Dropdown values
+  // Selected values for required categorical inputs.
   String? _selectedSex;
   String? _selectedRace;
   String? _selectedEducationLevel;
   String? _usesMedication;
 
-  // Data for dropdowns
+  // Reference data loaded from bundled assets.
   List<String> _diagnosesList = [];
   List<String> _educationLevels = [];
   List<String> _professions = [];
 
-  // Other state variables
+  // Selection state for multi-select diagnoses.
   Map<String, bool> _selectedDiagnoses = {};
 
   @override
@@ -61,6 +62,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
     ).addListener(_onSettingsChanged);
   }
 
+  /// Clears the form when shared application state resets the patient profile.
   void _onSettingsChanged() {
     final settings = Provider.of<AppSettings>(context, listen: false);
     if (settings.patient.name.isEmpty) {
@@ -68,6 +70,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
     }
   }
 
+  /// Restores the form to an empty state after the shared patient data clears.
   void _clearAllFields() {
     _nameController.clear();
     _emailController.clear();
@@ -80,11 +83,12 @@ class _DemographicsPageState extends State<DemographicsPage> {
       _selectedEducationLevel = null;
       _usesMedication = null;
       _selectedDiagnoses = {
-        for (var diagnosis in _diagnosesList) diagnosis: false,
+        for (final diagnosis in _diagnosesList) diagnosis: false,
       };
     });
   }
 
+  /// Loads bundled demographic reference data used by dropdowns and checkboxes.
   Future<void> _loadInitialData() async {
     try {
       final dataService = DemographicsDataService.instance;
@@ -95,7 +99,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
         _educationLevels = data.educationLevels;
         _professions = data.professions;
         _selectedDiagnoses = {
-          for (var diagnosis in _diagnosesList) diagnosis: false,
+          for (final diagnosis in _diagnosesList) diagnosis: false,
         };
       });
     } catch (e) {
@@ -124,6 +128,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
     super.dispose();
   }
 
+  /// Validates the form, stores the patient payload, and opens the report flow.
   void _submitForm() {
     if (_formKey.currentState!.validate()) {
       final settings = Provider.of<AppSettings>(context, listen: false);
@@ -171,6 +176,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
     }
   }
 
+  /// Applies `dd/mm/yyyy` formatting while the user types the birth date.
   void _formatDateInput(String value) {
     String digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
     if (digitsOnly.length > 8) {
@@ -193,7 +199,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return DsScaffold(
       appBar: AppBar(
         title: Text(
           'Informações Demográficas: ${widget.survey.surveyDisplayName.isNotEmpty ? widget.survey.surveyDisplayName : widget.survey.surveyName}',

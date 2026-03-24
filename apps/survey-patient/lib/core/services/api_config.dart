@@ -1,29 +1,27 @@
-library;
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:patient_app/flavors.dart';
+import 'package:patient_app/core/config/runtime_config.dart';
+import 'package:runtime_api_url/runtime_api_url.dart';
 
 /// Centralized API configuration for building backend URLs.
 class ApiConfig {
   /// Base URL for the Survey backend, determined by the selected flavor.
   static String get baseUrl {
-    final baseUrl = deployment.apiBaseUrl;
-    return _normalizeBaseUrl(baseUrl);
+    return RuntimeApiUrl.normalizeBaseUrl(RuntimeConfig.instance.apiBaseUrl);
   }
 
   /// Builds a [Uri] for the provided [path] relative to [baseUrl].
   static Uri resolve(String path, [Map<String, dynamic>? queryParameters]) {
-    final sanitizedPath = _stripLeadingSlash(path);
-    final normalizedUri = Uri.parse(baseUrl).resolve(sanitizedPath);
-    if (queryParameters == null || queryParameters.isEmpty) {
-      return normalizedUri;
-    }
+    return RuntimeApiUrl.resolve(baseUrl, path, queryParameters);
+  }
 
-    return normalizedUri.replace(
-      queryParameters: queryParameters.map(
-        (key, value) => MapEntry(key, value?.toString()),
-      ),
-    );
+  /// Normalized request path for Dio calls.
+  static String requestPath(
+    String path, [
+    Map<String, dynamic>? queryParameters,
+  ]) {
+    return RuntimeApiUrl.requestPath(baseUrl, path, queryParameters);
   }
 
   /// Default headers for JSON-based requests.
@@ -32,10 +30,20 @@ class ApiConfig {
         'Accept': 'application/json',
       };
 
+  /// Standard Dio client configured for the survey backend.
+  static Dio createDio({Map<String, String>? headers}) {
+    return Dio(
+      BaseOptions(
+        baseUrl: dioBaseUrl,
+        headers: {...defaultHeaders, if (headers != null) ...headers},
+      ),
+    );
+  }
+
   /// Base URL without trailing slash for HTTP clients that already
   /// prefix request paths with a leading slash.
   static String get dioBaseUrl {
-    return baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+    return RuntimeApiUrl.dioBaseUrl(baseUrl);
   }
 
   /// Helper to log the resolved URL when debugging.
@@ -43,16 +51,5 @@ class ApiConfig {
     if (kDebugMode) {
       // This is intentionally left empty.
     }
-  }
-
-  static String _stripLeadingSlash(String path) {
-    return path.startsWith('/') ? path.substring(1) : path;
-  }
-
-  static String _normalizeBaseUrl(String rawBaseUrl) {
-    if (rawBaseUrl.isEmpty) {
-      throw StateError('API_BASE_URL is not set.');
-    }
-    return rawBaseUrl.endsWith('/') ? rawBaseUrl : '$rawBaseUrl/';
   }
 }

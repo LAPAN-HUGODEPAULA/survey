@@ -1,4 +1,3 @@
-library;
 
 import 'package:patient_app/core/services/asset_loader.dart';
 

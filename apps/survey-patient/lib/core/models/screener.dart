@@ -1,18 +1,18 @@
 class Screener {
   const Screener({required this.id});
 
-  final String id;
-
   factory Screener.initial() => const Screener(id: '');
-
-  Screener copyWith({String? id}) {
-    return Screener(id: id ?? this.id);
-  }
 
   factory Screener.fromJson(Map<String, dynamic> json) {
     return Screener(
       id: json['screenerId']?.toString() ?? '',
     );
+  }
+
+  final String id;
+
+  Screener copyWith({String? id}) {
+    return Screener(id: id ?? this.id);
   }
 
   Map<String, dynamic> toJson() {

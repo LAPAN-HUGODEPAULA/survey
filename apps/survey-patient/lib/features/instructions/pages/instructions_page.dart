@@ -1,17 +1,16 @@
-/// Página de instruções e verificação de compreensão.
+/// Presents survey instructions and validates the comprehension answer.
 ///
-/// Apresenta as instruções do questionário ao usuário e verifica
-/// se ele compreendeu antes de permitir o início das perguntas.
-/// As instruções são carregadas dinamicamente do arquivo JSON do questionário.
+/// The page renders instruction HTML from the selected survey and blocks
+/// navigation until the expected answer is chosen.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:provider/provider.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/navigation/app_navigator.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/widgets/common/async_scaffold.dart';
+import 'package:provider/provider.dart';
 
 class InstructionsPage extends StatefulWidget {
   const InstructionsPage({super.key});
@@ -24,6 +23,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
   String? _comprehensionAnswer;
   bool _showError = false;
 
+  /// Unlocks the questionnaire only when the selected answer matches the rule.
   void _startSurvey(Survey survey) {
     final correctAnswer = survey.instructions.correctAnswer;
 
@@ -37,6 +37,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
     });
   }
 
+  /// Builds a selectable answer row for the comprehension check.
   Widget _buildAnswerTile(String option) {
     final theme = Theme.of(context);
     final isSelected = _comprehensionAnswer == option;

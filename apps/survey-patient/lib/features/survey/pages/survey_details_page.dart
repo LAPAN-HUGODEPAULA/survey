@@ -1,5 +1,5 @@
-library;
 
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 
@@ -74,7 +74,7 @@ class SurveyDetailsPage extends StatelessWidget {
         ? survey.surveyDisplayName
         : survey.surveyName;
 
-    return Scaffold(
+    return DsScaffold(
       appBar: AppBar(title: Text('Detalhes - $displayName')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
