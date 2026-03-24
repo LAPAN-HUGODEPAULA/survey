@@ -5,19 +5,22 @@
 /// A aplicação é configurada com localização em português brasileiro.
 library;
 
-import 'package:flutter/material.dart';
-import 'package:design_system_flutter/theme/app_theme.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:clinical_narrative_app/core/config/runtime_config.dart';
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
 import 'package:clinical_narrative_app/core/providers/chat_provider.dart';
 import 'package:clinical_narrative_app/features/demographics/pages/demographics_page.dart';
+import 'package:design_system_flutter/theme/app_theme.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
 
 /// Ponto de entrada principal da aplicação.
 ///
 /// Inicializa a aplicação com o provider [AppSettings] para gerenciamento
 /// de estado global das configurações do questionário.
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await RuntimeConfig.load();
   runApp(
     MultiProvider(
       providers: [
@@ -41,7 +44,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Aplicação de Questionário',
+      title: 'LAPAN Narrativa Clínica',
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

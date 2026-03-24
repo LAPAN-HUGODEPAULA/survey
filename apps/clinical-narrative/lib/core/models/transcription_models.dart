@@ -1,4 +1,3 @@
-library;
 
 class TranscriptionSegment {
   TranscriptionSegment({
@@ -8,11 +7,6 @@ class TranscriptionSegment {
     this.confidence,
   });
 
-  final double startSeconds;
-  final double endSeconds;
-  final String text;
-  final double? confidence;
-
   factory TranscriptionSegment.fromJson(Map<String, dynamic> json) {
     return TranscriptionSegment(
       startSeconds: (json['startSeconds'] as num?)?.toDouble() ?? 0,
@@ -21,6 +15,11 @@ class TranscriptionSegment {
       confidence: (json['confidence'] as num?)?.toDouble(),
     );
   }
+
+  final double startSeconds;
+  final double endSeconds;
+  final String text;
+  final double? confidence;
 }
 
 class TranscriptionResponse {
@@ -35,16 +34,6 @@ class TranscriptionResponse {
     this.confidence,
     required this.metadata,
   });
-
-  final String requestId;
-  final String text;
-  final int processingTimeMs;
-  final String provider;
-  final String language;
-  final List<TranscriptionSegment> segments;
-  final List<String> warnings;
-  final double? confidence;
-  final Map<String, dynamic> metadata;
 
   factory TranscriptionResponse.fromJson(Map<String, dynamic> json) {
     return TranscriptionResponse(
@@ -69,4 +58,14 @@ class TranscriptionResponse {
           : const {},
     );
   }
+
+  final String requestId;
+  final String text;
+  final int processingTimeMs;
+  final String provider;
+  final String language;
+  final List<TranscriptionSegment> segments;
+  final List<String> warnings;
+  final double? confidence;
+  final Map<String, dynamic> metadata;
 }

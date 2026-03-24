@@ -1,6 +1,6 @@
-library;
 
 import 'package:clinical_narrative_app/features/chat/pages/chat_page.dart';
+import 'package:clinical_narrative_app/features/demographics/pages/demographics_page.dart';
 import 'package:clinical_narrative_app/features/narrative/pages/narrative_page.dart';
 import 'package:clinical_narrative_app/features/report/pages/report_page.dart';
 import 'package:clinical_narrative_app/features/thankyou/pages/thankyou_page.dart';
@@ -24,6 +24,10 @@ class AppNavigator {
 
   static Future<void> toNarrative(BuildContext context) {
     return push(context, const NarrativePage());
+  }
+
+  static Future<void> toDemographics(BuildContext context) {
+    return replace(context, const DemographicsPage());
   }
 
   static Future<void> toChat(BuildContext context) {

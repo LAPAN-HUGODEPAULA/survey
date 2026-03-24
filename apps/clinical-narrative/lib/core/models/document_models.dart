@@ -1,4 +1,3 @@
-library;
 
 class DocumentPreview {
   DocumentPreview({
@@ -8,12 +7,6 @@ class DocumentPreview {
     required this.missingFields,
     required this.metadata,
   });
-
-  final String html;
-  final String title;
-  final String body;
-  final List<String> missingFields;
-  final Map<String, dynamic> metadata;
 
   factory DocumentPreview.fromJson(Map<String, dynamic> json) {
     return DocumentPreview(
@@ -29,6 +22,12 @@ class DocumentPreview {
           : const {},
     );
   }
+
+  final String html;
+  final String title;
+  final String body;
+  final List<String> missingFields;
+  final Map<String, dynamic> metadata;
 }
 
 class DocumentRecord {
@@ -44,17 +43,6 @@ class DocumentRecord {
     required this.updatedAt,
     required this.metadata,
   });
-
-  final String id;
-  final String sessionId;
-  final String documentType;
-  final String title;
-  final String body;
-  final String html;
-  final String status;
-  final String createdAt;
-  final String updatedAt;
-  final Map<String, dynamic> metadata;
 
   factory DocumentRecord.fromJson(Map<String, dynamic> json) {
     return DocumentRecord(
@@ -72,4 +60,15 @@ class DocumentRecord {
           : const {},
     );
   }
+
+  final String id;
+  final String sessionId;
+  final String documentType;
+  final String title;
+  final String body;
+  final String html;
+  final String status;
+  final String createdAt;
+  final String updatedAt;
+  final Map<String, dynamic> metadata;
 }

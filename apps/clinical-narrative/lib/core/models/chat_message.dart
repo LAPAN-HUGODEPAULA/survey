@@ -1,5 +1,3 @@
-library;
-
 class ChatMessage {
   ChatMessage({
     required this.id,
@@ -15,6 +13,28 @@ class ChatMessage {
     this.isPending = false,
     this.hasError = false,
   });
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      id: (json['_id'] ?? '').toString(),
+      sessionId: (json['sessionId'] ?? '').toString(),
+      role: (json['role'] ?? '').toString(),
+      messageType: (json['messageType'] ?? '').toString(),
+      content: (json['content'] ?? '').toString(),
+      createdAt: (json['createdAt'] ?? '').toString(),
+      updatedAt: (json['updatedAt'] ?? '').toString(),
+      deletedAt: json['deletedAt']?.toString(),
+      metadata: json['metadata'] is Map<String, dynamic>
+          ? Map<String, dynamic>.from(json['metadata'] as Map<String, dynamic>)
+          : null,
+      editHistory: json['editHistory'] is List
+          ? (json['editHistory'] as List)
+                .whereType<Map<Object?, Object?>>()
+                .map(Map<String, dynamic>.from)
+                .toList()
+          : null,
+    );
+  }
 
   final String id;
   final String sessionId;
@@ -51,28 +71,6 @@ class ChatMessage {
       editHistory: editHistory ?? this.editHistory,
       isPending: isPending ?? this.isPending,
       hasError: hasError ?? this.hasError,
-    );
-  }
-
-  factory ChatMessage.fromJson(Map<String, dynamic> json) {
-    return ChatMessage(
-      id: (json['_id'] ?? '').toString(),
-      sessionId: (json['sessionId'] ?? '').toString(),
-      role: (json['role'] ?? '').toString(),
-      messageType: (json['messageType'] ?? '').toString(),
-      content: (json['content'] ?? '').toString(),
-      createdAt: (json['createdAt'] ?? '').toString(),
-      updatedAt: (json['updatedAt'] ?? '').toString(),
-      deletedAt: json['deletedAt']?.toString(),
-      metadata: json['metadata'] is Map<String, dynamic>
-          ? Map<String, dynamic>.from(json['metadata'] as Map)
-          : null,
-      editHistory: json['editHistory'] is List
-          ? (json['editHistory'] as List)
-              .whereType<Map>()
-              .map((entry) => Map<String, dynamic>.from(entry))
-              .toList()
-          : null,
     );
   }
 

@@ -1,4 +1,3 @@
-library;
 
 class ValidatorSets {
   ValidatorSets._();
@@ -18,5 +17,18 @@ class ValidatorSets {
 
   static String? Function(String?) get patientName =>
       (value) => validatePersonName(value, context: 'patient');
-}
 
+  static String? Function(String?) get clinicianName =>
+      (value) => validatePersonName(value, context: 'clinician');
+
+  static String? Function(String?) get clinicianRegistration => (value) {
+        final trimmed = value?.trim() ?? '';
+        if (trimmed.isEmpty) {
+          return 'Campo obrigatório';
+        }
+        if (trimmed.length < 4) {
+          return 'Registro profissional inválido';
+        }
+        return null;
+      };
+}

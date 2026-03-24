@@ -1,7 +1,7 @@
 # Stage 1: Build the Flutter web app as root
 FROM ghcr.io/cirruslabs/flutter:3.38.3 AS build
 
-ARG API_BASE_URL
+ARG API_BASE_URL=/api/v1
 
 WORKDIR /app
 COPY . /app/

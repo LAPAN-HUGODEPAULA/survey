@@ -1,13 +1,14 @@
 /// Página para a escrita da narrativa clínica.
 library;
 
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:clinical_narrative_app/core/models/agent_response.dart';
+import 'package:clinical_narrative_app/core/navigation/app_navigator.dart';
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
 import 'package:clinical_narrative_app/core/services/clinical_writer_service.dart';
-import 'package:clinical_narrative_app/core/navigation/app_navigator.dart';
 import 'package:design_system_flutter/report/report_models.dart';
-import 'package:clinical_narrative_app/core/models/agent_response.dart';
+import 'package:design_system_flutter/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class NarrativePage extends StatefulWidget {
   const NarrativePage({super.key});
@@ -30,7 +31,7 @@ class _NarrativePageState extends State<NarrativePage> {
     final rawContent = _narrativeController.text.trim();
     if (rawContent.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Informe o conteudo para gerar a narrativa.')),
+        const SnackBar(content: Text('Informe o conteúdo para gerar a narrativa.')),
       );
       return;
     }
@@ -82,10 +83,10 @@ class _NarrativePageState extends State<NarrativePage> {
     if (medicalRecord != null && medicalRecord.isNotEmpty) {
       return ReportDocument.fromPlainText(
         text: medicalRecord,
-        title: 'Prontuario Clinico',
+        title: 'Prontuário Clínico',
         subtitle: settings.patient.name.isNotEmpty
             ? 'Paciente: ${settings.patient.name}'
-            : 'Paciente nao informado',
+            : 'Paciente não informado',
         patient: ReportPatientInfo(
           name: settings.patient.name,
           reference: settings.patient.medicalRecordId,
@@ -100,7 +101,7 @@ class _NarrativePageState extends State<NarrativePage> {
   Widget build(BuildContext context) {
     final patient = Provider.of<AppSettings>(context).patient;
 
-    return Scaffold(
+    return DsScaffold(
       appBar: AppBar(
         title: Text('Narrativa Clínica - ${patient.name}'),
       ),
@@ -131,7 +132,7 @@ class _NarrativePageState extends State<NarrativePage> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('Gerar prontuario'),
+                        : const Text('Gerar prontuário'),
                   ),
                 ),
               ],

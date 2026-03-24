@@ -1,21 +1,21 @@
-library;
 
 import 'dart:async';
-import 'dart:ui' as ui;
+import 'dart:js_interop';
 
+import 'package:clinical_narrative_app/core/models/chat_message.dart';
+import 'package:clinical_narrative_app/core/models/chat_session.dart';
+import 'package:clinical_narrative_app/core/providers/app_settings.dart';
+import 'package:clinical_narrative_app/core/providers/chat_provider.dart';
+import 'package:clinical_narrative_app/core/services/platform_view_registry.dart'
+    as platform_view_registry;
+import 'package:clinical_narrative_app/core/services/voice_capture_service.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:universal_html/html.dart' as html;
-
-import 'package:clinical_narrative_app/core/models/chat_message.dart';
-import 'package:clinical_narrative_app/core/models/chat_session.dart';
-import 'package:clinical_narrative_app/core/providers/app_settings.dart';
-import 'package:clinical_narrative_app/core/providers/chat_provider.dart';
-import 'package:clinical_narrative_app/core/services/voice_capture_service.dart';
+import 'package:web/web.dart' as web;
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -133,10 +133,10 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   String _sessionStatusLabel(ChatSession? session, bool isLoading) {
-    if (isLoading) return 'Starting';
-    if (session == null) return 'New';
-    if (session.status.toLowerCase() == 'completed') return 'Finished';
-    return 'Active';
+    if (isLoading) return 'Iniciando';
+    if (session == null) return 'Nova';
+    if (session.status.toLowerCase() == 'completed') return 'Concluída';
+    return 'Ativa';
   }
 
   DsStatusType _sessionStatusType(ChatSession? session, bool isLoading) {
@@ -147,12 +147,12 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   String _voiceStatusLabel() {
-    if (_voiceError != null) return 'Voice error';
-    if (_isRecording) return 'Recording';
-    if (_isTranscribing) return 'Transcribing';
-    if (_voiceService == null) return 'Voice unsupported';
-    if (!_voiceService!.isPreviewAvailable) return 'Preview unavailable';
-    return 'Ready';
+    if (_voiceError != null) return 'Erro de voz';
+    if (_isRecording) return 'Gravando';
+    if (_isTranscribing) return 'Transcrevendo';
+    if (_voiceService == null) return 'Voz não suportada';
+    if (!_voiceService!.isPreviewAvailable) return 'Pré-visualização indisponível';
+    return 'Pronto';
   }
 
   DsStatusType _voiceStatusType() {
@@ -187,7 +187,7 @@ class _ChatPageState extends State<ChatPage> {
           Row(
             children: [
               Text(
-                'Session',
+                'Sessão',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(width: 8),
@@ -205,17 +205,17 @@ class _ChatPageState extends State<ChatPage> {
           Row(
             children: [
               Text(
-                'Duration $duration',
+                'Duração: $duration',
                 style: Theme.of(context).textTheme.labelMedium,
               ),
               const SizedBox(width: 16),
               DropdownButton<String>(
                 value: phase,
                 items: const [
-                  DropdownMenuItem(value: 'intake', child: Text('Intake')),
-                  DropdownMenuItem(value: 'assessment', child: Text('Assessment')),
-                  DropdownMenuItem(value: 'plan', child: Text('Plan')),
-                  DropdownMenuItem(value: 'wrap_up', child: Text('Wrap-up')),
+                  DropdownMenuItem(value: 'intake', child: Text('Anamnese')),
+                  DropdownMenuItem(value: 'assessment', child: Text('Avaliação')),
+                  DropdownMenuItem(value: 'plan', child: Text('Plano')),
+                  DropdownMenuItem(value: 'wrap_up', child: Text('Encerramento')),
                 ],
                 onChanged: (value) {
                   if (value != null) {
@@ -224,7 +224,7 @@ class _ChatPageState extends State<ChatPage> {
                 },
               ),
               const Spacer(),
-              Text(session?.status ?? 'active'),
+              Text(_sessionStatusLabel(session, provider.isLoading)),
             ],
           ),
         ],
@@ -258,7 +258,7 @@ class _ChatPageState extends State<ChatPage> {
           Row(
             children: [
               Text(
-                'Voice capture',
+                'Captura de voz',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(width: 8),
@@ -267,7 +267,7 @@ class _ChatPageState extends State<ChatPage> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Audio is used only for transcription and discarded after processing.',
+            'O áudio é usado apenas para transcrição e é descartado após o processamento.',
             style: Theme.of(context).textTheme.bodySmall,
           ),
           if (_voiceError != null)
@@ -287,19 +287,19 @@ class _ChatPageState extends State<ChatPage> {
           Row(
             children: [
               DsFilledButton(
-                label: 'Start',
+                label: 'Iniciar',
                 icon: Icons.mic,
                 onPressed: (!inputEnabled || _isRecording) ? null : _startRecording,
               ),
               const SizedBox(width: 8),
               DsOutlinedButton(
-                label: 'Stop',
+                label: 'Parar',
                 icon: Icons.stop,
                 onPressed: (!inputEnabled || !_isRecording) ? null : _stopRecording,
               ),
               const SizedBox(width: 12),
               if (_voiceService != null && !_voiceService!.isPreviewAvailable)
-                const Text('Live preview unavailable in this browser'),
+                const Text('Pré-visualização ao vivo indisponível neste navegador'),
             ],
           ),
           const SizedBox(height: 8),
@@ -318,8 +318,8 @@ class _ChatPageState extends State<ChatPage> {
           TextField(
             controller: _voiceTextController,
             decoration: const InputDecoration(
-              labelText: 'Preview text',
-              hintText: 'Live preview (editable)',
+              labelText: 'Texto de pré-visualização',
+              hintText: 'Pré-visualização ao vivo (editável)',
             ),
             minLines: 2,
             maxLines: 4,
@@ -329,7 +329,7 @@ class _ChatPageState extends State<ChatPage> {
           Row(
             children: [
               DsOutlinedButton(
-                label: 'Use Preview Text',
+                label: 'Usar texto de pré-visualização',
                 onPressed: !inputEnabled || _voiceTextController.text.trim().isEmpty
                     ? null
                     : () {
@@ -338,7 +338,7 @@ class _ChatPageState extends State<ChatPage> {
               ),
               const SizedBox(width: 8),
               DsFilledButton(
-                label: _isTranscribing ? 'Transcribing...' : 'Send for Transcription',
+                label: _isTranscribing ? 'Transcrevendo...' : 'Enviar para transcrição',
                 onPressed: !inputEnabled || _isTranscribing
                     ? null
                     : () => _submitVoiceTranscription(provider),
@@ -354,15 +354,15 @@ class _ChatPageState extends State<ChatPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => DsDialog(
-        title: 'End consultation?',
-        content: const Text('This will complete the current session.'),
+        title: 'Encerrar consulta?',
+        content: const Text('Isso concluirá a sessão atual.'),
         actions: [
           DsTextButton(
-            label: 'Cancel',
+            label: 'Cancelar',
             onPressed: () => Navigator.pop(context, false),
           ),
           DsFilledButton(
-            label: 'End',
+            label: 'Encerrar',
             onPressed: () => Navigator.pop(context, true),
           ),
         ],
@@ -375,12 +375,12 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _openDocumentDialog(ChatProvider provider) async {
     final fallbackDocumentTypes = [
-      {'id': 'consultation_record', 'label': 'Consultation Record'},
-      {'id': 'prescription', 'label': 'Prescription'},
-      {'id': 'referral', 'label': 'Referral'},
-      {'id': 'certificate', 'label': 'Certificate'},
-      {'id': 'technical_report', 'label': 'Technical Report'},
-      {'id': 'clinical_progress', 'label': 'Clinical Progress'},
+      {'id': 'consultation_record', 'label': 'Registro de consulta'},
+      {'id': 'prescription', 'label': 'Prescrição'},
+      {'id': 'referral', 'label': 'Encaminhamento'},
+      {'id': 'certificate', 'label': 'Atestado'},
+      {'id': 'technical_report', 'label': 'Relatório técnico'},
+      {'id': 'clinical_progress', 'label': 'Evolução clínica'},
     ];
     final fetchedTypes = await provider.fetchTemplateDocumentTypes();
     final documentTypes = fetchedTypes.isNotEmpty ? fetchedTypes : fallbackDocumentTypes;
@@ -407,7 +407,7 @@ class _ChatPageState extends State<ChatPage> {
           builder: (context, setState) {
             final templates = provider.templates;
             return DsDialog(
-              title: 'Generate Document',
+              title: 'Gerar documento',
               content: SizedBox(
                 width: 600,
                 child: SingleChildScrollView(
@@ -418,7 +418,7 @@ class _ChatPageState extends State<ChatPage> {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Text(
-                            'Missing fields: ${missingFields.join(', ')}',
+                            'Campos ausentes: ${missingFields.join(', ')}',
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.error,
                             ),
@@ -427,7 +427,7 @@ class _ChatPageState extends State<ChatPage> {
                       DropdownButtonFormField<String>(
                         key: ValueKey('doc-type-$selectedDocumentType'),
                         initialValue: selectedDocumentType,
-                        decoration: const InputDecoration(labelText: 'Document type'),
+                        decoration: const InputDecoration(labelText: 'Tipo de documento'),
                         items: documentTypes
                             .map(
                               (item) => DropdownMenuItem<String>(
@@ -451,7 +451,7 @@ class _ChatPageState extends State<ChatPage> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: searchController,
-                        decoration: const InputDecoration(labelText: 'Search templates'),
+                        decoration: const InputDecoration(labelText: 'Buscar modelos'),
                         onChanged: (value) async {
                           await provider.fetchTemplates(
                             documentType: selectedDocumentType,
@@ -468,7 +468,7 @@ class _ChatPageState extends State<ChatPage> {
                       DropdownButtonFormField<String>(
                         key: ValueKey('template-$selectedTemplateId'),
                         initialValue: selectedTemplateId.isNotEmpty ? selectedTemplateId : null,
-                        decoration: const InputDecoration(labelText: 'Template'),
+                        decoration: const InputDecoration(labelText: 'Modelo'),
                         items: templates
                             .map(
                               (template) => DropdownMenuItem<String>(
@@ -486,12 +486,12 @@ class _ChatPageState extends State<ChatPage> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: titleController,
-                        decoration: const InputDecoration(labelText: 'Title'),
+                        decoration: const InputDecoration(labelText: 'Título'),
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: bodyController,
-                        decoration: const InputDecoration(labelText: 'Body'),
+                        decoration: const InputDecoration(labelText: 'Conteúdo'),
                         maxLines: 8,
                       ),
                     ],
@@ -500,11 +500,11 @@ class _ChatPageState extends State<ChatPage> {
               ),
               actions: [
                 DsTextButton(
-                  label: 'Close',
+                  label: 'Fechar',
                   onPressed: () => Navigator.pop(context),
                 ),
                 DsOutlinedButton(
-                  label: 'Preview Template',
+                  label: 'Pré-visualizar modelo',
                   onPressed: selectedTemplateId.isEmpty
                       ? null
                       : () async {
@@ -531,7 +531,7 @@ class _ChatPageState extends State<ChatPage> {
                         },
                 ),
                 DsFilledButton(
-                  label: 'Preview',
+                  label: 'Pré-visualizar',
                   onPressed: () async {
                     final updatedPreview = await provider.generateDocumentPreview(
                       documentType: selectedDocumentType,
@@ -543,7 +543,7 @@ class _ChatPageState extends State<ChatPage> {
                   },
                 ),
                 DsFilledButton(
-                  label: 'Export PDF/Print',
+                  label: 'Exportar PDF/Imprimir',
                   onPressed: () async {
                     final record = await provider.exportDocument(
                       documentType: selectedDocumentType,
@@ -564,27 +564,28 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _openHtmlPreview(String htmlContent) {
-    final blob = html.Blob([htmlContent], 'text/html');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    html.window.open(url, '_blank');
+    final parts = <web.BlobPart>[htmlContent.toJS as web.BlobPart].toJS;
+    final blob = web.Blob(parts, web.BlobPropertyBag(type: 'text/html'));
+    final url = web.URL.createObjectURL(blob);
+    web.window.open(url, '_blank');
   }
 
   String _mapVoiceError(String code) {
     switch (code) {
       case 'not-allowed':
       case 'permission-denied':
-        return 'Microphone permission denied. Please enable access in your browser settings.';
+        return 'Permissão do microfone negada. Ative o acesso nas configurações do navegador.';
       case 'not-found':
-        return 'No microphone detected. Please connect a device and try again.';
+        return 'Nenhum microfone detectado. Conecte um dispositivo e tente novamente.';
       default:
-        return 'Unable to access the microphone. Please try again.';
+        return 'Não foi possível acessar o microfone. Tente novamente.';
     }
   }
 
   Future<void> _startRecording() async {
     if (_voiceService == null) {
       setState(() {
-        _voiceError = 'Voice capture is only supported in web browsers.';
+        _voiceError = 'A captura de voz é compatível apenas em navegadores web.';
       });
       return;
     }
@@ -608,7 +609,7 @@ class _ChatPageState extends State<ChatPage> {
       await _voiceService?.start();
     } catch (e) {
       setState(() {
-        _voiceError = 'Unable to start recording. Please check microphone permissions.';
+        _voiceError = 'Não foi possível iniciar a gravação. Verifique as permissões do microfone.';
         _isRecording = false;
       });
       _stopRecordingTimer();
@@ -630,7 +631,7 @@ class _ChatPageState extends State<ChatPage> {
       _stopRecordingTimer();
     } catch (e) {
       setState(() {
-        _voiceError = 'Unable to stop recording. Please try again.';
+        _voiceError = 'Não foi possível parar a gravação. Tente novamente.';
         _isRecording = false;
       });
       _stopRecordingTimer();
@@ -639,14 +640,8 @@ class _ChatPageState extends State<ChatPage> {
 
   void _registerAudioView(String objectUrl) {
     if (!kIsWeb) return;
-    final viewType = 'audio-player-${DateTime.now().millisecondsSinceEpoch}';
-    // ignore: undefined_prefixed_name
-    ui.platformViewRegistry.registerViewFactory(viewType, (int viewId) {
-      final audio = html.AudioElement()
-        ..controls = true
-        ..src = objectUrl;
-      return audio;
-    });
+    final viewType = platform_view_registry.registerAudioView(objectUrl);
+    if (viewType == null) return;
     setState(() {
       _audioViewType = viewType;
     });
@@ -674,7 +669,7 @@ class _ChatPageState extends State<ChatPage> {
       }
     } catch (_) {
       setState(() {
-        _voiceError = 'Transcription failed. Please edit the text manually.';
+        _voiceError = 'A transcrição falhou. Edite o texto manualmente.';
       });
     } finally {
       setState(() => _isTranscribing = false);
@@ -686,7 +681,7 @@ class _ChatPageState extends State<ChatPage> {
     final updated = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit message'),
+        title: const Text('Editar mensagem'),
         content: TextField(
           controller: controller,
           maxLines: 4,
@@ -694,11 +689,11 @@ class _ChatPageState extends State<ChatPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('Cancelar'),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Save'),
+            child: const Text('Salvar'),
           ),
         ],
       ),
@@ -712,7 +707,7 @@ class _ChatPageState extends State<ChatPage> {
     final isClinician = message.role == 'clinician';
     final alignment = isClinician ? CrossAxisAlignment.end : CrossAxisAlignment.start;
     final role = isClinician ? DsChatRole.clinician : DsChatRole.patient;
-    final labelParts = <String>[isClinician ? 'Clinician' : 'Assistant'];
+    final labelParts = <String>[isClinician ? 'Clínico' : 'Assistente'];
     if (message.messageType.isNotEmpty && message.messageType != 'user') {
       labelParts.add(message.messageType.toUpperCase());
     }
@@ -736,19 +731,19 @@ class _ChatPageState extends State<ChatPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              tooltip: 'Copy message',
+              tooltip: 'Copiar mensagem',
               icon: const Icon(Icons.copy, size: 18),
               onPressed: () => Clipboard.setData(ClipboardData(text: message.content)),
             ),
             if (isClinician && message.deletedAt == null)
               IconButton(
-                tooltip: 'Edit message',
+                tooltip: 'Editar mensagem',
                 icon: const Icon(Icons.edit, size: 18),
                 onPressed: () => _editMessage(provider, message),
               ),
             if (isClinician && message.deletedAt == null)
               IconButton(
-                tooltip: 'Delete message',
+                tooltip: 'Excluir mensagem',
                 icon: const Icon(Icons.delete_outline, size: 18),
                 onPressed: () => provider.deleteMessage(message),
               ),
@@ -773,21 +768,21 @@ class _ChatPageState extends State<ChatPage> {
 
           if (messageCount > _lastMessageCount) {
             final newest = provider.messages.last;
-            final speaker = newest.role == 'clinician' ? 'Clinician' : 'Assistant';
+            final speaker = newest.role == 'clinician' ? 'Clínico' : 'Assistente';
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
               SemanticsService.sendAnnouncement(
                 View.of(context),
-                'New message from $speaker',
+                'Nova mensagem de $speaker',
                 Directionality.of(context),
               );
             });
           }
           _lastMessageCount = messageCount;
 
-          return Scaffold(
+          return DsScaffold(
             appBar: AppBar(
-              title: const Text('Clinical Conversation'),
+              title: const Text('Conversa clínica'),
               actions: [
                 if (provider.isOffline)
                   Padding(
@@ -817,9 +812,9 @@ class _ChatPageState extends State<ChatPage> {
                   child: FocusTraversalOrder(
                     order: const NumericFocusOrder(2),
                     child: Semantics(
-                      label: 'Conversation messages',
+                      label: 'Mensagens da conversa',
                       child: provider.messages.isEmpty
-                          ? const DsEmpty(message: 'No messages yet.')
+                          ? const DsEmpty(message: 'Ainda não há mensagens.')
                           : ListView.separated(
                               controller: _scrollController,
                               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -837,7 +832,7 @@ class _ChatPageState extends State<ChatPage> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     child: _InsightPanel(
-                      title: 'Alerts',
+                      title: 'Alertas',
                       items: provider.alerts
                           .map((item) => '${item['severity'] ?? 'info'}: ${item['text'] ?? ''}')
                           .toList(),
@@ -847,7 +842,7 @@ class _ChatPageState extends State<ChatPage> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     child: _InsightPanel(
-                      title: 'Suggestions',
+                      title: 'Sugestões',
                       items: provider.suggestions
                           .map((item) => item['text']?.toString() ?? '')
                           .where((text) => text.isNotEmpty)
@@ -858,7 +853,7 @@ class _ChatPageState extends State<ChatPage> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     child: _InsightPanel(
-                      title: 'Hypotheses',
+                      title: 'Hipóteses',
                       items: provider.hypotheses
                           .map((item) => item['label']?.toString() ?? '')
                           .where((text) => text.isNotEmpty)
@@ -869,7 +864,7 @@ class _ChatPageState extends State<ChatPage> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     child: _InsightPanel(
-                      title: 'Entities',
+                      title: 'Entidades',
                       items: provider.entities
                           .map((item) => '${item['type'] ?? ''}: ${item['value'] ?? ''}')
                           .toList(),
@@ -879,7 +874,7 @@ class _ChatPageState extends State<ChatPage> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     child: _InsightPanel(
-                      title: 'Knowledge',
+                      title: 'Conhecimento',
                       items: provider.knowledge
                           .map((item) => item['label']?.toString() ?? '')
                           .where((text) => text.isNotEmpty)
@@ -890,7 +885,7 @@ class _ChatPageState extends State<ChatPage> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: DsStatusIndicator(
-                      label: 'Processing response...',
+                      label: 'Processando resposta...',
                       color: Theme.of(context).colorScheme.primary,
                       liveRegion: true,
                     ),
@@ -905,10 +900,10 @@ class _ChatPageState extends State<ChatPage> {
                           children: [
                             Semantics(
                               button: true,
-                              label: _voiceMode ? 'Disable voice mode' : 'Enable voice mode',
+                              label: _voiceMode ? 'Desativar modo de voz' : 'Ativar modo de voz',
                               child: IconButton(
                                 icon: Icon(_voiceMode ? Icons.mic : Icons.mic_none),
-                                tooltip: _voiceMode ? 'Disable voice mode' : 'Enable voice mode',
+                                tooltip: _voiceMode ? 'Desativar modo de voz' : 'Ativar modo de voz',
                                 onPressed: inputEnabled
                                     ? () {
                                         setState(() => _voiceMode = !_voiceMode);
@@ -920,10 +915,10 @@ class _ChatPageState extends State<ChatPage> {
                               child: TextField(
                                 controller: _controller,
                                 decoration: InputDecoration(
-                                  labelText: 'Message',
+                                  labelText: 'Mensagem',
                                   hintText: _voiceMode
-                                      ? 'Voice mode enabled'
-                                      : 'Type your message',
+                                      ? 'Modo de voz ativado'
+                                      : 'Digite sua mensagem',
                                 ),
                                 minLines: 1,
                                 maxLines: 4,
@@ -934,7 +929,7 @@ class _ChatPageState extends State<ChatPage> {
                             ),
                             const SizedBox(width: 8),
                             DsFilledButton(
-                              label: 'Send',
+                              label: 'Enviar',
                               onPressed: inputEnabled ? () => _send(provider) : null,
                             ),
                           ],
@@ -954,19 +949,19 @@ class _ChatPageState extends State<ChatPage> {
                         child: Row(
                           children: [
                             DsOutlinedButton(
-                              label: 'Generate Document',
+                              label: 'Gerar documento',
                               onPressed: provider.isOffline ? null : () => _openDocumentDialog(provider),
                             ),
                             const SizedBox(width: 8),
                             DsOutlinedButton(
-                              label: 'End Consultation',
+                              label: 'Encerrar consulta',
                               onPressed: provider.isOffline || isSessionCompleted
                                   ? null
                                   : () => _confirmEndSession(provider),
                             ),
                             const Spacer(),
                             if (analysisPhase != null && analysisPhase.isNotEmpty)
-                              Text('AI phase: $analysisPhase'),
+                              Text('Fase da IA: $analysisPhase'),
                           ],
                         ),
                       ),

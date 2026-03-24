@@ -1,4 +1,3 @@
-library;
 
 class TemplateRecord {
   TemplateRecord({
@@ -13,17 +12,6 @@ class TemplateRecord {
     required this.createdAt,
     required this.updatedAt,
   });
-
-  final String id;
-  final String templateGroupId;
-  final String name;
-  final String documentType;
-  final String version;
-  final String status;
-  final String body;
-  final List<String> placeholders;
-  final String createdAt;
-  final String updatedAt;
 
   factory TemplateRecord.fromJson(Map<String, dynamic> json) {
     return TemplateRecord(
@@ -42,6 +30,17 @@ class TemplateRecord {
       updatedAt: json['updatedAt']?.toString() ?? '',
     );
   }
+
+  final String id;
+  final String templateGroupId;
+  final String name;
+  final String documentType;
+  final String version;
+  final String status;
+  final String body;
+  final List<String> placeholders;
+  final String createdAt;
+  final String updatedAt;
 }
 
 class TemplatePreview {
@@ -52,12 +51,6 @@ class TemplatePreview {
     required this.missingFields,
     required this.metadata,
   });
-
-  final String html;
-  final String title;
-  final String body;
-  final List<String> missingFields;
-  final Map<String, dynamic> metadata;
 
   factory TemplatePreview.fromJson(Map<String, dynamic> json) {
     return TemplatePreview(
@@ -73,4 +66,10 @@ class TemplatePreview {
           : const {},
     );
   }
+
+  final String html;
+  final String title;
+  final String body;
+  final List<String> missingFields;
+  final Map<String, dynamic> metadata;
 }

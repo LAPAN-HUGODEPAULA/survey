@@ -1,12 +1,6 @@
-library;
-
 import 'dart:async';
 import 'dart:convert';
-
-import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
-import 'package:universal_html/html.dart' as html;
-import 'package:web_socket_channel/web_socket_channel.dart';
+import 'dart:js_interop';
 
 import 'package:clinical_narrative_app/core/models/chat_message.dart';
 import 'package:clinical_narrative_app/core/models/chat_session.dart';
@@ -14,24 +8,22 @@ import 'package:clinical_narrative_app/core/models/document_models.dart';
 import 'package:clinical_narrative_app/core/models/template_models.dart';
 import 'package:clinical_narrative_app/core/models/transcription_models.dart';
 import 'package:clinical_narrative_app/core/services/api_config.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+import 'package:web/web.dart' as web;
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ChatProvider extends ChangeNotifier {
   ChatProvider({Dio? client})
-      : _client = client ??
-            Dio(
-              BaseOptions(
-                baseUrl: ApiConfig.dioBaseUrl,
-                headers: ApiConfig.defaultHeaders,
-              ),
-            );
+    : _client = client ?? ApiConfig.createDio();
 
   final Dio _client;
   ChatSession? _session;
   final List<ChatMessage> _messages = [];
   final List<_PendingMessage> _pendingQueue = [];
   WebSocketChannel? _channel;
-  StreamSubscription<html.Event>? _onlineSub;
-  StreamSubscription<html.Event>? _offlineSub;
+  web.EventListener? _onlineListener;
+  web.EventListener? _offlineListener;
   Timer? _analysisDebounce;
 
   bool _isLoading = false;
@@ -67,12 +59,14 @@ class ChatProvider extends ChangeNotifier {
   TranscriptionResponse? get transcription => _transcription;
 
   Future<List<Map<String, dynamic>>> fetchTemplateDocumentTypes() async {
-    final response = await _client.get<List<dynamic>>('/templates/document-types');
+    final response = await _client.get<List<dynamic>>(
+      ApiConfig.requestPath('/templates/document-types'),
+    );
     final data = response.data;
     if (data is! List) return const [];
     return data
-        .whereType<Map>()
-        .map((item) => Map<String, dynamic>.from(item))
+        .whereType<Map<Object?, Object?>>()
+        .map(Map<String, dynamic>.from)
         .toList();
   }
 
@@ -81,16 +75,17 @@ class ChatProvider extends ChangeNotifier {
     String? query,
   }) async {
     final response = await _client.get<List<dynamic>>(
-      '/templates',
+      ApiConfig.requestPath('/templates'),
       queryParameters: {
-        if (documentType != null && documentType.isNotEmpty) 'documentType': documentType,
+        if (documentType != null && documentType.isNotEmpty)
+          'documentType': documentType,
         if (query != null && query.isNotEmpty) 'q': query,
       },
     );
     final data = response.data;
     if (data is! List) return const [];
     _templates = data
-        .whereType<Map>()
+        .whereType<Map<Object?, Object?>>()
         .map((item) => TemplateRecord.fromJson(Map<String, dynamic>.from(item)))
         .toList();
     notifyListeners();
@@ -102,10 +97,8 @@ class ChatProvider extends ChangeNotifier {
     Map<String, dynamic>? sampleData,
   }) async {
     final response = await _client.post<Map<String, dynamic>>(
-      '/templates/$templateId/preview',
-      data: {
-        if (sampleData != null) 'sampleData': sampleData,
-      },
+      ApiConfig.requestPath('/templates/$templateId/preview'),
+      data: {'sampleData': ?sampleData},
     );
     final data = response.data;
     if (data is Map<String, dynamic>) {
@@ -129,18 +122,18 @@ class ChatProvider extends ChangeNotifier {
     Map<String, dynamic>? metadata,
   }) async {
     final response = await _client.post<Map<String, dynamic>>(
-      '/voice/transcriptions',
+      ApiConfig.requestPath('/voice/transcriptions'),
       data: {
         'audioBase64': audioBase64,
         'audioFormat': audioFormat,
-        if (sampleRate != null) 'sampleRate': sampleRate,
-        if (channels != null) 'channels': channels,
-        if (durationSeconds != null) 'durationSeconds': durationSeconds,
-        if (language != null) 'language': language,
+        'sampleRate': ?sampleRate,
+        'channels': ?channels,
+        'durationSeconds': ?durationSeconds,
+        'language': ?language,
         'clinicalMode': clinicalMode,
-        if (confidenceThreshold != null) 'confidenceThreshold': confidenceThreshold,
-        if (previewText != null) 'previewText': previewText,
-        if (metadata != null) 'metadata': metadata,
+        'confidenceThreshold': ?confidenceThreshold,
+        'previewText': ?previewText,
+        'metadata': ?metadata,
       },
     );
     final data = response.data;
@@ -180,7 +173,7 @@ class ChatProvider extends ChangeNotifier {
   Future<void> updatePhase(String phase) async {
     if (_session == null) return;
     final response = await _client.patch<Map<String, dynamic>>(
-      '/chat/sessions/${_session!.id}',
+      ApiConfig.requestPath('/chat/sessions/${_session!.id}'),
       data: {'phase': phase},
     );
     final data = response.data;
@@ -193,7 +186,7 @@ class ChatProvider extends ChangeNotifier {
   Future<void> completeSession() async {
     if (_session == null) return;
     final response = await _client.post<Map<String, dynamic>>(
-      '/chat/sessions/${_session!.id}/complete',
+      ApiConfig.requestPath('/chat/sessions/${_session!.id}/complete'),
     );
     final data = response.data;
     if (data is Map<String, dynamic>) {
@@ -239,12 +232,12 @@ class ChatProvider extends ChangeNotifier {
   }) async {
     if (_session == null) return null;
     final response = await _client.post<Map<String, dynamic>>(
-      '/documents/preview',
+      ApiConfig.requestPath('/documents/preview'),
       data: {
         'sessionId': _session!.id,
         'documentType': documentType,
-        if (title != null) 'title': title,
-        if (body != null) 'body': body,
+        'title': ?title,
+        'body': ?body,
       },
     );
     final data = response.data;
@@ -263,7 +256,7 @@ class ChatProvider extends ChangeNotifier {
   }) async {
     if (_session == null) return null;
     final response = await _client.post<Map<String, dynamic>>(
-      '/documents/export',
+      ApiConfig.requestPath('/documents/export'),
       data: {
         'sessionId': _session!.id,
         'documentType': documentType,
@@ -281,7 +274,7 @@ class ChatProvider extends ChangeNotifier {
   Future<void> editMessage(ChatMessage message, String content) async {
     if (message.id.startsWith('temp-')) return;
     final response = await _client.patch<Map<String, dynamic>>(
-      '/chat/messages/${message.id}',
+      ApiConfig.requestPath('/chat/messages/${message.id}'),
       data: {'content': content},
     );
     final data = response.data;
@@ -297,7 +290,7 @@ class ChatProvider extends ChangeNotifier {
       return;
     }
     final response = await _client.delete<Map<String, dynamic>>(
-      '/chat/messages/${message.id}',
+      ApiConfig.requestPath('/chat/messages/${message.id}'),
     );
     final data = response.data;
     if (data is Map<String, dynamic>) {
@@ -307,20 +300,12 @@ class ChatProvider extends ChangeNotifier {
 
   void disposeConnections() {
     _channel?.sink.close();
-    _onlineSub?.cancel();
-    _offlineSub?.cancel();
     _analysisDebounce?.cancel();
-  }
-
-  @override
-  void dispose() {
-    disposeConnections();
-    super.dispose();
   }
 
   Future<ChatSession> _createSession({String? patientId}) async {
     final response = await _client.post<Map<String, dynamic>>(
-      '/chat/sessions',
+      ApiConfig.requestPath('/chat/sessions'),
       data: {
         if (patientId != null && patientId.isNotEmpty) 'patientId': patientId,
       },
@@ -339,7 +324,7 @@ class ChatProvider extends ChangeNotifier {
     if (storedId == null) return null;
     try {
       final response = await _client.get<Map<String, dynamic>>(
-        '/chat/sessions/$storedId',
+        ApiConfig.requestPath('/chat/sessions/$storedId'),
       );
       final data = response.data;
       if (data is! Map<String, dynamic>) return null;
@@ -358,15 +343,13 @@ class ChatProvider extends ChangeNotifier {
   Future<void> _loadMessages() async {
     if (_session == null) return;
     final response = await _client.get<List<dynamic>>(
-      '/chat/sessions/${_session!.id}/messages',
+      ApiConfig.requestPath('/chat/sessions/${_session!.id}/messages'),
     );
     final data = response.data ?? [];
     _messages
       ..clear()
       ..addAll(
-        data
-            .whereType<Map<String, dynamic>>()
-            .map(ChatMessage.fromJson),
+        data.whereType<Map<String, dynamic>>().map(ChatMessage.fromJson),
       );
     _scheduleAnalysis();
   }
@@ -416,7 +399,7 @@ class ChatProvider extends ChangeNotifier {
     if (_session == null) return;
     try {
       final response = await _client.post<Map<String, dynamic>>(
-        '/chat/sessions/${_session!.id}/messages',
+        ApiConfig.requestPath('/chat/sessions/${_session!.id}/messages'),
         data: {
           'role': 'clinician',
           'messageType': 'user',
@@ -457,14 +440,17 @@ class ChatProvider extends ChangeNotifier {
 
   void _scheduleAnalysis() {
     _analysisDebounce?.cancel();
-    _analysisDebounce = Timer(const Duration(milliseconds: 500), _refreshAnalysis);
+    _analysisDebounce = Timer(
+      const Duration(milliseconds: 500),
+      _refreshAnalysis,
+    );
   }
 
   Future<void> _refreshAnalysis() async {
     if (_session == null || _messages.isEmpty) return;
     try {
       final response = await _client.post<Map<String, dynamic>>(
-        '/clinical_writer/analysis',
+        ApiConfig.requestPath('/clinical_writer/analysis'),
         data: {
           'sessionId': _session!.id,
           'phase': _session!.phase,
@@ -498,8 +484,8 @@ class ChatProvider extends ChangeNotifier {
   List<Map<String, dynamic>> _castList(Object? raw) {
     if (raw is! List) return [];
     return raw
-        .whereType<Map>()
-        .map((entry) => Map<String, dynamic>.from(entry))
+        .whereType<Map<Object?, Object?>>()
+        .map(Map<String, dynamic>.from)
         .toList();
   }
 
@@ -514,18 +500,24 @@ class ChatProvider extends ChangeNotifier {
 
   void _setupConnectivityListeners() {
     if (!kIsWeb) return;
-    _isOffline = !(html.window.navigator.onLine ?? true);
-    _onlineSub?.cancel();
-    _offlineSub?.cancel();
-    _onlineSub = html.window.onOnline.listen((_) {
+    _isOffline = !web.window.navigator.onLine;
+    if (_onlineListener != null) {
+      web.window.removeEventListener('online', _onlineListener!);
+    }
+    if (_offlineListener != null) {
+      web.window.removeEventListener('offline', _offlineListener!);
+    }
+    _onlineListener = ((web.Event _) {
       _isOffline = false;
       _retryPending();
       notifyListeners();
-    });
-    _offlineSub = html.window.onOffline.listen((_) {
+    }).toJS;
+    web.window.addEventListener('online', _onlineListener!);
+    _offlineListener = ((web.Event _) {
       _isOffline = true;
       notifyListeners();
-    });
+    }).toJS;
+    web.window.addEventListener('offline', _offlineListener!);
   }
 
   Future<void> _retryPending() async {
@@ -539,17 +531,36 @@ class ChatProvider extends ChangeNotifier {
 
   String? _readSessionId() {
     if (!kIsWeb) return null;
-    return html.window.localStorage['clinical_narrative_chat_session_id'];
+    return web.window.localStorage.getItem(
+      'clinical_narrative_chat_session_id',
+    );
   }
 
   void _storeSessionId(String sessionId) {
     if (!kIsWeb) return;
-    html.window.localStorage['clinical_narrative_chat_session_id'] = sessionId;
+    web.window.localStorage.setItem(
+      'clinical_narrative_chat_session_id',
+      sessionId,
+    );
   }
 
   void _clearSessionId() {
     if (!kIsWeb) return;
-    html.window.localStorage.remove('clinical_narrative_chat_session_id');
+    web.window.localStorage.removeItem('clinical_narrative_chat_session_id');
+  }
+
+  @override
+  void dispose() {
+    if (_onlineListener != null) {
+      web.window.removeEventListener('online', _onlineListener!);
+    }
+    if (_offlineListener != null) {
+      web.window.removeEventListener('offline', _offlineListener!);
+    }
+    _analysisDebounce?.cancel();
+    _onlineListener = null;
+    _offlineListener = null;
+    super.dispose();
   }
 }
 

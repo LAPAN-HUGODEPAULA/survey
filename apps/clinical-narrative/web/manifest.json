@@ -1,11 +1,11 @@
 {
-    "name": "clinical_narrative_app",
-    "short_name": "clinical_narrative_app",
+    "name": "LAPAN Narrativa Clínica",
+    "short_name": "LAPAN Narrativa",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FF9800",
+    "theme_color": "#FF9800",
+    "description": "Documentação clínica conversacional com suporte à geração de documentos.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

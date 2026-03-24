@@ -2,10 +2,11 @@
 library;
 
 import 'package:clinical_narrative_app/core/navigation/app_navigator.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
 import 'package:clinical_narrative_app/core/utils/validator_sets.dart';
+import 'package:design_system_flutter/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class DemographicsPage extends StatefulWidget {
   const DemographicsPage({super.key});
@@ -43,7 +44,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return DsScaffold(
       appBar: AppBar(
         title: const Text('Informações do Paciente'),
       ),

@@ -1,18 +1,18 @@
 /// Pagina de exibicao do prontuario gerado pela IA.
 library;
 
-import 'dart:convert';
 import 'dart:io';
-
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:path/path.dart' as path;
-import 'package:provider/provider.dart';
-import 'package:universal_html/html.dart' as html;
+import 'dart:js_interop';
 
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
 import 'package:design_system_flutter/report/report_models.dart';
 import 'package:design_system_flutter/report/report_view.dart';
+import 'package:design_system_flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:path/path.dart' as path;
+import 'package:provider/provider.dart';
+import 'package:web/web.dart' as web;
 
 class ReportPage extends StatefulWidget {
   const ReportPage({super.key, required this.report});
@@ -38,13 +38,13 @@ class _ReportPageState extends State<ReportPage> {
   String _buildReportText(ReportDocument report) {
     return report.toPlainText(
       footer:
-          'Gerado por LAPAN - Labotatorio de Pesquisa Aplicada a Neurociencias da Visao',
+          'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
     );
   }
 
   void _printReport() {
     if (kIsWeb) {
-      html.window.print();
+      web.window.print();
     }
   }
 
@@ -69,22 +69,23 @@ class _ReportPageState extends State<ReportPage> {
       }
       return await _saveReportToNativeDirectory(fileName, content);
     } catch (e) {
-      return 'Falha ao exportar prontuario: $e';
+      return 'Falha ao exportar prontuário: $e';
     }
   }
 
   Future<String> _saveReportToWebBrowser(String fileName, String content) async {
-    final bytes = utf8.encode(content);
-    final blob = html.Blob([bytes]);
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    final anchor = html.AnchorElement(href: url)
+    final parts = <web.BlobPart>[content.toJS as web.BlobPart].toJS;
+    final blob = web.Blob(parts, web.BlobPropertyBag(type: 'text/plain'));
+    final url = web.URL.createObjectURL(blob);
+    final anchor = web.HTMLAnchorElement()
+      ..href = url
       ..download = fileName
       ..style.display = 'none';
 
-    html.document.body?.children.add(anchor);
+    web.document.body?.appendChild(anchor);
     anchor.click();
     anchor.remove();
-    html.Url.revokeObjectUrl(url);
+    web.URL.revokeObjectURL(url);
 
     return 'Download iniciado: $fileName';
   }
@@ -109,9 +110,9 @@ class _ReportPageState extends State<ReportPage> {
   Widget build(BuildContext context) {
     final settings = Provider.of<AppSettings>(context);
 
-    return Scaffold(
+    return DsScaffold(
       appBar: AppBar(
-        title: const Text('Prontuario gerado'),
+        title: const Text('Prontuário gerado'),
       ),
       body: Center(
         child: SingleChildScrollView(
@@ -121,7 +122,7 @@ class _ReportPageState extends State<ReportPage> {
             child: ReportView(
               report: widget.report,
               footer:
-                  'Gerado por LAPAN - Labotatorio de Pesquisa Aplicada a Neurociencias da Visao',
+                  'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
               onPrint: kIsWeb ? _printReport : null,
               onExport: () => _exportReport(settings, widget.report),
             ),

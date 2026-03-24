@@ -4,15 +4,22 @@ class Patient {
     required this.medicalRecordId,
   });
 
-  final String name;
-  final String medicalRecordId;
-
   factory Patient.initial() {
     return const Patient(
       name: '',
       medicalRecordId: '',
     );
   }
+
+  factory Patient.fromJson(Map<String, dynamic> json) {
+    return Patient(
+      name: json['name']?.toString() ?? '',
+      medicalRecordId: json['medicalRecordId']?.toString() ?? '',
+    );
+  }
+
+  final String name;
+  final String medicalRecordId;
 
   Patient copyWith({
     String? name,
@@ -21,13 +28,6 @@ class Patient {
     return Patient(
       name: name ?? this.name,
       medicalRecordId: medicalRecordId ?? this.medicalRecordId,
-    );
-  }
-
-  factory Patient.fromJson(Map<String, dynamic> json) {
-    return Patient(
-      name: json['name']?.toString() ?? '',
-      medicalRecordId: json['medicalRecordId']?.toString() ?? '',
     );
   }
 

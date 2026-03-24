@@ -1,4 +1,3 @@
-library;
 
 class ChatSession {
   ChatSession({
@@ -11,6 +10,21 @@ class ChatSession {
     this.completedAt,
     this.metadata,
   });
+
+  factory ChatSession.fromJson(Map<String, dynamic> json) {
+    return ChatSession(
+      id: (json['_id'] ?? '').toString(),
+      status: (json['status'] ?? '').toString(),
+      phase: (json['phase'] ?? '').toString(),
+      createdAt: (json['createdAt'] ?? '').toString(),
+      updatedAt: (json['updatedAt'] ?? '').toString(),
+      patientId: json['patientId']?.toString(),
+      completedAt: json['completedAt']?.toString(),
+      metadata: json['metadata'] is Map<String, dynamic>
+          ? Map<String, dynamic>.from(json['metadata'] as Map)
+          : null,
+    );
+  }
 
   final String id;
   final String status;
@@ -37,21 +51,6 @@ class ChatSession {
       patientId: patientId,
       completedAt: completedAt ?? this.completedAt,
       metadata: metadata ?? this.metadata,
-    );
-  }
-
-  factory ChatSession.fromJson(Map<String, dynamic> json) {
-    return ChatSession(
-      id: (json['_id'] ?? '').toString(),
-      status: (json['status'] ?? '').toString(),
-      phase: (json['phase'] ?? '').toString(),
-      createdAt: (json['createdAt'] ?? '').toString(),
-      updatedAt: (json['updatedAt'] ?? '').toString(),
-      patientId: json['patientId']?.toString(),
-      completedAt: json['completedAt']?.toString(),
-      metadata: json['metadata'] is Map<String, dynamic>
-          ? Map<String, dynamic>.from(json['metadata'] as Map)
-          : null,
     );
   }
 

@@ -32,9 +32,13 @@ dependencies:
     sdk: flutter
   design_system_flutter:
     path: ../../packages/design_system_flutter
+  runtime_app_config:
+    path: ../../packages/runtime_app_config
+  runtime_api_url:
+    path: ../../packages/runtime_api_url
   survey_backend_api:
     path: ../../packages/contracts/generated/dart
-  dio: ^5.7.0
+  dio: ^5.9.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -46,9 +50,8 @@ dependencies:
   flutter_html: ^3.0.0-beta.2
   path_provider: ^2.1.1
   path: ^1.8.3
-  universal_html: ^2.2.4
-  web_socket_channel: ^2.4.0
-  js: ^0.6.7
+  web_socket_channel: ^3.0.3
+  web: ^1.0.0
 
 dev_dependencies:
   flutter_test:
