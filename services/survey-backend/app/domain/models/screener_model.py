@@ -1,3 +1,5 @@
+"""Domain models used to validate screener records."""
+
 from datetime import datetime
 import re
 from typing import Optional
@@ -6,9 +8,8 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class ProfessionalCouncil(BaseModel):
-    """
-    Representa o conselho profissional do Screener.
-    """
+    """Professional council metadata associated with a screener."""
+
     type: Optional[str] = Field(None, description="Tipo do conselho profissional (ex: CRP, CRM)")
     registrationNumber: Optional[str] = Field(
         None, description="Número de registro no conselho profissional"
@@ -25,7 +26,7 @@ class ProfessionalCouncil(BaseModel):
             "CREFITO",
             "CREFONO",
             "CRN",
-            "none",  # Allow 'none' for cases without a council
+            "none",  # Explicit opt-out for professions without a council record.
         ]:
             raise ValueError(
                 "Tipo de conselho profissional inválido. "
@@ -45,9 +46,8 @@ class ProfessionalCouncil(BaseModel):
 
 
 class Address(BaseModel):
-    """
-    Representa o endereço profissional do Screener.
-    """
+    """Professional address captured during screener registration."""
+
     postalCode: str = Field(..., description="CEP")
     street: str = Field(..., description="Logradouro")
     number: str = Field(..., description="Número")
@@ -58,9 +58,8 @@ class Address(BaseModel):
 
 
 class ScreenerModel(BaseModel):
-    """
-    Modelo de dados para um Screener.
-    """
+    """Validated screener record stored in MongoDB."""
+
     id: Optional[str] = Field(default=None, alias="_id")
     cpf: str = Field(..., description="CPF do Screener", json_schema_extra={"unique": True})
     firstName: str = Field(..., description="Primeiro nome do Screener")
@@ -83,7 +82,7 @@ class ScreenerModel(BaseModel):
     @field_validator("phone")
     @classmethod
     def validate_phone_number(cls, value):
-        # Basic phone number validation (e.g., only digits, min length)
+        # Keep validation permissive while rejecting clearly malformed values.
         if not value.isdigit() or len(value) < 8:
             raise ValueError("Número de telefone inválido.")
         return value

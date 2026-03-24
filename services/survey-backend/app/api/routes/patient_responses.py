@@ -11,8 +11,10 @@ from app.domain.models.survey_response_model import SurveyResponse
 from app.domain.models.survey_response_with_agent import SurveyResponseWithAgent
 from app.integrations.clinical_writer.client import send_to_langgraph_agent
 from app.integrations.email.service import send_patient_response_email
-from app.persistence.deps import get_patient_response_repo
+from app.persistence.deps import get_patient_response_repo, get_survey_repo
 from app.persistence.repositories.patient_response_repo import PatientResponseRepository
+from app.persistence.repositories.survey_repo import SurveyRepository
+from app.services.survey_prompt_selection import resolve_prompt_key
 
 router = APIRouter()
 
@@ -22,6 +24,7 @@ async def create_patient_response(
     survey_response: SurveyResponse,
     background_tasks: BackgroundTasks,
     repo: PatientResponseRepository = Depends(get_patient_response_repo),
+    survey_repo: SurveyRepository = Depends(get_survey_repo),
 ):
     """
     Create a patient survey response, persist it, trigger an email, and enrich with AI agent output.
@@ -54,15 +57,23 @@ async def create_patient_response(
 
         try:
             logger.info("Sending patient response to LangGraph agent for processing...")
+            resolved_survey = survey_repo.get_by_id(survey_response.survey_id)
+            resolved_prompt_key = resolve_prompt_key(
+                resolved_survey,
+                survey_response.prompt_key,
+            )
             agent_result = await send_to_langgraph_agent(
                 response_payload,
                 input_type="survey7",
-                prompt_key="survey7",  # Explicitly set prompt_key for survey7
+                prompt_key=resolved_prompt_key,
                 source_app="survey-patient",
                 patient_ref=survey_response.patient.email if survey_response.patient else None,
             )
             agent_response = AgentResponse(**agent_result)
             logger.info("Received agent response for patient response %s.", inserted_id)
+        except ValueError as exc:
+            logger.warning("Invalid prompt selection for patient response %s: %s", inserted_id, exc)
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
         except ValidationError as exc:
             logger.error("Invalid data returned by agent for patient response %s: %s", inserted_id, exc)
             agent_response = AgentResponse(error_message="Invalid agent response format")

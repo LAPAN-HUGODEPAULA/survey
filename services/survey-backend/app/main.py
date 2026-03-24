@@ -1,3 +1,5 @@
+"""FastAPI application entrypoint for the survey backend."""
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -9,6 +11,7 @@ from contextlib import asynccontextmanager
 from app.config.logging_config import logger
 from app.config.settings import settings
 from app.api.routes.survey import router as surveys_router
+from app.api.routes.survey_prompts import router as survey_prompts_router
 from app.api.routes.survey_responses import router as survey_results_router
 from app.api.routes.patient_responses import router as patient_results_router
 from app.api.routes.clinical_writer import router as clinical_writer_router
@@ -30,9 +33,10 @@ from app.persistence.repositories.screener_repo import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Initialize service-level dependencies when the API starts."""
     logger.info("Survey Application API started successfully")
 
-    # Initialize System Screener
+    # Ensure the reserved system screener exists before handling requests.
     db = get_db()
     screener_repo = ScreenerRepository(db)
 
@@ -71,6 +75,7 @@ app = FastAPI(
 
 @app.middleware("http")
 async def enforce_https_in_production(request: Request, call_next):
+    """Reject non-HTTPS requests when the app runs behind a production proxy."""
     if settings.is_production:
         forwarded = request.headers.get("forwarded", "")
         forwarded_proto = None
@@ -97,6 +102,7 @@ app.add_middleware(
 )
 
 app.include_router(surveys_router, prefix="/api/v1", tags=["surveys"])
+app.include_router(survey_prompts_router, prefix="/api/v1", tags=["survey_prompts"])
 app.include_router(survey_results_router, prefix="/api/v1", tags=["survey_results"])
 app.include_router(patient_results_router, prefix="/api/v1", tags=["patient_results"])
 app.include_router(clinical_writer_router, prefix="/api/v1", tags=["clinical_writer"])

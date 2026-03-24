@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ScreenerAccessLinkModel(BaseModel):
-    """Vincula um screener autenticado a um questionario compartilhavel."""
+    """Stores a prepared link between a screener identity and a survey."""
 
     id: str = Field(..., alias="_id")
     screener_id: str = Field(..., alias="screenerId")

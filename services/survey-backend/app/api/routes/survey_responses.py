@@ -23,6 +23,7 @@ from app.persistence.repositories.screener_access_link_repo import ScreenerAcces
 from app.persistence.repositories.screener_repo import ScreenerRepository
 from app.persistence.repositories.survey_repo import SurveyRepository
 from app.persistence.repositories.survey_response_repo import SurveyResponseRepository
+from app.services.survey_prompt_selection import resolve_prompt_key
 
 router = APIRouter()
 
@@ -83,15 +84,23 @@ async def create_survey_response(
 
         try:
             logger.info("Sending survey response to LangGraph agent for processing...")
+            resolved_survey = survey_repo.get_by_id(survey_response.survey_id)
+            resolved_prompt_key = resolve_prompt_key(
+                resolved_survey,
+                survey_response.prompt_key,
+            )
             agent_result = await send_to_langgraph_agent(
                 response_payload,
                 input_type="survey7",
-                prompt_key="survey7",  # Explicitly set prompt_key for survey7
+                prompt_key=resolved_prompt_key,
                 source_app="survey-frontend",
                 patient_ref=survey_response.patient.email if survey_response.patient else None,
             )
             agent_response = AgentResponse(**agent_result)
             logger.info("Received agent response for survey %s.", inserted_id)
+        except ValueError as exc:
+            logger.warning("Invalid prompt selection for survey %s: %s", inserted_id, exc)
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
         except ValidationError as exc:
             logger.error("Invalid data returned by agent for survey %s: %s", inserted_id, exc)
             agent_response = AgentResponse(error_message="Invalid agent response format")

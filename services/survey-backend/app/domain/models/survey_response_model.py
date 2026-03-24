@@ -12,6 +12,7 @@ class SurveyResponse(BaseModel):
     test_date: datetime = Field(..., alias="testDate")
     screener_id: str = Field(..., alias="screenerId")
     access_link_token: Optional[str] = Field(default=None, alias="accessLinkToken")
+    prompt_key: Optional[str] = Field(default=None, alias="promptKey")
     patient: Optional[Patient] = None
     answers: List[Answer]
 

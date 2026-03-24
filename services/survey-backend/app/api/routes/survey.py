@@ -1,23 +1,56 @@
 """FastAPI router for managing surveys (create, list, retrieve, update, delete)."""
 
 from typing import List
+from datetime import datetime
 from bson.objectid import ObjectId
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
 from app.config.logging_config import logger
 from app.domain.models.survey_model import Survey
-from app.persistence.deps import get_survey_repo
+from app.domain.models.survey_prompt_model import SurveyPromptAssociation
+from app.persistence.deps import get_survey_prompt_repo, get_survey_repo
+from app.persistence.repositories.survey_prompt_repo import SurveyPromptRepository
 from app.persistence.repositories.survey_repo import SurveyRepository
 
 router = APIRouter()
 
-@router.post("/surveys/", response_model=Survey)
-async def create_survey(survey: Survey, repo: SurveyRepository = Depends(get_survey_repo)):
+
+def _resolve_prompt_associations(
+    survey: Survey,
+    prompt_repo: SurveyPromptRepository,
+) -> list[SurveyPromptAssociation]:
+    """Validate associations against the prompt catalog and normalize stored metadata."""
+    resolved: list[SurveyPromptAssociation] = []
+    for association in survey.prompt_associations:
+        prompt = prompt_repo.get_by_key(association.prompt_key)
+        if not prompt:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=f"Unknown promptKey: {association.prompt_key}",
+            )
+        resolved.append(
+            SurveyPromptAssociation(
+                promptKey=prompt["promptKey"],
+                name=prompt["name"],
+                outcomeType=prompt["outcomeType"],
+            )
+        )
+    return resolved
+
+@router.post("/surveys/", response_model=Survey, status_code=201)
+async def create_survey(
+    survey: Survey,
+    repo: SurveyRepository = Depends(get_survey_repo),
+    prompt_repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
+):
     """Create a new survey and store it in the database."""
     logger.info("Creating new survey: %s (ID: %s)", survey.survey_displayname, survey.id)
     try:
+        survey.prompt_associations = _resolve_prompt_associations(survey, prompt_repo)
         survey_dict = survey.model_dump(by_alias=True)
         new_id = survey.id or str(ObjectId())
         survey_dict["_id"] = new_id
@@ -33,6 +66,8 @@ async def create_survey(survey: Survey, repo: SurveyRepository = Depends(get_sur
         logger.info("Successfully created survey: %s with MongoDB ID: %s", survey.id, created.get("_id"))
         return Survey(**created)
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error("Unexpected error creating survey %s: %s", survey.id, e)
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
@@ -63,6 +98,21 @@ async def get_surveys(repo: SurveyRepository = Depends(get_survey_repo)):
         logger.error("Unexpected error fetching surveys: %s", e)
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
 
+@router.get("/surveys/export")
+async def export_surveys(repo: SurveyRepository = Depends(get_survey_repo)):
+    """Export all surveys as a JSON file."""
+    logger.info("Exporting all surveys")
+    try:
+        surveys = repo.list_all()
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        headers = {
+            "Content-Disposition": f'attachment; filename="surveys_export_{timestamp}.json"'
+        }
+        return JSONResponse(content=jsonable_encoder(surveys), headers=headers)
+    except Exception as e:
+        logger.error("Unexpected error exporting surveys: %s", e)
+        raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
+
 @router.get("/surveys/{survey_id}", response_model=Survey)
 async def get_survey(survey_id: str, repo: SurveyRepository = Depends(get_survey_repo)):
     """Return a single survey by its ID."""
@@ -85,11 +135,15 @@ async def get_survey(survey_id: str, repo: SurveyRepository = Depends(get_survey
 
 @router.put("/surveys/{survey_id}", response_model=Survey)
 async def update_survey(
-    survey_id: str, survey: Survey, repo: SurveyRepository = Depends(get_survey_repo)
+    survey_id: str,
+    survey: Survey,
+    repo: SurveyRepository = Depends(get_survey_repo),
+    prompt_repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
 ):
     """Update an existing survey."""
     logger.info("Updating survey with ID: %s", survey_id)
     try:
+        survey.prompt_associations = _resolve_prompt_associations(survey, prompt_repo)
         updated_survey = repo.update(survey_id, survey.model_dump(by_alias=True))
 
         if updated_survey:

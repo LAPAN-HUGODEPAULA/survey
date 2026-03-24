@@ -1,3 +1,5 @@
+"""Authentication and profile endpoints for screener accounts."""
+
 from datetime import datetime, timedelta
 import secrets
 import string
@@ -19,8 +21,9 @@ from app.domain.models.screener_model import ScreenerModel, Address, Professiona
 
 router = APIRouter()
 
-# Pydantic model for Screener registration request
 class ScreenerRegister(BaseModel):
+    """Payload required to register a screener account."""
+
     cpf: str = Field(..., description="CPF do Screener")
     firstName: str = Field(..., description="Primeiro nome do Screener")
     surname: str = Field(..., description="Sobrenome do Screener")
@@ -66,9 +69,9 @@ class ScreenerRegister(BaseModel):
         }
     )
 
-
-# Pydantic model for Screener login request
 class ScreenerLogin(BaseModel):
+    """Credentials used to exchange email and password for an access token."""
+
     email: EmailStr = Field(..., description="Endereço de e-mail do Screener")
     password: str = Field(..., description="Senha do Screener")
 
@@ -81,14 +84,16 @@ class ScreenerLogin(BaseModel):
         }
     )
 
-
-# Pydantic model for JWT token response
 class Token(BaseModel):
+    """JWT bearer token returned after successful authentication."""
+
     access_token: str
     token_type: str
 
 
 class ScreenerProfile(BaseModel):
+    """Public screener profile returned to clients after authentication."""
+
     id: str = Field(..., alias="_id")
     cpf: str
     firstName: str
@@ -105,6 +110,7 @@ class ScreenerProfile(BaseModel):
 
 
 def _get_email_from_authorization_header(authorization: Optional[str]) -> str:
+    """Extract and validate the JWT subject from the Authorization header."""
     if not authorization:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     scheme, _, token = authorization.partition(" ")
@@ -124,21 +130,19 @@ def _get_email_from_authorization_header(authorization: Optional[str]) -> str:
 async def register_screener(
     screener_data: ScreenerRegister, repo: ScreenerRepository = Depends(get_screener_repo)
 ):
-    """
-    Registers a new screener in the system.
-    """
+    """Create a new screener account and return the public profile."""
     logger.info("Attempting to register new screener with email: %s", screener_data.email)
 
-    # Hash the password
+    # Persist only the bcrypt hash so repositories never handle raw passwords.
     hashed_password = bcrypt.hashpw(screener_data.password.encode('utf-8'), bcrypt.gensalt())
 
-    # Create a ScreenerModel instance
+    # Build a validated domain model before the repository writes to MongoDB.
     new_screener = ScreenerModel(
         cpf=screener_data.cpf,
         firstName=screener_data.firstName,
         surname=screener_data.surname,
         email=screener_data.email,
-        password=hashed_password.decode('utf-8'),  # Store the hashed password as string
+        password=hashed_password.decode('utf-8'),  # Mongo stores UTF-8 strings, not bytes.
         phone=screener_data.phone,
         address=screener_data.address,
         professionalCouncil=screener_data.professionalCouncil,
@@ -170,9 +174,7 @@ async def register_screener(
 async def login_for_access_token(
     screener_data: ScreenerLogin, repo: ScreenerRepository = Depends(get_screener_repo)
 ):
-    """
-    Authenticates a screener and returns an access token.
-    """
+    """Validate screener credentials and issue a JWT bearer token."""
     logger.info("Attempting to log in screener with email: %s", screener_data.email)
 
     screener = repo.find_by_email(screener_data.email)
@@ -183,7 +185,7 @@ async def login_for_access_token(
             detail="Credenciais inválidas."
         )
 
-    # Verify password
+    # Compare the submitted password against the stored bcrypt hash.
     if not bcrypt.checkpw(screener_data.password.encode('utf-8'), screener.password.encode('utf-8')):
         logger.warning("Authentication failed: Incorrect password for screener %s.", screener_data.email)
         raise HTTPException(
@@ -191,7 +193,7 @@ async def login_for_access_token(
             detail="Credenciais inválidas."
         )
 
-    # Generate JWT token
+    # Use the screener email as the JWT subject for downstream identity checks.
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode = {"sub": screener.email}
     expire = datetime.utcnow() + access_token_expires
@@ -201,9 +203,9 @@ async def login_for_access_token(
     logger.info("Screener %s logged in successfully.", screener_data.email)
     return {"access_token": encoded_jwt, "token_type": "bearer"}
 
-
-# Pydantic model for password recovery request
 class ScreenerPasswordRecoveryRequest(BaseModel):
+    """Request payload for password recovery emails."""
+
     email: EmailStr = Field(..., description="Endereço de e-mail do Screener para recuperação de senha")
 
     model_config = ConfigDict(
@@ -220,22 +222,20 @@ async def recover_password(
     recovery_request: ScreenerPasswordRecoveryRequest,
     repo: ScreenerRepository = Depends(get_screener_repo)
 ):
-    """
-    Generates a new random password for the screener and sends it to their registered email.
-    """
+    """Rotate the screener password and send the replacement by email."""
     logger.info("Attempting to recover password for screener with email: %s", recovery_request.email)
 
     screener = repo.find_by_email(recovery_request.email)
     if not screener:
-        # For security reasons, respond generically even if email not found
+        # Return the same message for unknown emails to avoid account enumeration.
         logger.warning("Password recovery requested for unknown email: %s", recovery_request.email)
         return {"message": "Se o e-mail estiver registrado, uma nova senha será enviada."}
 
-    # Generate a new random password
+    # Use a temporary random password so the user can regain access quickly.
     new_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(12))
     hashed_new_password = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
 
-    # Update screener's password in the database
+    # Persist the rotated hash before attempting outbound email delivery.
     updated_screener = repo.update(
         screener_id=str(screener.id),
         data_to_update={"password": hashed_new_password.decode('utf-8')}
@@ -248,7 +248,7 @@ async def recover_password(
             detail="Erro ao redefinir a senha."
         )
 
-    # Send new password to email
+    # Email delivery is optional in local setups, so fail soft when unavailable.
     mail_client = get_mail_client()
     if mail_client is None:
         logger.warning(
@@ -282,6 +282,7 @@ async def get_current_screener(
     authorization: Optional[str] = Header(default=None, alias="Authorization"),
     repo: ScreenerRepository = Depends(get_screener_repo),
 ):
+    """Return the public profile for the currently authenticated screener."""
     email = _get_email_from_authorization_header(authorization)
     screener = repo.find_by_email(email)
     if not screener or not screener.id:

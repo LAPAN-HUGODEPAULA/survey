@@ -15,12 +15,12 @@ class SurveyRepository:
         return [self._normalize(x) for x in self._col.find()]
 
     def get_by_id(self, survey_id: str) -> dict | None:
-        query = {"_id": ObjectId(survey_id)}
+        query = self._build_id_query(survey_id)
         found = self._col.find_one(query)
         return self._normalize(found) if found else None
 
     def update(self, survey_id: str, survey_data: dict) -> dict | None:
-        query = {"_id": ObjectId(survey_id)}
+        query = self._build_id_query(survey_id)
         # Remove _id from survey_data if present, as it should not be updated
         survey_data.pop("_id", None)
         self._col.update_one(query, {"$set": survey_data})
@@ -28,9 +28,16 @@ class SurveyRepository:
         return self._normalize(updated) if updated else None
 
     def delete(self, survey_id: str) -> bool:
-        query = {"_id": ObjectId(survey_id)}
+        query = self._build_id_query(survey_id)
         result = self._col.delete_one(query)
         return result.deleted_count > 0
+
+    def _build_id_query(self, survey_id: str) -> dict[str, Any]:
+        try:
+            object_id = ObjectId(survey_id)
+        except Exception:
+            return {"_id": survey_id}
+        return {"_id": {"$in": [object_id, survey_id]}}
 
     def _normalize(self, doc: dict | None) -> dict:
         if not doc:

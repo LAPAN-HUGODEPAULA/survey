@@ -49,6 +49,20 @@ class SurveyResponseModelTests(unittest.TestCase):
         self.assertEqual(response.access_link_token, "token-123")
         self.assertIsNotNone(response.patient)
 
+    def test_allows_optional_prompt_key(self) -> None:
+        payload = {
+            "surveyId": "survey-1",
+            "creatorId": "creator-1",
+            "testDate": datetime.now(timezone.utc).isoformat(),
+            "screenerId": "screener-1",
+            "promptKey": "clinical_referral_letter:lapan7",
+            "answers": [{"id": 1, "answer": "A"}],
+        }
+
+        response = SurveyResponse.model_validate(payload)
+
+        self.assertEqual(response.prompt_key, "clinical_referral_letter:lapan7")
+
 
 if __name__ == "__main__":
     unittest.main()
