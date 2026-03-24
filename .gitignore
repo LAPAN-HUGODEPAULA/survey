@@ -130,6 +130,9 @@ build/
 *.class
 .buildlog/
 
+# MongoDB operational exports
+tools/migrations/survey-backend/exports/
+
 # Firebase configuration files / Google Services (e.g. APIs or Firebase)
 ios/Runner/GoogleService-Info.plist
 android/app/google-services.json

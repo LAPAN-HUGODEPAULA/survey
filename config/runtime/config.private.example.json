@@ -1,0 +1,62 @@
+{
+  "public": {
+    "surveyFrontend": {
+      "apiBaseUrl": "/api/v1",
+      "viaCepBaseUrl": "https://viacep.com.br/"
+    },
+    "surveyPatient": {
+      "apiBaseUrl": "/api/v1"
+    },
+    "surveyBuilder": {
+      "apiBaseUrl": "/api/v1"
+    },
+    "clinicalNarrative": {
+      "apiBaseUrl": "/api/v1"
+    }
+  },
+  "private": {
+    "mongo": {
+      "initdbRootUsername": "lapan",
+      "initdbRootPassword": "change-me",
+      "username": "lapan",
+      "password": "change-me",
+      "host": "mongodb",
+      "uri": "mongodb://lapan:change-me@mongodb:27017/",
+      "uriAtlas": "mongodb://lapan:change-me@mongodb:27017/",
+      "uriTemplate": "mongodb+srv://{mongo_username}:{mongo_password}@{mongo_host}/?retryWrites=true&w=majority&appName=Lapan&tls=true",
+      "dbName": "survey_db"
+    },
+    "mail": {
+      "username": "user@example.com",
+      "password": "change-me",
+      "server": "smtp.gmail.com",
+      "port": 587
+    },
+    "backend": {
+      "environment": "development",
+      "myCustomEnv": "production",
+      "clinicalWriterUrl": "http://clinical_writer_agent:8000/process",
+      "clinicalWriterApiToken": "",
+      "clinicalWriterTranscriptionUrl": "",
+      "secretKey": "super-secret-key",
+      "algorithm": "HS256",
+      "accessTokenExpireMinutes": 30,
+      "templateAdminEmails": [],
+      "privacyAdminToken": "dev-privacy-token",
+      "encryptionKeyId": "",
+      "encryptionProvider": "",
+      "langgraphUrl": "",
+      "langgraphApiToken": "",
+      "langgraphAnalysisUrl": "",
+      "langgraphTranscriptionUrl": ""
+    },
+    "worker": {
+      "pollIntervalSeconds": 10,
+      "batchSize": 10,
+      "httpTimeoutSeconds": 15
+    },
+    "deployment": {
+      "letsencryptEmail": "ops@example.com"
+    }
+  }
+}
