@@ -61,15 +61,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
   @override
   void initState() {
     super.initState();
-    final promptAssociations = widget.survey.promptAssociations;
-    if (promptAssociations.length <= 1) {
-      _selectedPromptKey = promptAssociations.isEmpty
-          ? null
-          : promptAssociations.first.promptKey;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _submitResponse();
-      });
-    }
+    _selectedPromptKey = widget.survey.prompt?.promptKey;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _submitResponse();
+    });
   }
 
   List<Answer> _buildAnswers() {
@@ -463,7 +458,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<AppSettings>(context);
-    final promptAssociations = widget.survey.promptAssociations;
     final reportDocument = _agentResponse == null
         ? null
         : _resolveReportDocument(settings, _agentResponse!);
@@ -490,53 +484,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
                   const Text(
                     'Salvando respostas...',
                     style: TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 24),
-                ] else if (!_saveSuccess && promptAssociations.length > 1) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Escolha o tipo de relatório',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<String>(
-                          initialValue: _selectedPromptKey,
-                          decoration: const InputDecoration(
-                            labelText: 'Resultado desejado',
-                          ),
-                          items: promptAssociations
-                              .map(
-                                (prompt) => DropdownMenuItem<String>(
-                                  value: prompt.promptKey,
-                                  child: Text(prompt.name),
-                                ),
-                              )
-                              .toList(growable: false),
-                          onChanged: (value) {
-                            setState(() => _selectedPromptKey = value);
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        DsFilledButton(
-                          label: 'Gerar relatório',
-                          onPressed: _selectedPromptKey == null
-                              ? null
-                              : _submitResponse,
-                        ),
-                      ],
-                    ),
                   ),
                   const SizedBox(height: 24),
                 ] else if (_saveSuccess) ...[

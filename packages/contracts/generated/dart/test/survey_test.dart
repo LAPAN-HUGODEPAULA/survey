@@ -57,8 +57,8 @@ void main() {
       // TODO
     });
 
-    // BuiltList<SurveyPromptAssociation> promptAssociations
-    test('to test the property `promptAssociations`', () async {
+    // SurveyPromptReference prompt
+    test('to test the property `prompt`', () async {
       // TODO
     });
 

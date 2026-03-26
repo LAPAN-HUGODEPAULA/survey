@@ -51,8 +51,7 @@ import 'package:survey_backend_api/src/model/screener_profile.dart';
 import 'package:survey_backend_api/src/model/screener_register.dart';
 import 'package:survey_backend_api/src/model/survey.dart';
 import 'package:survey_backend_api/src/model/survey_prompt.dart';
-import 'package:survey_backend_api/src/model/survey_prompt_association.dart';
-import 'package:survey_backend_api/src/model/survey_prompt_outcome_type.dart';
+import 'package:survey_backend_api/src/model/survey_prompt_reference.dart';
 import 'package:survey_backend_api/src/model/survey_prompt_upsert.dart';
 import 'package:survey_backend_api/src/model/survey_response.dart';
 import 'package:survey_backend_api/src/model/survey_response_with_agent.dart';
@@ -107,8 +106,7 @@ part 'serializers.g.dart';
   ScreenerRegister,
   Survey,
   SurveyPrompt,
-  SurveyPromptAssociation,
-  SurveyPromptOutcomeType,
+  SurveyPromptReference,
   SurveyPromptUpsert,$SurveyPromptUpsert,
   SurveyResponse,$SurveyResponse,
   SurveyResponseWithAgent,
@@ -157,8 +155,8 @@ Serializers serializers = (_$serializers.toBuilder()
       ..add(const OneOfSerializer())
       ..add(const AnyOfSerializer())
       ..add(const DateSerializer())
-      ..add(Iso8601DateTimeSerializer())
-    ).build();
+      ..add(Iso8601DateTimeSerializer()))
+    .build();
 
 Serializers standardSerializers =
     (serializers.toBuilder()..addPlugin(StandardJsonPlugin())).build();

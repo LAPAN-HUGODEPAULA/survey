@@ -17,11 +17,6 @@ void main() {
       // TODO
     });
 
-    // SurveyPromptOutcomeType outcomeType
-    test('to test the property `outcomeType`', () async {
-      // TODO
-    });
-
     // String promptText
     test('to test the property `promptText`', () async {
       // TODO

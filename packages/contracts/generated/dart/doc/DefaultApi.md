@@ -71,7 +71,7 @@ final ClinicalWriterAnalysisRequest clinicalWriterAnalysisRequest = ; // Clinica
 try {
     final response = api.analyzeClinicalWriter(clinicalWriterAnalysisRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->analyzeClinicalWriter: $e\n');
 }
 ```
@@ -112,7 +112,7 @@ final String templateId = templateId_example; // String |
 try {
     final response = api.approveTemplate(templateId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->approveTemplate: $e\n');
 }
 ```
@@ -153,7 +153,7 @@ final String templateId = templateId_example; // String |
 try {
     final response = api.archiveTemplate(templateId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->archiveTemplate: $e\n');
 }
 ```
@@ -194,7 +194,7 @@ final String sessionId = sessionId_example; // String |
 try {
     final response = api.completeChatSession(sessionId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->completeChatSession: $e\n');
 }
 ```
@@ -236,7 +236,7 @@ final ChatMessageCreate chatMessageCreate = ; // ChatMessageCreate |
 try {
     final response = api.createChatMessage(sessionId, chatMessageCreate);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createChatMessage: $e\n');
 }
 ```
@@ -278,7 +278,7 @@ final ChatSessionCreate chatSessionCreate = ; // ChatSessionCreate |
 try {
     final response = api.createChatSession(chatSessionCreate);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createChatSession: $e\n');
 }
 ```
@@ -319,7 +319,7 @@ final SurveyResponse surveyResponse = ; // SurveyResponse |
 try {
     final response = api.createPatientResponse(surveyResponse);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createPatientResponse: $e\n');
 }
 ```
@@ -361,7 +361,7 @@ final CreateScreenerAccessLinkRequest createScreenerAccessLinkRequest = ; // Cre
 try {
     final response = api.createScreenerAccessLink(authorization, createScreenerAccessLinkRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createScreenerAccessLink: $e\n');
 }
 ```
@@ -403,7 +403,7 @@ final Survey survey = ; // Survey |
 try {
     final response = api.createSurvey(survey);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createSurvey: $e\n');
 }
 ```
@@ -444,7 +444,7 @@ final SurveyPromptUpsert surveyPromptUpsert = ; // SurveyPromptUpsert |
 try {
     final response = api.createSurveyPrompt(surveyPromptUpsert);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createSurveyPrompt: $e\n');
 }
 ```
@@ -485,7 +485,7 @@ final SurveyResponse surveyResponse = ; // SurveyResponse |
 try {
     final response = api.createSurveyResponse(surveyResponse);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createSurveyResponse: $e\n');
 }
 ```
@@ -526,7 +526,7 @@ final TemplateCreateRequest templateCreateRequest = ; // TemplateCreateRequest |
 try {
     final response = api.createTemplate(templateCreateRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createTemplate: $e\n');
 }
 ```
@@ -566,7 +566,7 @@ final String surveyId = surveyId_example; // String |
 
 try {
     api.deleteSurvey(surveyId);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->deleteSurvey: $e\n');
 }
 ```
@@ -606,7 +606,7 @@ final String promptKey = promptKey_example; // String |
 
 try {
     api.deleteSurveyPrompt(promptKey);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->deleteSurveyPrompt: $e\n');
 }
 ```
@@ -647,7 +647,7 @@ final DocumentExportRequest documentExportRequest = ; // DocumentExportRequest |
 try {
     final response = api.exportDocument(documentExportRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->exportDocument: $e\n');
 }
 ```
@@ -687,7 +687,7 @@ final api = SurveyBackendApi().getDefaultApi();
 try {
     final response = api.exportSurveys();
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->exportSurveys: $e\n');
 }
 ```
@@ -725,7 +725,7 @@ final String sessionId = sessionId_example; // String |
 try {
     final response = api.getChatSession(sessionId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->getChatSession: $e\n');
 }
 ```
@@ -766,7 +766,7 @@ final String authorization = authorization_example; // String | Bearer token in 
 try {
     final response = api.getCurrentScreener(authorization);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->getCurrentScreener: $e\n');
 }
 ```
@@ -807,7 +807,7 @@ final String documentId = documentId_example; // String |
 try {
     final response = api.getDocument(documentId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->getDocument: $e\n');
 }
 ```
@@ -848,7 +848,7 @@ final String surveyId = surveyId_example; // String |
 try {
     final response = api.getSurvey(surveyId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->getSurvey: $e\n');
 }
 ```
@@ -889,7 +889,7 @@ final String promptKey = promptKey_example; // String |
 try {
     final response = api.getSurveyPrompt(promptKey);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->getSurveyPrompt: $e\n');
 }
 ```
@@ -930,7 +930,7 @@ final String responseId = responseId_example; // String |
 try {
     final response = api.getSurveyResponse(responseId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->getSurveyResponse: $e\n');
 }
 ```
@@ -971,7 +971,7 @@ final String templateId = templateId_example; // String |
 try {
     final response = api.getTemplate(templateId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->getTemplate: $e\n');
 }
 ```
@@ -1012,7 +1012,7 @@ final String sessionId = sessionId_example; // String |
 try {
     final response = api.listChatMessages(sessionId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->listChatMessages: $e\n');
 }
 ```
@@ -1053,7 +1053,7 @@ final String status = status_example; // String |
 try {
     final response = api.listChatSessions(status);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->listChatSessions: $e\n');
 }
 ```
@@ -1093,7 +1093,7 @@ final api = SurveyBackendApi().getDefaultApi();
 try {
     final response = api.listSurveyPrompts();
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->listSurveyPrompts: $e\n');
 }
 ```
@@ -1130,7 +1130,7 @@ final api = SurveyBackendApi().getDefaultApi();
 try {
     final response = api.listSurveyResponses();
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->listSurveyResponses: $e\n');
 }
 ```
@@ -1167,7 +1167,7 @@ final api = SurveyBackendApi().getDefaultApi();
 try {
     final response = api.listSurveys();
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->listSurveys: $e\n');
 }
 ```
@@ -1204,7 +1204,7 @@ final api = SurveyBackendApi().getDefaultApi();
 try {
     final response = api.listTemplateDocumentTypes();
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->listTemplateDocumentTypes: $e\n');
 }
 ```
@@ -1244,7 +1244,7 @@ final bool includeAll = true; // bool |
 try {
     final response = api.listTemplates(documentType, q, includeAll);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->listTemplates: $e\n');
 }
 ```
@@ -1287,7 +1287,7 @@ final ScreenerLogin screenerLogin = ; // ScreenerLogin |
 try {
     final response = api.loginScreener(screenerLogin);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->loginScreener: $e\n');
 }
 ```
@@ -1328,7 +1328,7 @@ final DocumentPreviewRequest documentPreviewRequest = ; // DocumentPreviewReques
 try {
     final response = api.previewDocument(documentPreviewRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->previewDocument: $e\n');
 }
 ```
@@ -1370,7 +1370,7 @@ final TemplatePreviewRequest templatePreviewRequest = ; // TemplatePreviewReques
 try {
     final response = api.previewTemplate(templateId, templatePreviewRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->previewTemplate: $e\n');
 }
 ```
@@ -1412,7 +1412,7 @@ final ClinicalWriterRequest clinicalWriterRequest = ; // ClinicalWriterRequest |
 try {
     final response = api.processClinicalWriter(clinicalWriterRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->processClinicalWriter: $e\n');
 }
 ```
@@ -1453,7 +1453,7 @@ final TemplateDocumentType documentType = ; // TemplateDocumentType |
 try {
     final response = api.recommendTemplates(documentType);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->recommendTemplates: $e\n');
 }
 ```
@@ -1493,7 +1493,7 @@ final ScreenerPasswordRecoveryRequest screenerPasswordRecoveryRequest = ; // Scr
 
 try {
     api.recoverScreenerPassword(screenerPasswordRecoveryRequest);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->recoverScreenerPassword: $e\n');
 }
 ```
@@ -1534,7 +1534,7 @@ final ScreenerRegister screenerRegister = ; // ScreenerRegister |
 try {
     final response = api.registerScreener(screenerRegister);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->registerScreener: $e\n');
 }
 ```
@@ -1574,7 +1574,7 @@ final String responseId = responseId_example; // String |
 
 try {
     api.resendSurveyEmail(responseId);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->resendSurveyEmail: $e\n');
 }
 ```
@@ -1615,7 +1615,7 @@ final String token = token_example; // String |
 try {
     final response = api.resolveScreenerAccessLink(token);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->resolveScreenerAccessLink: $e\n');
 }
 ```
@@ -1656,7 +1656,7 @@ final TranscriptionRequest transcriptionRequest = ; // TranscriptionRequest |
 try {
     final response = api.transcribeVoiceAudio(transcriptionRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->transcribeVoiceAudio: $e\n');
 }
 ```
@@ -1698,7 +1698,7 @@ final ChatMessageUpdate chatMessageUpdate = ; // ChatMessageUpdate |
 try {
     final response = api.updateChatMessage(messageId, chatMessageUpdate);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->updateChatMessage: $e\n');
 }
 ```
@@ -1741,7 +1741,7 @@ final ChatSessionUpdate chatSessionUpdate = ; // ChatSessionUpdate |
 try {
     final response = api.updateChatSession(sessionId, chatSessionUpdate);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->updateChatSession: $e\n');
 }
 ```
@@ -1784,7 +1784,7 @@ final Survey survey = ; // Survey |
 try {
     final response = api.updateSurvey(surveyId, survey);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->updateSurvey: $e\n');
 }
 ```
@@ -1827,7 +1827,7 @@ final SurveyPromptUpsert surveyPromptUpsert = ; // SurveyPromptUpsert |
 try {
     final response = api.updateSurveyPrompt(promptKey, surveyPromptUpsert);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->updateSurveyPrompt: $e\n');
 }
 ```
@@ -1870,7 +1870,7 @@ final TemplateUpdateRequest templateUpdateRequest = ; // TemplateUpdateRequest |
 try {
     final response = api.updateTemplate(templateId, templateUpdateRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->updateTemplate: $e\n');
 }
 ```

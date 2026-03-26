@@ -1,11 +1,37 @@
-# Proposal: Add Survey Builder Application
+# Change: Add Survey Builder Application
 
-This proposal outlines the creation of a new Flutter application, "survey-builder," dedicated to the management of surveys. This application will provide administrators or researchers with the ability to create, view, update, and delete surveys directly within the LAPAN Survey Platform ecosystem.
+## Why
 
-The primary goal is to offer a seamless and integrated experience for survey management, leveraging the existing design system to ensure UI/UX consistency with other platform applications.
+The current multi-prompt model introduces complexity without product value:
 
-This change will involve:
-1.  Creating a new Flutter project for the `survey-builder` application.
-2.  Developing the necessary UI screens for survey CRUD operations (List, Edit/Create, View).
-3.  Extending the backend API (`survey-backend`) with new endpoints to support survey management.
-4.  Integrating the new app with the backend via the generated API client.
+- It allows questionnaires to store more than one prompt even though the questionnaire flow now needs only one AI prompt.
+- It requires prompt-type metadata and outcome-selection behavior that are no longer needed.
+- It makes the API and UI harder to reason about because clients must handle prompt ordering, multiplicity, and validation rules that no longer reflect the intended behavior.
+
+Using a single nullable prompt reference keeps the survey contract aligned with the actual product flow:
+
+- A survey may have no AI prompt configured yet.
+- A survey may reference exactly one reusable prompt when AI generation is desired.
+- Report-generation flows can resolve that prompt automatically without prompting the user to choose an outcome.
+
+## What Changes
+
+- Create the `survey-builder` Flutter application for survey CRUD workflows.
+- Extend `survey-backend` with survey management endpoints and the supporting contract updates.
+- Replace survey `promptAssociations` with a single nullable `prompt` reference.
+- Remove `outcomeType` from reusable survey prompt definitions and questionnaire configuration.
+- Update report-generation flows so they automatically use the configured questionnaire prompt when present.
+- Regenerate the Dart client to match the updated survey and prompt contracts.
+
+## Impact
+
+- Affected specs:
+  - `backend-survey-management`
+  - `frontend-survey-builder`
+  - `survey-prompt-management`
+  - `survey-report-prompt-selection`
+- Affected systems:
+  - `apps/survey-builder`
+  - `services/survey-backend`
+  - `packages/contracts/survey-backend.openapi.yaml`
+  - `packages/contracts/generated/dart`

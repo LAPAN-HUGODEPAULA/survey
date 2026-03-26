@@ -56,3 +56,49 @@ To ensure a cohesive user experience across the entire LAPAN Survey Platform, th
 -   **Given** the `survey-builder` application is launched
 -   **Then** the UI components, colors, and fonts MUST be consistent with the shared `design_system_flutter` package.
 -   **And** the primary color scheme SHOULD be based on `Colors.orange`, consistent with the other apps.
+
+### Requirement: The system MUST provide a user interface for managing reusable survey prompts.
+
+The system MUST provide a user interface for managing reusable survey prompts.
+
+Reusable prompts remain cataloged in `survey-builder`, but the catalog no longer includes prompt types because questionnaires now reference at most one prompt.
+
+This is required to keep prompt administration reusable without forcing the user to maintain metadata that no longer changes questionnaire behavior.
+
+#### Scenario: User creates a reusable prompt
+- **Given** the user is managing reusable survey prompts in `survey-builder`
+- **When** they submit a prompt name, `promptKey`, and prompt text
+- **Then** the application MUST create the prompt through the backend API
+- **And** it MUST show the saved prompt in the prompt catalog
+
+#### Scenario: User edits a reusable prompt
+- **Given** a reusable prompt already exists
+- **When** the user changes its metadata or prompt text and saves
+- **Then** the application MUST update the prompt through the backend API
+- **And** it MUST show the updated prompt details in the prompt catalog
+
+#### Scenario: Prompt forms do not expose prompt types
+- **Given** the user is creating or editing a reusable prompt
+- **When** the prompt form is shown
+- **Then** the application MUST NOT display any `outcomeType` or prompt-type selector
+
+### Requirement: The system MUST allow users to configure a single nullable prompt reference while editing a survey.
+
+The survey form MUST allow the user to choose zero or one reusable prompt for the questionnaire. The field is nullable because not every survey needs AI generation at creation time, and it is singular because the questionnaire no longer supports multiple prompt outcomes.
+
+#### Scenario: User selects one prompt for a survey
+- **Given** the user is editing a survey in `survey-builder`
+- **And** reusable prompts exist in the prompt catalog
+- **When** the user selects a prompt and saves the survey
+- **Then** the application MUST include that single `prompt` reference in the survey create or update request
+- **And** it MUST preserve that prompt when the survey is reopened for editing
+
+#### Scenario: User leaves the survey without a prompt
+- **Given** the user is creating or editing a survey
+- **When** they leave the prompt selector empty and save
+- **Then** the application MUST persist `prompt` as `null`
+
+#### Scenario: User clears an existing prompt
+- **Given** the survey already has a configured prompt
+- **When** the user clears the prompt selection and saves
+- **Then** the application MUST update the survey so its `prompt` becomes `null`

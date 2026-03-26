@@ -1,12 +1,12 @@
 import 'package:test/test.dart';
 import 'package:survey_backend_api/survey_backend_api.dart';
 
-// tests for SurveyPromptAssociation
+// tests for SurveyPromptReference
 void main() {
-  final instance = SurveyPromptAssociationBuilder();
+  final instance = SurveyPromptReferenceBuilder();
   // TODO add properties to the builder and call build()
 
-  group(SurveyPromptAssociation, () {
+  group(SurveyPromptReference, () {
     // String promptKey
     test('to test the property `promptKey`', () async {
       // TODO
@@ -14,11 +14,6 @@ void main() {
 
     // String name
     test('to test the property `name`', () async {
-      // TODO
-    });
-
-    // SurveyPromptOutcomeType outcomeType
-    test('to test the property `outcomeType`', () async {
       // TODO
     });
 

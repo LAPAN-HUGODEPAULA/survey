@@ -3,51 +3,45 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:survey_backend_api/src/model/survey_prompt_outcome_type.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
-part 'survey_prompt_association.g.dart';
+part 'survey_prompt_reference.g.dart';
 
-/// SurveyPromptAssociation
+/// SurveyPromptReference
 ///
 /// Properties:
 /// * [promptKey] 
 /// * [name] 
-/// * [outcomeType] 
 @BuiltValue()
-abstract class SurveyPromptAssociation implements Built<SurveyPromptAssociation, SurveyPromptAssociationBuilder> {
+abstract class SurveyPromptReference implements Built<SurveyPromptReference, SurveyPromptReferenceBuilder> {
   @BuiltValueField(wireName: r'promptKey')
   String get promptKey;
 
   @BuiltValueField(wireName: r'name')
   String get name;
 
-  @BuiltValueField(wireName: r'outcomeType')
-  SurveyPromptOutcomeType get outcomeType;
-  // enum outcomeTypeEnum {  patient_condition_overview,  clinical_diagnostic_report,  clinical_referral_letter,  parental_guidance,  educational_support_summary,  };
+  SurveyPromptReference._();
 
-  SurveyPromptAssociation._();
-
-  factory SurveyPromptAssociation([void updates(SurveyPromptAssociationBuilder b)]) = _$SurveyPromptAssociation;
+  factory SurveyPromptReference([void updates(SurveyPromptReferenceBuilder b)]) = _$SurveyPromptReference;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(SurveyPromptAssociationBuilder b) => b;
+  static void _defaults(SurveyPromptReferenceBuilder b) => b;
 
   @BuiltValueSerializer(custom: true)
-  static Serializer<SurveyPromptAssociation> get serializer => _$SurveyPromptAssociationSerializer();
+  static Serializer<SurveyPromptReference> get serializer => _$SurveyPromptReferenceSerializer();
 }
 
-class _$SurveyPromptAssociationSerializer implements PrimitiveSerializer<SurveyPromptAssociation> {
+class _$SurveyPromptReferenceSerializer implements PrimitiveSerializer<SurveyPromptReference> {
   @override
-  final Iterable<Type> types = const [SurveyPromptAssociation, _$SurveyPromptAssociation];
+  final Iterable<Type> types = const [SurveyPromptReference, _$SurveyPromptReference];
 
   @override
-  final String wireName = r'SurveyPromptAssociation';
+  final String wireName = r'SurveyPromptReference';
 
   Iterable<Object?> _serializeProperties(
     Serializers serializers,
-    SurveyPromptAssociation object, {
+    SurveyPromptReference object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
     yield r'promptKey';
@@ -60,17 +54,12 @@ class _$SurveyPromptAssociationSerializer implements PrimitiveSerializer<SurveyP
       object.name,
       specifiedType: const FullType(String),
     );
-    yield r'outcomeType';
-    yield serializers.serialize(
-      object.outcomeType,
-      specifiedType: const FullType(SurveyPromptOutcomeType),
-    );
   }
 
   @override
   Object serialize(
     Serializers serializers,
-    SurveyPromptAssociation object, {
+    SurveyPromptReference object, {
     FullType specifiedType = FullType.unspecified,
   }) {
     return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
@@ -81,7 +70,7 @@ class _$SurveyPromptAssociationSerializer implements PrimitiveSerializer<SurveyP
     Object serialized, {
     FullType specifiedType = FullType.unspecified,
     required List<Object?> serializedList,
-    required SurveyPromptAssociationBuilder result,
+    required SurveyPromptReferenceBuilder result,
     required List<Object?> unhandled,
   }) {
     for (var i = 0; i < serializedList.length; i += 2) {
@@ -102,13 +91,6 @@ class _$SurveyPromptAssociationSerializer implements PrimitiveSerializer<SurveyP
           ) as String;
           result.name = valueDes;
           break;
-        case r'outcomeType':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(SurveyPromptOutcomeType),
-          ) as SurveyPromptOutcomeType;
-          result.outcomeType = valueDes;
-          break;
         default:
           unhandled.add(key);
           unhandled.add(value);
@@ -118,12 +100,12 @@ class _$SurveyPromptAssociationSerializer implements PrimitiveSerializer<SurveyP
   }
 
   @override
-  SurveyPromptAssociation deserialize(
+  SurveyPromptReference deserialize(
     Serializers serializers,
     Object serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = SurveyPromptAssociationBuilder();
+    final result = SurveyPromptReferenceBuilder();
     final serializedList = (serialized as Iterable<Object?>).toList();
     final unhandled = <Object?>[];
     _deserializeProperties(

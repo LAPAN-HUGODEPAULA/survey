@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Survey Backend API
-  version: 1.0.0
+  version: 0.1.0
   description: API for managing surveys and collecting patient/survey responses.
 servers:
   - url: http://localhost:8000/api/v1
@@ -1072,7 +1072,6 @@ components:
         - instructions
         - questions
         - finalNotes
-        - promptAssociations
       properties:
         _id:
           type: string
@@ -1098,24 +1097,21 @@ components:
             $ref: '#/components/schemas/Question'
         finalNotes:
           type: string
-        promptAssociations:
-          type: array
-          items:
-            $ref: '#/components/schemas/SurveyPromptAssociation'
+        prompt:
+          allOf:
+            - $ref: '#/components/schemas/SurveyPromptReference'
+          nullable: true
     SurveyPromptUpsert:
       type: object
       required:
         - promptKey
         - name
-        - outcomeType
         - promptText
       properties:
         promptKey:
           type: string
         name:
           type: string
-        outcomeType:
-          $ref: '#/components/schemas/SurveyPromptOutcomeType'
         promptText:
           type: string
     SurveyPrompt:
@@ -1132,27 +1128,16 @@ components:
             modifiedAt:
               type: string
               format: date-time
-    SurveyPromptAssociation:
+    SurveyPromptReference:
       type: object
       required:
         - promptKey
         - name
-        - outcomeType
       properties:
         promptKey:
           type: string
         name:
           type: string
-        outcomeType:
-          $ref: '#/components/schemas/SurveyPromptOutcomeType'
-    SurveyPromptOutcomeType:
-      type: string
-      enum:
-        - patient_condition_overview
-        - clinical_diagnostic_report
-        - clinical_referral_letter
-        - parental_guidance
-        - educational_support_summary
     Instructions:
       type: object
       required:

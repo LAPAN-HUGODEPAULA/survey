@@ -15,9 +15,6 @@ abstract class SurveyPromptUpsertBuilder {
   String? get name;
   set name(String? name);
 
-  SurveyPromptOutcomeType? get outcomeType;
-  set outcomeType(SurveyPromptOutcomeType? outcomeType);
-
   String? get promptText;
   set promptText(String? promptText);
 }
@@ -28,8 +25,6 @@ class _$$SurveyPromptUpsert extends $SurveyPromptUpsert {
   @override
   final String name;
   @override
-  final SurveyPromptOutcomeType outcomeType;
-  @override
   final String promptText;
 
   factory _$$SurveyPromptUpsert(
@@ -37,10 +32,7 @@ class _$$SurveyPromptUpsert extends $SurveyPromptUpsert {
       ($SurveyPromptUpsertBuilder()..update(updates))._build();
 
   _$$SurveyPromptUpsert._(
-      {required this.promptKey,
-      required this.name,
-      required this.outcomeType,
-      required this.promptText})
+      {required this.promptKey, required this.name, required this.promptText})
       : super._();
   @override
   $SurveyPromptUpsert rebuild(
@@ -57,7 +49,6 @@ class _$$SurveyPromptUpsert extends $SurveyPromptUpsert {
     return other is $SurveyPromptUpsert &&
         promptKey == other.promptKey &&
         name == other.name &&
-        outcomeType == other.outcomeType &&
         promptText == other.promptText;
   }
 
@@ -66,7 +57,6 @@ class _$$SurveyPromptUpsert extends $SurveyPromptUpsert {
     var _$hash = 0;
     _$hash = $jc(_$hash, promptKey.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
-    _$hash = $jc(_$hash, outcomeType.hashCode);
     _$hash = $jc(_$hash, promptText.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -77,7 +67,6 @@ class _$$SurveyPromptUpsert extends $SurveyPromptUpsert {
     return (newBuiltValueToStringHelper(r'$SurveyPromptUpsert')
           ..add('promptKey', promptKey)
           ..add('name', name)
-          ..add('outcomeType', outcomeType)
           ..add('promptText', promptText))
         .toString();
   }
@@ -97,11 +86,6 @@ class $SurveyPromptUpsertBuilder
   String? get name => _$this._name;
   set name(covariant String? name) => _$this._name = name;
 
-  SurveyPromptOutcomeType? _outcomeType;
-  SurveyPromptOutcomeType? get outcomeType => _$this._outcomeType;
-  set outcomeType(covariant SurveyPromptOutcomeType? outcomeType) =>
-      _$this._outcomeType = outcomeType;
-
   String? _promptText;
   String? get promptText => _$this._promptText;
   set promptText(covariant String? promptText) =>
@@ -116,7 +100,6 @@ class $SurveyPromptUpsertBuilder
     if ($v != null) {
       _promptKey = $v.promptKey;
       _name = $v.name;
-      _outcomeType = $v.outcomeType;
       _promptText = $v.promptText;
       _$v = null;
     }
@@ -143,8 +126,6 @@ class $SurveyPromptUpsertBuilder
               promptKey, r'$SurveyPromptUpsert', 'promptKey'),
           name: BuiltValueNullFieldError.checkNotNull(
               name, r'$SurveyPromptUpsert', 'name'),
-          outcomeType: BuiltValueNullFieldError.checkNotNull(
-              outcomeType, r'$SurveyPromptUpsert', 'outcomeType'),
           promptText: BuiltValueNullFieldError.checkNotNull(
               promptText, r'$SurveyPromptUpsert', 'promptText'),
         );

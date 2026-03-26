@@ -3,7 +3,6 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:survey_backend_api/src/model/survey_prompt_outcome_type.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -14,7 +13,6 @@ part 'survey_prompt_upsert.g.dart';
 /// Properties:
 /// * [promptKey] 
 /// * [name] 
-/// * [outcomeType] 
 /// * [promptText] 
 @BuiltValue(instantiable: false)
 abstract class SurveyPromptUpsert  {
@@ -23,10 +21,6 @@ abstract class SurveyPromptUpsert  {
 
   @BuiltValueField(wireName: r'name')
   String get name;
-
-  @BuiltValueField(wireName: r'outcomeType')
-  SurveyPromptOutcomeType get outcomeType;
-  // enum outcomeTypeEnum {  patient_condition_overview,  clinical_diagnostic_report,  clinical_referral_letter,  parental_guidance,  educational_support_summary,  };
 
   @BuiltValueField(wireName: r'promptText')
   String get promptText;
@@ -56,11 +50,6 @@ class _$SurveyPromptUpsertSerializer implements PrimitiveSerializer<SurveyPrompt
     yield serializers.serialize(
       object.name,
       specifiedType: const FullType(String),
-    );
-    yield r'outcomeType';
-    yield serializers.serialize(
-      object.outcomeType,
-      specifiedType: const FullType(SurveyPromptOutcomeType),
     );
     yield r'promptText';
     yield serializers.serialize(
@@ -143,13 +132,6 @@ class _$$SurveyPromptUpsertSerializer implements PrimitiveSerializer<$SurveyProm
             specifiedType: const FullType(String),
           ) as String;
           result.name = valueDes;
-          break;
-        case r'outcomeType':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(SurveyPromptOutcomeType),
-          ) as SurveyPromptOutcomeType;
-          result.outcomeType = valueDes;
           break;
         case r'promptText':
           final valueDes = serializers.deserialize(

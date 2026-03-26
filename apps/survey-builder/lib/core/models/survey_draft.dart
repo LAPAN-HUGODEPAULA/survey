@@ -12,7 +12,7 @@ class SurveyDraft {
     required this.instructions,
     required this.questions,
     required this.finalNotes,
-    required this.promptAssociations,
+    this.prompt,
   });
 
   final String? id;
@@ -25,7 +25,7 @@ class SurveyDraft {
   InstructionsDraft instructions;
   List<QuestionDraft> questions;
   String finalNotes;
-  List<SurveyPromptAssociationDraft> promptAssociations;
+  SurveyPromptReferenceDraft? prompt;
 
   SurveyDraft copy() {
     return SurveyDraft(
@@ -39,7 +39,7 @@ class SurveyDraft {
       instructions: instructions.copy(),
       questions: questions.map((q) => q.copy()).toList(),
       finalNotes: finalNotes,
-      promptAssociations: promptAssociations.map((item) => item.copy()).toList(),
+      prompt: prompt?.copy(),
     );
   }
 }

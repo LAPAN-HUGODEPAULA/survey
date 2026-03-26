@@ -26,7 +26,7 @@ void main() {
         Question(id: 1, questionText: 'Pergunta 1', answers: ['A', 'B']),
         Question(id: 2, questionText: 'Pergunta 2', answers: ['A', 'B']),
       ],
-      promptAssociations: const [],
+      prompt: null,
       finalNotes: null,
     );
 

@@ -29,7 +29,7 @@ void main() {
           answers: ['Resposta 1', 'Resposta 2'],
         ),
       ],
-      promptAssociations: const [],
+      prompt: null,
       finalNotes: null,
     );
 

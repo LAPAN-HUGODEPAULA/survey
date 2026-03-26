@@ -149,7 +149,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
       ),
       questions: [],
       finalNotes: '',
-      promptAssociations: [],
+      prompt: null,
     );
   }
 

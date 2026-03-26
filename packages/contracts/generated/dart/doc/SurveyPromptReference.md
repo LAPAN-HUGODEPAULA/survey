@@ -1,4 +1,4 @@
-# survey_backend_api.model.SurveyPromptAssociation
+# survey_backend_api.model.SurveyPromptReference
 
 ## Load the model package
 ```dart
@@ -10,7 +10,6 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **promptKey** | **String** |  | 
 **name** | **String** |  | 
-**outcomeType** | [**SurveyPromptOutcomeType**](SurveyPromptOutcomeType.md) |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

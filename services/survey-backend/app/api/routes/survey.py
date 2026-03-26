@@ -11,7 +11,7 @@ from pydantic import ValidationError
 
 from app.config.logging_config import logger
 from app.domain.models.survey_model import Survey
-from app.domain.models.survey_prompt_model import SurveyPromptAssociation
+from app.domain.models.survey_prompt_model import SurveyPromptReference
 from app.persistence.deps import get_survey_prompt_repo, get_survey_repo
 from app.persistence.repositories.survey_prompt_repo import SurveyPromptRepository
 from app.persistence.repositories.survey_repo import SurveyRepository
@@ -19,27 +19,25 @@ from app.persistence.repositories.survey_repo import SurveyRepository
 router = APIRouter()
 
 
-def _resolve_prompt_associations(
+def _resolve_prompt_reference(
     survey: Survey,
     prompt_repo: SurveyPromptRepository,
-) -> list[SurveyPromptAssociation]:
-    """Validate associations against the prompt catalog and normalize stored metadata."""
-    resolved: list[SurveyPromptAssociation] = []
-    for association in survey.prompt_associations:
-        prompt = prompt_repo.get_by_key(association.prompt_key)
-        if not prompt:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail=f"Unknown promptKey: {association.prompt_key}",
-            )
-        resolved.append(
-            SurveyPromptAssociation(
-                promptKey=prompt["promptKey"],
-                name=prompt["name"],
-                outcomeType=prompt["outcomeType"],
-            )
+) -> SurveyPromptReference | None:
+    """Validate a prompt reference against the prompt catalog."""
+    if survey.prompt is None:
+        return None
+
+    prompt = prompt_repo.get_by_key(survey.prompt.prompt_key)
+    if not prompt:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=f"Unknown promptKey: {survey.prompt.prompt_key}",
         )
-    return resolved
+
+    return SurveyPromptReference(
+        promptKey=prompt["promptKey"],
+        name=prompt["name"],
+    )
 
 @router.post("/surveys/", response_model=Survey, status_code=201)
 async def create_survey(
@@ -50,7 +48,7 @@ async def create_survey(
     """Create a new survey and store it in the database."""
     logger.info("Creating new survey: %s (ID: %s)", survey.survey_displayname, survey.id)
     try:
-        survey.prompt_associations = _resolve_prompt_associations(survey, prompt_repo)
+        survey.prompt = _resolve_prompt_reference(survey, prompt_repo)
         survey_dict = survey.model_dump(by_alias=True)
         new_id = survey.id or str(ObjectId())
         survey_dict["_id"] = new_id
@@ -143,7 +141,7 @@ async def update_survey(
     """Update an existing survey."""
     logger.info("Updating survey with ID: %s", survey_id)
     try:
-        survey.prompt_associations = _resolve_prompt_associations(survey, prompt_repo)
+        survey.prompt = _resolve_prompt_reference(survey, prompt_repo)
         updated_survey = repo.update(survey_id, survey.model_dump(by_alias=True))
 
         if updated_survey:

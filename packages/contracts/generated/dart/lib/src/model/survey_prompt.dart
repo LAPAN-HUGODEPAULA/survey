@@ -3,7 +3,6 @@
 //
 
 // ignore_for_file: unused_element
-import 'package:survey_backend_api/src/model/survey_prompt_outcome_type.dart';
 import 'package:survey_backend_api/src/model/survey_prompt_upsert.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -15,7 +14,6 @@ part 'survey_prompt.g.dart';
 /// Properties:
 /// * [promptKey] 
 /// * [name] 
-/// * [outcomeType] 
 /// * [promptText] 
 /// * [createdAt] 
 /// * [modifiedAt] 
@@ -50,11 +48,6 @@ class _$SurveyPromptSerializer implements PrimitiveSerializer<SurveyPrompt> {
     SurveyPrompt object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
-    yield r'outcomeType';
-    yield serializers.serialize(
-      object.outcomeType,
-      specifiedType: const FullType(SurveyPromptOutcomeType),
-    );
     yield r'name';
     yield serializers.serialize(
       object.name,
@@ -103,13 +96,6 @@ class _$SurveyPromptSerializer implements PrimitiveSerializer<SurveyPrompt> {
       final key = serializedList[i] as String;
       final value = serializedList[i + 1];
       switch (key) {
-        case r'outcomeType':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(SurveyPromptOutcomeType),
-          ) as SurveyPromptOutcomeType;
-          result.outcomeType = valueDes;
-          break;
         case r'name':
           final valueDes = serializers.deserialize(
             value,

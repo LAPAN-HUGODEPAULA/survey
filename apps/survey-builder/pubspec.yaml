@@ -1,7 +1,7 @@
 name: survey_builder
 publish_to: 'none'
 description: "Survey Builder App"
-version: 1.0.0+1
+version: 0.1.0+1
 
 environment:
   sdk: ^3.10.0

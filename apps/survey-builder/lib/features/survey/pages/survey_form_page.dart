@@ -7,10 +7,16 @@ import 'package:survey_builder/core/repositories/survey_repository.dart';
 import 'package:survey_builder/features/survey/widgets/html_rich_text_editor.dart';
 
 class SurveyFormPage extends StatefulWidget {
-  const SurveyFormPage({super.key, this.initialDraft, this.repository});
+  const SurveyFormPage({
+    super.key,
+    this.initialDraft,
+    this.repository,
+    this.promptRepository,
+  });
 
   final SurveyDraft? initialDraft;
   final SurveyRepository? repository;
+  final SurveyPromptRepository? promptRepository;
 
   @override
   State<SurveyFormPage> createState() => _SurveyFormPageState();
@@ -42,15 +48,13 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
   List<String> _instructionAnswers = [];
   List<QuestionDraft> _questions = [];
   List<SurveyPromptDraft> _availablePrompts = [];
-  final Map<SurveyPromptOutcome, String?> _selectedPromptKeys = {
-    for (final outcome in SurveyPromptOutcome.values) outcome: null,
-  };
+  String? _selectedPromptKey;
 
   @override
   void initState() {
     super.initState();
     _repo = widget.repository ?? SurveyRepository();
-    _promptRepo = SurveyPromptRepository();
+    _promptRepo = widget.promptRepository ?? SurveyPromptRepository();
     _draft = widget.initialDraft?.copy() ?? _emptyDraft();
     _questions = _draft.questions.map((q) => q.copy()).toList();
     _instructionAnswers = List<String>.from(_draft.instructions.answers);
@@ -69,9 +73,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     _descriptionHtml = _normalizeHtml(_draft.surveyDescription);
     _instructionsPreambleHtml = _normalizeHtml(_draft.instructions.preamble);
     _finalNotesHtml = _normalizeHtml(_draft.finalNotes);
-    for (final association in _draft.promptAssociations) {
-      _selectedPromptKeys[association.outcomeType] = association.promptKey;
-    }
+    _selectedPromptKey = _draft.prompt?.promptKey;
 
     for (final controller in [
       _displayNameController,
@@ -111,7 +113,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
       ),
       questions: [],
       finalNotes: '',
-      promptAssociations: [],
+      prompt: null,
     );
   }
 
@@ -221,19 +223,15 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
             ),
           )
           .toList();
-      _draft.promptAssociations = _selectedPromptKeys.entries
-          .where((entry) => entry.value != null && entry.value!.isNotEmpty)
-          .map((entry) {
-            final prompt = _availablePrompts.firstWhere(
-              (item) => item.promptKey == entry.value,
+      final selectedPrompt = _availablePrompts.where(
+        (item) => item.promptKey == _selectedPromptKey,
+      );
+      _draft.prompt = selectedPrompt.isEmpty
+          ? null
+          : SurveyPromptReferenceDraft(
+              promptKey: selectedPrompt.first.promptKey,
+              name: selectedPrompt.first.name,
             );
-            return SurveyPromptAssociationDraft(
-              promptKey: prompt.promptKey,
-              name: prompt.name,
-              outcomeType: prompt.outcomeType,
-            );
-          })
-          .toList(growable: false);
 
       if (_draft.id == null || _draft.id!.isEmpty) {
         await _repo.createSurvey(_draft);
@@ -491,7 +489,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Prompts de IA',
+                'Prompt de IA',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 12),
@@ -522,46 +520,39 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                       'Nenhum prompt disponível. O questionário usará o fluxo legado até que prompts sejam cadastrados.',
                     ),
                   ),
-                ...SurveyPromptOutcome.values.map((outcome) {
-                  final prompts = _availablePrompts
-                      .where((item) => item.outcomeType == outcome)
-                      .toList(growable: false);
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: DropdownButtonFormField<String?>(
-                      initialValue: _selectedPromptKeys[outcome],
-                      decoration: InputDecoration(
-                        labelText: outcome.label,
-                        helperText: prompts.isEmpty
-                            ? 'Nenhum prompt disponível para este tipo.'
-                            : 'Selecione um prompt reutilizável para este resultado.',
-                      ),
-                      items: [
-                        const DropdownMenuItem<String?>(
-                          value: null,
-                          child: Text('Nenhum prompt'),
-                        ),
-                        ...prompts.map(
-                          (prompt) => DropdownMenuItem<String?>(
-                            value: prompt.promptKey,
-                            child: Text(prompt.name),
-                          ),
-                        ),
-                      ],
-                      onChanged: _saving
-                          ? null
-                          : (value) {
-                              setState(() {
-                                _selectedPromptKeys[outcome] = value;
-                                _markDirty();
-                              });
-                            },
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: DropdownButtonFormField<String?>(
+                    key: const ValueKey('survey-prompt-selector'),
+                    initialValue: _selectedPromptKey,
+                    decoration: const InputDecoration(
+                      labelText: 'Prompt de IA (opcional)',
+                      helperText:
+                          'Selecione um prompt reutilizável ou deixe vazio para manter o fluxo legado.',
                     ),
-                  );
-                }),
-                if (_selectedPromptKeys.values.every(
-                  (value) => value == null || value.isEmpty,
-                ))
+                    items: [
+                      const DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text('Nenhum prompt'),
+                      ),
+                      ..._availablePrompts.map(
+                        (prompt) => DropdownMenuItem<String?>(
+                          value: prompt.promptKey,
+                          child: Text(prompt.name),
+                        ),
+                      ),
+                    ],
+                    onChanged: _saving
+                        ? null
+                        : (value) {
+                            setState(() {
+                              _selectedPromptKey = value;
+                              _markDirty();
+                            });
+                          },
+                  ),
+                ),
+                if (_selectedPromptKey == null || _selectedPromptKey!.isEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: Text(

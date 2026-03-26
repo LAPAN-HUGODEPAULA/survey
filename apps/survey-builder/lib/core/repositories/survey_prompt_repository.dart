@@ -60,9 +60,6 @@ class SurveyPromptRepository {
     return SurveyPromptDraft(
       promptKey: json['promptKey']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
-      outcomeType: SurveyPromptOutcome.fromApiValue(
-        json['outcomeType']?.toString() ?? '',
-      ),
       promptText: json['promptText']?.toString() ?? '',
       createdAt: _coerceDateTime(json['createdAt']),
       modifiedAt: _coerceDateTime(json['modifiedAt']),
@@ -73,7 +70,6 @@ class SurveyPromptRepository {
     return {
       'promptKey': draft.promptKey.trim(),
       'name': draft.name.trim(),
-      'outcomeType': draft.outcomeType.apiValue,
       'promptText': draft.promptText.trim(),
     };
   }

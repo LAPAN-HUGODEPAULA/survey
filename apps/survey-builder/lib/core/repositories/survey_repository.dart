@@ -120,17 +120,12 @@ class SurveyRepository {
           )
           .toList(growable: true),
       finalNotes: source.finalNotes,
-      promptAssociations: source.promptAssociations
-          .map(
-            (association) => SurveyPromptAssociationDraft(
-              promptKey: association.promptKey,
-              name: association.name,
-              outcomeType: SurveyPromptOutcome.fromApiValue(
-                association.outcomeType.name,
-              ),
+      prompt: source.prompt == null
+          ? null
+          : SurveyPromptReferenceDraft(
+              promptKey: source.prompt!.promptKey,
+              name: source.prompt!.name,
             ),
-          )
-          .toList(growable: true),
     );
   }
 
@@ -172,18 +167,17 @@ class SurveyRepository {
           });
         }).toList(),
       );
-      builder.promptAssociations.replace(
-        draft.promptAssociations.map((association) {
-          return api.SurveyPromptAssociation((promptBuilder) {
+      if (draft.prompt == null) {
+        builder.prompt = null;
+      } else {
+        builder.prompt.replace(
+          api.SurveyPromptReference((promptBuilder) {
             promptBuilder
-              ..promptKey = association.promptKey
-              ..name = association.name
-              ..outcomeType = api.SurveyPromptOutcomeType.valueOf(
-                association.outcomeType.name,
-              );
-          });
-        }).toList(),
-      );
+              ..promptKey = draft.prompt!.promptKey
+              ..name = draft.prompt!.name;
+          }),
+        );
+      }
     });
   }
 
@@ -207,9 +201,7 @@ class SurveyRepository {
       ),
       questions: _mapQuestions(questions),
       finalNotes: _coerceString(source['finalNotes']),
-      promptAssociations: _mapPromptAssociations(
-        _coerceList(source['promptAssociations']),
-      ),
+      prompt: _mapPrompt(_coerceMap(source['prompt'])),
     );
   }
 
@@ -233,24 +225,19 @@ class SurveyRepository {
     return result;
   }
 
-  List<SurveyPromptAssociationDraft> _mapPromptAssociations(List<dynamic> source) {
-    final result = <SurveyPromptAssociationDraft>[];
-    for (final entry in source) {
-      if (entry is! Map) {
-        continue;
-      }
-      final association = Map<String, dynamic>.from(entry);
-      result.add(
-        SurveyPromptAssociationDraft(
-          promptKey: _coerceString(association['promptKey']),
-          name: _coerceString(association['name']),
-          outcomeType: SurveyPromptOutcome.fromApiValue(
-            _coerceString(association['outcomeType']),
-          ),
-        ),
-      );
+  SurveyPromptReferenceDraft? _mapPrompt(Map<String, dynamic> source) {
+    if (source.isEmpty) {
+      return null;
     }
-    return result;
+    final promptKey = _coerceString(source['promptKey']);
+    final name = _coerceString(source['name']);
+    if (promptKey.isEmpty || name.isEmpty) {
+      return null;
+    }
+    return SurveyPromptReferenceDraft(
+      promptKey: promptKey,
+      name: name,
+    );
   }
 
   Map<String, dynamic> _coerceMap(dynamic value) {

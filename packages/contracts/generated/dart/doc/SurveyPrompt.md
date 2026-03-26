@@ -10,7 +10,6 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **promptKey** | **String** |  | 
 **name** | **String** |  | 
-**outcomeType** | [**SurveyPromptOutcomeType**](SurveyPromptOutcomeType.md) |  | 
 **promptText** | **String** |  | 
 **createdAt** | [**DateTime**](DateTime.md) |  | 
 **modifiedAt** | [**DateTime**](DateTime.md) |  | 

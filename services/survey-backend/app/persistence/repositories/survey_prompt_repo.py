@@ -30,7 +30,7 @@ class SurveyPromptRepository:
 
     def list_all(self) -> list[dict]:
         """Return every stored prompt ordered for stable UI rendering."""
-        return [self._normalize(doc) for doc in self._col.find().sort([("outcomeType", 1), ("name", 1)])]
+        return [self._normalize(doc) for doc in self._col.find().sort([("name", 1)])]
 
     def get_by_key(self, prompt_key: str) -> dict | None:
         """Fetch one prompt by runtime key."""
@@ -55,7 +55,18 @@ class SurveyPromptRepository:
 
     def is_in_use(self, prompt_key: str) -> bool:
         """Check whether any survey still references the prompt."""
-        return self._surveys.count_documents({"promptAssociations.promptKey": prompt_key}, limit=1) > 0
+        return (
+            self._surveys.count_documents(
+                {
+                    "$or": [
+                        {"prompt.promptKey": prompt_key},
+                        {"promptAssociations.promptKey": prompt_key},
+                    ]
+                },
+                limit=1,
+            )
+            > 0
+        )
 
     @staticmethod
     def is_duplicate_key_error(exc: Exception) -> bool:
@@ -66,6 +77,14 @@ class SurveyPromptRepository:
         """Convert Mongo-specific values into JSON-safe primitives."""
         if not doc:
             return {}
-        if "_id" in doc and isinstance(doc["_id"], ObjectId):
-            doc["_id"] = str(doc["_id"])
-        return doc
+        normalized = dict(doc)
+        if "_id" in normalized and isinstance(normalized["_id"], ObjectId):
+            normalized["_id"] = str(normalized["_id"])
+        allowed_fields = {
+            "promptKey",
+            "name",
+            "promptText",
+            "createdAt",
+            "modifiedAt",
+        }
+        return {key: value for key, value in normalized.items() if key in allowed_fields}

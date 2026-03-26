@@ -25,7 +25,6 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
   late final TextEditingController _nameController;
   late final TextEditingController _keyController;
   late final TextEditingController _promptTextController;
-  late SurveyPromptOutcome _selectedOutcome;
   bool _saving = false;
 
   @override
@@ -38,13 +37,11 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
         SurveyPromptDraft(
           promptKey: '',
           name: '',
-          outcomeType: SurveyPromptOutcome.patientConditionOverview,
           promptText: '',
         );
     _nameController = TextEditingController(text: draft.name);
     _keyController = TextEditingController(text: draft.promptKey);
     _promptTextController = TextEditingController(text: draft.promptText);
-    _selectedOutcome = draft.outcomeType;
   }
 
   @override
@@ -67,7 +64,6 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
       final draft = SurveyPromptDraft(
         promptKey: _keyController.text.trim().toLowerCase(),
         name: _nameController.text.trim(),
-        outcomeType: _selectedOutcome,
         promptText: _promptTextController.text.trim(),
       );
       if (_isEditing) {
@@ -153,27 +149,6 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
                   }
                   return null;
                 },
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<SurveyPromptOutcome>(
-                initialValue: _selectedOutcome,
-                decoration: const InputDecoration(labelText: 'Tipo de resultado *'),
-                items: SurveyPromptOutcome.values
-                    .map(
-                      (outcome) => DropdownMenuItem<SurveyPromptOutcome>(
-                        value: outcome,
-                        child: Text(outcome.label),
-                      ),
-                    )
-                    .toList(growable: false),
-                onChanged: _saving
-                    ? null
-                    : (value) {
-                        if (value == null) {
-                          return;
-                        }
-                        setState(() => _selectedOutcome = value);
-                      },
               ),
               const SizedBox(height: 12),
               TextFormField(

@@ -59,7 +59,7 @@ Survey _buildSurvey() {
     questions: <Question>[
       Question(id: 1, questionText: 'Pergunta 1', answers: <String>['A', 'B']),
     ],
-    promptAssociations: const [],
+    prompt: null,
   );
 }
 

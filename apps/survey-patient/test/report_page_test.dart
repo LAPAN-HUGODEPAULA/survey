@@ -69,7 +69,7 @@ void main() {
       questions: [
         Question(id: 1, questionText: 'Pergunta 1', answers: ['A', 'B']),
       ],
-      promptAssociations: const [],
+      prompt: null,
       finalNotes: null,
     );
 

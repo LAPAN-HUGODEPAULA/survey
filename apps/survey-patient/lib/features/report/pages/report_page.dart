@@ -51,15 +51,10 @@ class _ReportPageState extends State<ReportPage> {
   void initState() {
     super.initState();
     _surveyRepository = widget.surveyRepository ?? SurveyRepository();
-    final promptAssociations = widget.survey.promptAssociations;
-    if (promptAssociations.length <= 1) {
-      _selectedPromptKey = promptAssociations.isEmpty
-          ? null
-          : promptAssociations.first.promptKey;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _submitResponse();
-      });
-    }
+    _selectedPromptKey = widget.survey.prompt?.promptKey;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _submitResponse();
+    });
   }
 
   @override
@@ -398,7 +393,6 @@ class _ReportPageState extends State<ReportPage> {
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<AppSettings>(context);
-    final promptAssociations = widget.survey.promptAssociations;
     final reportDocument = _agentResponse == null
         ? null
         : _resolveReportDocument(settings, _agentResponse!);
@@ -424,55 +418,6 @@ class _ReportPageState extends State<ReportPage> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 24),
-                ],
-                if (!_isSaving &&
-                    !_saveSuccess &&
-                    promptAssociations.length > 1) ...[
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Escolha o tipo de relatório',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<String>(
-                          initialValue: _selectedPromptKey,
-                          decoration: const InputDecoration(
-                            labelText: 'Resultado desejado',
-                          ),
-                          items: promptAssociations
-                              .map(
-                                (prompt) => DropdownMenuItem<String>(
-                                  value: prompt.promptKey,
-                                  child: Text(prompt.name),
-                                ),
-                              )
-                              .toList(growable: false),
-                          onChanged: (value) {
-                            setState(() => _selectedPromptKey = value);
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        DsFilledButton(
-                          label: 'Gerar relatório',
-                          onPressed: _selectedPromptKey == null
-                              ? null
-                              : _submitResponse,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                 ],
                 if (_saveSuccess && !_isSaving)
                   _StatusBanner(

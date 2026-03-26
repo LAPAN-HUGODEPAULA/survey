@@ -23,6 +23,15 @@ The user requested that the `survey-builder` application directly access the Mon
         *   `GET /surveys/{survey_id}`: Retrieve a single survey by its ID.
         *   `PUT /surveys/{survey_id}`: Update an existing survey.
         *   `DELETE /surveys/{survey_id}`: Delete a survey.
+    *   Survey payloads will expose a single nullable `prompt` reference instead of `promptAssociations`.
+    *   The prompt reference will contain only the minimal reusable metadata required by clients:
+        *   `promptKey`
+        *   `name`
+    *   Prompt definitions in the reusable prompt catalog will keep:
+        *   `promptKey`
+        *   `name`
+        *   `promptText`
+    *   Prompt definitions and survey references will no longer carry `outcomeType`.
     *   These endpoints will use the existing repository pattern for database interactions, ensuring business logic and data access are properly handled.
     *   The OpenAPI specification at `packages/contracts/survey-backend.openapi.yaml` will be updated to reflect these new endpoints.
 
@@ -32,6 +41,60 @@ The user requested that the `survey-builder` application directly access the Mon
     *   It will utilize the shared `packages/design_system_flutter` for a consistent look and feel.
     *   After the backend API is updated, the Dart client will be regenerated using the `./tools/scripts/generate_clients.sh` script.
     *   The app will use the generated Dart client to interact with the new `/surveys` endpoints.
+    *   The survey editor will expose a single optional prompt selector for the questionnaire.
+    *   The prompt management UI will create and edit reusable prompts without any prompt-type field.
+
+### 2.1. Questionnaire Prompt Model
+
+**Decision:** Each survey will store a single nullable prompt reference.
+
+Example shape:
+
+```json
+{
+  "_id": "survey-123",
+  "surveyDisplayName": "Autism Intake",
+  "prompt": {
+    "promptKey": "autism-intake-summary",
+    "name": "Autism Intake Summary"
+  }
+}
+```
+
+The `prompt` field may be `null` when a survey does not yet have an AI prompt configured.
+
+**Why:**
+
+*   **Product fit:** The questionnaire flow now needs one prompt per survey, not a menu of prompt outcomes.
+*   **Contract clarity:** A single nullable field is easier to validate and reason about than a list with custom uniqueness rules.
+*   **UI simplicity:** The builder can present one optional selector instead of a grid of per-outcome controls.
+*   **Runtime determinism:** Report-generation flows can automatically use the configured prompt without relying on list order or user choice.
+
+### 2.2. Reusable Prompt Catalog
+
+**Decision:** Reusable survey prompts will remain cataloged centrally, but they will no longer be classified by prompt type.
+
+**Why:**
+
+*   Prompt types were previously used to support multiple questionnaire outcomes, which is no longer part of the product model.
+*   Keeping only `promptKey`, `name`, and `promptText` preserves reuse without forcing an artificial taxonomy into the UI and API.
+
+### 2.3. Legacy Data Handling
+
+Legacy surveys may already contain `promptAssociations`. The migration strategy MUST avoid silent data loss.
+
+**Decision:** Existing survey documents must be normalized into the new `prompt` field during migration.
+
+**Why:**
+
+*   Silent collapse of multiple legacy prompt associations into a single prompt would hide business decisions and make regressions hard to detect.
+*   The migration must make the new contract explicit so the builder and report flows operate on one canonical field.
+
+Migration rules:
+
+*   If a survey has no existing prompt associations, store `prompt: null`.
+*   If a survey has exactly one existing prompt association, copy its `promptKey` and `name` into `prompt`.
+*   If a survey has more than one existing prompt association, the migration must flag that survey for manual resolution instead of discarding prompt data implicitly.
 
 ## 3. User Experience Flow
 
@@ -39,7 +102,7 @@ The user requested that the `survey-builder` application directly access the Mon
 The user will experience a simple, form-based interface:
 
 *   **Main Screen:** A list of existing surveys with options to "Create New" or "Edit/Delete" existing ones.
-*   **Editor Screen:** A form that allows creating or editing the survey structure, fields, and properties. The fields will map to the existing MongoDB schema for surveys.
+*   **Editor Screen:** A form that allows creating or editing the survey structure, fields, and properties. The fields will map to the survey API contract, including a single optional reusable prompt reference.
 
 ### 3.1. Detailed Editor Screen Design
 
@@ -67,6 +130,22 @@ To enable data portability and backup, the following functionality will be added
 
 *   **Export Surveys:** A button labeled "Export Surveys" will be added to the main screen. When clicked, this button will trigger a download of all surveys from the database as a single JSON file. A new backend endpoint will be created to support this functionality.
 
+#### 3.1.4. Prompt Configuration
+
+The editor will allow the user to attach zero or one reusable prompt to the questionnaire.
+
+**Why:**
+
+*   A questionnaire may be saved before its AI prompt is defined, so the field must be nullable.
+*   A questionnaire no longer supports multiple prompt outcomes, so the editor must not present per-type prompt controls.
+
+The UI behavior will be:
+
+*   The survey form shows one optional prompt selector populated from the reusable prompt catalog.
+*   The user may leave the selector empty, which persists `prompt: null`.
+*   When a prompt is selected, the saved survey stores that single prompt reference.
+*   When editing an existing survey, the selector must preload the stored prompt when present.
+
 ### 3.2. UI Design for Editing Instructions and Questions
 
 #### 3.2.1. Instructions Editor
@@ -85,6 +164,21 @@ The `questions` field is a list of complex objects, each with a list of answers.
 *   **Add Question Button:** A main "Add Question" button will be present at the bottom of the questions list to add new questions to the survey.
 
 This nested structure will be managed using a `StatefulWidget` and local state management (`setState`) to handle the dynamic addition and removal of questions and answers.
+
+#### 3.2.3. Prompt Management Editor
+
+The prompt management screen will support reusable prompt CRUD with the following fields:
+
+*   `name`
+*   `promptKey`
+*   `promptText`
+
+It will not expose any prompt-type or outcome-type selector.
+
+**Why:**
+
+*   Prompt classification no longer drives questionnaire behavior.
+*   Removing unused taxonomy makes the catalog easier to maintain and reduces validation burden.
 
 ### 3.3. Theme Fix
 

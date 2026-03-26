@@ -1,6 +1,6 @@
 # Release Notes
 
-## v1.0.0 – Monorepo Baseline
+## v0.1.0 – Initial SemVer Baseline
 
 ### Highlights
 

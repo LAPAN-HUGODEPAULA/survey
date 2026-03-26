@@ -20,7 +20,7 @@ class Survey {
     required this.modifiedAt,
     required this.instructions,
     required this.questions,
-    required this.promptAssociations,
+    required this.prompt,
     this.finalNotes,
   });
 
@@ -44,11 +44,13 @@ class Survey {
       questions: (json['questions'] as List<dynamic>)
           .map((entry) => Question.fromJson(entry as Map<String, dynamic>))
           .toList(growable: false),
-      promptAssociations:
-          (json['promptAssociations'] as List<dynamic>? ?? const <dynamic>[])
-              .whereType<Map<String, dynamic>>()
-              .map(SurveyPromptAssociation.fromJson)
-              .toList(growable: false),
+      prompt: json['prompt'] is Map<String, dynamic>
+          ? SurveyPromptReference.fromJson(json['prompt'] as Map<String, dynamic>)
+          : json['prompt'] is Map
+          ? SurveyPromptReference.fromJson(
+              Map<String, dynamic>.from(json['prompt'] as Map),
+            )
+          : null,
       finalNotes: json['finalNotes']?.toString(),
     );
   }
@@ -62,7 +64,7 @@ class Survey {
   final DateTime modifiedAt;
   final Instructions instructions;
   final List<Question> questions;
-  final List<SurveyPromptAssociation> promptAssociations;
+  final SurveyPromptReference? prompt;
   final String? finalNotes;
 
   static DateTime _parseDate(dynamic raw) {

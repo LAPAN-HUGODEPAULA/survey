@@ -88,15 +88,12 @@ class SurveyRepository {
             ),
           )
           .toList(growable: false),
-      promptAssociations: source.promptAssociations
-          .map(
-            (association) => ui.SurveyPromptAssociation(
-              promptKey: association.promptKey,
-              name: association.name,
-              outcomeType: _mapOutcomeTypeValue(association.outcomeType),
+      prompt: source.prompt == null
+          ? null
+          : ui.SurveyPromptReference(
+              promptKey: source.prompt!.promptKey,
+              name: source.prompt!.name,
             ),
-          )
-          .toList(growable: false),
       finalNotes: source.finalNotes,
     );
   }
@@ -127,21 +124,5 @@ class SurveyRepository {
 
   void dispose() {
     // currently no disposable resources
-  }
-
-  String _mapOutcomeTypeValue(api.SurveyPromptOutcomeType outcomeType) {
-    switch (outcomeType) {
-      case api.SurveyPromptOutcomeType.patientConditionOverview:
-        return 'patient_condition_overview';
-      case api.SurveyPromptOutcomeType.clinicalDiagnosticReport:
-        return 'clinical_diagnostic_report';
-      case api.SurveyPromptOutcomeType.clinicalReferralLetter:
-        return 'clinical_referral_letter';
-      case api.SurveyPromptOutcomeType.parentalGuidance:
-        return 'parental_guidance';
-      case api.SurveyPromptOutcomeType.educationalSupportSummary:
-        return 'educational_support_summary';
-    }
-    throw ArgumentError.value(outcomeType, 'outcomeType', 'Unsupported outcome type');
   }
 }

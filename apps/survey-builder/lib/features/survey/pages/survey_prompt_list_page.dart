@@ -148,10 +148,7 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
                         return Card(
                           child: ListTile(
                             title: Text(prompt.name),
-                            subtitle: Text(
-                              '${prompt.outcomeType.label}\n${prompt.promptKey}',
-                            ),
-                            isThreeLine: true,
+                            subtitle: Text(prompt.promptKey),
                             trailing: Wrap(
                               spacing: 8,
                               children: [

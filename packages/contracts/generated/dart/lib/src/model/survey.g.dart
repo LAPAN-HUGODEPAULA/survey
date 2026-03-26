@@ -28,7 +28,7 @@ class _$Survey extends Survey {
   @override
   final String finalNotes;
   @override
-  final BuiltList<SurveyPromptAssociation> promptAssociations;
+  final SurveyPromptReference? prompt;
 
   factory _$Survey([void Function(SurveyBuilder)? updates]) =>
       (SurveyBuilder()..update(updates))._build();
@@ -44,7 +44,7 @@ class _$Survey extends Survey {
       required this.instructions,
       required this.questions,
       required this.finalNotes,
-      required this.promptAssociations})
+      this.prompt})
       : super._();
   @override
   Survey rebuild(void Function(SurveyBuilder) updates) =>
@@ -67,7 +67,7 @@ class _$Survey extends Survey {
         instructions == other.instructions &&
         questions == other.questions &&
         finalNotes == other.finalNotes &&
-        promptAssociations == other.promptAssociations;
+        prompt == other.prompt;
   }
 
   @override
@@ -83,7 +83,7 @@ class _$Survey extends Survey {
     _$hash = $jc(_$hash, instructions.hashCode);
     _$hash = $jc(_$hash, questions.hashCode);
     _$hash = $jc(_$hash, finalNotes.hashCode);
-    _$hash = $jc(_$hash, promptAssociations.hashCode);
+    _$hash = $jc(_$hash, prompt.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -101,7 +101,7 @@ class _$Survey extends Survey {
           ..add('instructions', instructions)
           ..add('questions', questions)
           ..add('finalNotes', finalNotes)
-          ..add('promptAssociations', promptAssociations))
+          ..add('prompt', prompt))
         .toString();
   }
 }
@@ -155,12 +155,10 @@ class SurveyBuilder implements Builder<Survey, SurveyBuilder> {
   String? get finalNotes => _$this._finalNotes;
   set finalNotes(String? finalNotes) => _$this._finalNotes = finalNotes;
 
-  ListBuilder<SurveyPromptAssociation>? _promptAssociations;
-  ListBuilder<SurveyPromptAssociation> get promptAssociations =>
-      _$this._promptAssociations ??= ListBuilder<SurveyPromptAssociation>();
-  set promptAssociations(
-          ListBuilder<SurveyPromptAssociation>? promptAssociations) =>
-      _$this._promptAssociations = promptAssociations;
+  SurveyPromptReferenceBuilder? _prompt;
+  SurveyPromptReferenceBuilder get prompt =>
+      _$this._prompt ??= SurveyPromptReferenceBuilder();
+  set prompt(SurveyPromptReferenceBuilder? prompt) => _$this._prompt = prompt;
 
   SurveyBuilder() {
     Survey._defaults(this);
@@ -179,7 +177,7 @@ class SurveyBuilder implements Builder<Survey, SurveyBuilder> {
       _instructions = $v.instructions.toBuilder();
       _questions = $v.questions.toBuilder();
       _finalNotes = $v.finalNotes;
-      _promptAssociations = $v.promptAssociations.toBuilder();
+      _prompt = $v.prompt?.toBuilder();
       _$v = null;
     }
     return this;
@@ -220,7 +218,7 @@ class SurveyBuilder implements Builder<Survey, SurveyBuilder> {
             questions: questions.build(),
             finalNotes: BuiltValueNullFieldError.checkNotNull(
                 finalNotes, r'Survey', 'finalNotes'),
-            promptAssociations: promptAssociations.build(),
+            prompt: _prompt?.build(),
           );
     } catch (_) {
       late String _$failedField;
@@ -230,8 +228,8 @@ class SurveyBuilder implements Builder<Survey, SurveyBuilder> {
         _$failedField = 'questions';
         questions.build();
 
-        _$failedField = 'promptAssociations';
-        promptAssociations.build();
+        _$failedField = 'prompt';
+        _prompt?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
             r'Survey', _$failedField, e.toString());
