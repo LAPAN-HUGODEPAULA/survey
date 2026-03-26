@@ -12,8 +12,8 @@ from app.config.logging_config import logger
 from app.config.settings import settings
 from app.api.routes.survey import router as surveys_router
 from app.api.routes.survey_prompts import router as survey_prompts_router
-from app.api.routes.survey_responses import router as survey_results_router
-from app.api.routes.patient_responses import router as patient_results_router
+from app.api.routes.survey_responses import router as survey_responses_router
+from app.api.routes.patient_responses import router as patient_responses_router
 from app.api.routes.clinical_writer import router as clinical_writer_router
 from app.api.routes.screener_routes import router as screeners_router
 from app.api.routes.screener_access_links import router as screener_access_links_router
@@ -69,7 +69,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Survey Application API",
     description="API for managing surveys and processing survey/patient results",
-    version="1.0.0",
+    version="0.1.0",
     lifespan=lifespan,
 )
 
@@ -103,8 +103,8 @@ app.add_middleware(
 
 app.include_router(surveys_router, prefix="/api/v1", tags=["surveys"])
 app.include_router(survey_prompts_router, prefix="/api/v1", tags=["survey_prompts"])
-app.include_router(survey_results_router, prefix="/api/v1", tags=["survey_results"])
-app.include_router(patient_results_router, prefix="/api/v1", tags=["patient_results"])
+app.include_router(survey_responses_router, prefix="/api/v1", tags=["survey_responses"])
+app.include_router(patient_responses_router, prefix="/api/v1", tags=["patient_responses"])
 app.include_router(clinical_writer_router, prefix="/api/v1", tags=["clinical_writer"])
 app.include_router(screeners_router, prefix="/api/v1", tags=["screeners"])
 app.include_router(screener_access_links_router, prefix="/api/v1", tags=["screener_access_links"])

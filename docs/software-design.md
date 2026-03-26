@@ -11,9 +11,10 @@
 ## Backend Design (`services/survey-backend`)
 
 - **Entry point**: `app/main.py` wires CORS, routers, lifecycle logging, and an HTTPS-only guard when `ENVIRONMENT=production`.
-- **Routing**: `/api/v1/surveys`, `/api/v1/survey_responses`, `/api/v1/patient_responses` plus `/survey_responses/{id}/send_email` for re-sends.
+- **Routing**: `/api/v1/survey_prompts`, `/api/v1/surveys`, `/api/v1/survey_responses`, `/api/v1/patient_responses` plus `/survey_responses/{id}/send_email` for re-sends.
 - **Screener auth**: `/api/v1/screeners/register`, `/api/v1/screeners/login`, `/api/v1/screeners/me`, and `/api/v1/screeners/recover-password` support screener registration, authentication, profile lookup, and password recovery.
-- **Domain models**: `app/domain/models/*` define Pydantic schemas for surveys, patients, and agent responses.
+- **Domain models**: `app/domain/models/*` define Pydantic schemas for surveys, reusable prompts, patients, and agent responses.
+- **Survey schema**: surveys stored in MongoDB now embed a compact `prompt` reference while the reusable prompt definitions themselves live in the `survey_prompts` collection.
 - **Persistence**: repositories under `app/persistence/repositories` encapsulate MongoDB CRUD; injected via `app.persistence.deps` to keep handlers decoupled from storage.
 - **Integrations**:
   - `app.integrations.clinical_writer.client` submits responses for AI enrichment.
@@ -22,10 +23,10 @@
 
 ## Worker Design (`services/survey-worker`)
 
-- **Role**: Poll MongoDB for survey responses lacking `agentResponse` data and submit them to the Clinical Writer API.
-- **Flow**: `run_forever` schedules `ClinicalWriterJob` → fetch pending documents → POST to Clinical Writer → update `agentResponse`, `agentResponseStatus`, and timestamps.
-- **Configuration**: tunable via env vars (`MONGO_URI`, `MONGO_DB_NAME`, `CLINICAL_WRITER_URL`, `POLL_INTERVAL_SECONDS`, `BATCH_SIZE`, optional token and timeout).
-- **Resilience**: logs failures and marks statuses so retry logic can reprocess items.
+- **Role**: Poll MongoDB `survey_responses` for records lacking agent output or stranded in a stale in-flight state and submit them to the Clinical Writer API.
+- **Flow**: `run_forever` schedules `ClinicalWriterJob` → fetch pending documents → POST a normalized `/process` payload to Clinical Writer → update `agentResponse`, `agentResponseStatus`, and `agentResponseUpdatedAt`.
+- **Configuration**: tunable via env vars (`MONGO_URI`, `MONGO_DB_NAME`, `CLINICAL_WRITER_URL`, `POLL_INTERVAL_SECONDS`, `BATCH_SIZE`, `PROCESSING_STALE_AFTER_SECONDS`, optional token and timeout).
+- **Resilience**: logs failures, marks statuses, and retries stale `processing` records after the configured timeout.
 
 ## Clinical Writer Design (`services/clinical-writer-api`)
 
@@ -65,7 +66,9 @@
 - All services log structured messages for start/stop and failure cases.
 - MongoDB object IDs are validated in routes; malformed IDs return 400, missing documents 404, unexpected errors 500.
 - Background tasks (email, AI enrichment) are best-effort but do not block the main response after persistence succeeds.
-- Local screener seed data is created by `tools/migrations/survey-backend/002_consolidated_migration.py`, including:
+- The canonical response collections are `survey_responses` and `patient_responses`; legacy `survey_results` and `patient_results` are only migration inputs.
+- Local screener seed data is created by `tools/migrations/survey-backend/003_populate_new_schema.py`, including:
   - `lapan.hugodepaula@gmail.com` with default password `SystemPassword123!`
   - `maria.vale@holhos.com` with default password `SamplePassword123!`
+- `tools/migrations/survey-backend/004_rename_response_collections.py` upgrades older databases to the canonical response collection names without losing data.
 - Those default passwords are only valid immediately after migration; any manual reset or use of `/screeners/recover-password` replaces the stored bcrypt hash in MongoDB.

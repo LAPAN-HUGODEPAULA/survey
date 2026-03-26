@@ -144,6 +144,8 @@ pyasn1==0.6.2
     #   rsa
 pyasn1-modules==0.4.2
     # via google-auth
+pymongo==4.16.0
+    # via clinical-writer-agent (services/clinical-writer-api/clinical_writer_agent/pyproject.toml)
 pydantic==2.12.5
     # via
     #   fastapi

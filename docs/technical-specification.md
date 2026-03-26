@@ -16,21 +16,22 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 
 ### Survey Backend (`services/survey-backend`)
 
-- FastAPI application exposing `/api/v1` routes for surveys, survey responses, and patient responses.
+- FastAPI application exposing `/api/v1` routes for reusable survey prompts, surveys, survey responses, and patient responses.
 - Domain models in `app/domain/models`; adapters/integrations (e.g., email, Clinical Writer client) under `app/integrations`.
 - Persistence via repository pattern in `app/persistence`, injected through `app.persistence.deps`.
 - Background tasks for outbound email and optional AI enrichment per request.
 
 ### Survey Worker (`services/survey-worker`)
 
-- Python worker that polls MongoDB for pending survey results and submits them to the Clinical Writer service.
-- Updates documents with `agentResponse`, `agentResponseStatus`, and timestamps; configurable polling cadence and batch size.
+- Python worker that polls MongoDB `survey_responses` documents and submits pending items to the Clinical Writer service.
+- Retries responses with missing agent output, failed status, pending status, or stale `processing` status after a configurable timeout.
+- Updates documents with `agentResponse`, `agentResponseStatus`, and `agentResponseUpdatedAt`; configurable polling cadence, batch size, timeout, and stale-processing threshold.
 
 ### Clinical Writer API (`services/clinical-writer-api`)
 
 - Independent FastAPI + LangGraph service for generating medical narratives.
-- Uses a **classification Strategy Pattern** (ported from previous docs): prioritizes inappropriate-content detection, JSON payload detection, conversation recognition, and a fallback “other” strategy to route input to the right agent before invoking the LLM. Central configuration lives in `AgentConfig` and strategies are orchestrated through `ClassificationContext`.
-- Exposes an `/invoke` style endpoint (default port `9566` when run via its compose file) consumed by the worker/backend.
+- Uses `PromptRegistry` to resolve `prompt_key` to prompt text and `prompt_version`, with Google Drive as the primary provider.
+- Exposes a `/process` endpoint (default port `9566` when run via root `docker-compose.yml`) consumed by the worker/backend.
 
 ### Flutter Applications (`apps/`)
 
@@ -53,9 +54,11 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 
 ## Data Model & Persistence
 
-- **Survey**: definition of questions and metadata, stored in `surveys` collection.
-- **SurveyResponse** and **PatientResponse**: captured answers plus patient info, stored in respective collections; enriched with `agentResponse` payloads from the Clinical Writer.
-- **Agent response fields**: classification, generated medical record, optional error, and status metadata maintained by backend/worker.
+- **SurveyPrompt**: reusable prompt definition stored in the `survey_prompts` collection.
+- **Survey**: definition of questions and metadata, stored in the `surveys` collection with an embedded `prompt` reference (`promptKey`, `name`).
+- **SurveyResponse**: captured answers plus patient info, stored in `survey_responses`; backend list/read routes strip internal worker-only enrichment fields from the plain response model.
+- **PatientResponse**: patient-facing captured answers plus patient info, stored in `patient_responses`.
+- **Agent response fields**: `agentResponse`, `agentResponseStatus`, and `agentResponseUpdatedAt` are maintained by backend/worker for enrichment flow; `agentResponse` itself carries `ok`, `input_type`, `prompt_version`, `model_version`, `report`, `warnings`, `classification`, `medicalRecord`, and `errorMessage`.
 
 ## Integrations
 
@@ -90,5 +93,5 @@ It's important to run this script whenever the `survey-backend.openapi.yaml` con
 
 ## Non-Goals
 
-- Authentication/authorization and multi-tenancy are not implemented.
+- Multi-tenant authorization and tenant isolation are not implemented.
 - Direct database or LLM access from client applications is prohibited.

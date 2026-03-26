@@ -23,6 +23,13 @@
   - `GET /surveys/` – list all surveys.
   - `GET /surveys/{survey_id}` – fetch survey by id.
 
+- **Survey Prompts**
+  - `GET /survey_prompts/` – list reusable prompt definitions from the `survey_prompts` collection.
+  - `POST /survey_prompts/` – create a reusable prompt definition.
+  - `GET /survey_prompts/{prompt_key}` – fetch a reusable prompt by key.
+  - `PUT /survey_prompts/{prompt_key}` – update a reusable prompt definition.
+  - `DELETE /survey_prompts/{prompt_key}` – delete an unused prompt definition.
+
 - **Survey Responses**
   - `POST /survey_responses/` – create survey response; persists, triggers email background task, optionally enriches with Clinical Writer. Returns `SurveyResponseWithAgent`.
   - `GET /survey_responses/` – list all survey responses.
@@ -35,8 +42,10 @@
 
 ## Models (abridged)
 
-- `Survey`: survey metadata and questions, stored in MongoDB.
-- `SurveyResponse`: answers plus patient details.
+- `SurveyPrompt`: reusable prompt definition stored in the `survey_prompts` collection.
+- `Survey`: survey metadata and questions, stored in the `surveys` collection with an embedded `prompt` reference (`promptKey`, `name`).
+- `SurveyResponse`: answers plus patient details, stored in the `survey_responses` collection.
+- `PatientResponse`: answers plus patient details, stored in the `patient_responses` collection.
 - `AgentResponse`: AI payload with `ok`, `input_type`, `prompt_version`, `model_version`, `report`, `warnings`.
 - `SurveyResponseWithAgent`: response payload plus optional `agent_response`.
 
@@ -76,4 +85,5 @@ Samples:
 - Prefer SDKs generated from the OpenAPI contract over ad-hoc HTTP calls.
 - Clients should not attempt direct MongoDB or Clinical Writer access; all interactions go through the backend or worker.
 - Screener password recovery uses the same SMTP/FastMail configuration as survey and patient response emails (`SMTP_*` or `MAIL_*` environment variables).
-- On a fresh local database migrated with `tools/migrations/survey-backend/002_consolidated_migration.py`, the seeded screeners are `lapan.hugodepaula@gmail.com` / `SystemPassword123!` and `maria.vale@holhos.com` / `SamplePassword123!` until those passwords are changed or recovered.
+- On a fresh local database migrated with `tools/migrations/survey-backend/003_populate_new_schema.py`, the seeded screeners are `lapan.hugodepaula@gmail.com` / `SystemPassword123!` and `maria.vale@holhos.com` / `SamplePassword123!` until those passwords are changed or recovered.
+- If an older database still uses `survey_results` or `patient_results`, run `tools/migrations/survey-backend/004_rename_response_collections.py` to move it to the canonical `survey_responses` and `patient_responses` collections.
