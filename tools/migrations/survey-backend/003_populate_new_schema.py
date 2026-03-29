@@ -47,8 +47,57 @@ LEGACY_SURVEY_RESULTS_COLLECTION = "survey_results"
 PATIENT_RESPONSES_COLLECTION = "patient_responses"
 LEGACY_PATIENT_RESULTS_COLLECTION = "patient_results"
 SURVEY_PROMPTS_COLLECTION = "survey_prompts"
+QUESTIONNAIRE_PROMPTS_COLLECTION = "QuestionnairePrompts"
+PERSONA_SKILLS_COLLECTION = "PersonaSkills"
 MASTER_KEY_SECRET_RELATIVE_PATH = Path("config/runtime/generated/private/system-master-key.txt")
 ANONYMIZED_PATIENT_RESPONSE_ID = ObjectId("000000000000000000000101")
+DEFAULT_PERSONA_SKILLS = [
+    {
+        "personaSkillKey": "patient_condition_overview",
+        "name": "Patient Condition Overview",
+        "outputProfile": "patient_condition_overview",
+        "instructions": (
+            "Write a concise patient-facing clinical summary in Brazilian Portuguese. "
+            "Keep the tone calm, conservative, and free of school-specific language."
+        ),
+    },
+    {
+        "personaSkillKey": "clinical_diagnostic_report",
+        "name": "Clinical Diagnostic Report",
+        "outputProfile": "clinical_diagnostic_report",
+        "instructions": (
+            "Write in formal clinical language appropriate for the medical record. "
+            "Emphasize evidence, uncertainty, and objective interpretation."
+        ),
+    },
+    {
+        "personaSkillKey": "clinical_referral_letter",
+        "name": "Clinical Referral Letter",
+        "outputProfile": "clinical_referral_letter",
+        "instructions": (
+            "Write as a formal referral letter in Brazilian Portuguese. "
+            "Highlight the referral rationale, key findings, and next-step recommendations."
+        ),
+    },
+    {
+        "personaSkillKey": "parental_guidance",
+        "name": "Parental Guidance",
+        "outputProfile": "parental_guidance",
+        "instructions": (
+            "Write for caregivers in clear and supportive language. "
+            "Preserve clinical accuracy while avoiding unnecessarily technical terms."
+        ),
+    },
+    {
+        "personaSkillKey": "school_report",
+        "name": "School Report Persona",
+        "outputProfile": "school_report",
+        "instructions": (
+            "Write for a school team in formal collaborative language. "
+            "Focus on functional impact, classroom support needs, and respectful tone."
+        ),
+    },
+]
 
 
 def _resolve_mongo_uri() -> str:
@@ -230,6 +279,8 @@ def _normalize_survey_doc(raw: dict) -> dict:
 
 def _normalize_response_doc(raw: dict, *, prompt_key: str) -> dict:
     normalized_id = raw.get("_id")
+    output_profile = raw.get("outputProfile") or "patient_condition_overview"
+    persona_skill_key = raw.get("personaSkillKey") or output_profile
     return {
         **({"_id": normalized_id} if normalized_id is not None else {}),
         "surveyId": raw.get("surveyId"),
@@ -243,6 +294,8 @@ def _normalize_response_doc(raw: dict, *, prompt_key: str) -> dict:
         "screenerId": raw.get("screenerId") or SYSTEM_SCREENER_ID,
         "accessLinkToken": raw.get("accessLinkToken"),
         "promptKey": raw.get("promptKey") or prompt_key,
+        "personaSkillKey": persona_skill_key,
+        "outputProfile": output_profile,
         "patient": _normalize_patient(raw.get("patient")),
         "answers": raw.get("answers") or [],
     }
@@ -398,19 +451,42 @@ def write_master_key_secret() -> None:
 def migrate_survey_prompts() -> None:
     logger.info("Migrating survey prompts...")
     prompts_collection = db[SURVEY_PROMPTS_COLLECTION]
+    questionnaire_prompts_collection = db[QUESTIONNAIRE_PROMPTS_COLLECTION]
     prompts_collection.create_index("promptKey", unique=True)
-    prompts_collection.replace_one(
+    questionnaire_prompts_collection.create_index("promptKey", unique=True)
+    payload = {
+        "promptKey": DEFAULT_SURVEY_PROMPT_KEY,
+        "name": DEFAULT_SURVEY_PROMPT_NAME,
+        "promptText": DEFAULT_SURVEY_PROMPT_TEXT,
+        "createdAt": datetime.now(UTC),
+        "modifiedAt": datetime.now(UTC),
+        "legacySource": "003_populate_new_schema",
+    }
+    prompts_collection.replace_one({"promptKey": DEFAULT_SURVEY_PROMPT_KEY}, payload, upsert=True)
+    questionnaire_prompts_collection.replace_one(
         {"promptKey": DEFAULT_SURVEY_PROMPT_KEY},
-        {
-            "promptKey": DEFAULT_SURVEY_PROMPT_KEY,
-            "name": DEFAULT_SURVEY_PROMPT_NAME,
-            "promptText": DEFAULT_SURVEY_PROMPT_TEXT,
-            "createdAt": datetime.now(UTC),
-            "modifiedAt": datetime.now(UTC),
-        },
+        payload,
         upsert=True,
     )
     logger.info("Survey prompt catalog ready.")
+
+
+def migrate_persona_skills() -> None:
+    logger.info("Migrating persona skills...")
+    persona_skills_collection = db[PERSONA_SKILLS_COLLECTION]
+    persona_skills_collection.create_index("personaSkillKey", unique=True)
+    persona_skills_collection.create_index("outputProfile", unique=True)
+    for item in DEFAULT_PERSONA_SKILLS:
+        persona_skills_collection.replace_one(
+            {"personaSkillKey": item["personaSkillKey"]},
+            {
+                **item,
+                "createdAt": datetime.now(UTC),
+                "modifiedAt": datetime.now(UTC),
+            },
+            upsert=True,
+        )
+    logger.info("Persona skill catalog ready.")
 
 
 def migrate_surveys() -> None:
@@ -534,6 +610,8 @@ def log_final_state() -> None:
     for name in [
         "surveys",
         SURVEY_PROMPTS_COLLECTION,
+        QUESTIONNAIRE_PROMPTS_COLLECTION,
+        PERSONA_SKILLS_COLLECTION,
         SURVEY_RESPONSES_COLLECTION,
         PATIENT_RESPONSES_COLLECTION,
         "screeners",
@@ -546,6 +624,7 @@ def main() -> None:
     try:
         write_master_key_secret()
         migrate_survey_prompts()
+        migrate_persona_skills()
         migrate_surveys()
         migrate_survey_responses()
         migrate_patient_responses()
