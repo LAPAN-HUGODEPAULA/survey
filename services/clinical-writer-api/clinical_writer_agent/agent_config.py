@@ -25,6 +25,7 @@ class AgentConfig:
     LLM_MODEL_NAME = "gemini-2.5-flash-lite"
     PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", LLM_MODEL_NAME)
     FALLBACK_MODEL = os.getenv("FALLBACK_MODEL")
+    CRITIQUE_MODEL = os.getenv("CRITIQUE_MODEL", PRIMARY_MODEL)
     LLM_TEMPERATURE = 0.3
 
     # ========================

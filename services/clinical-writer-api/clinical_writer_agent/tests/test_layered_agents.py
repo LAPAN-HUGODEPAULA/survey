@@ -3,6 +3,7 @@ import json
 from clinical_writer_agent.agents.clinical_analyzer_agent import ClinicalAnalyzerAgent
 from clinical_writer_agent.agents.context_loader_agent import ContextLoaderAgent
 from clinical_writer_agent.agents.persona_writer_agent import PersonaWriterAgent
+from clinical_writer_agent.agents.reflector_node import ReflectorNode
 from clinical_writer_agent.prompt_registry import PromptNotFoundError, ResolvedPrompt
 
 
@@ -128,3 +129,96 @@ def test_persona_writer_generates_report_and_draft():
     assert "Relatorio Clinico" in result["draft_narrative"]
     assert result["medical_record"] == result["draft_narrative"]
     assert result["model_version"] == "json"
+
+
+def test_persona_writer_includes_reflector_feedback_on_rewrite():
+    llm = _StubLLM(_report_payload("rewrite"), name="json")
+    agent = PersonaWriterAgent(json_llm=llm)
+
+    agent.write(
+        {
+            "input_type": "survey7",
+            "persona_prompt": "write with school tone",
+            "clinical_facts": {"summary": "moderate visual distress"},
+            "reflection_feedback": "Remove prescriptive medical guidance.",
+            "reflection_retries_used": 1,
+        }
+    )
+
+    assert "REFLECTOR CORRECTION FEEDBACK" in llm.prompts[0]
+    assert "Remove prescriptive medical guidance." in llm.prompts[0]
+
+
+def test_reflector_passes_safe_report():
+    reflector = ReflectorNode(
+        critique_llm=_StubLLM(
+            {"decision": "pass", "issues": [], "feedback": ""},
+            name="judge",
+        )
+    )
+
+    result = reflector.reflect(
+        {
+            "report": _report_payload("safe school report"),
+            "clinical_facts": {"summary": "moderate visual distress"},
+            "output_profile": "school_report",
+        }
+    )
+
+    assert result["reflection_status"] == "passed"
+    assert result["validation_status"] == "reflection_passed"
+    assert result["critique_model_version"] == "judge"
+
+
+def test_reflector_requests_rewrite_for_school_prescription():
+    reflector = ReflectorNode(
+        critique_llm=_StubLLM(
+            {
+                "decision": "fail",
+                "issues": ["Contains a medical prescription for a school audience."],
+                "feedback": "Remove the prescription and rewrite for school staff.",
+            },
+            name="judge",
+        )
+    )
+
+    result = reflector.reflect(
+        {
+            "report": _report_payload("unsafe school report"),
+            "clinical_facts": {"summary": "moderate visual distress"},
+            "output_profile": "school_report",
+            "reflection_retries_used": 0,
+            "max_reflection_iterations": 2,
+        }
+    )
+
+    assert result["reflection_status"] == "failed"
+    assert result["reflection_retries_used"] == 1
+    assert "Remove the prescription" in result["reflection_feedback"]
+    assert "error_message" not in result
+
+
+def test_reflector_fails_after_iteration_cap():
+    reflector = ReflectorNode(
+        critique_llm=_StubLLM(
+            {
+                "decision": "fail",
+                "issues": ["Tone remains too prescriptive."],
+                "feedback": "Rewrite with school-friendly tone.",
+            },
+            name="judge",
+        )
+    )
+
+    result = reflector.reflect(
+        {
+            "report": _report_payload("still unsafe"),
+            "clinical_facts": {"summary": "moderate visual distress"},
+            "output_profile": "school_report",
+            "reflection_retries_used": 2,
+            "max_reflection_iterations": 2,
+        }
+    )
+
+    assert result["error_kind"] == "reflection_failed"
+    assert "safe final report" in result["error_message"]

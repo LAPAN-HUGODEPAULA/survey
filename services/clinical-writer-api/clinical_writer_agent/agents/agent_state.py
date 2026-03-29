@@ -23,7 +23,10 @@ ValidationStatus = Literal[
     "context_error",
     "analyzed",
     "written",
+    "reflection_passed",
+    "reflection_failed",
 ]
+ReflectionStatus = Literal["passed", "failed"]
 ClinicalFacts = dict[str, Any]
 ReportPayload = dict[str, Any]
 
@@ -55,6 +58,12 @@ class AgentState(TypedDict, total=False):
     report: ReportPayload
     medical_record: str
     model_version: str
+    reflection_status: ReflectionStatus
+    reflection_feedback: str
+    reflection_issues: list[str]
+    reflection_retries_used: int
+    max_reflection_iterations: int
+    critique_model_version: str
 
     # Error and runtime metadata
     error_kind: str

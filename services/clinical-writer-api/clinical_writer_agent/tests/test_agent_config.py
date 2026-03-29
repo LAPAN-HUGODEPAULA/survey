@@ -40,6 +40,23 @@ class _StubLLM:
         }
         return Response(json.dumps(report))
 
+
+class _StubJudge:
+    def __init__(self, payload: dict | None = None, name: str = "judge"):
+        self.payload = payload or {"decision": "pass", "issues": [], "feedback": ""}
+        self.name = name
+        self.invocations: list[str] = []
+
+    def invoke(self, prompt: str):
+        self.invocations.append(prompt)
+
+        class Response:
+            def __init__(self, content: str):
+                self.content = content
+
+        return Response(json.dumps(self.payload))
+
+
 def test_create_llm_instance_accepts_overrides(monkeypatch):
     """Overrides should flow into LLM construction without requiring env vars."""
     # Ensure no env/API key leakage
@@ -79,7 +96,13 @@ def test_create_graph_accepts_injected_llms(monkeypatch):
     """Injected LLMs should be used by graph nodes, enabling fast unit tests."""
     conv_llm = _StubLLM("conversation")
     json_llm = _StubLLM("json")
-    graph = create_graph(conversation_llm=conv_llm, json_llm=json_llm)
+    judge_llm = _StubJudge()
+
+    graph = create_graph(
+        conversation_llm=conv_llm,
+        json_llm=json_llm,
+        critique_llm=judge_llm,
+    )
     state = {
         "input_content": 'Doutor: Como vai? {"patient": "Joao"}',
         "observer": None,
@@ -91,5 +114,6 @@ def test_create_graph_accepts_injected_llms(monkeypatch):
     result = graph.invoke(state)
 
     assert len(conv_llm.invocations) == 2, "Conversation LLM should be used by analyzer and writer"
+    assert len(judge_llm.invocations) == 1, "Critique LLM should be used by reflector"
     assert result["clinical_facts"]["summary"] == "conversation-facts"
     assert "conversation-response" in result["medical_record"]

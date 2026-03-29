@@ -51,15 +51,34 @@ class _StubLLM:
         return Response(json.dumps(report))
 
 
-def _make_graph(observer):
+class _StubCritiqueLLM:
+    def __init__(self, payloads: list[dict] | None = None, name: str = "judge"):
+        self.name = name
+        self.payloads = payloads or [{"decision": "pass", "issues": [], "feedback": ""}]
+        self.calls = 0
+
+    def invoke(self, prompt: str):
+        self.calls += 1
+        index = min(self.calls - 1, len(self.payloads) - 1)
+
+        class Response:
+            def __init__(self, content: str):
+                self.content = content
+
+        return Response(json.dumps(self.payloads[index]))
+
+
+def _make_graph(observer, critique_llm=None):
     conv_llm = _StubLLM("conversation")
     json_llm = _StubLLM("json")
+    judge_llm = critique_llm or _StubCritiqueLLM()
     graph = create_graph(
         observer=observer,
         conversation_llm=conv_llm,
         json_llm=json_llm,
+        critique_llm=judge_llm,
     )
-    return graph, conv_llm, json_llm
+    return graph, conv_llm, json_llm, judge_llm
 
 
 def _collect_report_text(report) -> str:
@@ -160,6 +179,7 @@ async def test_llm_error_path_sets_error_message():
     graph = create_graph(
         observer=observer,
         conversation_llm=flaky_llm,
+        critique_llm=_StubCritiqueLLM(),
     )
     registry = create_prompt_registry()
 
@@ -187,7 +207,50 @@ def test_graph_ascii_contains_layered_nodes():
         assert "context_loader" in ascii_graph
         assert "clinical_analyzer" in ascii_graph
         assert "persona_writer" in ascii_graph
+        assert "reflector" in ascii_graph
     except ImportError:
         assert "context_loader" in inner_graph.nodes
         assert "clinical_analyzer" in inner_graph.nodes
         assert "persona_writer" in inner_graph.nodes
+        assert "reflector" in inner_graph.nodes
+
+
+async def test_reflection_failure_after_iteration_cap_surfaces_http_error():
+    observer = create_default_observer()
+    critique_llm = _StubCritiqueLLM(
+        payloads=[
+            {
+                "decision": "fail",
+                "issues": ["Contains a prescription for school staff."],
+                "feedback": "Remove the prescription.",
+            },
+            {
+                "decision": "fail",
+                "issues": ["Tone remains too prescriptive."],
+                "feedback": "Use school-friendly language.",
+            },
+            {
+                "decision": "fail",
+                "issues": ["Still contains invasive guidance."],
+                "feedback": "Remove all medical directives.",
+            },
+        ]
+    )
+    graph, *_ = _make_graph(observer, critique_llm=critique_llm)
+    registry = create_prompt_registry()
+
+    with pytest.raises(HTTPException) as exc_info:
+        await process_content(
+            ProcessRequest(
+                input_type="survey7",
+                content='{"patient": {"name": "Ana"}}',
+                output_profile="school_report",
+            ),
+            request=_RequestStub(),
+            graph=graph,
+            observer=observer,
+            prompt_registry=registry,
+        )
+
+    assert exc_info.value.status_code == 500
+    assert "safe final report" in str(exc_info.value.detail)

@@ -52,6 +52,8 @@ class PersonaWriterAgent:  # pylint: disable=too-few-public-methods
             prompt = self._build_prompt(
                 persona_prompt=state.get("persona_prompt", ""),
                 clinical_facts=state.get("clinical_facts", {}),
+                reflection_feedback=state.get("reflection_feedback"),
+                reflection_retries_used=state.get("reflection_retries_used", 0),
             )
             response = llm_model.invoke(prompt)
             content = (
@@ -67,6 +69,8 @@ class PersonaWriterAgent:  # pylint: disable=too-few-public-methods
             new_state["validation_status"] = "written"
             new_state.pop("error_kind", None)
             new_state.pop("error_message", None)
+            new_state.pop("reflection_status", None)
+            new_state.pop("reflection_issues", None)
 
             if observer:
                 observer.on_event(
@@ -116,9 +120,19 @@ class PersonaWriterAgent:  # pylint: disable=too-few-public-methods
         *,
         persona_prompt: str,
         clinical_facts: dict,
+        reflection_feedback: str | None = None,
+        reflection_retries_used: int = 0,
     ) -> str:
         schema = json.dumps(ReportDocument.model_json_schema(), ensure_ascii=False, indent=2)
         facts = json.dumps(clinical_facts, ensure_ascii=False, indent=2)
+        correction_block = ""
+        if reflection_feedback:
+            correction_block = (
+                "\nREFLECTOR CORRECTION FEEDBACK:\n"
+                f"Rewrite attempt #{reflection_retries_used}.\n"
+                f"{reflection_feedback}\n"
+                "Revise the report to satisfy every reflector issue while preserving the provided clinical facts.\n"
+            )
         return (
             "You are a clinical persona writer.\n"
             "Use only the provided clinical facts and persona instructions.\n"
@@ -128,6 +142,7 @@ class PersonaWriterAgent:  # pylint: disable=too-few-public-methods
             f"{persona_prompt}\n\n"
             "CLINICAL FACTS:\n"
             f"{facts}\n\n"
+            f"{correction_block}"
             "REPORTDOCUMENT JSON SCHEMA:\n"
             f"{schema}\n"
         )
