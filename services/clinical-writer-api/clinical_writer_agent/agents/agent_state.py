@@ -9,23 +9,55 @@ status), intermediate results (e.g., appropriateness scores), and final outputs
 """
 
 # Package imports
-from typing import Optional, TypedDict
+from typing import Any, Literal, Optional, TypedDict
 
 # Project imports
 from ..monitoring.base_monitors import ProcessingMonitor
 
-# Define Graph State
+InputType = Literal["consult", "survey7", "full_intake", "invalid"]
+ValidationStatus = Literal[
+    "validated",
+    "flagged",
+    "context_loaded",
+    "prompt_not_found",
+    "context_error",
+    "analyzed",
+    "written",
+]
+ClinicalFacts = dict[str, Any]
+ReportPayload = dict[str, Any]
+
+
 class AgentState(TypedDict, total=False):
     """State passed between LangGraph nodes during request processing."""
+
     input_content: str
-    validation_status: str
-    input_type: str
+    input_type: InputType
+    validation_status: ValidationStatus
+
+    # Request and routing context
     request_id: Optional[str]
     prompt_key: str
-    prompt_version: str
+    persona_skill_key: str
+    output_profile: str
+
+    # Hydrated prompt context
     prompt_text: str
-    report: dict
-    model_version: str
+    prompt_version: str
+    interpretation_prompt: str
+    persona_prompt: str
+    questionnaire_prompt_version: str
+    persona_skill_version: str
+
+    # Intermediate and final outputs
+    clinical_facts: ClinicalFacts
+    draft_narrative: str
+    report: ReportPayload
     medical_record: str
+    model_version: str
+
+    # Error and runtime metadata
+    error_kind: str
     error_message: str
-    observer: Optional['ProcessingMonitor']  # Observer for monitoring and logging
+    prompt_registry: Any
+    observer: Optional[ProcessingMonitor]

@@ -6,12 +6,14 @@ from typing import Optional
 from .agents.agent_state import AgentState
 from .agents.input_validator_agent import InputValidatorAgent
 from .agents.deterministic_router_agent import DeterministicRouterAgent
-from .agents.writer_nodes import ConsultWriterNode, Survey7WriterNode, FullIntakeWriterNode
+from .agents.context_loader_agent import ContextLoaderAgent
+from .agents.clinical_analyzer_agent import ClinicalAnalyzerAgent
+from .agents.persona_writer_agent import PersonaWriterAgent
 from .agents.other_inputs_handler_agent import OtherInputHandlerAgent
-
 from .monitoring.base_monitors import CompositeMonitor, ProcessingMonitor
 from .monitoring.logging_monitor import LoggingMonitor
 from .monitoring.metrics_monitor import MetricsMonitor
+from .prompt_registry import create_prompt_registry
 
 
 def create_graph(
@@ -19,6 +21,7 @@ def create_graph(
     *,
     conversation_llm=None,
     json_llm=None,
+    prompt_registry=None,
 ):
     """
     Create and configure the LangGraph workflow for clinical record generation.
@@ -27,11 +30,13 @@ def create_graph(
         observer: Optional observer for monitoring and logging to attach to the compiled graph.
         conversation_llm: Optional LLM instance to inject into the conversation processor.
         json_llm: Optional LLM instance to inject into the JSON processor.
-    
+
     Returns:
         Compiled LangGraph workflow
     """
     workflow = StateGraph(AgentState)
+
+    resolved_prompt_registry = prompt_registry or create_prompt_registry()
 
     # Add nodes
     workflow.add_node("validate_input", InputValidatorAgent().validate)
@@ -39,9 +44,21 @@ def create_graph(
         "route_input",
         DeterministicRouterAgent({"consult", "survey7", "full_intake"}).route,
     )
-    workflow.add_node("process_consult", ConsultWriterNode(llm_model=conversation_llm).process)
-    workflow.add_node("process_survey7", Survey7WriterNode(llm_model=json_llm).process)
-    workflow.add_node("process_full_intake", FullIntakeWriterNode(llm_model=json_llm).process)
+    workflow.add_node("context_loader", ContextLoaderAgent(resolved_prompt_registry).load)
+    workflow.add_node(
+        "clinical_analyzer",
+        ClinicalAnalyzerAgent(
+            conversation_llm=conversation_llm,
+            json_llm=json_llm,
+        ).analyze,
+    )
+    workflow.add_node(
+        "persona_writer",
+        PersonaWriterAgent(
+            conversation_llm=conversation_llm,
+            json_llm=json_llm,
+        ).write,
+    )
     workflow.add_node("handle_other", OtherInputHandlerAgent().handle)
 
     # Set entry point
@@ -62,17 +79,37 @@ def create_graph(
         "route_input",
         lambda state: state["input_type"],
         {
-            "consult": "process_consult",
-            "survey7": "process_survey7",
-            "full_intake": "process_full_intake",
+            "consult": "context_loader",
+            "survey7": "context_loader",
+            "full_intake": "context_loader",
             "invalid": "handle_other",
         },
     )
 
-    # Define normal edges
-    workflow.add_edge("process_consult", END)
-    workflow.add_edge("process_survey7", END)
-    workflow.add_edge("process_full_intake", END)
+    workflow.add_conditional_edges(
+        "context_loader",
+        lambda state: "error" if state.get("error_message") else "ok",
+        {
+            "ok": "clinical_analyzer",
+            "error": "handle_other",
+        },
+    )
+    workflow.add_conditional_edges(
+        "clinical_analyzer",
+        lambda state: "error" if state.get("error_message") else "ok",
+        {
+            "ok": "persona_writer",
+            "error": "handle_other",
+        },
+    )
+    workflow.add_conditional_edges(
+        "persona_writer",
+        lambda state: "error" if state.get("error_message") else "ok",
+        {
+            "ok": END,
+            "error": "handle_other",
+        },
+    )
     workflow.add_edge("handle_other", END)
 
     compiled_graph = workflow.compile()

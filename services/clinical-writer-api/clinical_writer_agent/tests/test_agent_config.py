@@ -18,6 +18,9 @@ class _StubLLM:
             def __init__(self, content: str):
                 self.content = content
 
+        if "clinical analysis engine" in prompt.lower():
+            return Response(json.dumps({"summary": f"{self.name}-facts"}))
+
         report = {
             "title": "Relatorio Clinico",
             "subtitle": f"Stub {self.name}",
@@ -36,20 +39,6 @@ class _StubLLM:
             ],
         }
         return Response(json.dumps(report))
-
-
-class _StubJudge:
-    def __init__(self, score: float = 1.0):
-        self.score = score
-
-    def invoke(self, prompt: str):
-
-        class Response:
-            def __init__(self, content: str):
-                self.content = content
-
-        return Response(str(self.score))
-
 
 def test_create_llm_instance_accepts_overrides(monkeypatch):
     """Overrides should flow into LLM construction without requiring env vars."""
@@ -90,19 +79,17 @@ def test_create_graph_accepts_injected_llms(monkeypatch):
     """Injected LLMs should be used by graph nodes, enabling fast unit tests."""
     conv_llm = _StubLLM("conversation")
     json_llm = _StubLLM("json")
-
     graph = create_graph(conversation_llm=conv_llm, json_llm=json_llm)
     state = {
         "input_content": 'Doutor: Como vai? {"patient": "Joao"}',
         "observer": None,
         "input_type": "consult",
         "prompt_key": "default",
-        "prompt_version": "test",
-        "prompt_text": "{content}",
-        "model_version": "test",
+        "prompt_registry": None,
     }
 
     result = graph.invoke(state)
 
-    assert conv_llm.invocations, "Conversation LLM should be invoked"
-    assert result["medical_record"] == "conversation-response"
+    assert len(conv_llm.invocations) == 2, "Conversation LLM should be used by analyzer and writer"
+    assert result["clinical_facts"]["summary"] == "conversation-facts"
+    assert "conversation-response" in result["medical_record"]

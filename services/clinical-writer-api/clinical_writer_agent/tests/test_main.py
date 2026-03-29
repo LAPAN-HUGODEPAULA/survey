@@ -1,12 +1,17 @@
 import json
 
 import pytest
+from fastapi import HTTPException
 
 from clinical_writer_agent.agent_graph import create_graph, create_default_observer, get_metrics_monitor
 from clinical_writer_agent.main import ProcessRequest, get_metrics, process_content, verify_token
 from clinical_writer_agent.prompt_registry import create_prompt_registry
 
 pytestmark = pytest.mark.anyio("asyncio")
+
+
+class _RequestStub:
+    headers = {}
 
 class _StubLLM:
     def __init__(self, name: str, fail_times: int = 0):
@@ -22,6 +27,9 @@ class _StubLLM:
         class Response:
             def __init__(self, content: str):
                 self.content = content
+
+        if "clinical analysis engine" in prompt.lower():
+            return Response(json.dumps({"summary": f"{self.name}-facts"}))
 
         report = {
             "title": "Relatorio Clinico",
@@ -46,7 +54,11 @@ class _StubLLM:
 def _make_graph(observer):
     conv_llm = _StubLLM("conversation")
     json_llm = _StubLLM("json")
-    graph = create_graph(observer=observer, conversation_llm=conv_llm, json_llm=json_llm)
+    graph = create_graph(
+        observer=observer,
+        conversation_llm=conv_llm,
+        json_llm=json_llm,
+    )
     return graph, conv_llm, json_llm
 
 
@@ -98,7 +110,13 @@ async def test_process_content_contract(input_content, input_type, expected_reco
     graph, *_ = _make_graph(observer)
     registry = create_prompt_registry()
     payload = ProcessRequest(input_type=input_type, content=input_content)
-    result = await process_content(payload, graph, observer, registry)
+    result = await process_content(
+        payload,
+        request=_RequestStub(),
+        graph=graph,
+        observer=observer,
+        prompt_registry=registry,
+    )
     report_text = _collect_report_text(result.report)
     assert expected_record_part in report_text
     assert isinstance(report_text, str)
@@ -117,8 +135,20 @@ async def test_metrics_reflects_live_observer():
     graph, *_ = _make_graph(observer)
     registry = create_prompt_registry()
 
-    await process_content(ProcessRequest(input_type="consult", content="Doutor: tudo bem?"), graph, observer, registry)
-    await process_content(ProcessRequest(input_type="survey7", content='{"patient": {"name": "Ana"}}'), graph, observer, registry)
+    await process_content(
+        ProcessRequest(input_type="consult", content="Doutor: tudo bem?"),
+        request=_RequestStub(),
+        graph=graph,
+        observer=observer,
+        prompt_registry=registry,
+    )
+    await process_content(
+        ProcessRequest(input_type="survey7", content='{"patient": {"name": "Ana"}}'),
+        request=_RequestStub(),
+        graph=graph,
+        observer=observer,
+        prompt_registry=registry,
+    )
 
     metrics = await get_metrics(observer=observer)
     assert metrics["total_requests"] == 2
@@ -127,10 +157,37 @@ async def test_metrics_reflects_live_observer():
 async def test_llm_error_path_sets_error_message():
     observer = create_default_observer()
     flaky_llm = _StubLLM("conversation", fail_times=1)
-    graph = create_graph(observer=observer, conversation_llm=flaky_llm)
+    graph = create_graph(
+        observer=observer,
+        conversation_llm=flaky_llm,
+    )
     registry = create_prompt_registry()
 
-    result = await process_content(ProcessRequest(input_type="consult", content="Doutor: tudo bem?"), graph, observer, registry)
-    report_text = _collect_report_text(result.report)
-    assert "Error generating medical record" in "\n".join(result.warnings)
+    with pytest.raises(HTTPException) as exc_info:
+        await process_content(
+            ProcessRequest(input_type="consult", content="Doutor: tudo bem?"),
+            request=_RequestStub(),
+            graph=graph,
+            observer=observer,
+            prompt_registry=registry,
+        )
+
+    assert exc_info.value.status_code == 500
+    assert "temporary failure" in str(exc_info.value.detail)
     assert flaky_llm.calls == 1
+
+
+def test_graph_ascii_contains_layered_nodes():
+    observer = create_default_observer()
+    graph, *_ = _make_graph(observer)
+    inner_graph = graph.get_graph()
+
+    try:
+        ascii_graph = inner_graph.draw_ascii()
+        assert "context_loader" in ascii_graph
+        assert "clinical_analyzer" in ascii_graph
+        assert "persona_writer" in ascii_graph
+    except ImportError:
+        assert "context_loader" in inner_graph.nodes
+        assert "clinical_analyzer" in inner_graph.nodes
+        assert "persona_writer" in inner_graph.nodes
