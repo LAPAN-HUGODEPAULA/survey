@@ -14,6 +14,10 @@ class _$AgentResponse extends AgentResponse {
   @override
   final String? promptVersion;
   @override
+  final String? questionnairePromptVersion;
+  @override
+  final String? personaSkillVersion;
+  @override
   final String? modelVersion;
   @override
   final JsonObject? report;
@@ -33,6 +37,8 @@ class _$AgentResponse extends AgentResponse {
       {this.ok,
       this.inputType,
       this.promptVersion,
+      this.questionnairePromptVersion,
+      this.personaSkillVersion,
       this.modelVersion,
       this.report,
       this.warnings,
@@ -54,6 +60,8 @@ class _$AgentResponse extends AgentResponse {
         ok == other.ok &&
         inputType == other.inputType &&
         promptVersion == other.promptVersion &&
+        questionnairePromptVersion == other.questionnairePromptVersion &&
+        personaSkillVersion == other.personaSkillVersion &&
         modelVersion == other.modelVersion &&
         report == other.report &&
         warnings == other.warnings &&
@@ -68,6 +76,8 @@ class _$AgentResponse extends AgentResponse {
     _$hash = $jc(_$hash, ok.hashCode);
     _$hash = $jc(_$hash, inputType.hashCode);
     _$hash = $jc(_$hash, promptVersion.hashCode);
+    _$hash = $jc(_$hash, questionnairePromptVersion.hashCode);
+    _$hash = $jc(_$hash, personaSkillVersion.hashCode);
     _$hash = $jc(_$hash, modelVersion.hashCode);
     _$hash = $jc(_$hash, report.hashCode);
     _$hash = $jc(_$hash, warnings.hashCode);
@@ -84,6 +94,8 @@ class _$AgentResponse extends AgentResponse {
           ..add('ok', ok)
           ..add('inputType', inputType)
           ..add('promptVersion', promptVersion)
+          ..add('questionnairePromptVersion', questionnairePromptVersion)
+          ..add('personaSkillVersion', personaSkillVersion)
           ..add('modelVersion', modelVersion)
           ..add('report', report)
           ..add('warnings', warnings)
@@ -110,6 +122,16 @@ class AgentResponseBuilder
   String? get promptVersion => _$this._promptVersion;
   set promptVersion(String? promptVersion) =>
       _$this._promptVersion = promptVersion;
+
+  String? _questionnairePromptVersion;
+  String? get questionnairePromptVersion => _$this._questionnairePromptVersion;
+  set questionnairePromptVersion(String? questionnairePromptVersion) =>
+      _$this._questionnairePromptVersion = questionnairePromptVersion;
+
+  String? _personaSkillVersion;
+  String? get personaSkillVersion => _$this._personaSkillVersion;
+  set personaSkillVersion(String? personaSkillVersion) =>
+      _$this._personaSkillVersion = personaSkillVersion;
 
   String? _modelVersion;
   String? get modelVersion => _$this._modelVersion;
@@ -148,6 +170,8 @@ class AgentResponseBuilder
       _ok = $v.ok;
       _inputType = $v.inputType;
       _promptVersion = $v.promptVersion;
+      _questionnairePromptVersion = $v.questionnairePromptVersion;
+      _personaSkillVersion = $v.personaSkillVersion;
       _modelVersion = $v.modelVersion;
       _report = $v.report;
       _warnings = $v.warnings?.toBuilder();
@@ -180,6 +204,8 @@ class AgentResponseBuilder
             ok: ok,
             inputType: inputType,
             promptVersion: promptVersion,
+            questionnairePromptVersion: questionnairePromptVersion,
+            personaSkillVersion: personaSkillVersion,
             modelVersion: modelVersion,
             report: report,
             warnings: _warnings?.build(),

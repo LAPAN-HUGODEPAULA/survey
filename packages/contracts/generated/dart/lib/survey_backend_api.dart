@@ -39,6 +39,8 @@ export 'package:survey_backend_api/src/model/document_record.dart';
 export 'package:survey_backend_api/src/model/instructions.dart';
 export 'package:survey_backend_api/src/model/list_template_document_types200_response_inner.dart';
 export 'package:survey_backend_api/src/model/patient.dart';
+export 'package:survey_backend_api/src/model/persona_skill.dart';
+export 'package:survey_backend_api/src/model/persona_skill_upsert.dart';
 export 'package:survey_backend_api/src/model/professional_council.dart';
 export 'package:survey_backend_api/src/model/question.dart';
 export 'package:survey_backend_api/src/model/screener_access_link.dart';

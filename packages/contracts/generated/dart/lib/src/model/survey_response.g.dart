@@ -30,6 +30,12 @@ abstract class SurveyResponseBuilder {
   String? get promptKey;
   set promptKey(String? promptKey);
 
+  String? get personaSkillKey;
+  set personaSkillKey(String? personaSkillKey);
+
+  String? get outputProfile;
+  set outputProfile(String? outputProfile);
+
   PatientBuilder get patient;
   set patient(PatientBuilder? patient);
 
@@ -53,6 +59,10 @@ class _$$SurveyResponse extends $SurveyResponse {
   @override
   final String? promptKey;
   @override
+  final String? personaSkillKey;
+  @override
+  final String? outputProfile;
+  @override
   final Patient? patient;
   @override
   final BuiltList<Answer> answers;
@@ -68,6 +78,8 @@ class _$$SurveyResponse extends $SurveyResponse {
       required this.screenerId,
       this.accessLinkToken,
       this.promptKey,
+      this.personaSkillKey,
+      this.outputProfile,
       this.patient,
       required this.answers})
       : super._();
@@ -89,6 +101,8 @@ class _$$SurveyResponse extends $SurveyResponse {
         screenerId == other.screenerId &&
         accessLinkToken == other.accessLinkToken &&
         promptKey == other.promptKey &&
+        personaSkillKey == other.personaSkillKey &&
+        outputProfile == other.outputProfile &&
         patient == other.patient &&
         answers == other.answers;
   }
@@ -103,6 +117,8 @@ class _$$SurveyResponse extends $SurveyResponse {
     _$hash = $jc(_$hash, screenerId.hashCode);
     _$hash = $jc(_$hash, accessLinkToken.hashCode);
     _$hash = $jc(_$hash, promptKey.hashCode);
+    _$hash = $jc(_$hash, personaSkillKey.hashCode);
+    _$hash = $jc(_$hash, outputProfile.hashCode);
     _$hash = $jc(_$hash, patient.hashCode);
     _$hash = $jc(_$hash, answers.hashCode);
     _$hash = $jf(_$hash);
@@ -119,6 +135,8 @@ class _$$SurveyResponse extends $SurveyResponse {
           ..add('screenerId', screenerId)
           ..add('accessLinkToken', accessLinkToken)
           ..add('promptKey', promptKey)
+          ..add('personaSkillKey', personaSkillKey)
+          ..add('outputProfile', outputProfile)
           ..add('patient', patient)
           ..add('answers', answers))
         .toString();
@@ -161,6 +179,16 @@ class $SurveyResponseBuilder
   String? get promptKey => _$this._promptKey;
   set promptKey(covariant String? promptKey) => _$this._promptKey = promptKey;
 
+  String? _personaSkillKey;
+  String? get personaSkillKey => _$this._personaSkillKey;
+  set personaSkillKey(covariant String? personaSkillKey) =>
+      _$this._personaSkillKey = personaSkillKey;
+
+  String? _outputProfile;
+  String? get outputProfile => _$this._outputProfile;
+  set outputProfile(covariant String? outputProfile) =>
+      _$this._outputProfile = outputProfile;
+
   PatientBuilder? _patient;
   PatientBuilder get patient => _$this._patient ??= PatientBuilder();
   set patient(covariant PatientBuilder? patient) => _$this._patient = patient;
@@ -184,6 +212,8 @@ class $SurveyResponseBuilder
       _screenerId = $v.screenerId;
       _accessLinkToken = $v.accessLinkToken;
       _promptKey = $v.promptKey;
+      _personaSkillKey = $v.personaSkillKey;
+      _outputProfile = $v.outputProfile;
       _patient = $v.patient?.toBuilder();
       _answers = $v.answers.toBuilder();
       _$v = null;
@@ -219,6 +249,8 @@ class $SurveyResponseBuilder
                 screenerId, r'$SurveyResponse', 'screenerId'),
             accessLinkToken: accessLinkToken,
             promptKey: promptKey,
+            personaSkillKey: personaSkillKey,
+            outputProfile: outputProfile,
             patient: _patient?.build(),
             answers: answers.build(),
           );

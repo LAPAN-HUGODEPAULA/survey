@@ -56,6 +56,13 @@ void main() {
       // TODO
     });
 
+    // Create persona skill
+    //
+    //Future<PersonaSkill> createPersonaSkill(PersonaSkillUpsert personaSkillUpsert) async
+    test('test createPersonaSkill', () async {
+      // TODO
+    });
+
     // Create a prepared screener access link
     //
     //Future<ScreenerAccessLink> createScreenerAccessLink(String authorization, CreateScreenerAccessLinkRequest createScreenerAccessLinkRequest) async
@@ -88,6 +95,13 @@ void main() {
     //
     //Future<TemplateRecord> createTemplate(TemplateCreateRequest templateCreateRequest) async
     test('test createTemplate', () async {
+      // TODO
+    });
+
+    // Delete persona skill
+    //
+    //Future deletePersonaSkill(String personaSkillKey) async
+    test('test deletePersonaSkill', () async {
       // TODO
     });
 
@@ -140,6 +154,13 @@ void main() {
       // TODO
     });
 
+    // Get persona skill by key
+    //
+    //Future<PersonaSkill> getPersonaSkill(String personaSkillKey) async
+    test('test getPersonaSkill', () async {
+      // TODO
+    });
+
     // Get survey by id
     //
     //Future<Survey> getSurvey(String surveyId) async
@@ -179,6 +200,13 @@ void main() {
     //
     //Future<BuiltList<ChatSession>> listChatSessions({ String status }) async
     test('test listChatSessions', () async {
+      // TODO
+    });
+
+    // List persona skills
+    //
+    //Future<BuiltList<PersonaSkill>> listPersonaSkills() async
+    test('test listPersonaSkills', () async {
       // TODO
     });
 
@@ -298,6 +326,13 @@ void main() {
     //
     //Future<ChatSession> updateChatSession(String sessionId, ChatSessionUpdate chatSessionUpdate) async
     test('test updateChatSession', () async {
+      // TODO
+    });
+
+    // Update persona skill
+    //
+    //Future<PersonaSkill> updatePersonaSkill(String personaSkillKey, PersonaSkillUpsert personaSkillUpsert) async
+    test('test updatePersonaSkill', () async {
       // TODO
     });
 

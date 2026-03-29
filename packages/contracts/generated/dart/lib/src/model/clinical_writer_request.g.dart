@@ -137,6 +137,10 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
   @override
   final String promptKey;
   @override
+  final String? personaSkillKey;
+  @override
+  final String? outputProfile;
+  @override
   final ClinicalWriterRequestOutputFormatEnum outputFormat;
   @override
   final ClinicalWriterRequestMetadata metadata;
@@ -150,6 +154,8 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
       required this.content,
       required this.locale,
       required this.promptKey,
+      this.personaSkillKey,
+      this.outputProfile,
       required this.outputFormat,
       required this.metadata})
       : super._();
@@ -170,6 +176,8 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
         content == other.content &&
         locale == other.locale &&
         promptKey == other.promptKey &&
+        personaSkillKey == other.personaSkillKey &&
+        outputProfile == other.outputProfile &&
         outputFormat == other.outputFormat &&
         metadata == other.metadata;
   }
@@ -181,6 +189,8 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
     _$hash = $jc(_$hash, content.hashCode);
     _$hash = $jc(_$hash, locale.hashCode);
     _$hash = $jc(_$hash, promptKey.hashCode);
+    _$hash = $jc(_$hash, personaSkillKey.hashCode);
+    _$hash = $jc(_$hash, outputProfile.hashCode);
     _$hash = $jc(_$hash, outputFormat.hashCode);
     _$hash = $jc(_$hash, metadata.hashCode);
     _$hash = $jf(_$hash);
@@ -194,6 +204,8 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
           ..add('content', content)
           ..add('locale', locale)
           ..add('promptKey', promptKey)
+          ..add('personaSkillKey', personaSkillKey)
+          ..add('outputProfile', outputProfile)
           ..add('outputFormat', outputFormat)
           ..add('metadata', metadata))
         .toString();
@@ -221,6 +233,16 @@ class ClinicalWriterRequestBuilder
   String? get promptKey => _$this._promptKey;
   set promptKey(String? promptKey) => _$this._promptKey = promptKey;
 
+  String? _personaSkillKey;
+  String? get personaSkillKey => _$this._personaSkillKey;
+  set personaSkillKey(String? personaSkillKey) =>
+      _$this._personaSkillKey = personaSkillKey;
+
+  String? _outputProfile;
+  String? get outputProfile => _$this._outputProfile;
+  set outputProfile(String? outputProfile) =>
+      _$this._outputProfile = outputProfile;
+
   ClinicalWriterRequestOutputFormatEnum? _outputFormat;
   ClinicalWriterRequestOutputFormatEnum? get outputFormat =>
       _$this._outputFormat;
@@ -244,6 +266,8 @@ class ClinicalWriterRequestBuilder
       _content = $v.content;
       _locale = $v.locale;
       _promptKey = $v.promptKey;
+      _personaSkillKey = $v.personaSkillKey;
+      _outputProfile = $v.outputProfile;
       _outputFormat = $v.outputFormat;
       _metadata = $v.metadata.toBuilder();
       _$v = null;
@@ -277,6 +301,8 @@ class ClinicalWriterRequestBuilder
                 locale, r'ClinicalWriterRequest', 'locale'),
             promptKey: BuiltValueNullFieldError.checkNotNull(
                 promptKey, r'ClinicalWriterRequest', 'promptKey'),
+            personaSkillKey: personaSkillKey,
+            outputProfile: outputProfile,
             outputFormat: BuiltValueNullFieldError.checkNotNull(
                 outputFormat, r'ClinicalWriterRequest', 'outputFormat'),
             metadata: metadata.build(),

@@ -16,11 +16,13 @@ Method | HTTP request | Description
 [**createChatMessage**](DefaultApi.md#createchatmessage) | **POST** /chat/sessions/{sessionId}/messages | Create chat message
 [**createChatSession**](DefaultApi.md#createchatsession) | **POST** /chat/sessions | Create chat session
 [**createPatientResponse**](DefaultApi.md#createpatientresponse) | **POST** /patient_responses/ | Create patient response
+[**createPersonaSkill**](DefaultApi.md#createpersonaskill) | **POST** /persona_skills/ | Create persona skill
 [**createScreenerAccessLink**](DefaultApi.md#createscreeneraccesslink) | **POST** /screener_access_links/ | Create a prepared screener access link
 [**createSurvey**](DefaultApi.md#createsurvey) | **POST** /surveys/ | Create survey
 [**createSurveyPrompt**](DefaultApi.md#createsurveyprompt) | **POST** /survey_prompts/ | Create reusable survey prompt
 [**createSurveyResponse**](DefaultApi.md#createsurveyresponse) | **POST** /survey_responses/ | Create survey response
 [**createTemplate**](DefaultApi.md#createtemplate) | **POST** /templates | Create template
+[**deletePersonaSkill**](DefaultApi.md#deletepersonaskill) | **DELETE** /persona_skills/{personaSkillKey} | Delete persona skill
 [**deleteSurvey**](DefaultApi.md#deletesurvey) | **DELETE** /surveys/{surveyId} | Delete survey
 [**deleteSurveyPrompt**](DefaultApi.md#deletesurveyprompt) | **DELETE** /survey_prompts/{promptKey} | Delete reusable survey prompt
 [**exportDocument**](DefaultApi.md#exportdocument) | **POST** /documents/export | Export document
@@ -28,12 +30,14 @@ Method | HTTP request | Description
 [**getChatSession**](DefaultApi.md#getchatsession) | **GET** /chat/sessions/{sessionId} | Get chat session
 [**getCurrentScreener**](DefaultApi.md#getcurrentscreener) | **GET** /screeners/me | Get the current screener profile
 [**getDocument**](DefaultApi.md#getdocument) | **GET** /documents/{documentId} | Get document record
+[**getPersonaSkill**](DefaultApi.md#getpersonaskill) | **GET** /persona_skills/{personaSkillKey} | Get persona skill by key
 [**getSurvey**](DefaultApi.md#getsurvey) | **GET** /surveys/{surveyId} | Get survey by id
 [**getSurveyPrompt**](DefaultApi.md#getsurveyprompt) | **GET** /survey_prompts/{promptKey} | Get reusable survey prompt by key
 [**getSurveyResponse**](DefaultApi.md#getsurveyresponse) | **GET** /survey_responses/{responseId} | Get survey response by id
 [**getTemplate**](DefaultApi.md#gettemplate) | **GET** /templates/{templateId} | Get template
 [**listChatMessages**](DefaultApi.md#listchatmessages) | **GET** /chat/sessions/{sessionId}/messages | List chat messages
 [**listChatSessions**](DefaultApi.md#listchatsessions) | **GET** /chat/sessions | List chat sessions
+[**listPersonaSkills**](DefaultApi.md#listpersonaskills) | **GET** /persona_skills/ | List persona skills
 [**listSurveyPrompts**](DefaultApi.md#listsurveyprompts) | **GET** /survey_prompts/ | List reusable survey prompts
 [**listSurveyResponses**](DefaultApi.md#listsurveyresponses) | **GET** /survey_responses/ | List survey responses
 [**listSurveys**](DefaultApi.md#listsurveys) | **GET** /surveys/ | List surveys
@@ -51,6 +55,7 @@ Method | HTTP request | Description
 [**transcribeVoiceAudio**](DefaultApi.md#transcribevoiceaudio) | **POST** /voice/transcriptions | Transcribe voice audio
 [**updateChatMessage**](DefaultApi.md#updatechatmessage) | **PATCH** /chat/messages/{messageId} | Update chat message
 [**updateChatSession**](DefaultApi.md#updatechatsession) | **PATCH** /chat/sessions/{sessionId} | Update chat session
+[**updatePersonaSkill**](DefaultApi.md#updatepersonaskill) | **PUT** /persona_skills/{personaSkillKey} | Update persona skill
 [**updateSurvey**](DefaultApi.md#updatesurvey) | **PUT** /surveys/{surveyId} | Update survey
 [**updateSurveyPrompt**](DefaultApi.md#updatesurveyprompt) | **PUT** /survey_prompts/{promptKey} | Update reusable survey prompt
 [**updateTemplate**](DefaultApi.md#updatetemplate) | **PUT** /templates/{templateId} | Update template (new version)
@@ -345,6 +350,47 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **createPersonaSkill**
+> PersonaSkill createPersonaSkill(personaSkillUpsert)
+
+Create persona skill
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final PersonaSkillUpsert personaSkillUpsert = ; // PersonaSkillUpsert | 
+
+try {
+    final response = api.createPersonaSkill(personaSkillUpsert);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->createPersonaSkill: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **personaSkillUpsert** | [**PersonaSkillUpsert**](PersonaSkillUpsert.md)|  | 
+
+### Return type
+
+[**PersonaSkill**](PersonaSkill.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **createScreenerAccessLink**
 > ScreenerAccessLink createScreenerAccessLink(authorization, createScreenerAccessLinkRequest)
 
@@ -549,6 +595,46 @@ No authorization required
 
  - **Content-Type**: application/json
  - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **deletePersonaSkill**
+> deletePersonaSkill(personaSkillKey)
+
+Delete persona skill
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String personaSkillKey = personaSkillKey_example; // String | 
+
+try {
+    api.deletePersonaSkill(personaSkillKey);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->deletePersonaSkill: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **personaSkillKey** | **String**|  | 
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -833,6 +919,47 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getPersonaSkill**
+> PersonaSkill getPersonaSkill(personaSkillKey)
+
+Get persona skill by key
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String personaSkillKey = personaSkillKey_example; // String | 
+
+try {
+    final response = api.getPersonaSkill(personaSkillKey);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->getPersonaSkill: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **personaSkillKey** | **String**|  | 
+
+### Return type
+
+[**PersonaSkill**](PersonaSkill.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getSurvey**
 > Survey getSurvey(surveyId)
 
@@ -1067,6 +1194,43 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**BuiltList&lt;ChatSession&gt;**](ChatSession.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **listPersonaSkills**
+> BuiltList<PersonaSkill> listPersonaSkills()
+
+List persona skills
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+
+try {
+    final response = api.listPersonaSkills();
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->listPersonaSkills: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**BuiltList&lt;PersonaSkill&gt;**](PersonaSkill.md)
 
 ### Authorization
 
@@ -1756,6 +1920,49 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**ChatSession**](ChatSession.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **updatePersonaSkill**
+> PersonaSkill updatePersonaSkill(personaSkillKey, personaSkillUpsert)
+
+Update persona skill
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String personaSkillKey = personaSkillKey_example; // String | 
+final PersonaSkillUpsert personaSkillUpsert = ; // PersonaSkillUpsert | 
+
+try {
+    final response = api.updatePersonaSkill(personaSkillKey, personaSkillUpsert);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->updatePersonaSkill: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **personaSkillKey** | **String**|  | 
+ **personaSkillUpsert** | [**PersonaSkillUpsert**](PersonaSkillUpsert.md)|  | 
+
+### Return type
+
+[**PersonaSkill**](PersonaSkill.md)
 
 ### Authorization
 

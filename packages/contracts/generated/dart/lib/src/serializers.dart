@@ -41,6 +41,8 @@ import 'package:survey_backend_api/src/model/document_record.dart';
 import 'package:survey_backend_api/src/model/instructions.dart';
 import 'package:survey_backend_api/src/model/list_template_document_types200_response_inner.dart';
 import 'package:survey_backend_api/src/model/patient.dart';
+import 'package:survey_backend_api/src/model/persona_skill.dart';
+import 'package:survey_backend_api/src/model/persona_skill_upsert.dart';
 import 'package:survey_backend_api/src/model/professional_council.dart';
 import 'package:survey_backend_api/src/model/question.dart';
 import 'package:survey_backend_api/src/model/screener_access_link.dart';
@@ -96,6 +98,8 @@ part 'serializers.g.dart';
   Instructions,
   ListTemplateDocumentTypes200ResponseInner,
   Patient,
+  PersonaSkill,
+  PersonaSkillUpsert,$PersonaSkillUpsert,
   ProfessionalCouncil,
   Question,
   ScreenerAccessLink,
@@ -135,6 +139,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<SurveyPrompt>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(PersonaSkill)]),
+        () => ListBuilder<PersonaSkill>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ListTemplateDocumentTypes200ResponseInner)]),
         () => ListBuilder<ListTemplateDocumentTypes200ResponseInner>(),
       )
@@ -150,6 +158,7 @@ Serializers serializers = (_$serializers.toBuilder()
         const FullType(BuiltList, [FullType(ChatMessage)]),
         () => ListBuilder<ChatMessage>(),
       )
+      ..add(PersonaSkillUpsert.serializer)
       ..add(SurveyPromptUpsert.serializer)
       ..add(SurveyResponse.serializer)
       ..add(const OneOfSerializer())

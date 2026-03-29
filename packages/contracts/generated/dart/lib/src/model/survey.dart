@@ -15,17 +15,17 @@ part 'survey.g.dart';
 /// Survey
 ///
 /// Properties:
-/// * [id]
-/// * [surveyDisplayName]
-/// * [surveyName]
-/// * [surveyDescription]
-/// * [creatorId]
-/// * [createdAt]
-/// * [modifiedAt]
-/// * [instructions]
-/// * [questions]
-/// * [finalNotes]
-/// * [prompt]
+/// * [id] 
+/// * [surveyDisplayName] 
+/// * [surveyName] 
+/// * [surveyDescription] 
+/// * [creatorId] 
+/// * [createdAt] 
+/// * [modifiedAt] 
+/// * [instructions] 
+/// * [questions] 
+/// * [finalNotes] 
+/// * [prompt] 
 @BuiltValue()
 abstract class Survey implements Built<Survey, SurveyBuilder> {
   @BuiltValueField(wireName: r'_id')

@@ -30,6 +30,8 @@ doc/DocumentRecord.md
 doc/Instructions.md
 doc/ListTemplateDocumentTypes200ResponseInner.md
 doc/Patient.md
+doc/PersonaSkill.md
+doc/PersonaSkillUpsert.md
 doc/ProfessionalCouncil.md
 doc/Question.md
 doc/ScreenerAccessLink.md
@@ -91,6 +93,8 @@ lib/src/model/document_record.dart
 lib/src/model/instructions.dart
 lib/src/model/list_template_document_types200_response_inner.dart
 lib/src/model/patient.dart
+lib/src/model/persona_skill.dart
+lib/src/model/persona_skill_upsert.dart
 lib/src/model/professional_council.dart
 lib/src/model/question.dart
 lib/src/model/screener_access_link.dart
@@ -146,6 +150,8 @@ test/document_record_test.dart
 test/instructions_test.dart
 test/list_template_document_types200_response_inner_test.dart
 test/patient_test.dart
+test/persona_skill_test.dart
+test/persona_skill_upsert_test.dart
 test/professional_council_test.dart
 test/question_test.dart
 test/screener_access_link_test.dart

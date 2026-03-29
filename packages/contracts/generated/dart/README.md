@@ -72,11 +72,13 @@ Class | Method | HTTP request | Description
 [*DefaultApi*](doc/DefaultApi.md) | [**createChatMessage**](doc/DefaultApi.md#createchatmessage) | **POST** /chat/sessions/{sessionId}/messages | Create chat message
 [*DefaultApi*](doc/DefaultApi.md) | [**createChatSession**](doc/DefaultApi.md#createchatsession) | **POST** /chat/sessions | Create chat session
 [*DefaultApi*](doc/DefaultApi.md) | [**createPatientResponse**](doc/DefaultApi.md#createpatientresponse) | **POST** /patient_responses/ | Create patient response
+[*DefaultApi*](doc/DefaultApi.md) | [**createPersonaSkill**](doc/DefaultApi.md#createpersonaskill) | **POST** /persona_skills/ | Create persona skill
 [*DefaultApi*](doc/DefaultApi.md) | [**createScreenerAccessLink**](doc/DefaultApi.md#createscreeneraccesslink) | **POST** /screener_access_links/ | Create a prepared screener access link
 [*DefaultApi*](doc/DefaultApi.md) | [**createSurvey**](doc/DefaultApi.md#createsurvey) | **POST** /surveys/ | Create survey
 [*DefaultApi*](doc/DefaultApi.md) | [**createSurveyPrompt**](doc/DefaultApi.md#createsurveyprompt) | **POST** /survey_prompts/ | Create reusable survey prompt
 [*DefaultApi*](doc/DefaultApi.md) | [**createSurveyResponse**](doc/DefaultApi.md#createsurveyresponse) | **POST** /survey_responses/ | Create survey response
 [*DefaultApi*](doc/DefaultApi.md) | [**createTemplate**](doc/DefaultApi.md#createtemplate) | **POST** /templates | Create template
+[*DefaultApi*](doc/DefaultApi.md) | [**deletePersonaSkill**](doc/DefaultApi.md#deletepersonaskill) | **DELETE** /persona_skills/{personaSkillKey} | Delete persona skill
 [*DefaultApi*](doc/DefaultApi.md) | [**deleteSurvey**](doc/DefaultApi.md#deletesurvey) | **DELETE** /surveys/{surveyId} | Delete survey
 [*DefaultApi*](doc/DefaultApi.md) | [**deleteSurveyPrompt**](doc/DefaultApi.md#deletesurveyprompt) | **DELETE** /survey_prompts/{promptKey} | Delete reusable survey prompt
 [*DefaultApi*](doc/DefaultApi.md) | [**exportDocument**](doc/DefaultApi.md#exportdocument) | **POST** /documents/export | Export document
@@ -84,12 +86,14 @@ Class | Method | HTTP request | Description
 [*DefaultApi*](doc/DefaultApi.md) | [**getChatSession**](doc/DefaultApi.md#getchatsession) | **GET** /chat/sessions/{sessionId} | Get chat session
 [*DefaultApi*](doc/DefaultApi.md) | [**getCurrentScreener**](doc/DefaultApi.md#getcurrentscreener) | **GET** /screeners/me | Get the current screener profile
 [*DefaultApi*](doc/DefaultApi.md) | [**getDocument**](doc/DefaultApi.md#getdocument) | **GET** /documents/{documentId} | Get document record
+[*DefaultApi*](doc/DefaultApi.md) | [**getPersonaSkill**](doc/DefaultApi.md#getpersonaskill) | **GET** /persona_skills/{personaSkillKey} | Get persona skill by key
 [*DefaultApi*](doc/DefaultApi.md) | [**getSurvey**](doc/DefaultApi.md#getsurvey) | **GET** /surveys/{surveyId} | Get survey by id
 [*DefaultApi*](doc/DefaultApi.md) | [**getSurveyPrompt**](doc/DefaultApi.md#getsurveyprompt) | **GET** /survey_prompts/{promptKey} | Get reusable survey prompt by key
 [*DefaultApi*](doc/DefaultApi.md) | [**getSurveyResponse**](doc/DefaultApi.md#getsurveyresponse) | **GET** /survey_responses/{responseId} | Get survey response by id
 [*DefaultApi*](doc/DefaultApi.md) | [**getTemplate**](doc/DefaultApi.md#gettemplate) | **GET** /templates/{templateId} | Get template
 [*DefaultApi*](doc/DefaultApi.md) | [**listChatMessages**](doc/DefaultApi.md#listchatmessages) | **GET** /chat/sessions/{sessionId}/messages | List chat messages
 [*DefaultApi*](doc/DefaultApi.md) | [**listChatSessions**](doc/DefaultApi.md#listchatsessions) | **GET** /chat/sessions | List chat sessions
+[*DefaultApi*](doc/DefaultApi.md) | [**listPersonaSkills**](doc/DefaultApi.md#listpersonaskills) | **GET** /persona_skills/ | List persona skills
 [*DefaultApi*](doc/DefaultApi.md) | [**listSurveyPrompts**](doc/DefaultApi.md#listsurveyprompts) | **GET** /survey_prompts/ | List reusable survey prompts
 [*DefaultApi*](doc/DefaultApi.md) | [**listSurveyResponses**](doc/DefaultApi.md#listsurveyresponses) | **GET** /survey_responses/ | List survey responses
 [*DefaultApi*](doc/DefaultApi.md) | [**listSurveys**](doc/DefaultApi.md#listsurveys) | **GET** /surveys/ | List surveys
@@ -107,6 +111,7 @@ Class | Method | HTTP request | Description
 [*DefaultApi*](doc/DefaultApi.md) | [**transcribeVoiceAudio**](doc/DefaultApi.md#transcribevoiceaudio) | **POST** /voice/transcriptions | Transcribe voice audio
 [*DefaultApi*](doc/DefaultApi.md) | [**updateChatMessage**](doc/DefaultApi.md#updatechatmessage) | **PATCH** /chat/messages/{messageId} | Update chat message
 [*DefaultApi*](doc/DefaultApi.md) | [**updateChatSession**](doc/DefaultApi.md#updatechatsession) | **PATCH** /chat/sessions/{sessionId} | Update chat session
+[*DefaultApi*](doc/DefaultApi.md) | [**updatePersonaSkill**](doc/DefaultApi.md#updatepersonaskill) | **PUT** /persona_skills/{personaSkillKey} | Update persona skill
 [*DefaultApi*](doc/DefaultApi.md) | [**updateSurvey**](doc/DefaultApi.md#updatesurvey) | **PUT** /surveys/{surveyId} | Update survey
 [*DefaultApi*](doc/DefaultApi.md) | [**updateSurveyPrompt**](doc/DefaultApi.md#updatesurveyprompt) | **PUT** /survey_prompts/{promptKey} | Update reusable survey prompt
 [*DefaultApi*](doc/DefaultApi.md) | [**updateTemplate**](doc/DefaultApi.md#updatetemplate) | **PUT** /templates/{templateId} | Update template (new version)
@@ -141,6 +146,8 @@ Class | Method | HTTP request | Description
  - [Instructions](doc/Instructions.md)
  - [ListTemplateDocumentTypes200ResponseInner](doc/ListTemplateDocumentTypes200ResponseInner.md)
  - [Patient](doc/Patient.md)
+ - [PersonaSkill](doc/PersonaSkill.md)
+ - [PersonaSkillUpsert](doc/PersonaSkillUpsert.md)
  - [ProfessionalCouncil](doc/ProfessionalCouncil.md)
  - [Question](doc/Question.md)
  - [ScreenerAccessLink](doc/ScreenerAccessLink.md)

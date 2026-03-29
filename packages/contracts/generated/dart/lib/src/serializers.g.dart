@@ -7,6 +7,7 @@ part of 'serializers.dart';
 // **************************************************************************
 
 Serializers _$serializers = (Serializers().toBuilder()
+      ..add($PersonaSkillUpsert.serializer)
       ..add($SurveyPromptUpsert.serializer)
       ..add($SurveyResponse.serializer)
       ..add(Address.serializer)
@@ -38,6 +39,7 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(Instructions.serializer)
       ..add(ListTemplateDocumentTypes200ResponseInner.serializer)
       ..add(Patient.serializer)
+      ..add(PersonaSkill.serializer)
       ..add(ProfessionalCouncil.serializer)
       ..add(ProfessionalCouncilTypeEnum.serializer)
       ..add(Question.serializer)

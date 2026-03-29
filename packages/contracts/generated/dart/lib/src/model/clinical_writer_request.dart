@@ -17,6 +17,8 @@ part 'clinical_writer_request.g.dart';
 /// * [content] 
 /// * [locale] 
 /// * [promptKey] 
+/// * [personaSkillKey] 
+/// * [outputProfile] 
 /// * [outputFormat] 
 /// * [metadata] 
 @BuiltValue()
@@ -33,6 +35,12 @@ abstract class ClinicalWriterRequest implements Built<ClinicalWriterRequest, Cli
 
   @BuiltValueField(wireName: r'prompt_key')
   String get promptKey;
+
+  @BuiltValueField(wireName: r'persona_skill_key')
+  String? get personaSkillKey;
+
+  @BuiltValueField(wireName: r'output_profile')
+  String? get outputProfile;
 
   @BuiltValueField(wireName: r'output_format')
   ClinicalWriterRequestOutputFormatEnum get outputFormat;
@@ -84,6 +92,20 @@ class _$ClinicalWriterRequestSerializer implements PrimitiveSerializer<ClinicalW
       object.promptKey,
       specifiedType: const FullType(String),
     );
+    if (object.personaSkillKey != null) {
+      yield r'persona_skill_key';
+      yield serializers.serialize(
+        object.personaSkillKey,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.outputProfile != null) {
+      yield r'output_profile';
+      yield serializers.serialize(
+        object.outputProfile,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
     yield r'output_format';
     yield serializers.serialize(
       object.outputFormat,
@@ -144,6 +166,22 @@ class _$ClinicalWriterRequestSerializer implements PrimitiveSerializer<ClinicalW
             specifiedType: const FullType(String),
           ) as String;
           result.promptKey = valueDes;
+          break;
+        case r'persona_skill_key':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.personaSkillKey = valueDes;
+          break;
+        case r'output_profile':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.outputProfile = valueDes;
           break;
         case r'output_format':
           final valueDes = serializers.deserialize(
