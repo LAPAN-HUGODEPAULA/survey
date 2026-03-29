@@ -7,6 +7,8 @@ class AgentResponse(BaseModel):
     ok: Optional[bool] = None
     input_type: Optional[str] = None
     prompt_version: Optional[str] = None
+    questionnaire_prompt_version: Optional[str] = None
+    persona_skill_version: Optional[str] = None
     model_version: Optional[str] = None
     report: Optional[dict] = None
     warnings: list[str] = Field(default_factory=list)

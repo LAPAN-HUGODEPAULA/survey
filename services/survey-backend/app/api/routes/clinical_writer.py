@@ -14,6 +14,8 @@ class ClinicalWriterRequest(BaseModel):
     content: str = Field(..., min_length=1, description="Conversation text or JSON string")
     locale: str = Field(default="pt-BR")
     prompt_key: str = Field(default="default")
+    persona_skill_key: str | None = Field(default=None)
+    output_profile: str | None = Field(default=None)
     output_format: str = Field(default="report_json")
     metadata: dict = Field(default_factory=dict)
 
@@ -51,6 +53,8 @@ async def process_clinical_writer(request: ClinicalWriterRequest) -> AgentRespon
         request.content,
         input_type=request.input_type,
         prompt_key=request.prompt_key,
+        persona_skill_key=request.persona_skill_key,
+        output_profile=request.output_profile,
         source_app=request.metadata.get("source_app") or "clinical-writer",
         patient_ref=request.metadata.get("patient_ref"),
         request_id=request.metadata.get("request_id"),

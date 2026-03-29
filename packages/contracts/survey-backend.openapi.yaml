@@ -98,6 +98,96 @@ paths:
           description: Survey prompt not found
         '409':
           description: Survey prompt still associated with a survey
+  /persona_skills/:
+    get:
+      summary: List persona skills
+      operationId: listPersonaSkills
+      responses:
+        '200':
+          description: List of persona skills
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonaSkill'
+    post:
+      summary: Create persona skill
+      operationId: createPersonaSkill
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonaSkillUpsert'
+      responses:
+        '201':
+          description: Created persona skill
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonaSkill'
+        '409':
+          description: Duplicate persona key or output profile
+  /persona_skills/{personaSkillKey}:
+    get:
+      summary: Get persona skill by key
+      operationId: getPersonaSkill
+      parameters:
+        - in: path
+          name: personaSkillKey
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Persona skill found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonaSkill'
+        '404':
+          description: Persona skill not found
+    put:
+      summary: Update persona skill
+      operationId: updatePersonaSkill
+      parameters:
+        - in: path
+          name: personaSkillKey
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PersonaSkillUpsert'
+      responses:
+        '200':
+          description: Updated persona skill
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonaSkill'
+        '404':
+          description: Persona skill not found
+        '409':
+          description: Duplicate persona key or output profile
+    delete:
+      summary: Delete persona skill
+      operationId: deletePersonaSkill
+      parameters:
+        - in: path
+          name: personaSkillKey
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Persona skill deleted
+        '404':
+          description: Persona skill not found
   /surveys/:
     get:
       summary: List surveys
@@ -1128,6 +1218,36 @@ components:
             modifiedAt:
               type: string
               format: date-time
+    PersonaSkillUpsert:
+      type: object
+      required:
+        - personaSkillKey
+        - name
+        - outputProfile
+        - instructions
+      properties:
+        personaSkillKey:
+          type: string
+        name:
+          type: string
+        outputProfile:
+          type: string
+        instructions:
+          type: string
+    PersonaSkill:
+      allOf:
+        - $ref: '#/components/schemas/PersonaSkillUpsert'
+        - type: object
+          required:
+            - createdAt
+            - modifiedAt
+          properties:
+            createdAt:
+              type: string
+              format: date-time
+            modifiedAt:
+              type: string
+              format: date-time
     SurveyPromptReference:
       type: object
       required:
@@ -1235,6 +1355,12 @@ components:
         promptKey:
           type: string
           nullable: true
+        personaSkillKey:
+          type: string
+          nullable: true
+        outputProfile:
+          type: string
+          nullable: true
         patient:
           $ref: '#/components/schemas/Patient'
         answers:
@@ -1280,6 +1406,10 @@ components:
           type: string
         prompt_version:
           type: string
+        questionnaire_prompt_version:
+          type: string
+        persona_skill_version:
+          type: string
         model_version:
           type: string
         report:
@@ -1316,6 +1446,12 @@ components:
           type: string
         prompt_key:
           type: string
+        persona_skill_key:
+          type: string
+          nullable: true
+        output_profile:
+          type: string
+          nullable: true
         output_format:
           type: string
           enum:
