@@ -5,6 +5,7 @@ from datetime import datetime
 from app.domain.models.patient_model import Patient
 from app.domain.models.answer_model import Answer
 
+
 class SurveyResponse(BaseModel):
     id: Optional[str] = Field(default=None, alias="_id")
     survey_id: str = Field(..., alias="surveyId")
@@ -13,6 +14,8 @@ class SurveyResponse(BaseModel):
     screener_id: str = Field(..., alias="screenerId")
     access_link_token: Optional[str] = Field(default=None, alias="accessLinkToken")
     prompt_key: Optional[str] = Field(default=None, alias="promptKey")
+    persona_skill_key: Optional[str] = Field(default=None, alias="personaSkillKey")
+    output_profile: Optional[str] = Field(default=None, alias="outputProfile")
     patient: Optional[Patient] = None
     answers: List[Answer]
 

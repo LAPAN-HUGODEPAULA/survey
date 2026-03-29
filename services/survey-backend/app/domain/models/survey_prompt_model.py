@@ -1,4 +1,4 @@
-"""Survey prompt catalog and survey reference models."""
+"""Questionnaire prompt catalog and survey reference models."""
 
 from datetime import datetime
 
@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class SurveyPromptReference(BaseModel):
-    """Compact prompt reference embedded inside a survey definition."""
+    """Compact questionnaire prompt reference embedded inside a survey definition."""
 
     prompt_key: str = Field(..., alias="promptKey")
     name: str
@@ -15,7 +15,7 @@ class SurveyPromptReference(BaseModel):
 
 
 class SurveyPromptUpsert(BaseModel):
-    """Request shape for creating or updating a reusable prompt."""
+    """Request shape for creating or updating questionnaire clinical logic."""
 
     prompt_key: str = Field(..., alias="promptKey", min_length=1)
     name: str = Field(..., min_length=1)
@@ -49,7 +49,7 @@ class SurveyPromptUpsert(BaseModel):
 
 
 class SurveyPrompt(SurveyPromptUpsert):
-    """Stored prompt definition returned through the API."""
+    """Stored questionnaire prompt definition returned through the API."""
 
     created_at: datetime = Field(..., alias="createdAt")
     modified_at: datetime = Field(..., alias="modifiedAt")

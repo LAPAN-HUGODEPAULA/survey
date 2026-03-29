@@ -14,7 +14,7 @@ from app.integrations.email.service import send_patient_response_email
 from app.persistence.deps import get_patient_response_repo, get_survey_repo
 from app.persistence.repositories.patient_response_repo import PatientResponseRepository
 from app.persistence.repositories.survey_repo import SurveyRepository
-from app.services.survey_prompt_selection import resolve_prompt_key
+from app.services.survey_prompt_selection import resolve_prompt_selection
 
 router = APIRouter()
 
@@ -33,6 +33,18 @@ async def create_patient_response(
     patient_name = survey_response.patient.name if survey_response.patient else "Anonymous"
     logger.info("Survey ID: %s, Patient: %s", survey_response.survey_id, patient_name)
     try:
+        resolved_survey = survey_repo.get_by_id(survey_response.survey_id)
+        selection = resolve_prompt_selection(
+            resolved_survey,
+            survey_response.prompt_key,
+            requested_persona_skill_key=survey_response.persona_skill_key,
+            requested_output_profile=survey_response.output_profile,
+            input_type="survey7",
+        )
+        survey_response.prompt_key = selection.prompt_key
+        survey_response.persona_skill_key = selection.persona_skill_key
+        survey_response.output_profile = selection.output_profile
+
         logger.info("Dumping survey response model to dict...")
         survey_response_dict = survey_response.model_dump(by_alias=True)
         if survey_response_dict.get("_id") is None:
@@ -57,15 +69,12 @@ async def create_patient_response(
 
         try:
             logger.info("Sending patient response to LangGraph agent for processing...")
-            resolved_survey = survey_repo.get_by_id(survey_response.survey_id)
-            resolved_prompt_key = resolve_prompt_key(
-                resolved_survey,
-                survey_response.prompt_key,
-            )
             agent_result = await send_to_langgraph_agent(
                 response_payload,
                 input_type="survey7",
-                prompt_key=resolved_prompt_key,
+                prompt_key=selection.prompt_key,
+                persona_skill_key=selection.persona_skill_key,
+                output_profile=selection.output_profile,
                 source_app="survey-patient",
                 patient_ref=survey_response.patient.email if survey_response.patient else None,
             )

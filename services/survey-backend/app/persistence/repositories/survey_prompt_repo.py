@@ -1,4 +1,4 @@
-"""Mongo-backed repository for reusable survey prompts."""
+"""Mongo-backed repository for questionnaire-level prompt definitions."""
 
 from datetime import datetime, timezone
 from typing import Any
@@ -9,12 +9,17 @@ from pymongo.errors import DuplicateKeyError
 
 
 class SurveyPromptRepository:
-    """Handles CRUD operations for reusable survey prompts."""
+    """Handles CRUD operations for questionnaire prompt definitions."""
+
+    PRIMARY_COLLECTION_NAME = "QuestionnairePrompts"
+    LEGACY_COLLECTION_NAME = "survey_prompts"
 
     def __init__(self, db: Database):
-        self._col = db["survey_prompts"]
+        self._col = db[self.PRIMARY_COLLECTION_NAME]
+        self._legacy_col = db[self.LEGACY_COLLECTION_NAME]
         self._surveys = db["surveys"]
         self._col.create_index("promptKey", unique=True)
+        self._legacy_col.create_index("promptKey", unique=True)
 
     def create(self, prompt_data: dict) -> dict:
         """Insert a prompt and return the stored document."""
@@ -30,11 +35,24 @@ class SurveyPromptRepository:
 
     def list_all(self) -> list[dict]:
         """Return every stored prompt ordered for stable UI rendering."""
-        return [self._normalize(doc) for doc in self._col.find().sort([("name", 1)])]
+        seen_keys: set[str] = set()
+        prompts: list[dict] = []
+        for collection in (self._col, self._legacy_col):
+            for doc in collection.find().sort([("name", 1)]):
+                normalized = self._normalize(doc)
+                prompt_key = normalized.get("promptKey")
+                if not prompt_key or prompt_key in seen_keys:
+                    continue
+                seen_keys.add(prompt_key)
+                prompts.append(normalized)
+        prompts.sort(key=lambda item: str(item.get("name", "")).lower())
+        return prompts
 
     def get_by_key(self, prompt_key: str) -> dict | None:
         """Fetch one prompt by runtime key."""
-        found = self._col.find_one({"promptKey": prompt_key})
+        found = self._col.find_one({"promptKey": prompt_key}) or self._legacy_col.find_one(
+            {"promptKey": prompt_key}
+        )
         return self._normalize(found) if found else None
 
     def update(self, prompt_key: str, prompt_data: dict) -> dict | None:
