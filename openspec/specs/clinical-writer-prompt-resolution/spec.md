@@ -3,23 +3,45 @@
 ## Purpose
 TBD - created by archiving change add-survey-ai-prompts. Update Purpose after archive.
 ## Requirements
-### Requirement: Clinical Writer MUST resolve survey prompt keys from MongoDB before using legacy providers.
+### Requirement: Clinical Writer MUST resolve questionnaire prompts and persona skills from MongoDB for migrated survey flows.
 
-`clinical-writer-api` MUST look up survey-driven `promptKey` values in MongoDB so questionnaire-managed prompt text can be loaded without depending on Google Drive.
+The prompt resolution mechanism MUST fetch both the `QuestionnairePrompts` document and the `PersonaSkills` document from MongoDB and MUST inject them into the strictly typed `AgentState` as distinct context variables (`interpretation_prompt` and `persona_prompt`) before downstream nodes execute. The `ContextLoader` MUST also persist the resolved version metadata required by the FastAPI service so the analyzer and writer consume only hydrated state, not direct database lookups.
 
-#### Scenario: Resolve a Mongo-backed survey prompt
-- **Given** a request reaches `clinical-writer-api` with a `promptKey` stored in MongoDB
-- **When** the prompt registry resolves that key
-- **Then** the system MUST load the prompt text from MongoDB
-- **And** it MUST expose a traceable `prompt_version` for the resolved prompt
+#### Scenario: Route prompts to specialized nodes
+- **Given** a survey-derived request that specifies a questionnaire and an output profile
+- **When** the `ContextLoader` phase of the graph executes
+- **Then** the state MUST be hydrated with `interpretation_prompt` for the Clinical Analyzer
+- **And** the state MUST be hydrated with `persona_prompt` for the Persona Writer
+- **And** the resolved version fields needed by the service response MUST be written into the agent state before downstream execution
 
-### Requirement: Clinical Writer MUST preserve fallback prompt providers for non-migrated keys.
+#### Scenario: Preventing downstream database coupling
+- **Given** the `ContextLoader` has already resolved questionnaire and persona data from MongoDB
+- **When** the `ClinicalAnalyzer` and `PersonaWriter` execute
+- **Then** they MUST consume only the hydrated typed state provided by the graph
+- **And** they MUST NOT perform direct prompt-resolution lookups against the database during normal execution
 
-Mongo-backed prompt resolution MUST not break flows that still depend on Google Drive or local prompt definitions.
+### Requirement: Clinical Writer MUST preserve a controlled fallback path during migration.
 
-#### Scenario: Prompt key is not present in MongoDB
-- **Given** `clinical-writer-api` receives a `promptKey` that is not stored in MongoDB
-- **When** Mongo-backed lookup does not find a matching prompt
-- **Then** the system MUST continue with the existing fallback provider chain
-- **And** non-survey flows such as `clinical-narrative` MUST remain operational
+MongoDB-backed prompt composition MUST not break request types that have not yet been migrated to the split prompt model. When the `ContextLoader` cannot resolve the split prompt data, the service MUST either use the documented fallback provider chain or fail with an actionable configuration error that preserves the existing FastAPI error semantics for callers.
 
+#### Scenario: A non-migrated prompt flow is requested
+- **Given** a request reaches `clinical-writer-api` for a flow that does not yet have both MongoDB prompt components
+- **When** prompt resolution runs
+- **Then** the service MUST use the documented fallback provider chain or fail with an actionable configuration error
+- **And** non-migrated flows such as `clinical-narrative` MUST remain operational during the migration window
+
+#### Scenario: Prompt resolution fails for an existing FastAPI caller
+- **Given** the `/process` endpoint invokes the graph with existing dependencies
+- **When** the `ContextLoader` cannot resolve the required prompt data
+- **Then** the graph MUST surface an actionable error through the existing service error path
+- **And** the caller MUST not be required to change the request payload or integration contract to receive that failure
+
+### Requirement: Clinical Writer MUST apply MongoDB prompt edits on the next request without requiring a deploy.
+
+Updates to migrated `QuestionnairePrompts` and `PersonaSkills` documents MUST become effective for subsequent requests without rebuilding containers, redeploying services, or restarting the Clinical Writer process.
+
+#### Scenario: Physician edits the school report persona
+- **Given** a physician updates the `PersonaSkills` document used for the school report output profile
+- **When** the next school report request is processed
+- **Then** the Clinical Writer MUST use the updated persona instructions
+- **And** the request MUST complete without requiring a new deploy or a process restart
