@@ -12,6 +12,7 @@ from app.config.logging_config import logger
 from app.config.settings import settings
 from app.api.routes.survey import router as surveys_router
 from app.api.routes.survey_prompts import router as survey_prompts_router
+from app.api.routes.persona_skills import router as persona_skills_router
 from app.api.routes.survey_responses import router as survey_responses_router
 from app.api.routes.patient_responses import router as patient_responses_router
 from app.api.routes.clinical_writer import router as clinical_writer_router
@@ -103,6 +104,7 @@ app.add_middleware(
 
 app.include_router(surveys_router, prefix="/api/v1", tags=["surveys"])
 app.include_router(survey_prompts_router, prefix="/api/v1", tags=["survey_prompts"])
+app.include_router(persona_skills_router, prefix="/api/v1", tags=["persona_skills"])
 app.include_router(survey_responses_router, prefix="/api/v1", tags=["survey_responses"])
 app.include_router(patient_responses_router, prefix="/api/v1", tags=["patient_responses"])
 app.include_router(clinical_writer_router, prefix="/api/v1", tags=["clinical_writer"])

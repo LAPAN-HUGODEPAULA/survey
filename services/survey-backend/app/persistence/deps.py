@@ -4,6 +4,7 @@ from fastapi import Depends
 from pymongo.database import Database
 
 from app.persistence.mongo.client import get_db
+from app.persistence.repositories.persona_skill_repo import PersonaSkillRepository
 from app.persistence.repositories.survey_repo import SurveyRepository
 from app.persistence.repositories.survey_prompt_repo import SurveyPromptRepository
 from app.persistence.repositories.survey_response_repo import SurveyResponseRepository
@@ -30,6 +31,10 @@ def get_survey_repo(db: Database = Depends(get_database)) -> SurveyRepository:
 def get_survey_prompt_repo(db: Database = Depends(get_database)) -> SurveyPromptRepository:
     """Build a survey prompt repository for the current request."""
     return SurveyPromptRepository(db)
+
+def get_persona_skill_repo(db: Database = Depends(get_database)) -> PersonaSkillRepository:
+    """Build a persona skill repository for the current request."""
+    return PersonaSkillRepository(db)
 
 def get_survey_response_repo(db: Database = Depends(get_database)) -> SurveyResponseRepository:
     """Build a survey response repository for the current request."""
