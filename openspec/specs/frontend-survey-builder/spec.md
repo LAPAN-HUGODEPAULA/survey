@@ -67,6 +67,15 @@ To allow for more expressive and formatted content, the system MUST provide a WY
 -   **When** the user enters formatted content (e.g., bold text, lists, links) and saves the survey
 -   **Then** the corresponding data MUST be saved as HTML.
 
+#### Scenario: User pastes unsafe HTML into the editor
+-   **GIVEN** the rich text editor receives pasted or restored HTML content
+-   **WHEN** the markup contains unsupported tags, event handlers, or dangerous
+    link schemes
+-   **THEN** the editor MUST strip unsupported markup before saving or
+    re-rendering it
+-   **AND** it MUST allow only safe formatting tags and approved link
+    protocols
+
 ### Requirement: The system MUST allow users to reorder questions within a survey.
 
 To provide flexibility in survey design, users MUST be able to change the order of questions.

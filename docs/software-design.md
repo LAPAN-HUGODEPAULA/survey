@@ -11,6 +11,12 @@
 ## Backend Design (`services/survey-backend`)
 
 - **Entry point**: `app/main.py` wires CORS, routers, lifecycle logging, and an HTTPS-only guard when `ENVIRONMENT=production`.
+- **Browser hardening**: the backend emits `Referrer-Policy`,
+  `X-Content-Type-Options`, and `X-Frame-Options` on responses, and adds HSTS
+  in production.
+- **CORS policy**: browser origins come from `CORS_ALLOWED_ORIGINS` when
+  configured; otherwise, local development origins are allowlisted
+  explicitly. Wildcard CORS is not used with credentials.
 - **Routing**: `/api/v1/survey_prompts`, `/api/v1/persona_skills`, `/api/v1/surveys`, `/api/v1/survey_responses`, `/api/v1/patient_responses` plus `/survey_responses/{id}/send_email` for re-sends.
 - **Screener auth**: `/api/v1/screeners/register`, `/api/v1/screeners/login`, `/api/v1/screeners/me`, and `/api/v1/screeners/recover-password` support screener registration, authentication, profile lookup, and password recovery.
 - **Domain models**: `app/domain/models/*` define Pydantic schemas for surveys, reusable prompts, patients, and agent responses.
@@ -20,7 +26,12 @@
 - **Integrations**:
   - `app.integrations.clinical_writer.client` submits responses for AI enrichment.
   - `app.integrations.email.service` dispatches response emails using FastAPI `BackgroundTasks` and exposes the shared `FastMail` client used by screener password recovery.
+- **AI traceability minimization**: clinical writer run logs store
+  pseudonymized `patient_ref` values instead of raw names or emails when
+  correlation is needed.
 - **Error handling**: routers translate validation errors into HTTP 400/404, unexpected issues into 500s with structured logs.
+- **Sensitive logging posture**: startup and upstream AI failures avoid
+  printing generated credentials or full sensitive payload bodies.
 
 ## Worker Design (`services/survey-worker`)
 
@@ -45,6 +56,10 @@
 - **Prompt config**: `PROMPT_PROVIDER=google_drive|local`, `GOOGLE_DRIVE_FOLDER_ID` or `PROMPT_DOC_MAP_JSON`, and service account credentials via `GOOGLE_APPLICATION_CREDENTIALS`. These legacy providers are fallback-only for migrated survey flows.
 - **Key Decisions**: Skills stored in MongoDB as a clinical CMS; asymmetric model usage (lightweight for analysis, advanced for critique); API-only inference with no self-hosted GPU infrastructure.
 - **Configuration**: `AgentConfig` centralizes API keys, model params, and prompt provider configuration; dependencies are injected for testability.
+- **Authentication guard**: `/process`, `/analysis`, and `/transcriptions` use
+  bearer auth when `API_TOKEN` is configured. In production, the service
+  fails closed unless `API_TOKEN` is set or
+  `ALLOW_UNAUTHENTICATED_ACCESS=true` is explicitly provided.
 - **Endpoint**: Exposed on port `9566` via the root `docker-compose.yml`, path `/process`.
 
 ## Flutter Design (`apps/*`)
@@ -57,7 +72,11 @@
   - `survey-frontend`: screener dashboard for creating surveys and viewing responses. The screener login page includes registration, login, and forgot-password flows wired to the backend screener endpoints.
   - `survey-patient`: patient-facing flow with configurable screener name/contact build args.
   - `clinical-narrative`: A conversational platform for clinical documentation. It supports session management, voice input with transcription, AI-driven clinical assistance, and document generation.
+    - HTML preview windows open with `noopener noreferrer`, and blob URLs are
+      revoked after use.
   - `survey-builder`: An application for administrators and researchers to create and manage surveys. It provides a user-friendly interface for editing all aspects of a survey, including questions and instructions.
+    - The web rich-text editor sanitizes restored/pasted HTML and restricts
+      links to approved schemes (`http`, `https`, `mailto`, `tel`).
 
 ## Security and Privacy
 

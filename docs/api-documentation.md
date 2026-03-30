@@ -9,6 +9,8 @@
 
 - Local default: `http://localhost:8000/api/v1`
 - All endpoints use JSON payloads and responses.
+- Browser clients must originate from an allowlisted origin when CORS is
+  enabled with credentials.
 
 ## Endpoints
 
@@ -69,6 +71,8 @@ Request body (JSON):
 - `output_profile`: optional output profile used to derive a default persona skill
 - `output_format`: must be `report_json`
 - `metadata`: `source_app`, `request_id`, `patient_ref` (optional)
+  - `patient_ref` should be treated as an opaque correlation identifier.
+    Backend integrations may pseudonymize it before persistence.
 
 Response body (JSON):
 
@@ -91,6 +95,16 @@ Samples:
 - `400` for validation errors (e.g., malformed ObjectId).
 - `404` for missing resources.
 - `500` for unexpected server errors.
+
+## Security Notes
+
+- `survey-backend` enforces HTTPS in production and emits browser hardening
+  headers on responses.
+- `clinical-writer-api` protected endpoints require
+  `Authorization: Bearer <token>` when `API_TOKEN` is configured.
+- In production, `clinical-writer-api` must not run without `API_TOKEN`
+  unless `ALLOW_UNAUTHENTICATED_ACCESS=true` is set intentionally for a
+  controlled environment.
 
 ## Usage Guidance
 

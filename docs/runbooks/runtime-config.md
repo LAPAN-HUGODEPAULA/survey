@@ -68,6 +68,28 @@ The private JSON currently renders values for:
 - MongoDB root credentials and application connection settings
 - Survey backend mail/SMTP settings
 - Survey backend JWT/security settings
+- Survey backend browser security settings, including `CORS_ALLOWED_ORIGINS`
 - Survey backend Clinical Writer/LangGraph settings
 - Survey worker MongoDB/Clinical Writer/polling settings
 - Traefik Let's Encrypt email
+
+## Production Security Requirements
+
+- `survey-backend`
+  - `ENVIRONMENT=production` requires valid HTTPS forwarding and explicit
+    `CORS_ALLOWED_ORIGINS`.
+  - `SECRET_KEY` must not use the development fallback.
+  - `PRIVACY_ADMIN_TOKEN` must not use the development fallback.
+- `clinical-writer-api`
+  - Set `API_TOKEN` in production for `/process`, `/analysis`, and
+    `/transcriptions`.
+  - Only use `ALLOW_UNAUTHENTICATED_ACCESS=true` for controlled environments
+    where anonymous access is an intentional temporary choice.
+
+## Operational Notes
+
+- Do not rely on permissive browser defaults during deploys. Cross-origin
+  access now depends on the configured allowlist, so missing frontend origins
+  will fail at the browser boundary.
+- Clinical writer request correlation should use pseudonymized `patient_ref`
+  values when propagated through runtime config or downstream services.
