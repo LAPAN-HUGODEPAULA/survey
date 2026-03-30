@@ -10,6 +10,7 @@ WORKDIR /app/apps/survey-builder
 
 RUN flutter pub get
 RUN flutter build web --dart-define=FLAVOR="dockerVps" --dart-define=API_BASE_URL="$API_BASE_URL"
+RUN sed -i '/sourceMappingURL=flutter.js.map/d' build/web/flutter.js build/web/flutter_bootstrap.js
 
 # Stage 2: Serve with Nginx as non-root
 FROM nginx:alpine
