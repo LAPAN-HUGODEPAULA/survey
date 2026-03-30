@@ -23,7 +23,24 @@ class PlatformHtmlRichTextEditor extends StatefulWidget {
       _PlatformHtmlRichTextEditorState();
 }
 
-class _PlatformHtmlRichTextEditorState extends State<PlatformHtmlRichTextEditor> {
+class _PlatformHtmlRichTextEditorState
+    extends State<PlatformHtmlRichTextEditor> {
+  static const Set<String> _allowedTags = {
+    'a',
+    'b',
+    'br',
+    'div',
+    'em',
+    'i',
+    'li',
+    'ol',
+    'p',
+    'span',
+    'strong',
+    'u',
+    'ul',
+  };
+
   late final String _viewType;
   late final web.HTMLDivElement _editorElement;
   JSFunction? _inputListener;
@@ -112,8 +129,9 @@ class _PlatformHtmlRichTextEditorState extends State<PlatformHtmlRichTextEditor>
   }
 
   void _syncFromDom() {
-    final normalized =
-        _normalizeHtml((_editorElement.innerHTML as JSString).toDart);
+    final normalized = _normalizeHtml(
+      (_editorElement.innerHTML as JSString).toDart,
+    );
     if (normalized == _lastHtml && _isEmpty == normalized.isEmpty) {
       return;
     }
@@ -157,11 +175,20 @@ class _PlatformHtmlRichTextEditorState extends State<PlatformHtmlRichTextEditor>
       ),
     );
     if (!mounted || link == null || link.isEmpty) return;
-    _applyCommand('createLink', value: link);
+    final sanitizedLink = _sanitizeLink(link);
+    if (sanitizedLink == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Use uma URL segura com http, https, mailto ou tel.'),
+        ),
+      );
+      return;
+    }
+    _applyCommand('createLink', value: sanitizedLink);
   }
 
   String _normalizeHtml(String html) {
-    final trimmed = html.trim();
+    final trimmed = _sanitizeHtml(html).trim();
     if (trimmed.isEmpty ||
         trimmed == '<br>' ||
         trimmed == '<div><br></div>' ||
@@ -169,6 +196,80 @@ class _PlatformHtmlRichTextEditorState extends State<PlatformHtmlRichTextEditor>
       return '';
     }
     return trimmed;
+  }
+
+  String _sanitizeHtml(String html) {
+    if (html.trim().isEmpty) {
+      return '';
+    }
+    final container = web.HTMLDivElement()..innerHTML = html.toJS;
+    final sanitized = _sanitizeNodeList(container.childNodes);
+    final output = web.HTMLDivElement();
+    for (final node in sanitized) {
+      output.append(node);
+    }
+    return (output.innerHTML as JSString).toDart;
+  }
+
+  List<web.Node> _sanitizeNodeList(web.NodeList nodes) {
+    final sanitized = <web.Node>[];
+    final length = nodes.length;
+    for (var index = 0; index < length; index += 1) {
+      final node = nodes.item(index);
+      if (node == null) {
+        continue;
+      }
+      sanitized.addAll(_sanitizeNode(node));
+    }
+    return sanitized;
+  }
+
+  List<web.Node> _sanitizeNode(web.Node node) {
+    if (node.nodeType == web.Node.TEXT_NODE) {
+      final text = node.textContent ?? '';
+      return [web.document.createTextNode(text)];
+    }
+    if (node.nodeType != web.Node.ELEMENT_NODE) {
+      return const [];
+    }
+
+    final element = node as web.Element;
+    final tagName = element.tagName.toLowerCase();
+    final children = _sanitizeNodeList(element.childNodes);
+    if (!_allowedTags.contains(tagName)) {
+      return children;
+    }
+
+    final sanitizedElement = web.document.createElement(tagName);
+    if (tagName == 'a') {
+      final sanitizedHref = _sanitizeLink(element.getAttribute('href') ?? '');
+      if (sanitizedHref != null) {
+        sanitizedElement.setAttribute('href', sanitizedHref);
+        sanitizedElement.setAttribute('target', '_blank');
+        sanitizedElement.setAttribute('rel', 'noopener noreferrer');
+      }
+    }
+
+    for (final child in children) {
+      sanitizedElement.append(child);
+    }
+    return [sanitizedElement];
+  }
+
+  String? _sanitizeLink(String rawLink) {
+    final trimmed = rawLink.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+    final uri = Uri.tryParse(trimmed);
+    if (uri == null || !uri.hasScheme) {
+      return null;
+    }
+    final scheme = uri.scheme.toLowerCase();
+    if (!{'http', 'https', 'mailto', 'tel'}.contains(scheme)) {
+      return null;
+    }
+    return uri.toString();
   }
 
   Widget _toolbarButton({
@@ -257,8 +358,8 @@ class _PlatformHtmlRichTextEditorState extends State<PlatformHtmlRichTextEditor>
                   child: Text(
                     widget.hintText,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).hintColor,
-                        ),
+                      color: Theme.of(context).hintColor,
+                    ),
                   ),
                 ),
               ),

@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:js_interop';
 
@@ -142,7 +141,9 @@ class _ChatPageState extends State<ChatPage> {
   DsStatusType _sessionStatusType(ChatSession? session, bool isLoading) {
     if (isLoading) return DsStatusType.info;
     if (session == null) return DsStatusType.neutral;
-    if (session.status.toLowerCase() == 'completed') return DsStatusType.success;
+    if (session.status.toLowerCase() == 'completed') {
+      return DsStatusType.success;
+    }
     return DsStatusType.info;
   }
 
@@ -151,7 +152,9 @@ class _ChatPageState extends State<ChatPage> {
     if (_isRecording) return 'Gravando';
     if (_isTranscribing) return 'Transcrevendo';
     if (_voiceService == null) return 'Voz não suportada';
-    if (!_voiceService!.isPreviewAvailable) return 'Pré-visualização indisponível';
+    if (!_voiceService!.isPreviewAvailable) {
+      return 'Pré-visualização indisponível';
+    }
     return 'Pronto';
   }
 
@@ -164,15 +167,19 @@ class _ChatPageState extends State<ChatPage> {
     return DsStatusType.success;
   }
 
-  Widget _buildSessionHeader(ChatProvider provider, ChatSession? session, String phase) {
+  Widget _buildSessionHeader(
+    ChatProvider provider,
+    ChatSession? session,
+    String phase,
+  ) {
     final statusLabel = _sessionStatusLabel(session, provider.isLoading);
     final statusType = _sessionStatusType(session, provider.isLoading);
     final duration = _formatDuration(session?.createdAt, session?.completedAt);
     final statusIcon = statusType == DsStatusType.success
         ? Icons.check_circle
         : statusType == DsStatusType.info
-            ? Icons.pending_actions
-            : Icons.radio_button_unchecked;
+        ? Icons.pending_actions
+        : Icons.radio_button_unchecked;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -186,12 +193,13 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           Row(
             children: [
-              Text(
-                'Sessão',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              Text('Sessão', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(width: 8),
-              DsStatusChip(label: statusLabel, type: statusType, icon: statusIcon),
+              DsStatusChip(
+                label: statusLabel,
+                type: statusType,
+                icon: statusIcon,
+              ),
               const Spacer(),
               if (provider.isOffline)
                 DsStatusIndicator(
@@ -213,9 +221,15 @@ class _ChatPageState extends State<ChatPage> {
                 value: phase,
                 items: const [
                   DropdownMenuItem(value: 'intake', child: Text('Anamnese')),
-                  DropdownMenuItem(value: 'assessment', child: Text('Avaliação')),
+                  DropdownMenuItem(
+                    value: 'assessment',
+                    child: Text('Avaliação'),
+                  ),
                   DropdownMenuItem(value: 'plan', child: Text('Plano')),
-                  DropdownMenuItem(value: 'wrap_up', child: Text('Encerramento')),
+                  DropdownMenuItem(
+                    value: 'wrap_up',
+                    child: Text('Encerramento'),
+                  ),
                 ],
                 onChanged: (value) {
                   if (value != null) {
@@ -238,12 +252,12 @@ class _ChatPageState extends State<ChatPage> {
     final statusIcon = _voiceError != null
         ? Icons.error_outline
         : _isRecording
-            ? Icons.mic
-            : _isTranscribing
-                ? Icons.auto_awesome
-                : _voiceService == null
-                    ? Icons.mic_off
-                    : Icons.check_circle;
+        ? Icons.mic
+        : _isTranscribing
+        ? Icons.auto_awesome
+        : _voiceService == null
+        ? Icons.mic_off
+        : Icons.check_circle;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -262,7 +276,11 @@ class _ChatPageState extends State<ChatPage> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(width: 8),
-              DsStatusChip(label: statusLabel, type: statusType, icon: statusIcon),
+              DsStatusChip(
+                label: statusLabel,
+                type: statusType,
+                icon: statusIcon,
+              ),
             ],
           ),
           const SizedBox(height: 6),
@@ -277,9 +295,7 @@ class _ChatPageState extends State<ChatPage> {
                 liveRegion: true,
                 child: Text(
                   _voiceError!,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ),
             ),
@@ -289,24 +305,29 @@ class _ChatPageState extends State<ChatPage> {
               DsFilledButton(
                 label: 'Iniciar',
                 icon: Icons.mic,
-                onPressed: (!inputEnabled || _isRecording) ? null : _startRecording,
+                onPressed: (!inputEnabled || _isRecording)
+                    ? null
+                    : _startRecording,
               ),
               const SizedBox(width: 8),
               DsOutlinedButton(
                 label: 'Parar',
                 icon: Icons.stop,
-                onPressed: (!inputEnabled || !_isRecording) ? null : _stopRecording,
+                onPressed: (!inputEnabled || !_isRecording)
+                    ? null
+                    : _stopRecording,
               ),
               const SizedBox(width: 12),
               if (_voiceService != null && !_voiceService!.isPreviewAvailable)
-                const Text('Pré-visualização ao vivo indisponível neste navegador'),
+                const Text(
+                  'Pré-visualização ao vivo indisponível neste navegador',
+                ),
             ],
           ),
           const SizedBox(height: 8),
           if (_isRecording) DsRecordingIndicator(seconds: _recordingSeconds),
           if (_isRecording) const SizedBox(height: 6),
-          if (_isRecording)
-            const LinearProgressIndicator(minHeight: 4),
+          if (_isRecording) const LinearProgressIndicator(minHeight: 4),
           if (_audioViewType != null) ...[
             const SizedBox(height: 8),
             SizedBox(
@@ -330,7 +351,8 @@ class _ChatPageState extends State<ChatPage> {
             children: [
               DsOutlinedButton(
                 label: 'Usar texto de pré-visualização',
-                onPressed: !inputEnabled || _voiceTextController.text.trim().isEmpty
+                onPressed:
+                    !inputEnabled || _voiceTextController.text.trim().isEmpty
                     ? null
                     : () {
                         _controller.text = _voiceTextController.text.trim();
@@ -338,7 +360,9 @@ class _ChatPageState extends State<ChatPage> {
               ),
               const SizedBox(width: 8),
               DsFilledButton(
-                label: _isTranscribing ? 'Transcrevendo...' : 'Enviar para transcrição',
+                label: _isTranscribing
+                    ? 'Transcrevendo...'
+                    : 'Enviar para transcrição',
                 onPressed: !inputEnabled || _isTranscribing
                     ? null
                     : () => _submitVoiceTranscription(provider),
@@ -383,7 +407,9 @@ class _ChatPageState extends State<ChatPage> {
       {'id': 'clinical_progress', 'label': 'Evolução clínica'},
     ];
     final fetchedTypes = await provider.fetchTemplateDocumentTypes();
-    final documentTypes = fetchedTypes.isNotEmpty ? fetchedTypes : fallbackDocumentTypes;
+    final documentTypes = fetchedTypes.isNotEmpty
+        ? fetchedTypes
+        : fallbackDocumentTypes;
     final defaultType =
         documentTypes.first['id']?.toString() ?? 'consultation_record';
     var selectedDocumentType = defaultType;
@@ -397,7 +423,9 @@ class _ChatPageState extends State<ChatPage> {
     final titleController = TextEditingController(text: preview.title);
     final bodyController = TextEditingController(text: preview.body);
     final searchController = TextEditingController();
-    var selectedTemplateId = provider.templates.isNotEmpty ? provider.templates.first.id : '';
+    var selectedTemplateId = provider.templates.isNotEmpty
+        ? provider.templates.first.id
+        : '';
     var missingFields = preview.missingFields;
 
     await showDialog<void>(
@@ -427,7 +455,9 @@ class _ChatPageState extends State<ChatPage> {
                       DropdownButtonFormField<String>(
                         key: ValueKey('doc-type-$selectedDocumentType'),
                         initialValue: selectedDocumentType,
-                        decoration: const InputDecoration(labelText: 'Tipo de documento'),
+                        decoration: const InputDecoration(
+                          labelText: 'Tipo de documento',
+                        ),
                         items: documentTypes
                             .map(
                               (item) => DropdownMenuItem<String>(
@@ -435,7 +465,10 @@ class _ChatPageState extends State<ChatPage> {
                                 child: Text(item['label']?.toString() ?? ''),
                               ),
                             )
-                            .where((item) => item.value != null && item.value!.isNotEmpty)
+                            .where(
+                              (item) =>
+                                  item.value != null && item.value!.isNotEmpty,
+                            )
                             .toList(),
                         onChanged: (value) async {
                           if (value == null || value.isEmpty) return;
@@ -451,7 +484,9 @@ class _ChatPageState extends State<ChatPage> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: searchController,
-                        decoration: const InputDecoration(labelText: 'Buscar modelos'),
+                        decoration: const InputDecoration(
+                          labelText: 'Buscar modelos',
+                        ),
                         onChanged: (value) async {
                           await provider.fetchTemplates(
                             documentType: selectedDocumentType,
@@ -467,13 +502,17 @@ class _ChatPageState extends State<ChatPage> {
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         key: ValueKey('template-$selectedTemplateId'),
-                        initialValue: selectedTemplateId.isNotEmpty ? selectedTemplateId : null,
+                        initialValue: selectedTemplateId.isNotEmpty
+                            ? selectedTemplateId
+                            : null,
                         decoration: const InputDecoration(labelText: 'Modelo'),
                         items: templates
                             .map(
                               (template) => DropdownMenuItem<String>(
                                 value: template.id,
-                                child: Text('${template.name} (v${template.version})'),
+                                child: Text(
+                                  '${template.name} (v${template.version})',
+                                ),
                               ),
                             )
                             .toList(),
@@ -491,7 +530,9 @@ class _ChatPageState extends State<ChatPage> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: bodyController,
-                        decoration: const InputDecoration(labelText: 'Conteúdo'),
+                        decoration: const InputDecoration(
+                          labelText: 'Conteúdo',
+                        ),
                         maxLines: 8,
                       ),
                     ],
@@ -509,7 +550,9 @@ class _ChatPageState extends State<ChatPage> {
                       ? null
                       : () async {
                           final patient = context.read<AppSettings>().patient;
-                          final narrative = context.read<AppSettings>().narrative;
+                          final narrative = context
+                              .read<AppSettings>()
+                              .narrative;
                           final sampleData = {
                             'patient': {
                               'name': patient.name,
@@ -517,10 +560,11 @@ class _ChatPageState extends State<ChatPage> {
                             },
                             'narrative': narrative,
                           };
-                          final templatePreview = await provider.previewTemplate(
-                            templateId: selectedTemplateId,
-                            sampleData: sampleData,
-                          );
+                          final templatePreview = await provider
+                              .previewTemplate(
+                                templateId: selectedTemplateId,
+                                sampleData: sampleData,
+                              );
                           if (templatePreview == null) return;
                           setState(() {
                             titleController.text = templatePreview.title;
@@ -533,11 +577,12 @@ class _ChatPageState extends State<ChatPage> {
                 DsFilledButton(
                   label: 'Pré-visualizar',
                   onPressed: () async {
-                    final updatedPreview = await provider.generateDocumentPreview(
-                      documentType: selectedDocumentType,
-                      title: titleController.text.trim(),
-                      body: bodyController.text.trim(),
-                    );
+                    final updatedPreview = await provider
+                        .generateDocumentPreview(
+                          documentType: selectedDocumentType,
+                          title: titleController.text.trim(),
+                          body: bodyController.text.trim(),
+                        );
                     if (updatedPreview == null) return;
                     _openHtmlPreview(updatedPreview.html);
                   },
@@ -567,7 +612,14 @@ class _ChatPageState extends State<ChatPage> {
     final parts = <web.BlobPart>[htmlContent.toJS as web.BlobPart].toJS;
     final blob = web.Blob(parts, web.BlobPropertyBag(type: 'text/html'));
     final url = web.URL.createObjectURL(blob);
-    web.window.open(url, '_blank');
+    final anchor = web.HTMLAnchorElement()
+      ..href = url
+      ..target = '_blank'
+      ..rel = 'noopener noreferrer';
+    anchor.click();
+    Timer(const Duration(seconds: 30), () {
+      web.URL.revokeObjectURL(url);
+    });
   }
 
   String _mapVoiceError(String code) {
@@ -585,7 +637,8 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _startRecording() async {
     if (_voiceService == null) {
       setState(() {
-        _voiceError = 'A captura de voz é compatível apenas em navegadores web.';
+        _voiceError =
+            'A captura de voz é compatível apenas em navegadores web.';
       });
       return;
     }
@@ -602,14 +655,17 @@ class _ChatPageState extends State<ChatPage> {
       if (!mounted) return;
       stopwatch.stop();
       if (kDebugMode) {
-        debugPrint('Voice start UI response: ${stopwatch.elapsedMilliseconds}ms');
+        debugPrint(
+          'Voice start UI response: ${stopwatch.elapsedMilliseconds}ms',
+        );
       }
     });
     try {
       await _voiceService?.start();
     } catch (e) {
       setState(() {
-        _voiceError = 'Não foi possível iniciar a gravação. Verifique as permissões do microfone.';
+        _voiceError =
+            'Não foi possível iniciar a gravação. Verifique as permissões do microfone.';
         _isRecording = false;
       });
       _stopRecordingTimer();
@@ -660,9 +716,7 @@ class _ChatPageState extends State<ChatPage> {
         previewText: _voiceTextController.text.trim().isEmpty
             ? result.previewText
             : _voiceTextController.text.trim(),
-        metadata: {
-          'sourceApp': 'clinical-narrative',
-        },
+        metadata: {'sourceApp': 'clinical-narrative'},
       );
       if (response != null && response.text.isNotEmpty) {
         _controller.text = response.text;
@@ -682,10 +736,7 @@ class _ChatPageState extends State<ChatPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Editar mensagem'),
-        content: TextField(
-          controller: controller,
-          maxLines: 4,
-        ),
+        content: TextField(controller: controller, maxLines: 4),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -705,7 +756,9 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildMessage(ChatMessage message, ChatProvider provider) {
     final isClinician = message.role == 'clinician';
-    final alignment = isClinician ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+    final alignment = isClinician
+        ? CrossAxisAlignment.end
+        : CrossAxisAlignment.start;
     final role = isClinician ? DsChatRole.clinician : DsChatRole.patient;
     final labelParts = <String>[isClinician ? 'Clínico' : 'Assistente'];
     if (message.messageType.isNotEmpty && message.messageType != 'user') {
@@ -733,7 +786,8 @@ class _ChatPageState extends State<ChatPage> {
             IconButton(
               tooltip: 'Copiar mensagem',
               icon: const Icon(Icons.copy, size: 18),
-              onPressed: () => Clipboard.setData(ClipboardData(text: message.content)),
+              onPressed: () =>
+                  Clipboard.setData(ClipboardData(text: message.content)),
             ),
             if (isClinician && message.deletedAt == null)
               IconButton(
@@ -762,13 +816,16 @@ class _ChatPageState extends State<ChatPage> {
           final session = provider.session;
           final phase = session?.phase ?? 'intake';
           final analysisPhase = provider.analysisPhase;
-          final isSessionCompleted = session?.status.toLowerCase() == 'completed';
+          final isSessionCompleted =
+              session?.status.toLowerCase() == 'completed';
           final inputEnabled = !provider.isOffline && !isSessionCompleted;
           final messageCount = provider.messages.length;
 
           if (messageCount > _lastMessageCount) {
             final newest = provider.messages.last;
-            final speaker = newest.role == 'clinician' ? 'Clínico' : 'Assistente';
+            final speaker = newest.role == 'clinician'
+                ? 'Clínico'
+                : 'Assistente';
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
               SemanticsService.sendAnnouncement(
@@ -817,30 +874,42 @@ class _ChatPageState extends State<ChatPage> {
                           ? const DsEmpty(message: 'Ainda não há mensagens.')
                           : ListView.separated(
                               controller: _scrollController,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
                               itemCount: provider.messages.length,
                               itemBuilder: (context, index) {
                                 final message = provider.messages[index];
                                 return _buildMessage(message, provider);
                               },
-                              separatorBuilder: (context, index) => const SizedBox(height: 4),
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 4),
                             ),
                     ),
                   ),
                 ),
                 if (provider.alerts.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     child: _InsightPanel(
                       title: 'Alertas',
                       items: provider.alerts
-                          .map((item) => '${item['severity'] ?? 'info'}: ${item['text'] ?? ''}')
+                          .map(
+                            (item) =>
+                                '${item['severity'] ?? 'info'}: ${item['text'] ?? ''}',
+                          )
                           .toList(),
                     ),
                   ),
                 if (provider.suggestions.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     child: _InsightPanel(
                       title: 'Sugestões',
                       items: provider.suggestions
@@ -851,7 +920,10 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 if (provider.hypotheses.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     child: _InsightPanel(
                       title: 'Hipóteses',
                       items: provider.hypotheses
@@ -862,17 +934,26 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 if (provider.entities.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     child: _InsightPanel(
                       title: 'Entidades',
                       items: provider.entities
-                          .map((item) => '${item['type'] ?? ''}: ${item['value'] ?? ''}')
+                          .map(
+                            (item) =>
+                                '${item['type'] ?? ''}: ${item['value'] ?? ''}',
+                          )
                           .toList(),
                     ),
                   ),
                 if (provider.knowledge.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
                     child: _InsightPanel(
                       title: 'Conhecimento',
                       items: provider.knowledge
@@ -900,13 +981,21 @@ class _ChatPageState extends State<ChatPage> {
                           children: [
                             Semantics(
                               button: true,
-                              label: _voiceMode ? 'Desativar modo de voz' : 'Ativar modo de voz',
+                              label: _voiceMode
+                                  ? 'Desativar modo de voz'
+                                  : 'Ativar modo de voz',
                               child: IconButton(
-                                icon: Icon(_voiceMode ? Icons.mic : Icons.mic_none),
-                                tooltip: _voiceMode ? 'Desativar modo de voz' : 'Ativar modo de voz',
+                                icon: Icon(
+                                  _voiceMode ? Icons.mic : Icons.mic_none,
+                                ),
+                                tooltip: _voiceMode
+                                    ? 'Desativar modo de voz'
+                                    : 'Ativar modo de voz',
                                 onPressed: inputEnabled
                                     ? () {
-                                        setState(() => _voiceMode = !_voiceMode);
+                                        setState(
+                                          () => _voiceMode = !_voiceMode,
+                                        );
                                       }
                                     : null,
                               ),
@@ -924,13 +1013,17 @@ class _ChatPageState extends State<ChatPage> {
                                 maxLines: 4,
                                 enabled: inputEnabled,
                                 textInputAction: TextInputAction.send,
-                                onSubmitted: inputEnabled ? (_) => _send(provider) : null,
+                                onSubmitted: inputEnabled
+                                    ? (_) => _send(provider)
+                                    : null,
                               ),
                             ),
                             const SizedBox(width: 8),
                             DsFilledButton(
                               label: 'Enviar',
-                              onPressed: inputEnabled ? () => _send(provider) : null,
+                              onPressed: inputEnabled
+                                  ? () => _send(provider)
+                                  : null,
                             ),
                           ],
                         ),
@@ -950,17 +1043,21 @@ class _ChatPageState extends State<ChatPage> {
                           children: [
                             DsOutlinedButton(
                               label: 'Gerar documento',
-                              onPressed: provider.isOffline ? null : () => _openDocumentDialog(provider),
+                              onPressed: provider.isOffline
+                                  ? null
+                                  : () => _openDocumentDialog(provider),
                             ),
                             const SizedBox(width: 8),
                             DsOutlinedButton(
                               label: 'Encerrar consulta',
-                              onPressed: provider.isOffline || isSessionCompleted
+                              onPressed:
+                                  provider.isOffline || isSessionCompleted
                                   ? null
                                   : () => _confirmEndSession(provider),
                             ),
                             const Spacer(),
-                            if (analysisPhase != null && analysisPhase.isNotEmpty)
+                            if (analysisPhase != null &&
+                                analysisPhase.isNotEmpty)
                               Text('Fase da IA: $analysisPhase'),
                           ],
                         ),
@@ -998,9 +1095,9 @@ class _InsightPanel extends StatelessWidget {
         children: [
           Text(
             title,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 6),
           for (final item in items)
