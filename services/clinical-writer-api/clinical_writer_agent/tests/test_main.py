@@ -100,6 +100,8 @@ def _collect_report_text(report) -> str:
 
 def test_verify_token_allows_when_unset(monkeypatch):
     monkeypatch.delenv("API_TOKEN", raising=False)
+    monkeypatch.delenv("ENVIRONMENT", raising=False)
+    monkeypatch.delenv("ALLOW_UNAUTHENTICATED_ACCESS", raising=False)
     assert verify_token() is True
 
 
@@ -112,6 +114,22 @@ def test_verify_token_rejects_missing(monkeypatch):
 def test_verify_token_accepts_valid(monkeypatch):
     monkeypatch.setenv("API_TOKEN", "secret-token")
     assert verify_token(api_key="Bearer secret-token") is True
+
+
+def test_verify_token_rejects_missing_token_in_production(monkeypatch):
+    monkeypatch.delenv("API_TOKEN", raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.delenv("ALLOW_UNAUTHENTICATED_ACCESS", raising=False)
+    with pytest.raises(HTTPException) as exc_info:
+        verify_token()
+    assert exc_info.value.status_code == 503
+
+
+def test_verify_token_allows_explicit_unsafe_override(monkeypatch):
+    monkeypatch.delenv("API_TOKEN", raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("ALLOW_UNAUTHENTICATED_ACCESS", "true")
+    assert verify_token() is True
 
 
 @pytest.mark.parametrize(

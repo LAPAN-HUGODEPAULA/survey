@@ -1,6 +1,7 @@
 """Service helpers for interacting with the local LangGraph agent."""
 
 import json
+import hashlib
 from datetime import datetime, timezone
 from typing import Any, Dict
 import uuid
@@ -74,7 +75,26 @@ def _infer_patient_ref(payload: Any) -> str | None:
     if not isinstance(payload, dict):
         return None
     patient = payload.get("patient") or {}
-    return patient.get("email") or patient.get("name")
+    candidate = (
+        patient.get("medicalRecordId")
+        or patient.get("medical_record_id")
+        or patient.get("id")
+        or patient.get("_id")
+        or patient.get("email")
+        or patient.get("name")
+    )
+    return _pseudonymize_patient_ref(candidate)
+
+
+def _pseudonymize_patient_ref(patient_ref: str | None) -> str | None:
+    """Convert patient identifiers into stable non-reversible trace ids."""
+    if not patient_ref:
+        return None
+    normalized = patient_ref.strip().lower()
+    if not normalized:
+        return None
+    digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+    return f"pt-{digest[:16]}"
 
 
 async def send_to_langgraph_agent(
@@ -110,7 +130,7 @@ async def send_to_langgraph_agent(
 
     resolved_input_type = input_type or _infer_input_type(payload)
     resolved_prompt_key = prompt_key or "default"
-    resolved_patient_ref = patient_ref or _infer_patient_ref(payload)
+    resolved_patient_ref = _pseudonymize_patient_ref(patient_ref) or _infer_patient_ref(payload)
     request_id = request_id or str(uuid.uuid4())
     timestamp = datetime.now(timezone.utc)
     start_time = time.monotonic()
@@ -172,14 +192,12 @@ async def send_to_langgraph_agent(
             )
             return agent_result
     except httpx.HTTPStatusError as exc:
-        text = exc.response.text if exc.response is not None else str(exc)
         duration = time.monotonic() - start_time
         logger.error(
-            "Clinical writer returned error request_id=%s status=%s duration=%.3fs body=%s",
+            "Clinical writer returned error request_id=%s status=%s duration=%.3fs",
             request_id,
             exc.response.status_code if exc.response is not None else "unknown",
             duration,
-            text,
         )
         _persist_run_log(
             request_id=request_id,
@@ -196,7 +214,7 @@ async def send_to_langgraph_agent(
             patient_ref=resolved_patient_ref,
             status="error",
         )
-        return {"error_message": f"Agent error: {text}"}
+        return {"error_message": "Agent error: upstream clinical writer rejected the request"}
     except httpx.RequestError as exc:
         duration = time.monotonic() - start_time
         logger.error(

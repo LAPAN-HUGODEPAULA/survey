@@ -118,13 +118,28 @@ class ProcessResponse(BaseModel):
 
 api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 
+
+def _is_production_environment() -> bool:
+    """Return whether runtime safeguards should treat this deployment as production."""
+    return os.getenv("ENVIRONMENT", "development").lower() in {"prod", "production"}
+
+
+def _allows_unauthenticated_access() -> bool:
+    """Return whether callers explicitly opted into disabling API auth."""
+    return os.getenv("ALLOW_UNAUTHENTICATED_ACCESS", "").lower() in {"1", "true", "yes"}
+
 def verify_token(api_key: Optional[str] = Security(api_key_header)) -> bool:
     """
-    Bearer token guard. If API_TOKEN is not set, allows all requests.
-    Otherwise, it enforces `Authorization: Bearer <token>`.
+    Bearer token guard. Production must either configure API_TOKEN or explicitly
+    opt into unauthenticated access for controlled environments.
     """
     configured_token = os.getenv("API_TOKEN")
     if not configured_token:
+        if _is_production_environment() and not _allows_unauthenticated_access():
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="API token is not configured",
+            )
         return True
 
     if not api_key or api_key != f"Bearer {configured_token}":
