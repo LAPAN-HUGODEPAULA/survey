@@ -5,7 +5,7 @@
 - Backend lives in `services/survey-backend/app` (FastAPI), with persistence in `app/persistence/**` and domain models in `app/domain/models`.
 - Frontend apps (Flutter) reside under `apps/`: `survey-frontend/`, `survey-patient/`, and `clinical-narrative/`.
 - Contracts and generated SDKs live in `packages/contracts/` (`survey-backend.openapi.yaml` and `generated/dart/`). The shared Flutter design system lives in `packages/design_system_flutter/`.
-- Clinical Writer API (`services/clinical-writer-api`) exposes `/process` with JSON-only `ReportDocument` output and prompts loaded via `PromptRegistry` (Google Drive provider).
+- Clinical Writer API (`services/clinical-writer-api`) uses a 4-stage LangGraph state graph (ContextLoader → ClinicalAnalyzer → PersonaWriter → ReflectorNode) to generate clinical reports. It composes prompts from `QuestionnairePrompts` (domain rules) and `PersonaSkills` (output profiles) stored in MongoDB, with reflection cycles for hallucination mitigation. Exposes `/process` with JSON-only `ReportDocument` output.
 - Tooling, CI scripts, and migrations live under `tools/`.
 - Docs live in `docs/`. This guidance file should remain at the repository root as `AGENTS.md`.
 
@@ -56,6 +56,7 @@
 - Use microservices or event-driven patterns only when there is a clear boundary or scaling need; handlers must be idempotent.
 - Prefer stateless, container-ready services with health checks for deployment targets.
 - Prioritize loose coupling, testability, and maintainability over premature optimization.
+- Use the 4-stage multi-agent graph pattern (context loading → clinical analysis → persona writing → reflection) for AI-powered clinical report generation; keep clinical interpretation separate from narrative formatting.
 
 ## Commands
 

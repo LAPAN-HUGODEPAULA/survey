@@ -15,6 +15,16 @@ The project has evolved from a basic screening tool into a comprehensive clinica
     - Implemented voice capture and hybrid transcription system.
     - Added centralized template management and clinical document generation.
     - Standardized shared design system, scaffolds, and security/privacy controls.
+- **Survey Prompts & Schema Stabilization (Mar 2026):**
+    - Refactored survey associations to use centralized reusable prompts.
+    - Stabilized response processing and collection naming (`survey_responses`, `patient_responses`).
+    - Implemented systematic migration framework for database consistency.
+    - Launched version `0.1.0` following Semantic Versioning (tracked in root `VERSION` file).
+- **Multi-Agent Architecture Adoption (Mar 2026):**
+    - Adopted a 4-stage LangGraph state graph (ContextLoader → ClinicalAnalyzer → PersonaWriter → ReflectorNode) for clinical report generation.
+    - Introduced composable prompt architecture (Domain + Persona + Context layers).
+    - Implemented reflection cycles for hallucination mitigation and clinical safety.
+    - Stored Agent Skills (Personas) in MongoDB for CMS-style management via survey-builder.
 
 ## Application Components
 
@@ -23,7 +33,52 @@ The system consists of four interconnected Flutter web applications:
 - **`survey-patient`**: A public-facing screening tool (7 questions) for preliminary assessment. Compliant with WCAG 2.1 Level AA.
 - **`survey-frontend`**: A professional platform for authorized screeners to administer full assessments (CHYPS-Br), manage patient records, and generate formal reports.
 - **`clinical-narrative`**: A conversational documentation tool that transforms clinician-patient interactions into structured medical records using AI.
-- **`survey-builder`**: An administrative tool for creating and managing questionnaires and surveys.
+- **`survey-builder`**: An administrative tool for creating and managing questionnaires, surveys, and reusable clinical prompts.
+
+## Survey Prompt Management
+
+The platform features a centralized system for managing clinical AI prompts:
+- **Reusable Prompts**: Prompts are stored in the `survey_prompts` collection and can be referenced by multiple surveys.
+- **Prompt References**: Surveys now reference a specific `promptKey`, ensuring consistent AI processing across different survey instances.
+- **Management UI**: The `survey-builder` application provides a dedicated interface for CRUD operations on these reusable prompts.
+
+## Multi-Agent Architecture
+
+The Clinical Writer AI service uses a **4-stage LangGraph state graph** that separates clinical interpretation from narrative generation and applies reflection-based safety validation. See `docs/multiagent-architecture.md` for the full architectural rationale.
+
+### 4-Stage Orchestration Graph
+
+1. **ContextLoader** — Retrieves questionnaire interpretation prompts and persona skills from MongoDB.
+2. **ClinicalAnalyzer** — Processes response JSON with clinical rules; outputs structured clinical facts (no narrative).
+3. **PersonaWriter** — Transforms clinical facts into audience-appropriate Markdown narrative.
+4. **ReflectorNode** — Validates grounding, tone, and safety; loops back to writing on failure (up to 2 retries).
+
+### Composable Prompt Layers
+
+- **Interpretation Layer (Domain):** Questionnaire-specific clinical rules from `QuestionnairePrompts` MongoDB collection.
+- **Persona Layer (Profile):** Tone, vocabulary, and output format from `PersonaSkills` MongoDB collection.
+- **Contextual Data Layer:** Pseudonymized patient response JSON.
+
+### Key Decisions
+
+- Skills/Personas stored in MongoDB as a clinical CMS managed via survey-builder.
+- Reflection cycles for hallucination mitigation and clinical safety.
+- Asymmetric model usage (lightweight models for analysis, advanced models for critique).
+- API-only inference — no self-hosted GPU infrastructure; LoRA fine-tuning evaluated and deferred.
+
+## Database Schema & Migrations
+
+The project uses MongoDB with a systematic migration framework:
+- **Collections**:
+    - `surveys`: Definitions of clinical questionnaires.
+    - `survey_prompts`: Reusable AI instructions for clinical narrative generation.
+    - `questionnaire_prompts`: Questionnaire-specific clinical interpretation logic (Domain layer).
+    - `persona_skills`: Output persona definitions with tone, format, and safety constraints (Persona layer).
+    - `survey_responses`: Records of professional assessments.
+    - `patient_responses`: Records of public screenings (pseudonymized).
+    - `screeners`: Registered healthcare professionals.
+    - `clinical_writer_run_logs`: Audit logs for AI processing tasks.
+- **Migrations**: Found in `tools/migrations/survey-backend/`, these scripts ensure schema consistency and handle collection renaming or data normalization.
 
 ## Domain Context
 
@@ -34,10 +89,11 @@ The system consists of four interconnected Flutter web applications:
 
 ## Tech Stack
 
+- **Versioning**: Semantic Versioning (v0.1.0+) tracked in root `VERSION` file.
 - **Backend:** Python 3.13/FastAPI (`survey-backend`, `survey-worker`).
-- **AI Service:** Python 3.13/FastAPI with LangGraph (`clinical-writer-api`).
+- **AI Service:** Python 3.13/FastAPI with a 4-stage LangGraph state graph (`clinical-writer-api`). See Multi-Agent Architecture section.
 - **Frontend:** Flutter for Web, sharing `packages/design_system_flutter`.
-- **Database:** MongoDB (results, credentials, templates, logs).
+- **Database:** MongoDB (surveys, reusable prompts, responses, credentials, logs).
 - **Containerization:** Orchestrated with Docker Compose.
 
 ## Building and Running the Project
