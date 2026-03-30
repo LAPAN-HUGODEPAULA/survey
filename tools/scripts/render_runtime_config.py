@@ -100,6 +100,7 @@ def main() -> None:
             "ACCESS_TOKEN_EXPIRE_MINUTES": str(
                 backend.get("accessTokenExpireMinutes", 30)
             ),
+            "CORS_ALLOWED_ORIGINS": _csv(backend.get("corsAllowedOrigins", [])),
             "TEMPLATE_ADMIN_EMAILS": _csv(backend.get("templateAdminEmails", [])),
             "PRIVACY_ADMIN_TOKEN": str(backend.get("privacyAdminToken", "")),
             "ENCRYPTION_KEY_ID": str(backend.get("encryptionKeyId", "")),
@@ -122,6 +123,16 @@ def main() -> None:
             "POLL_INTERVAL_SECONDS": str(worker.get("pollIntervalSeconds", 10)),
             "BATCH_SIZE": str(worker.get("batchSize", 10)),
             "HTTP_TIMEOUT_SECONDS": str(worker.get("httpTimeoutSeconds", 15)),
+        },
+    )
+    _write_env(
+        PRIVATE_DIR / "clinical-writer.env",
+        {
+            "ENVIRONMENT": str(backend.get("environment", "development")),
+            "API_TOKEN": str(backend.get("clinicalWriterApiToken", "")),
+            "ALLOW_UNAUTHENTICATED_ACCESS": str(
+                backend.get("allowUnauthenticatedClinicalWriterAccess", False)
+            ).lower(),
         },
     )
 

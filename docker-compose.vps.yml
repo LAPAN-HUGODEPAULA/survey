@@ -170,6 +170,7 @@ services:
     container_name: clinical_writer_agent
     env_file:
       - services/clinical-writer-api/clinical_writer_agent/.env
+      - ./config/runtime/generated/private/clinical-writer.env
     expose:
       - "8000"
     restart: unless-stopped

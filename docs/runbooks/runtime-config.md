@@ -71,6 +71,7 @@ The private JSON currently renders values for:
 - Survey backend browser security settings, including `CORS_ALLOWED_ORIGINS`
 - Survey backend Clinical Writer/LangGraph settings
 - Survey worker MongoDB/Clinical Writer/polling settings
+- Clinical Writer API auth/runtime settings
 - Traefik Let's Encrypt email
 
 ## Production Security Requirements
