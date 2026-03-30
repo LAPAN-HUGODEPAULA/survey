@@ -1,25 +1,30 @@
-# Prompt Editing Runbook (Google Drive)
+# Prompt Editing Runbook (MongoDB)
 
-This runbook describes how clinicians edit Clinical Writer prompts stored in Google Drive.
+This runbook describes how clinicians edit Clinical Writer prompt components stored in MongoDB.
 
 ## Scope
-- Prompts are Google Docs referenced by `prompt_key`.
-- The Clinical Writer service fetches prompt text via the Google Drive API.
-- The service uses the document `modifiedTime` as `prompt_version`.
+- Questionnaire-specific clinical logic is stored in the `QuestionnairePrompts` collection.
+- Output tone, audience, and restrictions are stored in the `PersonaSkills` collection.
+- For migrated survey flows, the Clinical Writer composes both documents at request time.
+- Updates become effective on the next eligible request without a deploy or process restart.
 
 ## Safe Editing Workflow
-1) Open the Google Drive folder configured by `GOOGLE_DRIVE_FOLDER_ID` (or the explicit `PROMPT_DOC_MAP_JSON`).
-2) Locate the document that matches the desired `prompt_key`.
-3) Make edits directly in Google Docs.
-4) Keep the output instructions strict: the model must return JSON only (no markdown).
-5) Save the document. The service will pick up the updated prompt within the cache TTL.
+1) Connect to the application MongoDB.
+2) For questionnaire clinical logic, open the `QuestionnairePrompts` document that matches the target `promptKey`.
+3) For tone or audience changes, open the `PersonaSkills` document that matches the target `personaSkillKey` or `outputProfile`.
+4) Edit only the responsibility of that document:
+   - `QuestionnairePrompts`: clinical interpretation rules for the questionnaire.
+   - `PersonaSkills`: style, audience, tone, and output restrictions.
+5) Keep the instructions compatible with JSON-only report generation.
+6) Save the document. The next matching request will use the updated version.
 
 ## Guardrails
 - Do not include PHI in prompts. Use placeholders when you need examples.
 - Keep section headings and required fields consistent with ReportDocument schema.
 - Avoid adding Markdown formatting tokens (e.g., ``` or **). The service expects JSON only.
-- If a prompt change causes errors, revert the document to the last good version in Drive.
+- If a prompt change causes errors, revert the MongoDB document to the last good version.
 
 ## Verification
-- Use the sample payloads in `samples/clinical-writer/inputs/` to test the new prompt.
-- Confirm the response matches the JSON schema in `samples/clinical-writer/outputs/`.
+- Submit a representative request through `/process` or the survey flow that uses the edited questionnaire prompt or persona skill.
+- Confirm the response includes updated `questionnaire_prompt_version` and `persona_skill_version` values.
+- Confirm the response still matches the JSON schema expected by `ReportDocument`.

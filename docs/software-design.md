@@ -11,10 +11,11 @@
 ## Backend Design (`services/survey-backend`)
 
 - **Entry point**: `app/main.py` wires CORS, routers, lifecycle logging, and an HTTPS-only guard when `ENVIRONMENT=production`.
-- **Routing**: `/api/v1/survey_prompts`, `/api/v1/surveys`, `/api/v1/survey_responses`, `/api/v1/patient_responses` plus `/survey_responses/{id}/send_email` for re-sends.
+- **Routing**: `/api/v1/survey_prompts`, `/api/v1/persona_skills`, `/api/v1/surveys`, `/api/v1/survey_responses`, `/api/v1/patient_responses` plus `/survey_responses/{id}/send_email` for re-sends.
 - **Screener auth**: `/api/v1/screeners/register`, `/api/v1/screeners/login`, `/api/v1/screeners/me`, and `/api/v1/screeners/recover-password` support screener registration, authentication, profile lookup, and password recovery.
 - **Domain models**: `app/domain/models/*` define Pydantic schemas for surveys, reusable prompts, patients, and agent responses.
-- **Survey schema**: surveys stored in MongoDB now embed a compact `prompt` reference while the reusable prompt definitions themselves live in the `survey_prompts` collection.
+- **Survey schema**: surveys stored in MongoDB embed a compact `prompt` reference while the questionnaire prompt catalog is stored canonically in `QuestionnairePrompts` and remains readable through the `/survey_prompts` API for backward compatibility.
+- **Persona skill schema**: output persona documents live in the `PersonaSkills` collection and can be managed through `/api/v1/persona_skills`.
 - **Persistence**: repositories under `app/persistence/repositories` encapsulate MongoDB CRUD; injected via `app.persistence.deps` to keep handlers decoupled from storage.
 - **Integrations**:
   - `app.integrations.clinical_writer.client` submits responses for AI enrichment.
@@ -24,19 +25,27 @@
 ## Worker Design (`services/survey-worker`)
 
 - **Role**: Poll MongoDB `survey_responses` for records lacking agent output or stranded in a stale in-flight state and submit them to the Clinical Writer API.
-- **Flow**: `run_forever` schedules `ClinicalWriterJob` → fetch pending documents → POST a normalized `/process` payload to Clinical Writer → update `agentResponse`, `agentResponseStatus`, and `agentResponseUpdatedAt`.
+- **Flow**: `run_forever` schedules `ClinicalWriterJob` → fetch pending documents → POST a normalized `/process` payload to Clinical Writer with `prompt_key`, `persona_skill_key`, and `output_profile` → update `agentResponse`, `agentResponseStatus`, and `agentResponseUpdatedAt`.
 - **Configuration**: tunable via env vars (`MONGO_URI`, `MONGO_DB_NAME`, `CLINICAL_WRITER_URL`, `POLL_INTERVAL_SECONDS`, `BATCH_SIZE`, `PROCESSING_STALE_AFTER_SECONDS`, optional token and timeout).
 - **Resilience**: logs failures, marks statuses, and retries stale `processing` records after the configured timeout.
 
 ## Clinical Writer Design (`services/clinical-writer-api`)
 
-- **Pipeline**: FastAPI endpoint invokes a LangGraph graph to validate input, route by `input_type`, and generate JSON-only ReportDocument output.
-- **Routing**: deterministic by request `input_type` (`consult`, `survey7`, `full_intake`) without LLM-based classification.
-- **PromptRegistry**: resolves `prompt_key` to prompt text and version.
-  - **Google Drive provider** loads prompt docs from a configured folder or explicit map, exports as `text/plain`, caches with TTL, and uses Drive `modifiedTime` as human-readable `prompt_version`.
-- **Prompt config**: `PROMPT_PROVIDER=google_drive|local`, `GOOGLE_DRIVE_FOLDER_ID` or `PROMPT_DOC_MAP_JSON`, and service account credentials via `GOOGLE_APPLICATION_CREDENTIALS`.
+- **Architecture**: Independent FastAPI service with a **4-stage LangGraph state graph** that separates clinical interpretation from narrative generation and applies reflection-based safety validation. See `docs/multiagent-architecture.md` for the full architectural rationale.
+- **4-Stage Orchestration Graph**:
+  1. **ContextLoader** — Retrieves questionnaire interpretation prompts from `QuestionnairePrompts` and persona skills from `PersonaSkills` in MongoDB.
+  2. **ClinicalAnalyzer** — Processes response JSON with clinical rules; outputs structured clinical facts (no narrative text).
+  3. **PersonaWriter** — Transforms clinical facts into audience-appropriate Markdown narrative following the persona's tone and format.
+  4. **ReflectorNode** — Validates grounding, tone, and safety; loops back to PersonaWriter on failure (up to 2 retries).
+- **Composable Prompts**: The final prompt is assembled at runtime from three layers: **Domain** (questionnaire-specific clinical rules), **Persona** (tone, vocabulary, output format), and **Contextual Data** (pseudonymized patient response JSON).
+- **PromptRegistry**: Composes survey-derived prompts from `QuestionnairePrompts` and `PersonaSkills` in MongoDB and exposes `prompt_version`, `questionnaire_prompt_version`, and `persona_skill_version`.
+  - **Questionnaire prompt provider** resolves questionnaire clinical logic from `QuestionnairePrompts` and falls back to legacy `survey_prompts` during migration.
+  - **Persona skill provider** resolves tone and restriction documents from `PersonaSkills`.
+  - **Fallback providers** keep Google Drive or local prompts available for non-migrated flows such as `clinical-narrative`.
+- **Prompt config**: `PROMPT_PROVIDER=google_drive|local`, `GOOGLE_DRIVE_FOLDER_ID` or `PROMPT_DOC_MAP_JSON`, and service account credentials via `GOOGLE_APPLICATION_CREDENTIALS`. These legacy providers are fallback-only for migrated survey flows.
+- **Key Decisions**: Skills stored in MongoDB as a clinical CMS; asymmetric model usage (lightweight for analysis, advanced for critique); API-only inference with no self-hosted GPU infrastructure.
 - **Configuration**: `AgentConfig` centralizes API keys, model params, and prompt provider configuration; dependencies are injected for testability.
-- **Endpoint**: exposed on port `9566` via the root `docker-compose.yml`, path `/process`.
+- **Endpoint**: Exposed on port `9566` via the root `docker-compose.yml`, path `/process`.
 
 ## Flutter Design (`apps/*`)
 

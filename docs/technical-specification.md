@@ -29,8 +29,11 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 
 ### Clinical Writer API (`services/clinical-writer-api`)
 
-- Independent FastAPI + LangGraph service for generating medical narratives.
-- Uses `PromptRegistry` to resolve `prompt_key` to prompt text and `prompt_version`, with Google Drive as the primary provider.
+- Independent FastAPI + LangGraph service implementing a **4-stage state graph** for generating clinical reports. See [multiagent-architecture.md](file:///home/hugo/Documents/LAPAN/dev/survey/docs/multiagent-architecture.md) for the full architectural design.
+- **4-stage graph**: ContextLoader → ClinicalAnalyzer → PersonaWriter → ReflectorNode. Separates clinical interpretation from narrative formatting and applies reflection-based safety validation with up to 2 retry loops.
+- **Composable prompts**: Assembled at runtime from three layers — Domain (`QuestionnairePrompts`), Persona (`PersonaSkills`), and Contextual Data (pseudonymized response JSON).
+- Uses `PromptRegistry` to compose questionnaire clinical logic from `QuestionnairePrompts` and output persona rules from `PersonaSkills`.
+- Preserves Google Drive or local fallback providers only for non-migrated flows.
 - Exposes a `/process` endpoint (default port `9566` when run via root `docker-compose.yml`) consumed by the worker/backend.
 
 ### Flutter Applications (`apps/`)
@@ -54,11 +57,12 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 
 ## Data Model & Persistence
 
-- **SurveyPrompt**: reusable prompt definition stored in the `survey_prompts` collection.
+- **SurveyPrompt**: questionnaire prompt definition stored canonically in the `QuestionnairePrompts` collection and exposed through the `/survey_prompts` API.
+- **PersonaSkill**: output-profile persona definition stored in the `PersonaSkills` collection and exposed through the `/persona_skills` API.
 - **Survey**: definition of questions and metadata, stored in the `surveys` collection with an embedded `prompt` reference (`promptKey`, `name`).
-- **SurveyResponse**: captured answers plus patient info, stored in `survey_responses`; backend list/read routes strip internal worker-only enrichment fields from the plain response model.
+- **SurveyResponse**: captured answers plus patient info, stored in `survey_responses`; survey-derived responses may also carry optional `personaSkillKey` and `outputProfile` so prompt logic and persona are propagated independently.
 - **PatientResponse**: patient-facing captured answers plus patient info, stored in `patient_responses`.
-- **Agent response fields**: `agentResponse`, `agentResponseStatus`, and `agentResponseUpdatedAt` are maintained by backend/worker for enrichment flow; `agentResponse` itself carries `ok`, `input_type`, `prompt_version`, `model_version`, `report`, `warnings`, `classification`, `medicalRecord`, and `errorMessage`.
+- **Agent response fields**: `agentResponse`, `agentResponseStatus`, and `agentResponseUpdatedAt` are maintained by backend/worker for enrichment flow; `agentResponse` itself carries `ok`, `input_type`, `prompt_version`, `questionnaire_prompt_version`, `persona_skill_version`, `model_version`, `report`, `warnings`, `classification`, `medicalRecord`, and `errorMessage`.
 
 ## Integrations
 

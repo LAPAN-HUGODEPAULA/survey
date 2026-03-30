@@ -24,11 +24,18 @@
   - `GET /surveys/{survey_id}` – fetch survey by id.
 
 - **Survey Prompts**
-  - `GET /survey_prompts/` – list reusable prompt definitions from the `survey_prompts` collection.
-  - `POST /survey_prompts/` – create a reusable prompt definition.
+  - `GET /survey_prompts/` – list questionnaire prompt definitions backed by the canonical `QuestionnairePrompts` collection.
+  - `POST /survey_prompts/` – create a questionnaire prompt definition.
   - `GET /survey_prompts/{prompt_key}` – fetch a reusable prompt by key.
   - `PUT /survey_prompts/{prompt_key}` – update a reusable prompt definition.
   - `DELETE /survey_prompts/{prompt_key}` – delete an unused prompt definition.
+
+- **Persona Skills**
+  - `GET /persona_skills/` – list persona skill definitions from the `PersonaSkills` collection.
+  - `POST /persona_skills/` – create a persona skill definition.
+  - `GET /persona_skills/{persona_skill_key}` – fetch a persona skill by key.
+  - `PUT /persona_skills/{persona_skill_key}` – update a persona skill definition.
+  - `DELETE /persona_skills/{persona_skill_key}` – delete a persona skill definition.
 
 - **Survey Responses**
   - `POST /survey_responses/` – create survey response; persists, triggers email background task, optionally enriches with Clinical Writer. Returns `SurveyResponseWithAgent`.
@@ -42,11 +49,12 @@
 
 ## Models (abridged)
 
-- `SurveyPrompt`: reusable prompt definition stored in the `survey_prompts` collection.
+- `SurveyPrompt`: questionnaire prompt definition stored canonically in `QuestionnairePrompts`.
+- `PersonaSkill`: output-profile persona definition stored in `PersonaSkills`.
 - `Survey`: survey metadata and questions, stored in the `surveys` collection with an embedded `prompt` reference (`promptKey`, `name`).
-- `SurveyResponse`: answers plus patient details, stored in the `survey_responses` collection.
+- `SurveyResponse`: answers plus patient details, stored in the `survey_responses` collection, with optional `personaSkillKey` and `outputProfile`.
 - `PatientResponse`: answers plus patient details, stored in the `patient_responses` collection.
-- `AgentResponse`: AI payload with `ok`, `input_type`, `prompt_version`, `model_version`, `report`, `warnings`.
+- `AgentResponse`: AI payload with `ok`, `input_type`, `prompt_version`, `questionnaire_prompt_version`, `persona_skill_version`, `model_version`, `report`, `warnings`.
 - `SurveyResponseWithAgent`: response payload plus optional `agent_response`.
 
 ## Clinical Writer Contract (/clinical_writer/process)
@@ -57,6 +65,8 @@ Request body (JSON):
 - `content`: raw consult text or JSON string payload
 - `locale`: defaults to `pt-BR`
 - `prompt_key`: defaults to `default`
+- `persona_skill_key`: optional persona key for output tone/restrictions
+- `output_profile`: optional output profile used to derive a default persona skill
 - `output_format`: must be `report_json`
 - `metadata`: `source_app`, `request_id`, `patient_ref` (optional)
 
@@ -64,7 +74,9 @@ Response body (JSON):
 
 - `ok`: boolean
 - `input_type`: echoes request input type
-- `prompt_version`: human-readable prompt version (e.g., Google Drive modifiedTime)
+- `prompt_version`: composite runtime prompt version
+- `questionnaire_prompt_version`: questionnaire prompt document version used for the request
+- `persona_skill_version`: persona skill document version used for the request
 - `model_version`: model used for generation
 - `report`: structured JSON ReportDocument (no markdown)
 - `warnings`: list of warnings (empty when successful)
