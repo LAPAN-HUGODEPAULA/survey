@@ -28,6 +28,11 @@ class SurveyOptionColors extends ThemeExtension<SurveyOptionColors> {
 }
 
 class AppTheme {
+  static const Color _appBackground = Color(0xFFF4F4F1);
+  static const Color _surfaceBase = Color(0xFFFCFCF9);
+  static const Color _surfaceLow = Color(0xFFF0F0EB);
+  static const Color _surfaceHigh = Color(0xFFE2E2DA);
+
   static ThemeData light() {
     final baseScheme = ColorScheme.fromSeed(
       seedColor: Colors.orange,
@@ -39,10 +44,15 @@ class AppTheme {
         onPrimary: Colors.black,
         onSecondary: Colors.black,
         onTertiary: Colors.black,
+        surface: _surfaceBase,
+        surfaceContainerLowest: _appBackground,
+        surfaceContainerLow: _surfaceLow,
+        surfaceContainerHighest: _surfaceHigh,
       ),
-      scaffoldBackgroundColor: Colors.white,
-      focusColor: Colors.orange.withOpacity(0.15),
-      hoverColor: Colors.orange.withOpacity(0.08),
+      scaffoldBackgroundColor: _appBackground,
+      canvasColor: _appBackground,
+      focusColor: Colors.orange.withValues(alpha: 0.15),
+      hoverColor: Colors.orange.withValues(alpha: 0.08),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.orange,
         foregroundColor: Colors.black,
@@ -89,6 +99,12 @@ class AppTheme {
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: Colors.orange,
+      ),
+      dialogTheme: const DialogThemeData(
+        backgroundColor: _surfaceBase,
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: _surfaceBase,
       ),
       extensions: const <ThemeExtension<dynamic>>[
         SurveyOptionColors(
