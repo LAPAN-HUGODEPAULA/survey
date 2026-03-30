@@ -39,7 +39,7 @@ class DsSurveyProgressIndicator extends StatelessWidget {
           LinearProgressIndicator(
             value: value,
             minHeight: 8,
-            backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           ),
         ],
       ),

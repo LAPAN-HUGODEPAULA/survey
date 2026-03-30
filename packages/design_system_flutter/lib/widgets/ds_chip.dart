@@ -59,7 +59,7 @@ class DsStatusChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: background,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: foreground.withOpacity(0.3)),
+          border: Border.all(color: foreground.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

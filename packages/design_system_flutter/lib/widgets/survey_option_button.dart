@@ -36,7 +36,7 @@ class SurveyOptionButton extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          backgroundColor: color.withOpacity(0.8),
+          backgroundColor: color.withValues(alpha: 0.8),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
