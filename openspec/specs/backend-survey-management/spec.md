@@ -1,7 +1,8 @@
 # backend-survey-management Specification
 
 ## Purpose
-TBD - created by archiving change add-survey-builder-app. Update Purpose after archive.
+This specification defines the management plane for surveys and questionnaires, allowing administrators to create, configure, and maintain clinical assessments.
+
 ## Requirements
 ### Requirement: The system MUST provide an API for survey management.
 
@@ -41,36 +42,27 @@ This API MUST expose CRUD (Create, Read, Update, Delete) operations for surveys.
 -   **When** a user makes a `GET` request to `/surveys/{invalid_survey_id}`
 -   **Then** the system SHOULD return a `404 Not Found` status.
 
-### Requirement: The survey management API MUST persist AI prompt associations on each survey.
+### Requirement: The survey management API MUST persist a single nullable prompt reference on each survey.
 
-Survey payloads MUST allow questionnaires to reference one or more reusable prompts so report-generation applications can discover the available AI outcomes for that questionnaire.
+Survey payloads MUST allow questionnaires to reference exactly one reusable prompt so report-generation applications can discover the available AI outcome for that questionnaire.
 
-Each survey association MUST expose:
+Each prompt reference MUST expose:
 
 - `promptKey`
 - `name`
-- `outcomeType`
 
-Each survey MUST contain at most one associated prompt per `outcomeType`.
+#### Scenario: Create a survey with a prompt reference
+- **Given** a reusable prompt already exists in the prompt catalog
+- **When** a user creates a survey and includes a prompt reference in the payload
+- **Then** the system MUST persist that reference with the survey
+- **And** the created survey response MUST include the stored prompt metadata
 
-#### Scenario: Create a survey with associated prompts
-- **Given** reusable prompts already exist in the prompt catalog
-- **When** a user creates a survey and includes prompt associations in the payload
-- **Then** the system MUST persist those associations with the survey
-- **And** the created survey response MUST include the stored prompt associations
-
-#### Scenario: Retrieve a survey with associated prompts
-- **Given** a survey has associated prompts
+#### Scenario: Retrieve a survey with a prompt reference
+- **Given** a survey has an associated prompt
 - **When** a client requests that survey through the API
-- **Then** the response MUST include the associated prompt metadata needed for report selection
+- **Then** the response MUST include the prompt metadata needed for report generation
 
-#### Scenario: Reject duplicate outcome types on a survey
-- **Given** a survey payload includes more than one associated prompt with the same `outcomeType`
-- **When** the client submits the create or update request
-- **Then** the system MUST reject the request with a validation error
-
-#### Scenario: Reject unknown prompt associations
+#### Scenario: Reject unknown prompt references
 - **Given** a survey payload references a `promptKey` that does not exist in the prompt catalog
 - **When** the client submits the create or update request
 - **Then** the system MUST reject the request with a validation error
-

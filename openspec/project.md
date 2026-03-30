@@ -77,13 +77,32 @@ The system consists of four interconnected web applications:
 
 ### Clinical Writer AI Multi-Agent System
 
-A centralized AI engine that powers the applications with specialized agents:
+A centralized AI engine built on a **4-stage LangGraph state graph** that separates clinical interpretation from narrative generation and applies reflection-based safety validation. See [multiagent-architecture.md](file:///home/hugo/Documents/LAPAN/dev/survey/docs/multiagent-architecture.md) for the full architectural rationale.
 
-- **`InputValidatorAgent`**: Sanitizes and verifies incoming data payloads.
-- **`DeterministicRouterAgent`**: Routes requests to the appropriate processing agent based on the source application.
-- **`ConsultWriterNode`**: Generates consultation reports from `clinical-narrative` inputs.
-- **`Survey7WriterNode`**: Creates medical summaries from the 7-question `survey-patient` screening.
-- **`FullIntakeWriterNode`**: Produces comprehensive records from `survey-frontend` assessments.
+#### 4-Stage Orchestration Graph
+
+| Stage | Node | Responsibility |
+|:---|:---|:---|
+| **1. Context** | `ContextLoader` | Retrieves the questionnaire's `interpretation_prompt` and the target persona skill from MongoDB |
+| **2. Analysis** | `ClinicalAnalyzer` | Processes response JSON applying only clinical rules (e.g., CHYPS scoring); outputs structured clinical facts — no narrative text |
+| **3. Writing** | `PersonaWriter` | Transforms clinical facts into a Markdown narrative following the persona's tone and format guidelines |
+| **4. Critique** | `ReflectorNode` | Validates tone adequacy, checks for invasive recommendations, and verifies grounding in questionnaire data. Returns **PASS** (end) or **FAIL** (loop back to Writing, up to 2 retries) |
+
+#### Composable Prompt Architecture
+
+Prompts are assembled at runtime from three independent layers:
+- **Interpretation Layer (Domain):** Questionnaire-specific clinical rules stored in `QuestionnairePrompts` collection.
+- **Persona Layer (Profile):** Tone, vocabulary, and output format stored in `PersonaSkills` collection.
+- **Contextual Data Layer:** Pseudonymized patient response JSON.
+
+This separation ensures that updating a school persona affects all questionnaires without code changes.
+
+#### Key Architectural Decisions
+
+- **Skills in MongoDB:** Agent Skills (Personas) are stored as MongoDB documents so the `survey-builder` acts as a clinical CMS — specialists version prompts without deployments.
+- **Reflection Cycles:** A dedicated critique node mitigates hallucinations by verifying every report assertion against the raw questionnaire data.
+- **Asymmetric Model Usage:** Lightweight models for stages 1–3; high-reasoning models only for the Reflection Node to optimize cost.
+- **API-Only Inference:** The system uses third-party LLM APIs exclusively; self-hosted model infrastructure (e.g., LoRA adapters, GPU serving) was evaluated and deferred.
 
 ## Security and Privacy
 

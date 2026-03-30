@@ -1,7 +1,8 @@
 # frontend-survey-builder Specification
 
 ## Purpose
-TBD - created by archiving change add-survey-builder-app. Update Purpose after archive.
+This specification defines the user interface and interactions for the `survey-builder` application, enabling administrators to manage the lifecycle of clinical surveys and their associated AI prompts.
+
 ## Requirements
 ### Requirement: The system MUST provide a user interface for listing surveys.
 
@@ -99,7 +100,7 @@ The `survey-builder` application MUST let administrators create, edit, list, and
 
 #### Scenario: User creates a reusable prompt
 - **Given** the user is managing reusable AI prompts in `survey-builder`
-- **When** they submit a prompt name, `promptKey`, `outcomeType`, and prompt text
+- **When** they submit a prompt name, `promptKey`, and prompt text
 - **Then** the application MUST create the prompt through the backend API
 - **And** it MUST show the saved prompt in the prompt catalog
 
@@ -115,19 +116,13 @@ The `survey-builder` application MUST let administrators create, edit, list, and
 - **Then** the application MUST show the backend rejection
 - **And** it MUST explain that the prompt must be detached from questionnaires first
 
-### Requirement: The system MUST allow users to associate outcome prompts while editing a survey.
+### Requirement: The system MUST allow users to associate exactly one clinical report prompt while editing a survey.
 
-The survey form MUST let the user attach one reusable prompt for each desired report outcome available on that questionnaire.
+The survey form MUST let the user attach exactly one reusable prompt to be used for clinical report generation.
 
-#### Scenario: User associates prompts to a survey
+#### Scenario: User associates a prompt to a survey
 - **Given** the user is editing a survey in `survey-builder`
 - **And** reusable prompts exist in the prompt catalog
-- **When** the user selects one or more prompts to associate with that survey and saves
-- **Then** the application MUST include those prompt associations in the survey create or update request
-- **And** it MUST preserve them when the survey is reopened for editing
-
-#### Scenario: User attempts to assign two prompts with the same outcome type
-- **Given** the user is editing a survey
-- **When** they configure more than one prompt for the same `outcomeType`
-- **Then** the application MUST prevent the save or show a validation error
-
+- **When** the user selects a prompt to associate with that survey and saves
+- **Then** the application MUST include that prompt reference in the survey create or update request
+- **And** it MUST preserve it when the survey is reopened for editing
