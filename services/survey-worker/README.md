@@ -29,7 +29,7 @@ uv run python -m app.main
 ## Behavior
 
 The worker scans the `survey_responses` collection for documents without an `agentResponse`, with status `pending`/`failed`, or with a stale `processing` status, sends them to the Clinical Writer agent, and updates the document with:
-- `agentResponse`: agent payload (`ok`, `input_type`, `prompt_version`, `model_version`, `report`, `warnings`, `classification`, `medicalRecord`, `errorMessage`)
+- `agentResponse`: agent payload (`ok`, `input_type`, `prompt_version`, `questionnaire_prompt_version`, `persona_skill_version`, `model_version`, `report`, `warnings`, `classification`, `medicalRecord`, `errorMessage`)
 - `agentResponseStatus`: `processing` → `succeeded`/`failed`
 - `agentResponseUpdatedAt`: timestamp of the last attempt
 

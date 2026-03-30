@@ -154,11 +154,16 @@ class ClinicalWriterJob:
         if isinstance(patient, dict):
             patient_ref = patient.get("email") or patient.get("name")
 
+        output_profile = payload.get("outputProfile") or "patient_condition_overview"
+        persona_skill_key = payload.get("personaSkillKey") or output_profile
+
         return {
             "input_type": "survey7",
             "content": json.dumps(self._serialize_document(payload), ensure_ascii=False),
             "locale": "pt-BR",
             "prompt_key": payload.get("promptKey") or "survey7",
+            "persona_skill_key": persona_skill_key,
+            "output_profile": output_profile,
             "output_format": "report_json",
             "metadata": {
                 "source_app": "survey-worker",
@@ -214,6 +219,8 @@ class ClinicalWriterJob:
             "ok": data.get("ok"),
             "input_type": data.get("input_type"),
             "prompt_version": data.get("prompt_version"),
+            "questionnaire_prompt_version": data.get("questionnaire_prompt_version"),
+            "persona_skill_version": data.get("persona_skill_version"),
             "model_version": data.get("model_version"),
             "report": report,
             "warnings": warnings,

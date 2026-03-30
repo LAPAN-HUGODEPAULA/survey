@@ -15,6 +15,8 @@ class ClinicalWriterJobTests(unittest.TestCase):
             "_id": ObjectId("69b83ece5943fe7eaee68e10"),
             "surveyId": "lapan_q7",
             "promptKey": "survey7",
+            "personaSkillKey": "school_report",
+            "outputProfile": "school_report",
             "testDate": datetime(2026, 3, 25, 12, 0, tzinfo=timezone.utc),
             "patient": {
                 "name": "Patient A-01",
@@ -27,6 +29,8 @@ class ClinicalWriterJobTests(unittest.TestCase):
 
         self.assertEqual(request_payload["input_type"], "survey7")
         self.assertEqual(request_payload["prompt_key"], "survey7")
+        self.assertEqual(request_payload["persona_skill_key"], "school_report")
+        self.assertEqual(request_payload["output_profile"], "school_report")
         self.assertEqual(request_payload["metadata"]["patient_ref"], "patient.a01@example.invalid")
         self.assertEqual(content["_id"], "69b83ece5943fe7eaee68e10")
         self.assertEqual(content["testDate"], "2026-03-25T12:00:00+00:00")
@@ -78,6 +82,8 @@ class ClinicalWriterJobTests(unittest.TestCase):
         self.assertTrue(normalized["ok"])
         self.assertEqual(normalized["warnings"], ["note"])
         self.assertEqual(normalized["medicalRecord"], "Resumo\nConteudo do laudo.")
+        self.assertEqual(normalized["questionnaire_prompt_version"], None)
+        self.assertEqual(normalized["persona_skill_version"], None)
 
 
 if __name__ == "__main__":
