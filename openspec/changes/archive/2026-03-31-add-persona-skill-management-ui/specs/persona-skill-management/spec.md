@@ -1,23 +1,4 @@
-# persona-skill-management Specification
-
-## Purpose
-This specification defines how output-profile persona instructions are stored, validated, and operationally managed for Clinical Writer prompt composition.
-## Requirements
-### Requirement: The system MUST provide a MongoDB-backed PersonaSkills catalog for output-profile style and restrictions.
-
-The system MUST store output-profile persona definitions in a dedicated `PersonaSkills` collection. Each persona skill MUST describe the tone, audience expectations, style constraints, or safety restrictions for one runtime output profile.
-
-#### Scenario: Create a persona skill for school reports
-- **Given** an administrator is configuring the tone for the school report output profile
-- **When** they create a `PersonaSkills` document with a stable persona key, an output-profile binding, and persona instructions
-- **Then** the system MUST persist the persona skill in MongoDB
-- **And** it MUST make that persona skill available for runtime resolution
-
-#### Scenario: List persona skills
-- **Given** persona skills exist in the system
-- **When** an administrative client requests the persona skill catalog
-- **Then** the system MUST return the stored persona skill definitions
-- **And** each definition MUST remain independent from questionnaire-specific clinical logic
+## MODIFIED Requirements
 
 ### Requirement: Persona skills MUST be uniquely identifiable and editable as operational configuration.
 

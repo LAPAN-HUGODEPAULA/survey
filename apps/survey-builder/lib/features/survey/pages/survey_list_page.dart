@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:survey_builder/core/models/survey_draft.dart';
 import 'package:survey_builder/core/repositories/survey_repository.dart';
 import 'package:survey_builder/core/services/file_download.dart';
+import 'package:survey_builder/features/survey/pages/persona_skill_list_page.dart';
 import 'package:survey_builder/features/survey/pages/survey_form_page.dart';
 import 'package:survey_builder/features/survey/pages/survey_prompt_list_page.dart';
 
@@ -177,38 +178,51 @@ class _SurveyListPageState extends State<SurveyListPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Flexible(
-                  child: Text(
-                    'Questionários',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                Text(
+                  'Questionários',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-                const SizedBox(width: 16),
-                DsFilledButton(
-                  label: 'Criar questionário',
-                  onPressed: () => _openForm(draft: _emptyDraft()),
-                ),
-                const SizedBox(width: 8),
-                DsOutlinedButton(
-                  label: 'Gerenciar prompts',
-                  onPressed: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const SurveyPromptListPage(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(width: 8),
-                DsOutlinedButton(
-                  label: _exporting
-                      ? 'Exportando...'
-                      : 'Exportar questionários',
-                  onPressed: _exporting ? null : _exportSurveys,
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    DsFilledButton(
+                      label: 'Criar questionário',
+                      onPressed: () => _openForm(draft: _emptyDraft()),
+                    ),
+                    DsOutlinedButton(
+                      label: 'Gerenciar prompts',
+                      onPressed: () async {
+                        await Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const SurveyPromptListPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    DsOutlinedButton(
+                      label: 'Gerenciar personas',
+                      onPressed: () async {
+                        await Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const PersonaSkillListPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    DsOutlinedButton(
+                      label: _exporting
+                          ? 'Exportando...'
+                          : 'Exportar questionários',
+                      onPressed: _exporting ? null : _exportSurveys,
+                    ),
+                  ],
                 ),
               ],
             ),

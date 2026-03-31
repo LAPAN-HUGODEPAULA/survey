@@ -16,7 +16,7 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 
 ### Survey Backend (`services/survey-backend`)
 
-- FastAPI application exposing `/api/v1` routes for reusable survey prompts, surveys, survey responses, and patient responses.
+- FastAPI application exposing `/api/v1` routes for reusable survey prompts, persona skills, surveys, survey responses, and patient responses.
 - Domain models in `app/domain/models`; adapters/integrations (e.g., email, Clinical Writer client) under `app/integrations`.
 - Persistence via repository pattern in `app/persistence`, injected through `app.persistence.deps`.
 - Background tasks for outbound email and optional AI enrichment per request.
@@ -41,8 +41,8 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 - `survey-frontend`: screener-focused survey UI.
 - `survey-patient`: patient-facing response flow (build args allow screener identity defaults).
 - `clinical-narrative`: A conversational platform for clinical documentation. It supports session management, voice input with transcription, AI-driven clinical assistance, and document generation.
-- `survey-builder`: An application for administrators and researchers to create and manage surveys. It provides a user-friendly interface for editing all aspects of a survey, including questions and instructions.
-- All apps use the shared design system and generated Dart SDK from the OpenAPI contract.
+- `survey-builder`: An application for administrators and researchers to create and manage surveys. It provides a user-friendly interface for editing survey structure, reusable questionnaire prompts, and persona skills used by the Clinical Writer prompt stack.
+- All apps use the shared design system. Generated Dart SDKs are available from the OpenAPI contract, while `survey-builder` also uses lightweight repository wrappers for some admin catalog flows.
 
 ### Shared Packages (`packages/`)
 
@@ -72,7 +72,7 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 ## Interfaces & Contracts
 
 - RESTful JSON APIs under `/api/v1`; OpenAPI contract is authoritative.
-- Generated SDKs are the supported consumption method for Flutter clients; manual HTTP clients are discouraged.
+- Generated SDKs remain the preferred integration path for stable contract-backed Flutter flows. `survey-builder` may also use small repository wrappers around the same `/api/v1` endpoints for admin-only catalog screens when that keeps the UI simpler.
 
 ### API Client Generation
 
