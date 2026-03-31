@@ -40,6 +40,13 @@ The first shared feature wave includes:
 - `DsAdminCatalogShell` and `DsAdminCatalogItem` for builder catalogs
 - `DsAdminFormShell`, `DsNormalizedKeyField`, and `DsInlineConflictMessage` for builder forms
 
+The current professional-auth surface also includes:
+
+- `DsProfessionalSignInCard` for shared screener sign-in, forgot-password entry, loading feedback, and submission messaging
+- `DsProfessionalSignUpCard` for shared screener registration, address capture, professional council data, and CEP lookup callbacks
+- `DsAccountMenuButton` and `DsAccountMenuItem` for the top-right account menu used by professional apps
+- `DsAuthOperationResult` plus the auth form data models that let consuming apps keep backend integration and session state outside the shared package
+
 ## Composition Rules
 
 - Keep each application route as a thin wrapper around shared widgets.
@@ -48,11 +55,13 @@ The first shared feature wave includes:
   - repository calls
   - provider state
   - side effects such as snack bars, report handoff, or screener locking
+  - authentication token persistence and logout/account-switch semantics
 - Let the shared package own:
   - field layout
   - repeated validation rules
   - repeated presentation states
   - repeated CRUD shell composition
+  - repeated professional auth presentation and account-menu composition
 
 ## Implementation Plan For New Reuse
 

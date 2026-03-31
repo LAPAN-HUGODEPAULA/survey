@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:js_interop';
 
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
+import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/report/report_models.dart';
 import 'package:design_system_flutter/report/report_view.dart';
 import 'package:design_system_flutter/widgets.dart';
@@ -48,7 +49,10 @@ class _ReportPageState extends State<ReportPage> {
     }
   }
 
-  Future<void> _exportReport(AppSettings settings, ReportDocument report) async {
+  Future<void> _exportReport(
+    AppSettings settings,
+    ReportDocument report,
+  ) async {
     final fileName = _generateReportFileName(settings);
     final reportText = _buildReportText(report);
     final result = await _writeReportFile(fileName, reportText);
@@ -57,9 +61,7 @@ class _ReportPageState extends State<ReportPage> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(result)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
   }
 
   Future<String> _writeReportFile(String fileName, String content) async {
@@ -73,7 +75,10 @@ class _ReportPageState extends State<ReportPage> {
     }
   }
 
-  Future<String> _saveReportToWebBrowser(String fileName, String content) async {
+  Future<String> _saveReportToWebBrowser(
+    String fileName,
+    String content,
+  ) async {
     final parts = <web.BlobPart>[content.toJS as web.BlobPart].toJS;
     final blob = web.Blob(parts, web.BlobPropertyBag(type: 'text/plain'));
     final url = web.URL.createObjectURL(blob);
@@ -111,8 +116,9 @@ class _ReportPageState extends State<ReportPage> {
     final settings = Provider.of<AppSettings>(context);
 
     return DsScaffold(
-      appBar: AppBar(
-        title: const Text('Prontuário gerado'),
+      appBar: const ClinicianNavigationAppBar(
+        title: Text('Prontuário gerado'),
+        showHomeButton: true,
       ),
       body: Center(
         child: SingleChildScrollView(

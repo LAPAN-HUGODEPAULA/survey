@@ -8,6 +8,7 @@ import 'package:clinical_narrative_app/core/providers/chat_provider.dart';
 import 'package:clinical_narrative_app/core/services/platform_view_registry.dart'
     as platform_view_registry;
 import 'package:clinical_narrative_app/core/services/voice_capture_service.dart';
+import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -838,9 +839,10 @@ class _ChatPageState extends State<ChatPage> {
           _lastMessageCount = messageCount;
 
           return DsScaffold(
-            appBar: AppBar(
+            appBar: ClinicianNavigationAppBar(
               title: const Text('Conversa clínica'),
-              actions: [
+              showHomeButton: true,
+              extraActions: [
                 if (provider.isOffline)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),

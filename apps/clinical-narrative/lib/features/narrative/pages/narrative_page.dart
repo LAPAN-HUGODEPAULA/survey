@@ -5,6 +5,7 @@ import 'package:clinical_narrative_app/core/models/agent_response.dart';
 import 'package:clinical_narrative_app/core/navigation/app_navigator.dart';
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
 import 'package:clinical_narrative_app/core/services/clinical_writer_service.dart';
+import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/report/report_models.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +32,9 @@ class _NarrativePageState extends State<NarrativePage> {
     final rawContent = _narrativeController.text.trim();
     if (rawContent.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Informe o conteúdo para gerar a narrativa.')),
+        const SnackBar(
+          content: Text('Informe o conteúdo para gerar a narrativa.'),
+        ),
       );
       return;
     }
@@ -102,8 +105,9 @@ class _NarrativePageState extends State<NarrativePage> {
     final patient = Provider.of<AppSettings>(context).patient;
 
     return DsScaffold(
-      appBar: AppBar(
+      appBar: ClinicianNavigationAppBar(
         title: Text('Narrativa Clínica - ${patient.name}'),
+        showHomeButton: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

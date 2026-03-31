@@ -1,7 +1,7 @@
 # shared-flutter-component-library Specification
 
 ## Purpose
-TBD - created by archiving change build-shared-component-library. Update Purpose after archive.
+Define the ownership and reuse rules for shared Flutter UI in `packages/design_system_flutter`.
 ## Requirements
 ### Requirement: The platform MUST provide a shared Flutter component library in `packages/design_system_flutter`
 The LAPAN platform SHALL maintain reusable cross-app Flutter components in `packages/design_system_flutter` as the canonical package for shared UI composition beyond basic theme primitives.
@@ -51,3 +51,10 @@ The repository SHALL include developer-facing documentation that explains when F
 - **THEN** the repository documentation MUST tell them to place the canonical implementation in `packages/design_system_flutter`
 - **AND** the documentation MUST describe how to keep app-specific navigation and business logic outside the shared component package
 
+### Requirement: Professional Auth UI MUST Be Shared Through the Flutter Component Library
+The canonical professional sign-in, sign-up, and account-menu UI used by `survey-frontend` and `clinical-narrative` MUST live in `packages/design_system_flutter`.
+
+#### Scenario: A professional auth surface is needed in both apps
+- **WHEN** `survey-frontend` and `clinical-narrative` need the same professional auth page composition or account-menu affordance
+- **THEN** the canonical implementation MUST be owned by `packages/design_system_flutter`
+- **AND** the shared component API MUST NOT require app-specific router, provider, or repository classes to be imported into the package

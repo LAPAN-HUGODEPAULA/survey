@@ -69,13 +69,14 @@
 
 - **Structure**: feature-first (e.g., `features/<feature>/data|domain|presentation`) with shared utilities under `shared/`.
 - **Design system**: `packages/design_system_flutter` provides the `AppTheme.light()` theme seeded with `Colors.orange`, common widgets, input/button styling, and the shared `DsScaffold` page shell.
+- **Shared professional auth surfaces**: `packages/design_system_flutter` owns the reusable `DsProfessionalSignInCard`, `DsProfessionalSignUpCard`, and `DsAccountMenuButton` primitives used by `survey-frontend` and `clinical-narrative`. Consuming apps provide backend calls, route changes, and session persistence through callbacks.
 - **Shared scaffold contract**: full-screen Flutter pages should render through `DsScaffold`, which standardizes `appBar + body + mandatory footer/status bar` while allowing each app to provide its own app bar widgets, route configuration, and workflow-specific content.
 - **API consumption**: use generated Dart SDK from `packages/contracts/generated/dart`; manual HTTP clients are discouraged.
 - **API consumption**: prefer the generated Dart SDK from `packages/contracts/generated/dart` for stable contract-backed flows. `survey-builder` also uses lightweight `Dio` repositories for prompt and persona admin screens that reuse the same backend routes.
 - **Apps**:
-  - `survey-frontend`: screener dashboard for creating surveys and viewing responses. The screener login page includes registration, login, and forgot-password flows wired to the backend screener endpoints.
+  - `survey-frontend`: screener dashboard for creating surveys and viewing responses. Protected professional routes are gated behind screener login, while `/access/:token` remains public for patient-distribution links. The screener auth flow reuses shared sign-in, sign-up, and account-menu components wired to the backend screener endpoints.
   - `survey-patient`: patient-facing flow with configurable screener name/contact build args.
-  - `clinical-narrative`: A conversational platform for clinical documentation. It supports session management, voice input with transcription, AI-driven clinical assistance, and document generation.
+  - `clinical-narrative`: A conversational platform for clinical documentation. It supports session management, voice input with transcription, AI-driven clinical assistance, and document generation. The app now requires an authenticated screener session before protected workflows can start and reuses the same backend screener identity and shared auth UI used by `survey-frontend`.
     - HTML preview windows open with `noopener noreferrer`, and blob URLs are
       revoked after use.
   - `survey-builder`: An application for administrators and researchers to create and manage surveys. It provides a user-friendly interface for editing all aspects of a survey, including questions and instructions.

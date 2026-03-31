@@ -20,13 +20,20 @@ The application is available at `http://localhost:8082`.
 
 ## Main user flow
 
-1. Open the application and enter the patient information.
-2. Continue to the clinical conversation.
-3. Record the conversation by typing messages or using voice capture.
-4. Review suggestions, alerts, and hypotheses when those features are available.
-5. Generate clinical documents from the conversation and narrative.
-6. Preview and export the document as PDF or print output.
-7. End the consultation to complete the session.
+1. Open the application and sign in with a registered screener account.
+2. If needed, use **Registre-se** to create a new screener account with the same professional identity flow used by the survey app.
+3. Enter the patient information after authentication succeeds.
+4. Continue to the clinical conversation.
+5. Record the conversation by typing messages or using voice capture.
+6. Review suggestions, alerts, and hypotheses when those features are available.
+7. Generate clinical documents from the conversation and narrative.
+8. Preview and export the document as PDF or print output.
+9. End the consultation to complete the session.
+
+## Account menu
+
+- Use the account menu on the top-right side of the app to switch accounts or sign out.
+- Signing out clears the authenticated screener session before returning to the login flow.
 
 ## Voice capture
 

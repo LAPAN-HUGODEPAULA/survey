@@ -4,6 +4,7 @@ library;
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
 import 'package:clinical_narrative_app/core/services/narrative_service.dart';
 import 'package:clinical_narrative_app/features/demographics/pages/demographics_page.dart';
+import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -36,7 +37,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(title: const Text('Obrigado!')),
+      appBar: const ClinicianNavigationAppBar(
+        title: Text('Obrigado!'),
+        showHomeButton: true,
+      ),
       body: Center(
         child: FutureBuilder<void>(
           future: _saveNarrativeFuture,

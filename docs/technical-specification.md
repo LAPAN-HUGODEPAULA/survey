@@ -38,11 +38,11 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 
 ### Flutter Applications (`apps/`)
 
-- `survey-frontend`: screener-focused survey UI.
+- `survey-frontend`: screener-focused survey UI. Protected professional routes now require screener login, while the locked patient-distribution route stays public.
 - `survey-patient`: patient-facing response flow (build args allow screener identity defaults).
-- `clinical-narrative`: A conversational platform for clinical documentation. It supports session management, voice input with transcription, AI-driven clinical assistance, and document generation.
+- `clinical-narrative`: A conversational platform for clinical documentation. It supports session management, voice input with transcription, AI-driven clinical assistance, and document generation, and now requires the same screener authentication contract used by `survey-frontend`.
 - `survey-builder`: An application for administrators and researchers to create and manage surveys. It provides a user-friendly interface for editing survey structure, reusable questionnaire prompts, persona skills, and survey-level default persona/output-profile settings used by the Clinical Writer prompt stack.
-- All apps use the shared design system. Generated Dart SDKs are available from the OpenAPI contract, while `survey-builder` also uses lightweight repository wrappers for some admin catalog flows.
+- All apps use the shared design system. The professional sign-in, sign-up, and account-menu surfaces are owned by `packages/design_system_flutter` and consumed through callback-based APIs so app-level navigation and auth state stay local. Generated Dart SDKs are available from the OpenAPI contract, while `survey-builder` also uses lightweight repository wrappers for some admin catalog flows.
 
 ### Shared Packages (`packages/`)
 

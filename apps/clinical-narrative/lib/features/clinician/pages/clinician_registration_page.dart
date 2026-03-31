@@ -1,33 +1,35 @@
+import 'package:clinical_narrative_app/core/config/runtime_config.dart';
+import 'package:clinical_narrative_app/core/navigation/app_navigator.dart';
+import 'package:clinical_narrative_app/core/services/api_config.dart';
+import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
-import 'package:survey_app/core/config/runtime_config.dart';
-import 'package:survey_app/core/providers/api_provider.dart';
-import 'package:survey_app/core/services/api_config.dart';
 
-class ScreenerRegistrationPage extends StatelessWidget {
-  const ScreenerRegistrationPage({super.key});
+class ClinicianRegistrationPage extends StatelessWidget {
+  const ClinicianRegistrationPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(title: const Text('Registro de Avaliador')),
+      appBar: const ClinicianNavigationAppBar(
+        title: Text('Cadastro do Profissional'),
+      ),
       body: DsProfessionalSignUpCard(
-        header: Image.asset('assets/images/lapan_logo_reduced.png', height: 56),
+        header: const Icon(Icons.medical_information_outlined, size: 56),
+        subtitle:
+            'Crie sua conta profissional com os mesmos dados exigidos no ambiente de avaliação.',
         onLookupCep: _lookupCep,
-        onSubmit: (data) => _registerScreener(context, data),
-        onShowSignIn: () => context.go('/login'),
+        onSubmit: _register,
+        onShowSignIn: () => AppNavigator.toLogin(context),
       ),
     );
   }
 
-  Future<DsAuthOperationResult?> _registerScreener(
-    BuildContext context,
+  Future<DsAuthOperationResult?> _register(
     DsScreenerRegistrationData data,
   ) async {
-    final dio = context.read<ApiProvider>().api.dio;
+    final dio = ApiConfig.createDio();
 
     try {
       await dio.post<Object?>(
@@ -57,17 +59,15 @@ class ScreenerRegistrationPage extends StatelessWidget {
           'darvCourseYear': data.darvCourseYear,
         },
       );
-
-      if (context.mounted) {
-        context.go('/login');
-      }
       return const DsAuthOperationResult.success(
-        'Avaliador registrado com sucesso!',
+        'Cadastro realizado com sucesso. Faça login para continuar.',
       );
     } on DioException catch (error) {
       return DsAuthOperationResult.error(_buildRegistrationErrorMessage(error));
     } catch (error) {
-      return DsAuthOperationResult.error('Falha no registro: $error');
+      return DsAuthOperationResult.error('Falha no cadastro: $error');
+    } finally {
+      dio.close();
     }
   }
 
@@ -86,12 +86,11 @@ class ScreenerRegistrationPage extends StatelessWidget {
       if (data is! Map || data['erro'] == true) {
         return null;
       }
-      final state = (data['uf'] ?? '').toString().toUpperCase();
       return DsCepLookupResult(
         street: (data['logradouro'] ?? '').toString(),
         neighborhood: (data['bairro'] ?? '').toString(),
         city: (data['localidade'] ?? '').toString(),
-        state: state,
+        state: (data['uf'] ?? '').toString().toUpperCase(),
       );
     } catch (_) {
       return null;
@@ -111,12 +110,12 @@ String _buildRegistrationErrorMessage(DioException error) {
   final response = error.response;
   final detail = _extractRegistrationErrorDetail(response?.data);
   if (detail != null && detail.isNotEmpty) {
-    return 'Falha no registro: $detail';
+    return 'Falha no cadastro: $detail';
   }
   if (response?.statusCode != null) {
-    return 'Falha no registro (HTTP ${response?.statusCode}).';
+    return 'Falha no cadastro (HTTP ${response?.statusCode}).';
   }
-  return 'Falha no registro: ${error.message ?? 'Erro de conexão.'}';
+  return 'Falha no cadastro: ${error.message ?? 'Erro de conexão.'}';
 }
 
 String? _extractRegistrationErrorDetail(dynamic data) {

@@ -1,38 +1,37 @@
-
-import 'package:clinical_narrative_app/core/models/clinician.dart';
 import 'package:clinical_narrative_app/core/models/patient.dart';
+import 'package:clinical_narrative_app/core/models/screener_profile.dart';
+import 'package:clinical_narrative_app/core/services/api_config.dart';
 import 'package:flutter/material.dart';
 
 class AppSettings extends ChangeNotifier {
-  Clinician _clinician = Clinician.initial();
+  String? _authToken;
+  ScreenerProfile? _screenerProfile;
   Patient _patient = Patient.initial();
   String _narrative = '';
 
-  Clinician get clinician => _clinician;
+  String? get authToken => _authToken;
+  ScreenerProfile? get screenerProfile => _screenerProfile;
+  bool get isLoggedIn =>
+      (_authToken?.isNotEmpty ?? false) && _screenerProfile != null;
+  String get screenerDisplayName =>
+      _screenerProfile?.displayName.isNotEmpty == true
+      ? _screenerProfile!.displayName
+      : 'Profissional';
   Patient get patient => _patient;
   String get narrative => _narrative;
 
-  void setClinicianData({
-    required String name,
-    required String registrationNumber,
-    String email = '',
+  void setScreenerSession({
+    required String token,
+    required ScreenerProfile profile,
   }) {
-    _clinician = _clinician.copyWith(
-      name: name,
-      registrationNumber: registrationNumber,
-      email: email,
-    );
+    _authToken = token;
+    _screenerProfile = profile;
+    ApiConfig.setAuthToken(token);
     notifyListeners();
   }
 
-  void setPatientData({
-    required String name,
-    required String medicalRecordId,
-  }) {
-    _patient = _patient.copyWith(
-      name: name,
-      medicalRecordId: medicalRecordId,
-    );
+  void setPatientData({required String name, required String medicalRecordId}) {
+    _patient = _patient.copyWith(name: name, medicalRecordId: medicalRecordId);
     notifyListeners();
   }
 
@@ -47,8 +46,12 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
-  void clearClinicianData() {
-    _clinician = Clinician.initial();
+  void clearScreenerSession() {
+    _authToken = null;
+    _screenerProfile = null;
+    _patient = Patient.initial();
+    _narrative = '';
+    ApiConfig.clearAuthToken();
     notifyListeners();
   }
 }

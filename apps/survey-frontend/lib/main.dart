@@ -21,8 +21,33 @@ import 'package:survey_app/features/settings/pages/settings_page.dart';
 import 'package:survey_app/features/splash/splash_screen.dart';
 import 'package:survey_app/shared/widgets/main_layout.dart';
 
+final AppSettings _appSettings = AppSettings();
+final ApiProvider _apiProvider = ApiProvider();
+
+String? _routeGuard(BuildContext context, GoRouterState state) {
+  final path = state.uri.path;
+  final isPublicPath =
+      path == '/login' || path == '/register' || path.startsWith('/access/');
+  final allowsLockedAssessmentRoute =
+      path == '/demographics' && _appSettings.isLockedAssessmentMode;
+
+  if (!_appSettings.isLoggedIn &&
+      !isPublicPath &&
+      !allowsLockedAssessmentRoute) {
+    return '/login';
+  }
+
+  if (_appSettings.isLoggedIn && (path == '/login' || path == '/register')) {
+    return '/demographics';
+  }
+
+  return null;
+}
+
 /// Shared application router for screener flows and access-link entry points.
 final _router = GoRouter(
+  refreshListenable: _appSettings,
+  redirect: _routeGuard,
   routes: [
     ShellRoute(
       builder: (context, state, child) {
@@ -69,8 +94,8 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => AppSettings()),
-        ChangeNotifierProvider(create: (context) => ApiProvider()),
+        ChangeNotifierProvider<AppSettings>.value(value: _appSettings),
+        ChangeNotifierProvider<ApiProvider>.value(value: _apiProvider),
       ],
       child: const MyApp(),
     ),

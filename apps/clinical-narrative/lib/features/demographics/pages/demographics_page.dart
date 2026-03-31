@@ -3,6 +3,7 @@ library;
 
 import 'package:clinical_narrative_app/core/navigation/app_navigator.dart';
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
+import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -42,7 +43,9 @@ class _DemographicsPageState extends State<DemographicsPage> {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(title: const Text('Informações do Paciente')),
+      appBar: const ClinicianNavigationAppBar(
+        title: Text('Informações do Paciente'),
+      ),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(

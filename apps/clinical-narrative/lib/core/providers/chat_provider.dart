@@ -14,8 +14,7 @@ import 'package:web/web.dart' as web;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ChatProvider extends ChangeNotifier {
-  ChatProvider({Dio? client})
-    : _client = client ?? ApiConfig.createDio();
+  ChatProvider({Dio? client}) : _client = client ?? ApiConfig.createDio();
 
   final Dio _client;
   ChatSession? _session;
@@ -57,6 +56,39 @@ class ChatProvider extends ChangeNotifier {
   List<TemplateRecord> get templates => List.unmodifiable(_templates);
   TemplatePreview? get templatePreview => _templatePreview;
   TranscriptionResponse? get transcription => _transcription;
+
+  void setAuthToken(String token) {
+    _client.options.headers['Authorization'] = 'Bearer $token';
+  }
+
+  void clearAuthToken() {
+    _client.options.headers.remove('Authorization');
+  }
+
+  void reset() {
+    _analysisDebounce?.cancel();
+    _channel?.sink.close();
+    _channel = null;
+    _session = null;
+    _messages.clear();
+    _pendingQueue.clear();
+    _suggestions = [];
+    _alerts = [];
+    _entities = [];
+    _hypotheses = [];
+    _knowledge = [];
+    _analysisPhase = null;
+    _documentPreview = null;
+    _templates = [];
+    _templatePreview = null;
+    _transcription = null;
+    _isLoading = false;
+    _isProcessing = false;
+    _error = null;
+    clearAuthToken();
+    _clearSessionId();
+    notifyListeners();
+  }
 
   Future<List<Map<String, dynamic>>> fetchTemplateDocumentTypes() async {
     final response = await _client.get<List<dynamic>>(

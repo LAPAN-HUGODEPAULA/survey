@@ -1,13 +1,15 @@
-
-import 'package:clinical_narrative_app/features/chat/pages/chat_page.dart';
-import 'package:clinical_narrative_app/features/demographics/pages/demographics_page.dart';
-import 'package:clinical_narrative_app/features/narrative/pages/narrative_page.dart';
-import 'package:clinical_narrative_app/features/report/pages/report_page.dart';
-import 'package:clinical_narrative_app/features/thankyou/pages/thankyou_page.dart';
 import 'package:design_system_flutter/report/report_models.dart';
 import 'package:flutter/material.dart';
 
 class AppNavigator {
+  static const String loginRoute = '/login';
+  static const String registrationRoute = '/register';
+  static const String demographicsRoute = '/demographics';
+  static const String narrativeRoute = '/narrative';
+  static const String chatRoute = '/chat';
+  static const String thankYouRoute = '/thank-you';
+  static const String reportRoute = '/report';
+
   static Future<T?> push<T>(BuildContext context, Widget page) {
     return Navigator.push<T>(context, MaterialPageRoute(builder: (_) => page));
   }
@@ -23,22 +25,30 @@ class AppNavigator {
   }
 
   static Future<void> toNarrative(BuildContext context) {
-    return push(context, const NarrativePage());
+    return Navigator.pushNamed(context, narrativeRoute);
   }
 
   static Future<void> toDemographics(BuildContext context) {
-    return replace(context, const DemographicsPage());
+    return Navigator.pushReplacementNamed(context, demographicsRoute);
+  }
+
+  static Future<void> toLogin(BuildContext context) {
+    return Navigator.pushReplacementNamed(context, loginRoute);
+  }
+
+  static Future<void> toRegistration(BuildContext context) {
+    return Navigator.pushReplacementNamed(context, registrationRoute);
   }
 
   static Future<void> toChat(BuildContext context) {
-    return replace(context, const ChatPage());
+    return Navigator.pushReplacementNamed(context, chatRoute);
   }
 
   static Future<void> toThankYou(BuildContext context) {
-    return replace(context, const ThankYouPage());
+    return Navigator.pushReplacementNamed(context, thankYouRoute);
   }
 
   static Future<void> toReport(BuildContext context, ReportDocument report) {
-    return push(context, ReportPage(report: report));
+    return Navigator.pushNamed(context, reportRoute, arguments: report);
   }
 }

@@ -1,15 +1,4 @@
-# screener-profile-management Specification
-
-## Purpose
-Define how screener account actions are exposed in the professional application shell.
-## Requirements
-### Requirement: Settings Page Without Screener Fields
-The `settings_page.dart` in `survey-frontend` MUST NOT include screener name or contact fields.
-
-#### Scenario: View settings page
-**Given** a user navigates to the settings page
-**When** the page loads
-**Then** the fields for screener name and contact MUST NOT be present.
+## MODIFIED Requirements
 
 ### Requirement: Profile Menu
 The top menu in `survey-frontend` and `clinical-narrative` MUST include a profile icon with shared authentication actions.
