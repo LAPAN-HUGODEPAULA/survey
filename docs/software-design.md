@@ -53,6 +53,9 @@
   - **Questionnaire prompt provider** resolves questionnaire clinical logic from `QuestionnairePrompts` and falls back to legacy `survey_prompts` during migration.
   - **Persona skill provider** resolves tone and restriction documents from `PersonaSkills`.
   - **Fallback providers** keep Google Drive or local prompts available for non-migrated flows such as `clinical-narrative`.
+- **Prompt ownership today**:
+  - `survey-builder` has UI for questionnaire prompt CRUD, survey-to-prompt association, and persona skill CRUD.
+  - Analyzer, writer, and reflector prompt scaffolds remain code-owned in Python.
 - **Prompt config**: `PROMPT_PROVIDER=google_drive|local`, `GOOGLE_DRIVE_FOLDER_ID` or `PROMPT_DOC_MAP_JSON`, and service account credentials via `GOOGLE_APPLICATION_CREDENTIALS`. These legacy providers are fallback-only for migrated survey flows.
 - **Key Decisions**: Skills stored in MongoDB as a clinical CMS; asymmetric model usage (lightweight for analysis, advanced for critique); API-only inference with no self-hosted GPU infrastructure.
 - **Configuration**: `AgentConfig` centralizes API keys, model params, and prompt provider configuration; dependencies are injected for testability.
@@ -68,6 +71,7 @@
 - **Design system**: `packages/design_system_flutter` provides the `AppTheme.light()` theme seeded with `Colors.orange`, common widgets, input/button styling, and the shared `DsScaffold` page shell.
 - **Shared scaffold contract**: full-screen Flutter pages should render through `DsScaffold`, which standardizes `appBar + body + mandatory footer/status bar` while allowing each app to provide its own app bar widgets, route configuration, and workflow-specific content.
 - **API consumption**: use generated Dart SDK from `packages/contracts/generated/dart`; manual HTTP clients are discouraged.
+- **API consumption**: prefer the generated Dart SDK from `packages/contracts/generated/dart` for stable contract-backed flows. `survey-builder` also uses lightweight `Dio` repositories for prompt and persona admin screens that reuse the same backend routes.
 - **Apps**:
   - `survey-frontend`: screener dashboard for creating surveys and viewing responses. The screener login page includes registration, login, and forgot-password flows wired to the backend screener endpoints.
   - `survey-patient`: patient-facing flow with configurable screener name/contact build args.
@@ -75,6 +79,8 @@
     - HTML preview windows open with `noopener noreferrer`, and blob URLs are
       revoked after use.
   - `survey-builder`: An application for administrators and researchers to create and manage surveys. It provides a user-friendly interface for editing all aspects of a survey, including questions and instructions.
+    - It also supports reusable questionnaire prompt CRUD, persona skill CRUD, and lets a survey reference one optional prompt.
+    - It does not provide survey-level persona assignment or output-profile selection; persona management remains a separate global catalog.
     - The web rich-text editor sanitizes restored/pasted HTML and restricts
       links to approved schemes (`http`, `https`, `mailto`, `tel`).
 
