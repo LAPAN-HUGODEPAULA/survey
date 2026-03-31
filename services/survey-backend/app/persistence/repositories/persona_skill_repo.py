@@ -37,6 +37,11 @@ class PersonaSkillRepository:
         found = self._col.find_one({"personaSkillKey": persona_skill_key})
         return self._normalize(found) if found else None
 
+    def get_by_output_profile(self, output_profile: str) -> dict | None:
+        """Fetch one persona skill by output profile."""
+        found = self._col.find_one({"outputProfile": output_profile})
+        return self._normalize(found) if found else None
+
     def update(self, persona_skill_key: str, persona_skill_data: dict) -> dict | None:
         """Update a stored persona skill and return the latest document."""
         payload = {

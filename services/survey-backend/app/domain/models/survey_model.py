@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import List, Optional
 from datetime import datetime
 
@@ -21,5 +21,24 @@ class Survey(BaseModel):
     questions: List[Question]
     final_notes: str = Field(..., alias="finalNotes")
     prompt: Optional[SurveyPromptReference] = None
+    persona_skill_key: Optional[str] = Field(default=None, alias="personaSkillKey")
+    output_profile: Optional[str] = Field(default=None, alias="outputProfile")
 
     model_config = ConfigDict(extra='forbid', populate_by_name=True)
+
+    @field_validator("persona_skill_key", "output_profile")
+    @classmethod
+    def validate_optional_key_fields(cls, value: str | None) -> str | None:
+        """Normalize optional runtime keys used for persona configuration."""
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not normalized:
+            return None
+        allowed = set("abcdefghijklmnopqrstuvwxyz0123456789:_-")
+        lowered = normalized.lower()
+        if any(char not in allowed for char in lowered):
+            raise ValueError(
+                "value must contain only lowercase letters, digits, colon, underscore, or hyphen"
+            )
+        return lowered

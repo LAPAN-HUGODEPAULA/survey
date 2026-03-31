@@ -1,8 +1,5 @@
-# survey-report-prompt-selection Specification
+## MODIFIED Requirements
 
-## Purpose
-This specification defines how the system selects and applies the correct AI prompt when generating clinical reports from survey responses.
-## Requirements
 ### Requirement: Survey-based report flows MUST resolve questionnaire logic and output persona separately.
 
 Survey-based report generation MUST treat questionnaire clinical logic and output-profile persona as separate runtime inputs. The questionnaire determines the `QuestionnairePrompt`, while the report flow determines the `PersonaSkill` for the desired output profile.
@@ -53,4 +50,3 @@ Request-level `personaSkillKey` or `outputProfile` values MUST override survey d
 - **When** report generation starts without a request-level persona override
 - **Then** the system MUST return a clear configuration error
 - **And** it MUST NOT silently fall back to a different persona
-

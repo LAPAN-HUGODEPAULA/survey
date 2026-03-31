@@ -126,6 +126,8 @@ class SurveyRepository {
               promptKey: source.prompt!.promptKey,
               name: source.prompt!.name,
             ),
+      personaSkillKey: _normalizeOptionalKey(source.personaSkillKey),
+      outputProfile: _normalizeOptionalKey(source.outputProfile),
     );
   }
 
@@ -178,6 +180,8 @@ class SurveyRepository {
           }),
         );
       }
+      builder.personaSkillKey = _normalizeOptionalKey(draft.personaSkillKey);
+      builder.outputProfile = _normalizeOptionalKey(draft.outputProfile);
     });
   }
 
@@ -202,6 +206,10 @@ class SurveyRepository {
       questions: _mapQuestions(questions),
       finalNotes: _coerceString(source['finalNotes']),
       prompt: _mapPrompt(_coerceMap(source['prompt'])),
+      personaSkillKey: _normalizeOptionalKey(
+        source['personaSkillKey']?.toString(),
+      ),
+      outputProfile: _normalizeOptionalKey(source['outputProfile']?.toString()),
     );
   }
 
@@ -234,10 +242,7 @@ class SurveyRepository {
     if (promptKey.isEmpty || name.isEmpty) {
       return null;
     }
-    return SurveyPromptReferenceDraft(
-      promptKey: promptKey,
-      name: name,
-    );
+    return SurveyPromptReferenceDraft(promptKey: promptKey, name: name);
   }
 
   Map<String, dynamic> _coerceMap(dynamic value) {
@@ -279,6 +284,14 @@ class SurveyRepository {
       return DateTime.tryParse(value);
     }
     return null;
+  }
+
+  String? _normalizeOptionalKey(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 
   dynamic _coerceJson(dynamic payload) {

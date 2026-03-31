@@ -62,5 +62,15 @@ void main() {
       // TODO
     });
 
+    // String personaSkillKey
+    test('to test the property `personaSkillKey`', () async {
+      // TODO
+    });
+
+    // String outputProfile
+    test('to test the property `outputProfile`', () async {
+      // TODO
+    });
+
   });
 }

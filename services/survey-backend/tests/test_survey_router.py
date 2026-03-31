@@ -2,7 +2,11 @@ from fastapi.testclient import TestClient
 from unittest.mock import MagicMock
 
 from app.main import app
-from app.persistence.deps import get_survey_prompt_repo, get_survey_repo
+from app.persistence.deps import (
+    get_persona_skill_repo,
+    get_survey_prompt_repo,
+    get_survey_repo,
+)
 
 
 client = TestClient(app)
@@ -11,13 +15,21 @@ client = TestClient(app)
 def _override_survey_dependencies(
     mock_repo: MagicMock,
     mock_prompt_repo: MagicMock | None = None,
+    mock_persona_repo: MagicMock | None = None,
 ) -> None:
     prompt_repo = mock_prompt_repo or MagicMock()
+    persona_repo = mock_persona_repo or MagicMock()
     app.dependency_overrides[get_survey_repo] = lambda: mock_repo
     app.dependency_overrides[get_survey_prompt_repo] = lambda: prompt_repo
+    app.dependency_overrides[get_persona_skill_repo] = lambda: persona_repo
 
 
-def _survey_doc(*, prompt: dict | None) -> dict:
+def _survey_doc(
+    *,
+    prompt: dict | None,
+    persona_skill_key: str | None = None,
+    output_profile: str | None = None,
+) -> dict:
     return {
         "_id": "60c728efd4c4a4f8b8c8d0d0",
         "surveyDisplayName": "Test Survey",
@@ -34,10 +46,17 @@ def _survey_doc(*, prompt: dict | None) -> dict:
         "questions": [],
         "finalNotes": "Final notes.",
         "prompt": prompt,
+        "personaSkillKey": persona_skill_key,
+        "outputProfile": output_profile,
     }
 
 
-def _survey_payload(*, prompt: dict | None) -> dict:
+def _survey_payload(
+    *,
+    prompt: dict | None,
+    persona_skill_key: str | None = None,
+    output_profile: str | None = None,
+) -> dict:
     return {
         "surveyDisplayName": "Test Survey",
         "surveyName": "test-survey",
@@ -53,24 +72,33 @@ def _survey_payload(*, prompt: dict | None) -> dict:
         "questions": [],
         "finalNotes": "Final notes.",
         "prompt": prompt,
+        "personaSkillKey": persona_skill_key,
+        "outputProfile": output_profile,
     }
 
 
 def test_create_survey():
     mock_repo = MagicMock()
     mock_prompt_repo = MagicMock()
+    mock_persona_repo = MagicMock()
     mock_prompt_repo.get_by_key.return_value = {
         "promptKey": "clinical_diagnostic_report:test-survey",
         "name": "Relatório clínico",
+    }
+    mock_persona_repo.get_by_key.return_value = {
+        "personaSkillKey": "school_report",
+        "outputProfile": "school_report",
     }
     mock_repo.create.return_value = _survey_doc(
         prompt={
             "promptKey": "clinical_diagnostic_report:test-survey",
             "name": "Relatório clínico",
-        }
+        },
+        persona_skill_key="school_report",
+        output_profile="school_report",
     )
 
-    _override_survey_dependencies(mock_repo, mock_prompt_repo)
+    _override_survey_dependencies(mock_repo, mock_prompt_repo, mock_persona_repo)
 
     response = client.post(
         "/api/v1/surveys/",
@@ -78,13 +106,17 @@ def test_create_survey():
             prompt={
                 "promptKey": "clinical_diagnostic_report:test-survey",
                 "name": "Relatório clínico",
-            }
+            },
+            persona_skill_key="school_report",
+            output_profile="school_report",
         ),
     )
 
     assert response.status_code == 201
     assert response.json()["surveyDisplayName"] == "Test Survey"
     assert response.json()["prompt"]["promptKey"] == "clinical_diagnostic_report:test-survey"
+    assert response.json()["personaSkillKey"] == "school_report"
+    assert response.json()["outputProfile"] == "school_report"
     app.dependency_overrides = {}
 
 
@@ -151,20 +183,27 @@ def test_get_survey_not_found():
 def test_update_survey():
     mock_repo = MagicMock()
     mock_prompt_repo = MagicMock()
+    mock_persona_repo = MagicMock()
     mock_prompt_repo.get_by_key.return_value = {
         "promptKey": "clinical_diagnostic_report:test-survey",
         "name": "Relatório clínico",
+    }
+    mock_persona_repo.get_by_key.return_value = {
+        "personaSkillKey": "school_report",
+        "outputProfile": "school_report",
     }
     mock_repo.update.return_value = {
         **_survey_doc(
             prompt={
                 "promptKey": "clinical_diagnostic_report:test-survey",
                 "name": "Relatório clínico",
-            }
+            },
+            persona_skill_key="school_report",
+            output_profile="school_report",
         ),
         "surveyDisplayName": "Updated Survey",
     }
-    _override_survey_dependencies(mock_repo, mock_prompt_repo)
+    _override_survey_dependencies(mock_repo, mock_prompt_repo, mock_persona_repo)
 
     response = client.put(
         "/api/v1/surveys/60c728efd4c4a4f8b8c8d0d0",
@@ -173,7 +212,9 @@ def test_update_survey():
                 prompt={
                     "promptKey": "clinical_diagnostic_report:test-survey",
                     "name": "Relatório clínico",
-                }
+                },
+                persona_skill_key="school_report",
+                output_profile="school_report",
             ),
             "_id": "60c728efd4c4a4f8b8c8d0d0",
             "surveyDisplayName": "Updated Survey",
@@ -188,12 +229,17 @@ def test_update_survey():
 def test_update_survey_not_found():
     mock_repo = MagicMock()
     mock_prompt_repo = MagicMock()
+    mock_persona_repo = MagicMock()
     mock_prompt_repo.get_by_key.return_value = {
         "promptKey": "clinical_diagnostic_report:test-survey",
         "name": "Relatório clínico",
     }
+    mock_persona_repo.get_by_key.return_value = {
+        "personaSkillKey": "school_report",
+        "outputProfile": "school_report",
+    }
     mock_repo.update.return_value = None
-    _override_survey_dependencies(mock_repo, mock_prompt_repo)
+    _override_survey_dependencies(mock_repo, mock_prompt_repo, mock_persona_repo)
 
     response = client.put(
         "/api/v1/surveys/nonexistentid",
@@ -202,7 +248,9 @@ def test_update_survey_not_found():
                 prompt={
                     "promptKey": "clinical_diagnostic_report:test-survey",
                     "name": "Relatório clínico",
-                }
+                },
+                persona_skill_key="school_report",
+                output_profile="school_report",
             ),
             "_id": "nonexistentid",
             "surveyDisplayName": "Updated Survey",
@@ -256,6 +304,77 @@ def test_create_survey_rejects_unknown_prompt_key():
 
     assert response.status_code == 422
     assert response.json()["detail"] == "Unknown promptKey: missing"
+    app.dependency_overrides = {}
+
+
+def test_create_survey_derives_persona_from_output_profile_only():
+    mock_repo = MagicMock()
+    mock_persona_repo = MagicMock()
+    mock_persona_repo.get_by_output_profile.return_value = {
+        "personaSkillKey": "school_report",
+        "outputProfile": "school_report",
+    }
+    mock_repo.create.return_value = _survey_doc(
+        prompt=None,
+        persona_skill_key="school_report",
+        output_profile="school_report",
+    )
+    _override_survey_dependencies(mock_repo, mock_persona_repo=mock_persona_repo)
+
+    response = client.post(
+        "/api/v1/surveys/",
+        json=_survey_payload(prompt=None, output_profile="school_report"),
+    )
+
+    assert response.status_code == 201
+    assert response.json()["personaSkillKey"] == "school_report"
+    assert response.json()["outputProfile"] == "school_report"
+    app.dependency_overrides = {}
+
+
+def test_create_survey_rejects_unknown_persona_skill_key():
+    mock_repo = MagicMock()
+    mock_persona_repo = MagicMock()
+    mock_persona_repo.get_by_key.return_value = None
+    _override_survey_dependencies(mock_repo, mock_persona_repo=mock_persona_repo)
+
+    response = client.post(
+        "/api/v1/surveys/",
+        json=_survey_payload(
+            prompt=None,
+            persona_skill_key="missing_persona",
+            output_profile="school_report",
+        ),
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Unknown personaSkillKey: missing_persona"
+    app.dependency_overrides = {}
+
+
+def test_create_survey_rejects_mismatched_persona_output_profile():
+    mock_repo = MagicMock()
+    mock_persona_repo = MagicMock()
+    mock_persona_repo.get_by_key.return_value = {
+        "personaSkillKey": "school_report",
+        "outputProfile": "school_report",
+    }
+    _override_survey_dependencies(mock_repo, mock_persona_repo=mock_persona_repo)
+
+    response = client.post(
+        "/api/v1/surveys/",
+        json=_survey_payload(
+            prompt=None,
+            persona_skill_key="school_report",
+            output_profile="clinical_diagnostic_report",
+        ),
+    )
+
+    assert response.status_code == 422
+    assert (
+        response.json()["detail"]
+        == "outputProfile does not match personaSkillKey: school_report"
+    )
     app.dependency_overrides = {}
 
 

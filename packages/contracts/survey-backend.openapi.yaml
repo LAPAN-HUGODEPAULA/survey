@@ -1191,6 +1191,12 @@ components:
           allOf:
             - $ref: '#/components/schemas/SurveyPromptReference'
           nullable: true
+        personaSkillKey:
+          type: string
+          nullable: true
+        outputProfile:
+          type: string
+          nullable: true
     SurveyPromptUpsert:
       type: object
       required:

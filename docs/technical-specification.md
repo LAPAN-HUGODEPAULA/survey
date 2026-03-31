@@ -41,7 +41,7 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 - `survey-frontend`: screener-focused survey UI.
 - `survey-patient`: patient-facing response flow (build args allow screener identity defaults).
 - `clinical-narrative`: A conversational platform for clinical documentation. It supports session management, voice input with transcription, AI-driven clinical assistance, and document generation.
-- `survey-builder`: An application for administrators and researchers to create and manage surveys. It provides a user-friendly interface for editing survey structure, reusable questionnaire prompts, and persona skills used by the Clinical Writer prompt stack.
+- `survey-builder`: An application for administrators and researchers to create and manage surveys. It provides a user-friendly interface for editing survey structure, reusable questionnaire prompts, persona skills, and survey-level default persona/output-profile settings used by the Clinical Writer prompt stack.
 - All apps use the shared design system. Generated Dart SDKs are available from the OpenAPI contract, while `survey-builder` also uses lightweight repository wrappers for some admin catalog flows.
 
 ### Shared Packages (`packages/`)
@@ -59,7 +59,7 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 
 - **SurveyPrompt**: questionnaire prompt definition stored canonically in the `QuestionnairePrompts` collection and exposed through the `/survey_prompts` API.
 - **PersonaSkill**: output-profile persona definition stored in the `PersonaSkills` collection and exposed through the `/persona_skills` API.
-- **Survey**: definition of questions and metadata, stored in the `surveys` collection with an embedded `prompt` reference (`promptKey`, `name`).
+- **Survey**: definition of questions and metadata, stored in the `surveys` collection with an embedded `prompt` reference (`promptKey`, `name`) plus nullable default `personaSkillKey` and `outputProfile` fields.
 - **SurveyResponse**: captured answers plus patient info, stored in `survey_responses`; survey-derived responses may also carry optional `personaSkillKey` and `outputProfile` so prompt logic and persona are propagated independently.
 - **PatientResponse**: patient-facing captured answers plus patient info, stored in `patient_responses`.
 - **Agent response fields**: `agentResponse`, `agentResponseStatus`, and `agentResponseUpdatedAt` are maintained by backend/worker for enrichment flow; `agentResponse` itself carries `ok`, `input_type`, `prompt_version`, `questionnaire_prompt_version`, `persona_skill_version`, `model_version`, `report`, `warnings`, `classification`, `medicalRecord`, and `errorMessage`.

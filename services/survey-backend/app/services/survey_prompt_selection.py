@@ -1,5 +1,6 @@
 """Helpers for resolving survey-associated prompt and persona selections."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from app.domain.models.survey_prompt_model import SurveyPromptReference
@@ -27,6 +28,16 @@ class SurveyPromptSelection:
     prompt_key: str
     persona_skill_key: str | None
     output_profile: str | None
+
+
+def _coerce_optional_string(value: object | None) -> str | None:
+    """Normalize an optional string-like value."""
+    if value is None:
+        return None
+    normalized = str(value).strip()
+    if not normalized:
+        return None
+    return normalized
 
 
 def list_prompt_references(survey: dict | None) -> list[SurveyPromptReference]:
@@ -62,6 +73,46 @@ def resolve_prompt_key(survey: dict | None, requested_prompt_key: str | None) ->
     return LEGACY_SURVEY_PROMPT_KEY
 
 
+def hydrate_survey_persona_defaults(
+    survey: dict | None,
+    *,
+    requested_persona_skill_key: str | None = None,
+    requested_output_profile: str | None = None,
+    get_persona_by_key: Callable[[str], dict | None] | None = None,
+    get_persona_by_output_profile: Callable[[str], dict | None] | None = None,
+) -> dict | None:
+    """Hydrate survey-level persona defaults before precedence resolution."""
+    if not survey:
+        return survey
+    if requested_persona_skill_key or requested_output_profile:
+        return survey
+
+    hydrated = dict(survey)
+    survey_persona_skill_key = _coerce_optional_string(hydrated.get("personaSkillKey"))
+    survey_output_profile = _coerce_optional_string(hydrated.get("outputProfile"))
+
+    if survey_persona_skill_key:
+        persona = get_persona_by_key(survey_persona_skill_key) if get_persona_by_key else None
+        if persona is None:
+            raise ValueError(
+                "Survey default personaSkillKey references an unknown persona skill: "
+                f"{survey_persona_skill_key}"
+            )
+        hydrated["personaSkillKey"] = survey_persona_skill_key
+        hydrated["outputProfile"] = survey_output_profile or _coerce_optional_string(
+            persona.get("outputProfile")
+        )
+        return hydrated
+
+    if survey_output_profile and get_persona_by_output_profile:
+        persona = get_persona_by_output_profile(survey_output_profile)
+        if persona:
+            hydrated["personaSkillKey"] = _coerce_optional_string(persona.get("personaSkillKey"))
+            hydrated["outputProfile"] = survey_output_profile
+
+    return hydrated
+
+
 def resolve_prompt_selection(
     survey: dict | None,
     requested_prompt_key: str | None,
@@ -72,8 +123,18 @@ def resolve_prompt_selection(
 ) -> SurveyPromptSelection:
     """Resolve questionnaire prompt and persona skill independently."""
     prompt_key = resolve_prompt_key(survey, requested_prompt_key)
-    output_profile = requested_output_profile or DEFAULT_OUTPUT_PROFILE_BY_INPUT_TYPE.get(input_type)
-    persona_skill_key = requested_persona_skill_key
+    survey_output_profile = _coerce_optional_string(
+        survey.get("outputProfile") if survey else None
+    )
+    survey_persona_skill_key = _coerce_optional_string(
+        survey.get("personaSkillKey") if survey else None
+    )
+    output_profile = (
+        requested_output_profile
+        or survey_output_profile
+        or DEFAULT_OUTPUT_PROFILE_BY_INPUT_TYPE.get(input_type)
+    )
+    persona_skill_key = requested_persona_skill_key or survey_persona_skill_key
     if not persona_skill_key and output_profile:
         persona_skill_key = DEFAULT_PERSONA_BY_OUTPUT_PROFILE.get(output_profile, output_profile)
     return SurveyPromptSelection(

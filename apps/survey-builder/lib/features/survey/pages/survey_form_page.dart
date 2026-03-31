@@ -1,7 +1,9 @@
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:survey_builder/core/models/persona_skill_draft.dart';
 import 'package:survey_builder/core/models/survey_draft.dart';
 import 'package:survey_builder/core/models/survey_prompt_draft.dart';
+import 'package:survey_builder/core/repositories/persona_skill_repository.dart';
 import 'package:survey_builder/core/repositories/survey_prompt_repository.dart';
 import 'package:survey_builder/core/repositories/survey_repository.dart';
 import 'package:survey_builder/features/survey/widgets/html_rich_text_editor.dart';
@@ -12,11 +14,13 @@ class SurveyFormPage extends StatefulWidget {
     this.initialDraft,
     this.repository,
     this.promptRepository,
+    this.personaSkillRepository,
   });
 
   final SurveyDraft? initialDraft;
   final SurveyRepository? repository;
   final SurveyPromptRepository? promptRepository;
+  final PersonaSkillRepository? personaSkillRepository;
 
   @override
   State<SurveyFormPage> createState() => _SurveyFormPageState();
@@ -26,12 +30,15 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
   final _formKey = GlobalKey<FormState>();
   late final SurveyRepository _repo;
   late final SurveyPromptRepository _promptRepo;
+  late final PersonaSkillRepository _personaSkillRepo;
 
   late SurveyDraft _draft;
   bool _saving = false;
   bool _isDirty = false;
   bool _loadingPrompts = true;
+  bool _loadingPersonaSkills = true;
   String? _promptLoadError;
+  String? _personaSkillLoadError;
 
   late TextEditingController _displayNameController;
   late TextEditingController _nameController;
@@ -48,13 +55,18 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
   List<String> _instructionAnswers = [];
   List<QuestionDraft> _questions = [];
   List<SurveyPromptDraft> _availablePrompts = [];
+  List<PersonaSkillDraft> _availablePersonaSkills = [];
   String? _selectedPromptKey;
+  String? _selectedPersonaSkillKey;
+  String? _selectedOutputProfile;
 
   @override
   void initState() {
     super.initState();
     _repo = widget.repository ?? SurveyRepository();
     _promptRepo = widget.promptRepository ?? SurveyPromptRepository();
+    _personaSkillRepo =
+        widget.personaSkillRepository ?? PersonaSkillRepository();
     _draft = widget.initialDraft?.copy() ?? _emptyDraft();
     _questions = _draft.questions.map((q) => q.copy()).toList();
     _instructionAnswers = List<String>.from(_draft.instructions.answers);
@@ -74,6 +86,8 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     _instructionsPreambleHtml = _normalizeHtml(_draft.instructions.preamble);
     _finalNotesHtml = _normalizeHtml(_draft.finalNotes);
     _selectedPromptKey = _draft.prompt?.promptKey;
+    _selectedPersonaSkillKey = _draft.personaSkillKey;
+    _selectedOutputProfile = _draft.outputProfile;
 
     for (final controller in [
       _displayNameController,
@@ -84,6 +98,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
       controller.addListener(_markDirty);
     }
     _loadPrompts();
+    _loadPersonaSkills();
   }
 
   @override
@@ -94,6 +109,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     _instructionsQuestionController.dispose();
     _repo.dispose();
     _promptRepo.dispose();
+    _personaSkillRepo.dispose();
     super.dispose();
   }
 
@@ -144,6 +160,50 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     }
   }
 
+  Future<void> _loadPersonaSkills() async {
+    setState(() {
+      _loadingPersonaSkills = true;
+      _personaSkillLoadError = null;
+    });
+    try {
+      final skills = await _personaSkillRepo.listPersonaSkills();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _availablePersonaSkills = skills;
+        final selectedPersona = _findPersonaByKey(
+          _selectedPersonaSkillKey,
+          skills,
+        );
+        if (selectedPersona != null) {
+          _selectedPersonaSkillKey = selectedPersona.personaSkillKey;
+          _selectedOutputProfile = selectedPersona.outputProfile;
+          return;
+        }
+        final selectedByOutputProfile = _findPersonaByOutputProfile(
+          _selectedOutputProfile,
+          skills,
+        );
+        if (selectedByOutputProfile != null) {
+          _selectedPersonaSkillKey = selectedByOutputProfile.personaSkillKey;
+          _selectedOutputProfile = selectedByOutputProfile.outputProfile;
+        }
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _personaSkillLoadError = error.toString();
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _loadingPersonaSkills = false);
+      }
+    }
+  }
+
   void _markDirty() {
     if (!_isDirty) {
       setState(() => _isDirty = true);
@@ -154,6 +214,93 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     if (_questions.isEmpty) return 1;
     final maxId = _questions.map((q) => q.id).reduce((a, b) => a > b ? a : b);
     return maxId + 1;
+  }
+
+  PersonaSkillDraft? _findPersonaByKey(
+    String? key, [
+    List<PersonaSkillDraft>? source,
+  ]) {
+    final normalizedKey = key?.trim();
+    if (normalizedKey == null || normalizedKey.isEmpty) {
+      return null;
+    }
+    final catalog = source ?? _availablePersonaSkills;
+    for (final persona in catalog) {
+      if (persona.personaSkillKey == normalizedKey) {
+        return persona;
+      }
+    }
+    return null;
+  }
+
+  PersonaSkillDraft? _findPersonaByOutputProfile(
+    String? outputProfile, [
+    List<PersonaSkillDraft>? source,
+  ]) {
+    final normalizedOutputProfile = outputProfile?.trim();
+    if (normalizedOutputProfile == null || normalizedOutputProfile.isEmpty) {
+      return null;
+    }
+    final catalog = source ?? _availablePersonaSkills;
+    for (final persona in catalog) {
+      if (persona.outputProfile == normalizedOutputProfile) {
+        return persona;
+      }
+    }
+    return null;
+  }
+
+  List<String> _availableOutputProfiles() {
+    final profiles = <String>[];
+    final seenProfiles = <String>{};
+    for (final persona in _availablePersonaSkills) {
+      if (seenProfiles.add(persona.outputProfile)) {
+        profiles.add(persona.outputProfile);
+      }
+    }
+    return profiles;
+  }
+
+  bool get _hasStalePersonaSelection {
+    if (_selectedPersonaSkillKey == null || _selectedPersonaSkillKey!.isEmpty) {
+      return false;
+    }
+    return _findPersonaByKey(_selectedPersonaSkillKey) == null;
+  }
+
+  bool get _hasStaleOutputProfileSelection {
+    if (_selectedOutputProfile == null || _selectedOutputProfile!.isEmpty) {
+      return false;
+    }
+    return _findPersonaByOutputProfile(_selectedOutputProfile) == null;
+  }
+
+  void _syncPersonaSelection(String? personaSkillKey) {
+    final normalizedKey = personaSkillKey?.trim();
+    if (normalizedKey == null || normalizedKey.isEmpty) {
+      _selectedPersonaSkillKey = null;
+      _selectedOutputProfile = null;
+      _markDirty();
+      return;
+    }
+    final persona = _findPersonaByKey(normalizedKey);
+    _selectedPersonaSkillKey = normalizedKey;
+    _selectedOutputProfile = persona?.outputProfile;
+    _markDirty();
+  }
+
+  void _syncOutputProfileSelection(String? outputProfile) {
+    final normalizedOutputProfile = outputProfile?.trim();
+    if (normalizedOutputProfile == null || normalizedOutputProfile.isEmpty) {
+      _selectedPersonaSkillKey = null;
+      _selectedOutputProfile = null;
+      _markDirty();
+      return;
+    }
+    final persona = _findPersonaByOutputProfile(normalizedOutputProfile);
+    _selectedPersonaSkillKey = persona?.personaSkillKey;
+    _selectedOutputProfile = normalizedOutputProfile;
+    _markDirty();
   }
 
   Future<void> _save() async {
@@ -189,6 +336,21 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     for (final question in _questions) {
       if (question.answers.where((a) => a.trim().isNotEmpty).isEmpty) {
         _showError('Cada pergunta deve conter pelo menos uma resposta.');
+        return;
+      }
+    }
+
+    if (_personaSkillLoadError == null) {
+      if (_hasStalePersonaSelection) {
+        _showError(
+          'A persona padrão salva não existe mais. Escolha outra persona ou limpe a configuração.',
+        );
+        return;
+      }
+      if (_hasStaleOutputProfileSelection) {
+        _showError(
+          'O perfil de saída padrão salvo não existe mais. Escolha outro perfil ou limpe a configuração.',
+        );
         return;
       }
     }
@@ -232,6 +394,18 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
               promptKey: selectedPrompt.first.promptKey,
               name: selectedPrompt.first.name,
             );
+      if (_personaSkillLoadError == null) {
+        final selectedPersona =
+            _findPersonaByKey(_selectedPersonaSkillKey) ??
+            _findPersonaByOutputProfile(_selectedOutputProfile);
+        _draft
+          ..personaSkillKey = selectedPersona?.personaSkillKey
+          ..outputProfile = selectedPersona?.outputProfile;
+      } else {
+        _draft
+          ..personaSkillKey = _selectedPersonaSkillKey
+          ..outputProfile = _selectedOutputProfile;
+      }
 
       if (_draft.id == null || _draft.id!.isEmpty) {
         await _repo.createSurvey(_draft);
@@ -513,7 +687,9 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Text(
@@ -558,6 +734,125 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                     child: Text(
                       'Nenhum prompt associado. O questionário poderá continuar usando o comportamento legado.',
                       style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+              ],
+              const SizedBox(height: 24),
+              Text(
+                'Configuração de persona',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              if (_loadingPersonaSkills)
+                const LinearProgressIndicator()
+              else if (_personaSkillLoadError != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Não foi possível carregar as personas: $_personaSkillLoadError',
+                  ),
+                )
+              else ...[
+                if (_availablePersonaSkills.isEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Nenhuma persona disponível. O questionário continuará usando os padrões legados até que personas sejam cadastradas.',
+                    ),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: DropdownButtonFormField<String?>(
+                    key: const ValueKey('survey-persona-selector'),
+                    initialValue: _selectedPersonaSkillKey,
+                    decoration: const InputDecoration(
+                      labelText: 'Persona padrão (opcional)',
+                      helperText:
+                          'Selecione a persona padrão para relatórios sem sobrescritas no runtime.',
+                    ),
+                    items: [
+                      const DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text('Nenhuma persona'),
+                      ),
+                      if (_hasStalePersonaSelection)
+                        DropdownMenuItem<String?>(
+                          value: _selectedPersonaSkillKey,
+                          child: Text(
+                            'Persona removida (${_selectedPersonaSkillKey!})',
+                          ),
+                        ),
+                      ..._availablePersonaSkills.map(
+                        (persona) => DropdownMenuItem<String?>(
+                          value: persona.personaSkillKey,
+                          child: Text(persona.name),
+                        ),
+                      ),
+                    ],
+                    onChanged: _saving
+                        ? null
+                        : (value) {
+                            setState(() => _syncPersonaSelection(value));
+                          },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: DropdownButtonFormField<String?>(
+                    key: const ValueKey('survey-output-profile-selector'),
+                    initialValue: _selectedOutputProfile,
+                    decoration: const InputDecoration(
+                      labelText: 'Perfil de saída padrão (opcional)',
+                      helperText:
+                          'Esse perfil acompanha a persona padrão e é usado antes do fallback legado.',
+                    ),
+                    items: [
+                      const DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text('Nenhum perfil'),
+                      ),
+                      if (_hasStaleOutputProfileSelection)
+                        DropdownMenuItem<String?>(
+                          value: _selectedOutputProfile,
+                          child: Text(
+                            'Perfil removido (${_selectedOutputProfile!})',
+                          ),
+                        ),
+                      ..._availableOutputProfiles().map(
+                        (outputProfile) => DropdownMenuItem<String?>(
+                          value: outputProfile,
+                          child: Text(outputProfile),
+                        ),
+                      ),
+                    ],
+                    onChanged: _saving
+                        ? null
+                        : (value) {
+                            setState(() => _syncOutputProfileSelection(value));
+                          },
+                  ),
+                ),
+                if (_hasStalePersonaSelection ||
+                    _hasStaleOutputProfileSelection)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(
+                      'A configuração salva referencia uma persona removida. Escolha uma nova persona ou limpe a configuração antes de salvar.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
                   ),
               ],

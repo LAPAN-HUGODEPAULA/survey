@@ -19,6 +19,8 @@ Name | Type | Description | Notes
 **questions** | [**BuiltList&lt;Question&gt;**](Question.md) |  | 
 **finalNotes** | **String** |  | 
 **prompt** | [**SurveyPromptReference**](SurveyPromptReference.md) |  | [optional] 
+**personaSkillKey** | **String** |  | [optional] 
+**outputProfile** | **String** |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

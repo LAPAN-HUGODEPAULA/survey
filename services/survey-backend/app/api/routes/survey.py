@@ -12,7 +12,12 @@ from pydantic import ValidationError
 from app.config.logging_config import logger
 from app.domain.models.survey_model import Survey
 from app.domain.models.survey_prompt_model import SurveyPromptReference
-from app.persistence.deps import get_survey_prompt_repo, get_survey_repo
+from app.persistence.deps import (
+    get_persona_skill_repo,
+    get_survey_prompt_repo,
+    get_survey_repo,
+)
+from app.persistence.repositories.persona_skill_repo import PersonaSkillRepository
 from app.persistence.repositories.survey_prompt_repo import SurveyPromptRepository
 from app.persistence.repositories.survey_repo import SurveyRepository
 
@@ -39,16 +44,59 @@ def _resolve_prompt_reference(
         name=prompt["name"],
     )
 
+
+def _resolve_persona_defaults(
+    survey: Survey,
+    persona_repo: PersonaSkillRepository,
+) -> tuple[str | None, str | None]:
+    """Validate and canonicalize survey-level persona defaults."""
+    if survey.persona_skill_key is None and survey.output_profile is None:
+        return None, None
+
+    if survey.persona_skill_key is not None:
+        persona = persona_repo.get_by_key(survey.persona_skill_key)
+        if not persona:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=f"Unknown personaSkillKey: {survey.persona_skill_key}",
+            )
+        persona_output_profile = persona["outputProfile"]
+        if (
+            survey.output_profile is not None
+            and survey.output_profile != persona_output_profile
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=(
+                    "outputProfile does not match personaSkillKey: "
+                    f"{survey.persona_skill_key}"
+                ),
+            )
+        return survey.persona_skill_key, persona_output_profile
+
+    persona = persona_repo.get_by_output_profile(survey.output_profile)
+    if not persona:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=f"Unknown outputProfile: {survey.output_profile}",
+        )
+    return persona["personaSkillKey"], persona["outputProfile"]
+
 @router.post("/surveys/", response_model=Survey, status_code=201)
 async def create_survey(
     survey: Survey,
     repo: SurveyRepository = Depends(get_survey_repo),
     prompt_repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
+    persona_repo: PersonaSkillRepository = Depends(get_persona_skill_repo),
 ):
     """Create a new survey and store it in the database."""
     logger.info("Creating new survey: %s (ID: %s)", survey.survey_displayname, survey.id)
     try:
         survey.prompt = _resolve_prompt_reference(survey, prompt_repo)
+        survey.persona_skill_key, survey.output_profile = _resolve_persona_defaults(
+            survey,
+            persona_repo,
+        )
         survey_dict = survey.model_dump(by_alias=True)
         new_id = survey.id or str(ObjectId())
         survey_dict["_id"] = new_id
@@ -137,11 +185,16 @@ async def update_survey(
     survey: Survey,
     repo: SurveyRepository = Depends(get_survey_repo),
     prompt_repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
+    persona_repo: PersonaSkillRepository = Depends(get_persona_skill_repo),
 ):
     """Update an existing survey."""
     logger.info("Updating survey with ID: %s", survey_id)
     try:
         survey.prompt = _resolve_prompt_reference(survey, prompt_repo)
+        survey.persona_skill_key, survey.output_profile = _resolve_persona_defaults(
+            survey,
+            persona_repo,
+        )
         updated_survey = repo.update(survey_id, survey.model_dump(by_alias=True))
 
         if updated_survey:

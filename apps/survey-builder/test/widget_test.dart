@@ -4,13 +4,19 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:survey_backend_api/survey_backend_api.dart' as api;
+import 'package:survey_builder/core/models/persona_skill_draft.dart';
 import 'package:survey_builder/core/models/survey_draft.dart';
 import 'package:survey_builder/core/models/survey_prompt_draft.dart';
+import 'package:survey_builder/core/repositories/persona_skill_repository.dart';
 import 'package:survey_builder/core/repositories/survey_prompt_repository.dart';
 import 'package:survey_builder/core/repositories/survey_repository.dart';
 import 'package:survey_builder/features/survey/pages/survey_form_page.dart';
 
-SurveyDraft _draft({SurveyPromptReferenceDraft? prompt}) {
+SurveyDraft _draft({
+  SurveyPromptReferenceDraft? prompt,
+  String? personaSkillKey,
+  String? outputProfile,
+}) {
   final now = DateTime(2024, 1, 1);
   return SurveyDraft(
     surveyDisplayName: 'Display',
@@ -29,6 +35,8 @@ SurveyDraft _draft({SurveyPromptReferenceDraft? prompt}) {
     ],
     finalNotes: '<p>Notes</p>',
     prompt: prompt,
+    personaSkillKey: personaSkillKey,
+    outputProfile: outputProfile,
   );
 }
 
@@ -72,10 +80,23 @@ class _FakeSurveyPromptRepository extends SurveyPromptRepository {
   void dispose() {}
 }
 
+class _FakePersonaSkillRepository extends PersonaSkillRepository {
+  _FakePersonaSkillRepository(this.skills) : super(client: Dio());
+
+  final List<PersonaSkillDraft> skills;
+
+  @override
+  Future<List<PersonaSkillDraft>> listPersonaSkills() async => skills;
+
+  @override
+  void dispose() {}
+}
+
 Widget _wrap({
   required SurveyDraft draft,
   required _FakeSurveyRepository repository,
   required _FakeSurveyPromptRepository promptRepository,
+  required _FakePersonaSkillRepository personaSkillRepository,
 }) {
   return MaterialApp(
     theme: AppTheme.light(),
@@ -83,6 +104,7 @@ Widget _wrap({
       initialDraft: draft,
       repository: repository,
       promptRepository: promptRepository,
+      personaSkillRepository: personaSkillRepository,
     ),
   );
 }
@@ -100,6 +122,20 @@ void main() {
       promptText: 'Texto 2',
     ),
   ];
+  final personaSkills = [
+    PersonaSkillDraft(
+      personaSkillKey: 'school_report',
+      name: 'School Report Persona',
+      outputProfile: 'school_report',
+      instructions: 'Write for educators.',
+    ),
+    PersonaSkillDraft(
+      personaSkillKey: 'clinical_diagnostic_report',
+      name: 'Clinical Report Persona',
+      outputProfile: 'clinical_diagnostic_report',
+      instructions: 'Write clinically.',
+    ),
+  ];
 
   testWidgets('Survey form shows required labels and single prompt selector', (
     tester,
@@ -109,6 +145,7 @@ void main() {
         draft: _draft(),
         repository: _FakeSurveyRepository(),
         promptRepository: _FakeSurveyPromptRepository(prompts),
+        personaSkillRepository: _FakePersonaSkillRepository(personaSkills),
       ),
     );
     await tester.pumpAndSettle();
@@ -120,6 +157,8 @@ void main() {
     expect(find.text('ID do criador *'), findsOneWidget);
     expect(find.text('Notas finais *'), findsWidgets);
     expect(find.text('Prompt de IA (opcional)'), findsOneWidget);
+    expect(find.text('Persona padrão (opcional)'), findsOneWidget);
+    expect(find.text('Perfil de saída padrão (opcional)'), findsOneWidget);
     expect(find.text('Adicionar pergunta'), findsOneWidget);
     expect(find.text(dsSharedStatusBarText), findsOneWidget);
   });
@@ -130,6 +169,7 @@ void main() {
         draft: _draft(),
         repository: _FakeSurveyRepository(),
         promptRepository: _FakeSurveyPromptRepository(prompts),
+        personaSkillRepository: _FakePersonaSkillRepository(personaSkills),
       ),
     );
     await tester.pumpAndSettle();
@@ -143,7 +183,9 @@ void main() {
     expect(find.text(dsSharedStatusBarText), findsOneWidget);
   });
 
-  testWidgets('Existing prompt is preloaded in the survey form', (tester) async {
+  testWidgets('Existing prompt is preloaded in the survey form', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _wrap(
         draft: _draft(
@@ -151,17 +193,24 @@ void main() {
             promptKey: 'prompt-1',
             name: 'Prompt One',
           ),
+          personaSkillKey: 'school_report',
+          outputProfile: 'school_report',
         ),
         repository: _FakeSurveyRepository(),
         promptRepository: _FakeSurveyPromptRepository(prompts),
+        personaSkillRepository: _FakePersonaSkillRepository(personaSkills),
       ),
     );
     await tester.pumpAndSettle();
 
     expect(find.text('Prompt One'), findsOneWidget);
+    expect(find.text('School Report Persona'), findsOneWidget);
+    expect(find.text('school_report'), findsOneWidget);
   });
 
-  testWidgets('Clearing an existing prompt saves null', (tester) async {
+  testWidgets('Clearing an existing prompt and persona defaults saves null', (
+    tester,
+  ) async {
     final repository = _FakeSurveyRepository();
 
     await tester.pumpWidget(
@@ -171,9 +220,12 @@ void main() {
             promptKey: 'prompt-1',
             name: 'Prompt One',
           ),
+          personaSkillKey: 'school_report',
+          outputProfile: 'school_report',
         ),
         repository: repository,
         promptRepository: _FakeSurveyPromptRepository(prompts),
+        personaSkillRepository: _FakePersonaSkillRepository(personaSkills),
       ),
     );
     await tester.pumpAndSettle();
@@ -184,6 +236,14 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Nenhum prompt').last, warnIfMissed: false);
     await tester.pumpAndSettle();
+    final personaSelector = find.byKey(
+      const ValueKey('survey-persona-selector'),
+    );
+    await tester.ensureVisible(personaSelector);
+    await tester.tap(personaSelector);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Nenhuma persona').last, warnIfMissed: false);
+    await tester.pumpAndSettle();
     final saveButton = find.text('Salvar');
     await tester.ensureVisible(saveButton);
     await tester.tap(saveButton);
@@ -191,5 +251,50 @@ void main() {
 
     expect(repository.lastSavedDraft, isNotNull);
     expect(repository.lastSavedDraft!.prompt, isNull);
+    expect(repository.lastSavedDraft!.personaSkillKey, isNull);
+    expect(repository.lastSavedDraft!.outputProfile, isNull);
+  });
+
+  testWidgets('Selecting an output profile saves the persona pair', (
+    tester,
+  ) async {
+    final repository = _FakeSurveyRepository();
+
+    await tester.pumpWidget(
+      _wrap(
+        draft: _draft(),
+        repository: repository,
+        promptRepository: _FakeSurveyPromptRepository(prompts),
+        personaSkillRepository: _FakePersonaSkillRepository(personaSkills),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final outputSelector = find.byKey(
+      const ValueKey('survey-output-profile-selector'),
+    );
+    await tester.ensureVisible(outputSelector);
+    await tester.tap(outputSelector);
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.text('clinical_diagnostic_report').last,
+      warnIfMissed: false,
+    );
+    await tester.pumpAndSettle();
+
+    final saveButton = find.text('Salvar');
+    await tester.ensureVisible(saveButton);
+    await tester.tap(saveButton);
+    await tester.pumpAndSettle();
+
+    expect(repository.lastSavedDraft, isNotNull);
+    expect(
+      repository.lastSavedDraft!.personaSkillKey,
+      'clinical_diagnostic_report',
+    );
+    expect(
+      repository.lastSavedDraft!.outputProfile,
+      'clinical_diagnostic_report',
+    );
   });
 }

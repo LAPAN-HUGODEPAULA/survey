@@ -26,6 +26,8 @@ part 'survey.g.dart';
 /// * [questions] 
 /// * [finalNotes] 
 /// * [prompt] 
+/// * [personaSkillKey] 
+/// * [outputProfile] 
 @BuiltValue()
 abstract class Survey implements Built<Survey, SurveyBuilder> {
   @BuiltValueField(wireName: r'_id')
@@ -60,6 +62,12 @@ abstract class Survey implements Built<Survey, SurveyBuilder> {
 
   @BuiltValueField(wireName: r'prompt')
   SurveyPromptReference? get prompt;
+
+  @BuiltValueField(wireName: r'personaSkillKey')
+  String? get personaSkillKey;
+
+  @BuiltValueField(wireName: r'outputProfile')
+  String? get outputProfile;
 
   Survey._();
 
@@ -141,6 +149,20 @@ class _$SurveySerializer implements PrimitiveSerializer<Survey> {
       yield serializers.serialize(
         object.prompt,
         specifiedType: const FullType.nullable(SurveyPromptReference),
+      );
+    }
+    if (object.personaSkillKey != null) {
+      yield r'personaSkillKey';
+      yield serializers.serialize(
+        object.personaSkillKey,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.outputProfile != null) {
+      yield r'outputProfile';
+      yield serializers.serialize(
+        object.outputProfile,
+        specifiedType: const FullType.nullable(String),
       );
     }
   }
@@ -243,6 +265,22 @@ class _$SurveySerializer implements PrimitiveSerializer<Survey> {
           ) as SurveyPromptReference?;
           if (valueDes == null) continue;
           result.prompt.replace(valueDes);
+          break;
+        case r'personaSkillKey':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.personaSkillKey = valueDes;
+          break;
+        case r'outputProfile':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.outputProfile = valueDes;
           break;
         default:
           unhandled.add(key);

@@ -29,6 +29,10 @@ class _$Survey extends Survey {
   final String finalNotes;
   @override
   final SurveyPromptReference? prompt;
+  @override
+  final String? personaSkillKey;
+  @override
+  final String? outputProfile;
 
   factory _$Survey([void Function(SurveyBuilder)? updates]) =>
       (SurveyBuilder()..update(updates))._build();
@@ -44,7 +48,9 @@ class _$Survey extends Survey {
       required this.instructions,
       required this.questions,
       required this.finalNotes,
-      this.prompt})
+      this.prompt,
+      this.personaSkillKey,
+      this.outputProfile})
       : super._();
   @override
   Survey rebuild(void Function(SurveyBuilder) updates) =>
@@ -67,7 +73,9 @@ class _$Survey extends Survey {
         instructions == other.instructions &&
         questions == other.questions &&
         finalNotes == other.finalNotes &&
-        prompt == other.prompt;
+        prompt == other.prompt &&
+        personaSkillKey == other.personaSkillKey &&
+        outputProfile == other.outputProfile;
   }
 
   @override
@@ -84,6 +92,8 @@ class _$Survey extends Survey {
     _$hash = $jc(_$hash, questions.hashCode);
     _$hash = $jc(_$hash, finalNotes.hashCode);
     _$hash = $jc(_$hash, prompt.hashCode);
+    _$hash = $jc(_$hash, personaSkillKey.hashCode);
+    _$hash = $jc(_$hash, outputProfile.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -101,7 +111,9 @@ class _$Survey extends Survey {
           ..add('instructions', instructions)
           ..add('questions', questions)
           ..add('finalNotes', finalNotes)
-          ..add('prompt', prompt))
+          ..add('prompt', prompt)
+          ..add('personaSkillKey', personaSkillKey)
+          ..add('outputProfile', outputProfile))
         .toString();
   }
 }
@@ -160,6 +172,16 @@ class SurveyBuilder implements Builder<Survey, SurveyBuilder> {
       _$this._prompt ??= SurveyPromptReferenceBuilder();
   set prompt(SurveyPromptReferenceBuilder? prompt) => _$this._prompt = prompt;
 
+  String? _personaSkillKey;
+  String? get personaSkillKey => _$this._personaSkillKey;
+  set personaSkillKey(String? personaSkillKey) =>
+      _$this._personaSkillKey = personaSkillKey;
+
+  String? _outputProfile;
+  String? get outputProfile => _$this._outputProfile;
+  set outputProfile(String? outputProfile) =>
+      _$this._outputProfile = outputProfile;
+
   SurveyBuilder() {
     Survey._defaults(this);
   }
@@ -178,6 +200,8 @@ class SurveyBuilder implements Builder<Survey, SurveyBuilder> {
       _questions = $v.questions.toBuilder();
       _finalNotes = $v.finalNotes;
       _prompt = $v.prompt?.toBuilder();
+      _personaSkillKey = $v.personaSkillKey;
+      _outputProfile = $v.outputProfile;
       _$v = null;
     }
     return this;
@@ -219,6 +243,8 @@ class SurveyBuilder implements Builder<Survey, SurveyBuilder> {
             finalNotes: BuiltValueNullFieldError.checkNotNull(
                 finalNotes, r'Survey', 'finalNotes'),
             prompt: _prompt?.build(),
+            personaSkillKey: personaSkillKey,
+            outputProfile: outputProfile,
           );
     } catch (_) {
       late String _$failedField;

@@ -13,6 +13,8 @@ class SurveyDraft {
     required this.questions,
     required this.finalNotes,
     this.prompt,
+    this.personaSkillKey,
+    this.outputProfile,
   });
 
   final String? id;
@@ -26,6 +28,8 @@ class SurveyDraft {
   List<QuestionDraft> questions;
   String finalNotes;
   SurveyPromptReferenceDraft? prompt;
+  String? personaSkillKey;
+  String? outputProfile;
 
   SurveyDraft copy() {
     return SurveyDraft(
@@ -40,6 +44,8 @@ class SurveyDraft {
       questions: questions.map((q) => q.copy()).toList(),
       finalNotes: finalNotes,
       prompt: prompt?.copy(),
+      personaSkillKey: personaSkillKey,
+      outputProfile: outputProfile,
     );
   }
 }
