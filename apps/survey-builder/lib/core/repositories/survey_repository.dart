@@ -115,6 +115,7 @@ class SurveyRepository {
             (q) => QuestionDraft(
               id: q.id,
               questionText: q.questionText,
+              label: q.label ?? '',
               answers: q.answers.toList(growable: true),
             ),
           )
@@ -166,6 +167,12 @@ class SurveyRepository {
                     .where((answer) => answer.isNotEmpty)
                     .toList(),
               );
+            final trimmedLabel = question.label.trim();
+            if (trimmedLabel.isNotEmpty) {
+              questionBuilder.label = trimmedLabel;
+            } else {
+              questionBuilder.label = null;
+            }
           });
         }).toList(),
       );
@@ -226,6 +233,7 @@ class SurveyRepository {
         QuestionDraft(
           id: id is int ? id : int.tryParse(id?.toString() ?? '') ?? (i + 1),
           questionText: _coerceString(question['questionText']),
+          label: _coerceString(question['label']),
           answers: _coerceStringList(question['answers']),
         ),
       );

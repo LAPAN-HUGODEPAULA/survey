@@ -19,10 +19,31 @@ from app.persistence.repositories.clinical_writer_run_log_repo import (
 )
 
 LANGGRAPH_URL = os.getenv("LANGGRAPH_URL")
-DEFAULT_LANGGRAPH_URL = "http://localhost:9566/process"
+DEFAULT_LANGGRAPH_URL = "http://clinical_writer_agent:8000/process"
+DEFAULT_LOCAL_LANGGRAPH_URL = "http://localhost:9566/process"
+DEFAULT_LOOPBACK_LANGGRAPH_URL = "http://127.0.0.1:9566/process"
 DEFAULT_LANGGRAPH_ANALYSIS_URL = "http://localhost:9566/analysis"
 DEFAULT_LANGGRAPH_TRANSCRIPTION_URL = "http://localhost:9566/transcriptions"
 LANGGRAPH_TOKEN = os.getenv("LANGGRAPH_API_TOKEN")
+
+
+def _candidate_process_endpoints() -> list[str]:
+    """Return process endpoints compatible with container and local development."""
+    configured_env_url = os.getenv("CLINICAL_WRITER_URL")
+    configured_endpoint = configured_env_url or LANGGRAPH_URL or settings.clinical_writer_url or DEFAULT_LANGGRAPH_URL
+    endpoints = [configured_endpoint]
+
+    # When the backend runs locally, the Docker service hostname is not resolvable.
+    if not configured_env_url and not LANGGRAPH_URL and configured_endpoint == DEFAULT_LANGGRAPH_URL:
+        endpoints.extend([DEFAULT_LOCAL_LANGGRAPH_URL, DEFAULT_LOOPBACK_LANGGRAPH_URL])
+    elif configured_endpoint == DEFAULT_LOCAL_LANGGRAPH_URL:
+        endpoints.append(DEFAULT_LOOPBACK_LANGGRAPH_URL)
+
+    deduplicated: list[str] = []
+    for endpoint in endpoints:
+        if endpoint and endpoint not in deduplicated:
+            deduplicated.append(endpoint)
+    return deduplicated
 
 
 def _report_to_text(report: Dict[str, Any]) -> str:
@@ -151,46 +172,62 @@ async def send_to_langgraph_agent(
     }
 
     try:
-        endpoint = settings.clinical_writer_url or LANGGRAPH_URL or DEFAULT_LANGGRAPH_URL
-        logger.info(
-            "Sending to clinical writer request_id=%s input_type=%s prompt_key=%s endpoint=%s",
-            request_id,
-            resolved_input_type,
-            resolved_prompt_key,
-            endpoint,
-        )
+        endpoints = _candidate_process_endpoints()
+        last_request_error: httpx.RequestError | None = None
+
         async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.post(
-                endpoint,
-                json=request_body,
-                headers=headers,
-            )
-            response.raise_for_status()
-            raw_result: Dict[str, Any] = response.json()
-            agent_result: Dict[str, Any] = _normalize_agent_response(raw_result)
-            duration = time.monotonic() - start_time
-            logger.info(
-                "Clinical writer responded request_id=%s status=%s duration=%.3fs",
-                request_id,
-                response.status_code,
-                duration,
-            )
-            _persist_run_log(
-                request_id=request_id,
-                timestamp=timestamp,
-                input_type=resolved_input_type,
-                prompt_key=resolved_prompt_key,
-                prompt_version=raw_result.get("prompt_version"),
-                questionnaire_prompt_version=raw_result.get("questionnaire_prompt_version"),
-                persona_skill_version=raw_result.get("persona_skill_version"),
-                persona_skill_key=persona_skill_key,
-                output_profile=output_profile,
-                model_version=raw_result.get("model_version"),
-                source_app=source_app,
-                patient_ref=resolved_patient_ref,
-                status="ok" if raw_result.get("ok") else "error",
-            )
-            return agent_result
+            for endpoint in endpoints:
+                try:
+                    logger.info(
+                        "Sending to clinical writer request_id=%s input_type=%s prompt_key=%s endpoint=%s",
+                        request_id,
+                        resolved_input_type,
+                        resolved_prompt_key,
+                        endpoint,
+                    )
+                    response = await client.post(
+                        endpoint,
+                        json=request_body,
+                        headers=headers,
+                    )
+                    response.raise_for_status()
+                    raw_result: Dict[str, Any] = response.json()
+                    agent_result: Dict[str, Any] = _normalize_agent_response(raw_result)
+                    duration = time.monotonic() - start_time
+                    logger.info(
+                        "Clinical writer responded request_id=%s status=%s duration=%.3fs endpoint=%s",
+                        request_id,
+                        response.status_code,
+                        duration,
+                        endpoint,
+                    )
+                    _persist_run_log(
+                        request_id=request_id,
+                        timestamp=timestamp,
+                        input_type=resolved_input_type,
+                        prompt_key=resolved_prompt_key,
+                        prompt_version=raw_result.get("prompt_version"),
+                        questionnaire_prompt_version=raw_result.get("questionnaire_prompt_version"),
+                        persona_skill_version=raw_result.get("persona_skill_version"),
+                        persona_skill_key=persona_skill_key,
+                        output_profile=output_profile,
+                        model_version=raw_result.get("model_version"),
+                        source_app=source_app,
+                        patient_ref=resolved_patient_ref,
+                        status="ok" if raw_result.get("ok") else "error",
+                    )
+                    return agent_result
+                except httpx.RequestError as exc:
+                    last_request_error = exc
+                    logger.warning(
+                        "Failed to reach clinical writer request_id=%s endpoint=%s error=%s",
+                        request_id,
+                        endpoint,
+                        exc,
+                    )
+
+        if last_request_error is not None:
+            raise last_request_error
     except httpx.HTTPStatusError as exc:
         duration = time.monotonic() - start_time
         logger.error(

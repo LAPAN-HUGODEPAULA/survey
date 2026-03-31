@@ -162,6 +162,20 @@ class _SurveyListPageState extends State<SurveyListPage> {
         .trim();
   }
 
+  String _questionLabelPreview(SurveyDraft survey) {
+    if (survey.questions.isEmpty) {
+      return 'sem perguntas';
+    }
+    final labels = survey.questions
+        .map((question) {
+          final trimmed = question.label.trim();
+          return trimmed.isEmpty ? 'Q${question.id}' : trimmed;
+        })
+        .take(3)
+        .toList(growable: false);
+    return labels.join(' • ');
+  }
+
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
@@ -244,8 +258,24 @@ class _SurveyListPageState extends State<SurveyListPage> {
                           elevation: 1,
                           child: ListTile(
                             title: Text(survey.surveyDisplayName),
-                            subtitle: Text(
-                              _plainSummary(survey.surveyDescription),
+                            subtitle: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(_plainSummary(survey.surveyDescription)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Rótulos: ${_questionLabelPreview(survey)}',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
                             ),
                             trailing: Wrap(
                               spacing: 8,

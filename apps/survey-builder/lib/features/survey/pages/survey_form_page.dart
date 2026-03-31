@@ -378,6 +378,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
             (q) => QuestionDraft(
               id: q.id,
               questionText: q.questionText.trim(),
+              label: q.label.trim(),
               answers: q.answers
                   .map((answer) => answer.trim())
                   .where((answer) => answer.isNotEmpty)
@@ -868,15 +869,16 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                     width: 160,
                     child: DsOutlinedButton(
                       label: 'Adicionar pergunta',
-                      onPressed: () {
-                        setState(() {
-                          _questions.add(
-                            QuestionDraft(
-                              id: _nextQuestionId(),
-                              questionText: '',
-                              answers: [''],
-                            ),
-                          );
+                          onPressed: () {
+                            setState(() {
+                              _questions.add(
+                                QuestionDraft(
+                                  id: _nextQuestionId(),
+                                  questionText: '',
+                                  label: '',
+                                  answers: [''],
+                                ),
+                              );
                           _markDirty();
                         });
                       },
@@ -927,38 +929,61 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                                         questionIndex + 1,
                                       ),
                               ),
-                              Expanded(
-                                child: TextFormField(
-                                  key: ValueKey(
-                                    'question-$questionIndex-${question.id}',
-                                  ),
-                                  initialValue: question.questionText,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Texto da pergunta *',
-                                  ),
-                                  validator: (value) =>
-                                      value == null || value.trim().isEmpty
-                                      ? 'Campo obrigatório'
-                                      : null,
-                                  onChanged: (value) {
-                                    _markDirty();
-                                    question.questionText = value;
-                                  },
-                                ),
+                          Expanded(
+                            child: TextFormField(
+                              key: ValueKey(
+                                'question-$questionIndex-${question.id}',
                               ),
-                              IconButton(
-                                tooltip: 'Remover pergunta',
-                                icon: const Icon(Icons.delete_outline),
-                                onPressed: () {
-                                  setState(() {
-                                    _questions.removeAt(questionIndex);
-                                    _markDirty();
-                                  });
-                                },
+                              initialValue: question.questionText,
+                              decoration: const InputDecoration(
+                                labelText: 'Texto da pergunta *',
                               ),
-                            ],
+                              validator: (value) =>
+                                  value == null || value.trim().isEmpty
+                                  ? 'Campo obrigatório'
+                                  : null,
+                              onChanged: (value) {
+                                _markDirty();
+                                question.questionText = value;
+                              },
+                            ),
                           ),
-                          const SizedBox(height: 8),
+                          IconButton(
+                            tooltip: 'Remover pergunta',
+                            icon: const Icon(Icons.delete_outline),
+                            onPressed: () {
+                              setState(() {
+                                _questions.removeAt(questionIndex);
+                                _markDirty();
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            key: ValueKey(
+                              'question-label-$questionIndex-${question.id}',
+                            ),
+                            initialValue: question.label,
+                            decoration: const InputDecoration(
+                              labelText: 'Rótulo exibido no radar',
+                              helperText:
+                                  'Opcional, usado no radar e nas prévias para pacientes.',
+                            ),
+                            onChanged: (value) {
+                              _markDirty();
+                              question.label = value;
+                            },
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Rótulo atual: ${question.label.trim().isNotEmpty ? question.label.trim() : 'Q${question.id}'}',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
                           Text(
                             'Respostas',
                             style: Theme.of(context).textTheme.titleSmall,

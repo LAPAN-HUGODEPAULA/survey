@@ -31,7 +31,12 @@ SurveyDraft _draft({
       answers: ['Yes'],
     ),
     questions: [
-      QuestionDraft(id: 1, questionText: 'Question 1', answers: ['Answer 1']),
+      QuestionDraft(
+        id: 1,
+        questionText: 'Question 1',
+        label: 'Question 1 label',
+        answers: ['Answer 1'],
+      ),
     ],
     finalNotes: '<p>Notes</p>',
     prompt: prompt,
@@ -159,6 +164,7 @@ void main() {
     expect(find.text('Prompt de IA (opcional)'), findsOneWidget);
     expect(find.text('Persona padrão (opcional)'), findsOneWidget);
     expect(find.text('Perfil de saída padrão (opcional)'), findsOneWidget);
+    expect(find.text('Rótulo exibido no radar'), findsOneWidget);
     expect(find.text('Adicionar pergunta'), findsOneWidget);
     expect(find.text(dsSharedStatusBarText), findsOneWidget);
   });

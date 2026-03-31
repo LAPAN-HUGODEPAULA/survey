@@ -29,6 +29,7 @@ def _survey_doc(
     prompt: dict | None,
     persona_skill_key: str | None = None,
     output_profile: str | None = None,
+    questions: list[dict] | None = None,
 ) -> dict:
     return {
         "_id": "60c728efd4c4a4f8b8c8d0d0",
@@ -43,7 +44,7 @@ def _survey_doc(
             "questionText": "Question text",
             "answers": ["Answer 1"],
         },
-        "questions": [],
+        "questions": questions or [],
         "finalNotes": "Final notes.",
         "prompt": prompt,
         "personaSkillKey": persona_skill_key,
@@ -56,6 +57,7 @@ def _survey_payload(
     prompt: dict | None,
     persona_skill_key: str | None = None,
     output_profile: str | None = None,
+    questions: list[dict] | None = None,
 ) -> dict:
     return {
         "surveyDisplayName": "Test Survey",
@@ -69,11 +71,25 @@ def _survey_payload(
             "questionText": "Question text",
             "answers": ["Answer 1"],
         },
-        "questions": [],
+        "questions": questions or [],
         "finalNotes": "Final notes.",
         "prompt": prompt,
         "personaSkillKey": persona_skill_key,
         "outputProfile": output_profile,
+    }
+
+
+def _question_payload(
+    *,
+    question_id: int = 1,
+    question_text: str | None = None,
+    label: str | None = None,
+) -> dict:
+    return {
+        "id": question_id,
+        "questionText": question_text or "Texto da pergunta",
+        "answers": ["Sim", "Não"],
+        **({"label": label} if label is not None else {}),
     }
 
 
@@ -117,6 +133,25 @@ def test_create_survey():
     assert response.json()["prompt"]["promptKey"] == "clinical_diagnostic_report:test-survey"
     assert response.json()["personaSkillKey"] == "school_report"
     assert response.json()["outputProfile"] == "school_report"
+    app.dependency_overrides = {}
+
+
+def test_create_survey_preserves_question_labels():
+    mock_repo = MagicMock()
+    question = _question_payload(label="Luzes pulsantes")
+    mock_repo.create.return_value = _survey_doc(
+        prompt=None,
+        questions=[question],
+    )
+    _override_survey_dependencies(mock_repo)
+
+    response = client.post(
+        "/api/v1/surveys/",
+        json=_survey_payload(prompt=None, questions=[question]),
+    )
+
+    assert response.status_code == 201
+    assert response.json()["questions"][0]["label"] == "Luzes pulsantes"
     app.dependency_overrides = {}
 
 

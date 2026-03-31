@@ -84,6 +84,7 @@ class SurveyRepository {
             (q) => ui.Question(
               id: q.id,
               questionText: q.questionText,
+              label: q.label,
               answers: q.answers.toList(growable: false),
             ),
           )

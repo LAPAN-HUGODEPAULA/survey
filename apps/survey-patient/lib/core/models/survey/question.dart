@@ -17,6 +17,7 @@ class Question {
     required this.id,
     required this.questionText,
     required this.answers,
+    this.label,
   });
 
   /// Creates a [Question] from a JSON payload returned by the backend.
@@ -35,6 +36,7 @@ class Question {
     answers: ((json['answers'] as List<dynamic>? ?? const <dynamic>[])
         .map((dynamic answer) => answer.toString())
         .toList(growable: false)),
+    label: json['label']?.toString(),
   );
 
   /// Backend identifier used to keep answers in question order.
@@ -45,4 +47,7 @@ class Question {
 
   /// Ordered answer options shown as survey buttons.
   final List<String> answers;
+
+  /// Optional label used in visualizations and legends.
+  final String? label;
 }

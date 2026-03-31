@@ -7,6 +7,7 @@ import 'package:patient_app/features/instructions/pages/instructions_page.dart';
 import 'package:patient_app/features/report/pages/report_page.dart';
 import 'package:patient_app/features/survey/pages/survey_page.dart';
 import 'package:patient_app/features/survey/pages/thank_you_page.dart';
+import 'package:patient_app/features/welcome/pages/welcome_page.dart';
 
 class AppNavigator {
   static Future<T?> push<T>(BuildContext context, Widget page) {
@@ -80,5 +81,9 @@ class AppNavigator {
         surveyQuestions: surveyQuestions,
       ),
     );
+  }
+
+  static Future<void> replaceWithWelcome(BuildContext context) {
+    return replace(context, const WelcomePage());
   }
 }

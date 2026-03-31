@@ -14,6 +14,7 @@ part 'question.g.dart';
 /// Properties:
 /// * [id] 
 /// * [questionText] 
+/// * [label] 
 /// * [answers] 
 @BuiltValue()
 abstract class Question implements Built<Question, QuestionBuilder> {
@@ -22,6 +23,9 @@ abstract class Question implements Built<Question, QuestionBuilder> {
 
   @BuiltValueField(wireName: r'questionText')
   String get questionText;
+
+  @BuiltValueField(wireName: r'label')
+  String? get label;
 
   @BuiltValueField(wireName: r'answers')
   BuiltList<String> get answers;
@@ -59,6 +63,13 @@ class _$QuestionSerializer implements PrimitiveSerializer<Question> {
       object.questionText,
       specifiedType: const FullType(String),
     );
+    if (object.label != null) {
+      yield r'label';
+      yield serializers.serialize(
+        object.label,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
     yield r'answers';
     yield serializers.serialize(
       object.answers,
@@ -100,6 +111,14 @@ class _$QuestionSerializer implements PrimitiveSerializer<Question> {
             specifiedType: const FullType(String),
           ) as String;
           result.questionText = valueDes;
+          break;
+        case r'label':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.label = valueDes;
           break;
         case r'answers':
           final valueDes = serializers.deserialize(

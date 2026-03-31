@@ -75,16 +75,19 @@ class QuestionDraft {
     required this.id,
     required this.questionText,
     required this.answers,
+    this.label = '',
   });
 
   int id;
   String questionText;
+  String label;
   List<String> answers;
 
   QuestionDraft copy() {
     return QuestionDraft(
       id: id,
       questionText: questionText,
+      label: label,
       answers: List<String>.from(answers),
     );
   }

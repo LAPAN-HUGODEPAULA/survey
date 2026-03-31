@@ -17,6 +17,11 @@ void main() {
       // TODO
     });
 
+    // String label
+    test('to test the property `label`', () async {
+      // TODO
+    });
+
     // BuiltList<String> answers
     test('to test the property `answers`', () async {
       // TODO

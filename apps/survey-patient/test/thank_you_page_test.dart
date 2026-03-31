@@ -38,6 +38,7 @@ void main() {
             survey: survey,
             surveyAnswers: const ['A', 'B'],
             surveyQuestions: survey.questions,
+            skipAgentFetch: true,
           ),
         ),
       ),
@@ -45,8 +46,9 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Resumo do Questionario'), findsOneWidget);
-    expect(find.text('Adicionar Informacoes'), findsOneWidget);
-    expect(find.text('Ver Resultados'), findsOneWidget);
+    expect(find.text('Radar das respostas'), findsOneWidget);
+    expect(find.text('Avaliação preliminar'), findsOneWidget);
+    expect(find.text('Adicionar Informações'), findsOneWidget);
+    expect(find.text('Iniciar nova avaliação'), findsOneWidget);
   });
 }

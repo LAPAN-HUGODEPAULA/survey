@@ -16,6 +16,8 @@ Define the capabilities and constraints of the LAPAN Survey Platform as it exist
 - Capture survey responses and patient responses, persist them in MongoDB.
 - Send email notifications for survey and patient responses via background tasks.
 - Enrich survey and patient responses with AI-generated narratives and classifications through the Clinical Writer service (triggered by backend tasks or the survey-worker).
+- Store and surface optional question-level `label` metadata so the patient summary radar and future agents render human-friendly names instead of numeric IDs.
+- The `survey-patient` thank-you screen must surface an inline “Avaliação preliminar” card with the latest agent output, a colored radar keyed by those labels, and explicit actions to add demographic data or reset the experience for another respondent.
 - Expose REST APIs under `/api/v1` with OpenAPI as the contract source.
 - Provide Flutter web applications for screeners, patients, and clinical narratives, all using the shared design system.
 - Reuse common Flutter respondent-flow and admin CRUD components through `packages/design_system_flutter` instead of maintaining parallel local implementations in each app.

@@ -21,6 +21,7 @@
 - **Screener auth**: `/api/v1/screeners/register`, `/api/v1/screeners/login`, `/api/v1/screeners/me`, and `/api/v1/screeners/recover-password` support screener registration, authentication, profile lookup, and password recovery.
 - **Domain models**: `app/domain/models/*` define Pydantic schemas for surveys, reusable prompts, patients, and agent responses.
 - **Survey schema**: surveys stored in MongoDB embed a compact `prompt` reference while the questionnaire prompt catalog is stored canonically in `QuestionnairePrompts` and remains readable through the `/survey_prompts` API for backward compatibility.
+- Each question definition now carries an optional `label` field; migrations fill legacy surveys with descriptive text while the `/surveys` API exposes the label so front-end radars and future agents can show friendly names instead of raw IDs.
 - **Persona skill schema**: output persona documents live in the `PersonaSkills` collection and can be managed through `/api/v1/persona_skills`.
 - **Persistence**: repositories under `app/persistence/repositories` encapsulate MongoDB CRUD; injected via `app.persistence.deps` to keep handlers decoupled from storage.
 - **Integrations**:
@@ -76,6 +77,7 @@
 - **Apps**:
   - `survey-frontend`: screener dashboard for creating surveys and viewing responses. Protected professional routes are gated behind screener login, while `/access/:token` remains public for patient-distribution links. The screener auth flow reuses shared sign-in, sign-up, and account-menu components wired to the backend screener endpoints.
   - `survey-patient`: patient-facing flow with configurable screener name/contact build args.
+    - The thank-you experience now renders an inline “Avaliação preliminar” card that polls the Clinical Writer response, a legend-rich radar keyed by question labels, and tight actions to add demographics or restart the flow without logging out.
   - `clinical-narrative`: A conversational platform for clinical documentation. It supports session management, voice input with transcription, AI-driven clinical assistance, and document generation. The app now requires an authenticated screener session before protected workflows can start and reuses the same backend screener identity and shared auth UI used by `survey-frontend`.
     - HTML preview windows open with `noopener noreferrer`, and blob URLs are
       revoked after use.
