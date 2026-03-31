@@ -8,7 +8,7 @@ class PersonaSkillFormPage extends StatefulWidget {
     super.key,
     this.initialDraft,
     this.repository,
-    this.existingSkills = const [],
+    this.existingSkills = const <PersonaSkillDraft>[],
   });
 
   final PersonaSkillDraft? initialDraft;
@@ -20,15 +20,13 @@ class PersonaSkillFormPage extends StatefulWidget {
 }
 
 class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final PersonaSkillRepository _repository;
   late final bool _isEditing;
-
   late final TextEditingController _personaSkillKeyController;
   late final TextEditingController _nameController;
   late final TextEditingController _outputProfileController;
   late final TextEditingController _instructionsController;
-
   late List<PersonaSkillDraft> _existingSkills;
   bool _saving = false;
   String? _personaSkillKeyConflictText;
@@ -40,7 +38,7 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
     _repository = widget.repository ?? PersonaSkillRepository();
     _isEditing = widget.initialDraft != null;
     _existingSkills = widget.existingSkills
-        .map((skill) => skill.copy())
+        .map((PersonaSkillDraft skill) => skill.copy())
         .toList();
 
     final draft =
@@ -83,14 +81,14 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
 
   PersonaSkillDraft _buildDraft() {
     return PersonaSkillDraft(
-      personaSkillKey: PersonaSkillFormSupport.normalizeKeyField(
+      personaSkillKey: DsKeyFieldSupport.normalizeKeyField(
         _personaSkillKeyController.text,
       ),
-      name: PersonaSkillFormSupport.normalizeTextField(_nameController.text),
-      outputProfile: PersonaSkillFormSupport.normalizeKeyField(
+      name: DsKeyFieldSupport.normalizeTextField(_nameController.text),
+      outputProfile: DsKeyFieldSupport.normalizeKeyField(
         _outputProfileController.text,
       ),
-      instructions: PersonaSkillFormSupport.normalizeTextField(
+      instructions: DsKeyFieldSupport.normalizeTextField(
         _instructionsController.text,
       ),
     );
@@ -174,82 +172,39 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
       appBar: AppBar(
         title: Text(_isEditing ? 'Editar persona' : 'Criar persona'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
+      body: Form(
+        key: _formKey,
+        child: DsAdminFormShell(
+          isSaving: _saving,
+          onCancel: () => Navigator.of(context).pop(),
+          onSave: _save,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  const Spacer(),
-                  SizedBox(
-                    width: 140,
-                    child: DsOutlinedButton(
-                      label: 'Cancelar',
-                      onPressed: _saving
-                          ? null
-                          : () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 140,
-                    child: DsFilledButton(
-                      label: _saving ? 'Salvando...' : 'Salvar',
-                      onPressed: _saving ? null : _save,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
+              DsNormalizedKeyField(
                 controller: _personaSkillKeyController,
                 readOnly: _isEditing,
-                decoration: const InputDecoration(
-                  labelText: 'Chave da persona *',
-                  helperText:
-                      'Use letras minúsculas, números, ":" , "_" ou "-".',
-                ),
-                validator: PersonaSkillFormSupport.validateKeyField,
+                label: 'Chave da persona *',
+                helperText: 'Use letras minúsculas, números, ":" , "_" ou "-".',
               ),
-              if (_personaSkillKeyConflictText != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  _personaSkillKeyConflictText!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                ),
-              ],
+              if (_personaSkillKeyConflictText != null)
+                DsInlineConflictMessage(message: _personaSkillKeyConflictText!),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
                   labelText: 'Nome da persona *',
                 ),
-                validator: PersonaSkillFormSupport.validateRequired,
+                validator: DsKeyFieldSupport.validateRequired,
               ),
               const SizedBox(height: 12),
-              TextFormField(
+              DsNormalizedKeyField(
                 controller: _outputProfileController,
-                decoration: const InputDecoration(
-                  labelText: 'Perfil de saída *',
-                  helperText:
-                      'Use letras minúsculas, números, ":" , "_" ou "-".',
-                ),
-                validator: PersonaSkillFormSupport.validateKeyField,
+                label: 'Perfil de saída *',
+                helperText: 'Use letras minúsculas, números, ":" , "_" ou "-".',
               ),
-              if (_outputProfileConflictText != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  _outputProfileConflictText!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                ),
-              ],
+              if (_outputProfileConflictText != null)
+                DsInlineConflictMessage(message: _outputProfileConflictText!),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _instructionsController,
@@ -259,7 +214,7 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
                   labelText: 'Instruções *',
                   alignLabelWithHint: true,
                 ),
-                validator: PersonaSkillFormSupport.validateRequired,
+                validator: DsKeyFieldSupport.validateRequired,
               ),
             ],
           ),

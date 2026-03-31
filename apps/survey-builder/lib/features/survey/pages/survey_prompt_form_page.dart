@@ -4,11 +4,7 @@ import 'package:survey_builder/core/models/survey_prompt_draft.dart';
 import 'package:survey_builder/core/repositories/survey_prompt_repository.dart';
 
 class SurveyPromptFormPage extends StatefulWidget {
-  const SurveyPromptFormPage({
-    super.key,
-    this.initialDraft,
-    this.repository,
-  });
+  const SurveyPromptFormPage({super.key, this.initialDraft, this.repository});
 
   final SurveyPromptDraft? initialDraft;
   final SurveyPromptRepository? repository;
@@ -18,10 +14,9 @@ class SurveyPromptFormPage extends StatefulWidget {
 }
 
 class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final SurveyPromptRepository _repository;
   late final bool _isEditing;
-
   late final TextEditingController _nameController;
   late final TextEditingController _keyController;
   late final TextEditingController _promptTextController;
@@ -34,11 +29,7 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
     _isEditing = widget.initialDraft != null;
     final draft =
         widget.initialDraft ??
-        SurveyPromptDraft(
-          promptKey: '',
-          name: '',
-          promptText: '',
-        );
+        SurveyPromptDraft(promptKey: '', name: '', promptText: '');
     _nameController = TextEditingController(text: draft.name);
     _keyController = TextEditingController(text: draft.promptKey);
     _promptTextController = TextEditingController(text: draft.promptText);
@@ -62,9 +53,11 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
     setState(() => _saving = true);
     try {
       final draft = SurveyPromptDraft(
-        promptKey: _keyController.text.trim().toLowerCase(),
-        name: _nameController.text.trim(),
-        promptText: _promptTextController.text.trim(),
+        promptKey: DsKeyFieldSupport.normalizeKeyField(_keyController.text),
+        name: DsKeyFieldSupport.normalizeTextField(_nameController.text),
+        promptText: DsKeyFieldSupport.normalizeTextField(
+          _promptTextController.text,
+        ),
       );
       if (_isEditing) {
         await _repository.updatePrompt(draft);
@@ -95,60 +88,28 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
       appBar: AppBar(
         title: Text(_isEditing ? 'Editar prompt' : 'Criar prompt'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
+      body: Form(
+        key: _formKey,
+        child: DsAdminFormShell(
+          isSaving: _saving,
+          onCancel: () => Navigator.of(context).pop(),
+          onSave: _save,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  const Spacer(),
-                  SizedBox(
-                    width: 140,
-                    child: DsOutlinedButton(
-                      label: 'Cancelar',
-                      onPressed: _saving ? null : () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 140,
-                    child: DsFilledButton(
-                      label: _saving ? 'Salvando...' : 'Salvar',
-                      onPressed: _saving ? null : _save,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nome do prompt *'),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Campo obrigatório'
-                    : null,
+                decoration: const InputDecoration(
+                  labelText: 'Nome do prompt *',
+                ),
+                validator: DsKeyFieldSupport.validateRequired,
               ),
               const SizedBox(height: 12),
-              TextFormField(
+              DsNormalizedKeyField(
                 controller: _keyController,
                 readOnly: _isEditing,
-                decoration: const InputDecoration(
-                  labelText: 'Chave do prompt *',
-                  helperText:
-                      'Use letras minúsculas, números, ":" , "_" ou "-".',
-                ),
-                validator: (value) {
-                  final normalized = value?.trim() ?? '';
-                  if (normalized.isEmpty) {
-                    return 'Campo obrigatório';
-                  }
-                  if (!RegExp(r'^[a-z0-9:_-]+$').hasMatch(normalized)) {
-                    return 'Formato inválido';
-                  }
-                  return null;
-                },
+                label: 'Chave do prompt *',
+                helperText: 'Use letras minúsculas, números, ":" , "_" ou "-".',
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -159,9 +120,7 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
                   labelText: 'Texto do prompt *',
                   alignLabelWithHint: true,
                 ),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Campo obrigatório'
-                    : null,
+                validator: DsKeyFieldSupport.validateRequired,
               ),
             ],
           ),

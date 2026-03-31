@@ -1,3 +1,5 @@
+import 'package:design_system_flutter/widgets.dart';
+
 class PersonaSkillDraft {
   PersonaSkillDraft({
     required this.personaSkillKey,
@@ -40,32 +42,20 @@ class PersonaSkillDuplicateCheckResult {
 }
 
 class PersonaSkillFormSupport {
-  static final RegExp _allowedKeyPattern = RegExp(r'^[a-z0-9:_-]+$');
-
   static String normalizeKeyField(String value) {
-    return value.trim().toLowerCase();
+    return DsKeyFieldSupport.normalizeKeyField(value);
   }
 
   static String normalizeTextField(String value) {
-    return value.trim();
+    return DsKeyFieldSupport.normalizeTextField(value);
   }
 
   static String? validateRequired(String? value) {
-    if (normalizeTextField(value ?? '').isEmpty) {
-      return 'Campo obrigatório';
-    }
-    return null;
+    return DsKeyFieldSupport.validateRequired(value);
   }
 
   static String? validateKeyField(String? value) {
-    final normalized = normalizeKeyField(value ?? '');
-    if (normalized.isEmpty) {
-      return 'Campo obrigatório';
-    }
-    if (!_allowedKeyPattern.hasMatch(normalized)) {
-      return 'Use letras, números, ":" , "_" ou "-".';
-    }
-    return null;
+    return DsKeyFieldSupport.validateKeyField(value);
   }
 
   static PersonaSkillDuplicateCheckResult detectDuplicates({

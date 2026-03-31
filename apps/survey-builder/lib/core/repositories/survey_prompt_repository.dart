@@ -1,11 +1,13 @@
 import 'dart:convert';
 
+import 'package:design_system_flutter/widgets.dart';
 import 'package:dio/dio.dart';
 import 'package:survey_builder/core/models/survey_prompt_draft.dart';
 import 'package:survey_builder/core/services/api_config.dart';
 
 class SurveyPromptRepository {
-  SurveyPromptRepository({Dio? client}) : _client = client ?? ApiConfig.createDio();
+  SurveyPromptRepository({Dio? client})
+    : _client = client ?? ApiConfig.createDio();
 
   final Dio _client;
 
@@ -68,9 +70,9 @@ class SurveyPromptRepository {
 
   Map<String, dynamic> _toJson(SurveyPromptDraft draft) {
     return {
-      'promptKey': draft.promptKey.trim(),
-      'name': draft.name.trim(),
-      'promptText': draft.promptText.trim(),
+      'promptKey': DsKeyFieldSupport.normalizeKeyField(draft.promptKey),
+      'name': DsKeyFieldSupport.normalizeTextField(draft.name),
+      'promptText': DsKeyFieldSupport.normalizeTextField(draft.promptText),
     };
   }
 

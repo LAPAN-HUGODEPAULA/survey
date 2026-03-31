@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:design_system_flutter/widgets.dart';
 import 'package:dio/dio.dart';
 import 'package:survey_builder/core/models/persona_skill_draft.dart';
 import 'package:survey_builder/core/services/api_config.dart';
@@ -91,16 +92,12 @@ class PersonaSkillRepository {
 
   Map<String, dynamic> _toJson(PersonaSkillDraft draft) {
     return {
-      'personaSkillKey': PersonaSkillFormSupport.normalizeKeyField(
+      'personaSkillKey': DsKeyFieldSupport.normalizeKeyField(
         draft.personaSkillKey,
       ),
-      'name': PersonaSkillFormSupport.normalizeTextField(draft.name),
-      'outputProfile': PersonaSkillFormSupport.normalizeKeyField(
-        draft.outputProfile,
-      ),
-      'instructions': PersonaSkillFormSupport.normalizeTextField(
-        draft.instructions,
-      ),
+      'name': DsKeyFieldSupport.normalizeTextField(draft.name),
+      'outputProfile': DsKeyFieldSupport.normalizeKeyField(draft.outputProfile),
+      'instructions': DsKeyFieldSupport.normalizeTextField(draft.instructions),
     };
   }
 

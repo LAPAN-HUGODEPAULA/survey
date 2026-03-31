@@ -1,9 +1,7 @@
-
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 
 class AsyncScaffold extends StatelessWidget {
-
   const AsyncScaffold({
     super.key,
     required this.isLoading,
@@ -22,13 +20,13 @@ class AsyncScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DsScaffold(
-      appBar: appBar,
+    return DsAsyncPage(
       isLoading: isLoading,
       error: error,
+      appBar: appBar,
       loading: loading,
       errorWidget: errorWidget,
-      body: child,
+      child: child,
     );
   }
 }

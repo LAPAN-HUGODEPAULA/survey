@@ -17,7 +17,7 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
   late final SurveyPromptRepository _repository;
   bool _loading = true;
   String? _error;
-  List<SurveyPromptDraft> _prompts = [];
+  List<SurveyPromptDraft> _prompts = <SurveyPromptDraft>[];
 
   @override
   void initState() {
@@ -52,9 +52,7 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
   Future<void> _openForm({SurveyPromptDraft? draft}) async {
     final changed = await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(
-        builder: (_) => SurveyPromptFormPage(
-          initialDraft: draft?.copy(),
-        ),
+        builder: (_) => SurveyPromptFormPage(initialDraft: draft?.copy()),
       ),
     );
     if (changed == true && mounted) {
@@ -63,26 +61,15 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
   }
 
   Future<void> _deletePrompt(SurveyPromptDraft draft) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showDsDeleteConfirmationDialog(
       context: context,
-      builder: (context) => DsDialog(
-        title: 'Excluir prompt?',
-        content: Text('Isso excluirá permanentemente "${draft.name}".'),
-        actions: [
-          DsTextButton(
-            label: 'Cancelar',
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          DsFilledButton(
-            label: 'Excluir',
-            onPressed: () => Navigator.of(context).pop(true),
-          ),
-        ],
-      ),
+      title: 'Excluir prompt?',
+      content: 'Isso excluirá permanentemente "${draft.name}".',
     );
-    if (confirmed != true) {
+    if (!confirmed) {
       return;
     }
+
     try {
       await _repository.deletePrompt(draft.promptKey);
       if (!mounted) {
@@ -93,84 +80,34 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Falha ao excluir prompt: $error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Falha ao excluir prompt: $error')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(
-        title: const Text('Prompts reutilizáveis'),
-      ),
-      actions: [
-        IconButton(
-          tooltip: 'Atualizar',
-          icon: const Icon(Icons.refresh),
-          onPressed: _loading ? null : _load,
-        ),
-      ],
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Flexible(
-                  child: Text(
-                    'Catálogo de prompts',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                DsFilledButton(
-                  label: 'Criar prompt',
-                  onPressed: _openForm,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: _loading
-                  ? const DsLoading()
-                  : _error != null
-                  ? DsError(message: _error!, onRetry: _load)
-                  : _prompts.isEmpty
-                  ? const DsEmpty(message: 'Nenhum prompt encontrado.')
-                  : ListView.separated(
-                      itemCount: _prompts.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final prompt = _prompts[index];
-                        return Card(
-                          child: ListTile(
-                            title: Text(prompt.name),
-                            subtitle: Text(prompt.promptKey),
-                            trailing: Wrap(
-                              spacing: 8,
-                              children: [
-                                IconButton(
-                                  tooltip: 'Editar',
-                                  icon: const Icon(Icons.edit_outlined),
-                                  onPressed: () => _openForm(draft: prompt),
-                                ),
-                                IconButton(
-                                  tooltip: 'Excluir',
-                                  icon: const Icon(Icons.delete_outline),
-                                  onPressed: () => _deletePrompt(prompt),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
+      appBar: AppBar(title: const Text('Prompts reutilizáveis')),
+      body: DsAdminCatalogShell<SurveyPromptDraft>(
+        heading: 'Catálogo de prompts',
+        createLabel: 'Criar prompt',
+        isLoading: _loading,
+        items: _prompts,
+        emptyMessage: 'Nenhum prompt encontrado.',
+        error: _error,
+        onRetry: _load,
+        onRefresh: _load,
+        onCreate: _openForm,
+        itemBuilder: (BuildContext context, SurveyPromptDraft prompt) {
+          return DsAdminCatalogItem(
+            title: prompt.name,
+            subtitle: prompt.promptKey,
+            onEdit: () => _openForm(draft: prompt),
+            onDelete: () => _deletePrompt(prompt),
+          );
+        },
       ),
     );
   }

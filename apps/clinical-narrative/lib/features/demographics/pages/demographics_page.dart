@@ -1,9 +1,8 @@
-/// Página de coleta de informações demográficas do usuário.
+/// Collects the patient identity required before the chat workflow starts.
 library;
 
 import 'package:clinical_narrative_app/core/navigation/app_navigator.dart';
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
-import 'package:clinical_narrative_app/core/utils/validator_sets.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -16,11 +15,10 @@ class DemographicsPage extends StatefulWidget {
 }
 
 class _DemographicsPageState extends State<DemographicsPage> {
-  final _formKey = GlobalKey<FormState>();
-
-  // Text Controllers
-  final _nameController = TextEditingController();
-  final _medicalRecordIdController = TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _medicalRecordIdController =
+      TextEditingController();
 
   @override
   void dispose() {
@@ -30,54 +28,31 @@ class _DemographicsPageState extends State<DemographicsPage> {
   }
 
   void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      final settings = Provider.of<AppSettings>(context, listen: false);
-
-      settings.setPatientData(
-        name: _nameController.text.trim(),
-        medicalRecordId: _medicalRecordIdController.text.trim(),
-      );
-
-      AppNavigator.toChat(context);
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
+
+    Provider.of<AppSettings>(context, listen: false).setPatientData(
+      name: _nameController.text.trim(),
+      medicalRecordId: _medicalRecordIdController.text.trim(),
+    );
+    AppNavigator.toChat(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(
-        title: const Text('Informações do Paciente'),
-      ),
+      appBar: AppBar(title: const Text('Informações do Paciente')),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nome Completo *'),
-                validator: ValidatorSets.patientName,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _medicalRecordIdController,
-                decoration:
-                    const InputDecoration(labelText: 'Número do prontuário *'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Campo obrigatório';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: const Text('Continuar para o Chat'),
-              ),
-            ],
+          padding: const EdgeInsets.all(24),
+          child: DsPatientIdentitySection(
+            nameController: _nameController,
+            medicalRecordIdController: _medicalRecordIdController,
+            showMedicalRecordId: true,
+            continueLabel: 'Continuar para o Chat',
+            onContinue: _submitForm,
           ),
         ),
       ),

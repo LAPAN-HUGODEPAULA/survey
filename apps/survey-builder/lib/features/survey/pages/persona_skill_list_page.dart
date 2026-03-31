@@ -17,7 +17,7 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
   late final PersonaSkillRepository _repository;
   bool _loading = true;
   String? _error;
-  List<PersonaSkillDraft> _skills = [];
+  List<PersonaSkillDraft> _skills = <PersonaSkillDraft>[];
 
   @override
   void initState() {
@@ -64,26 +64,15 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
   }
 
   Future<void> _deletePersonaSkill(PersonaSkillDraft draft) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showDsDeleteConfirmationDialog(
       context: context,
-      builder: (context) => DsDialog(
-        title: 'Excluir persona?',
-        content: Text('Isso excluirá permanentemente "${draft.name}".'),
-        actions: [
-          DsTextButton(
-            label: 'Cancelar',
-            onPressed: () => Navigator.of(context).pop(false),
-          ),
-          DsFilledButton(
-            label: 'Excluir',
-            onPressed: () => Navigator.of(context).pop(true),
-          ),
-        ],
-      ),
+      title: 'Excluir persona?',
+      content: 'Isso excluirá permanentemente "${draft.name}".',
     );
-    if (confirmed != true) {
+    if (!confirmed) {
       return;
     }
+
     try {
       await _repository.deletePersonaSkill(draft.personaSkillKey);
       if (!mounted) {
@@ -104,71 +93,24 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
   Widget build(BuildContext context) {
     return DsScaffold(
       appBar: AppBar(title: const Text('Personas de saída')),
-      actions: [
-        IconButton(
-          tooltip: 'Atualizar',
-          icon: const Icon(Icons.refresh),
-          onPressed: _loading ? null : _load,
-        ),
-      ],
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Flexible(
-                  child: Text(
-                    'Catálogo de personas',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                DsFilledButton(label: 'Criar persona', onPressed: _openForm),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: _loading
-                  ? const DsLoading()
-                  : _error != null
-                  ? DsError(message: _error!, onRetry: _load)
-                  : _skills.isEmpty
-                  ? const DsEmpty(message: 'Nenhuma persona encontrada.')
-                  : ListView.separated(
-                      itemCount: _skills.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final skill = _skills[index];
-                        return Card(
-                          child: ListTile(
-                            title: Text(skill.name),
-                            subtitle: Text(
-                              '${skill.personaSkillKey} · ${skill.outputProfile}',
-                            ),
-                            trailing: Wrap(
-                              spacing: 8,
-                              children: [
-                                IconButton(
-                                  tooltip: 'Editar',
-                                  icon: const Icon(Icons.edit_outlined),
-                                  onPressed: () => _openForm(draft: skill),
-                                ),
-                                IconButton(
-                                  tooltip: 'Excluir',
-                                  icon: const Icon(Icons.delete_outline),
-                                  onPressed: () => _deletePersonaSkill(skill),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
-        ),
+      body: DsAdminCatalogShell<PersonaSkillDraft>(
+        heading: 'Catálogo de personas',
+        createLabel: 'Criar persona',
+        isLoading: _loading,
+        items: _skills,
+        emptyMessage: 'Nenhuma persona encontrada.',
+        error: _error,
+        onRetry: _load,
+        onRefresh: _load,
+        onCreate: _openForm,
+        itemBuilder: (BuildContext context, PersonaSkillDraft skill) {
+          return DsAdminCatalogItem(
+            title: skill.name,
+            subtitle: '${skill.personaSkillKey} · ${skill.outputProfile}',
+            onEdit: () => _openForm(draft: skill),
+            onDelete: () => _deletePersonaSkill(skill),
+          );
+        },
       ),
     );
   }
