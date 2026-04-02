@@ -1,13 +1,12 @@
-
 import 'package:flutter/material.dart';
 import 'package:patient_app/core/models/survey/question.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/features/demographics/pages/demographics_page.dart';
 import 'package:patient_app/features/instructions/pages/instructions_page.dart';
+import 'package:patient_app/features/legal/pages/patient_entry_page.dart';
 import 'package:patient_app/features/report/pages/report_page.dart';
 import 'package:patient_app/features/survey/pages/survey_page.dart';
 import 'package:patient_app/features/survey/pages/thank_you_page.dart';
-import 'package:patient_app/features/welcome/pages/welcome_page.dart';
 
 class AppNavigator {
   static Future<T?> push<T>(BuildContext context, Widget page) {
@@ -83,7 +82,7 @@ class AppNavigator {
     );
   }
 
-  static Future<void> replaceWithWelcome(BuildContext context) {
-    return replace(context, const WelcomePage());
+  static Future<void> replaceWithEntryGate(BuildContext context) {
+    return replace(context, const PatientEntryPage());
   }
 }

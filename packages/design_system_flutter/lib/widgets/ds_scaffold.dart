@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:design_system_flutter/components/legal/ds_legal_viewer.dart';
+import 'package:design_system_flutter/components/legal/legal_content.dart';
 
 const dsSharedStatusBarText =
     'COPYRIGHT © 2026. Laboratório de Pesquisa Aplicada às Neurociências da Visão - Todos os direitos reservados.';
@@ -16,12 +18,27 @@ class DsStatusBar extends StatelessWidget {
         top: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Text(
-            dsSharedStatusBarText,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
+            children: [
+              Text(
+                dsSharedStatusBarText,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              ),
+              TextButton(
+                onPressed: () => showDsLegalDocumentDialog(
+                  context,
+                  documentType: DsLegalDocumentType.termsOfUse,
                 ),
+                child: const Text('Termo de Uso e Política de Privacidade'),
+              ),
+            ],
           ),
         ),
       ),

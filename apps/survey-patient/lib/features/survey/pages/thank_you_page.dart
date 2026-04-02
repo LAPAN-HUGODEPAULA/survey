@@ -136,7 +136,8 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
   Patient? _resolvePatient(AppSettings settings) {
     final patient = settings.patient;
-    final hasData = patient.name.isNotEmpty ||
+    final hasData =
+        patient.name.isNotEmpty ||
         patient.email.isNotEmpty ||
         patient.birthDate.isNotEmpty ||
         patient.gender.isNotEmpty ||
@@ -167,7 +168,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
     final summaries = <_AnswerSummary>[];
     for (var index = 0; index < widget.surveyQuestions.length; index++) {
       final question = widget.surveyQuestions[index];
-      final answer = index < widget.surveyAnswers.length ? widget.surveyAnswers[index] : '';
+      final answer = index < widget.surveyAnswers.length
+          ? widget.surveyAnswers[index]
+          : '';
       final answerIndex = question.answers.indexOf(answer);
       final value = answerIndex >= 0 ? (answerIndex + 1).toDouble() : 0.0;
       final label = (question.label?.trim().isNotEmpty ?? false)
@@ -251,14 +254,17 @@ class _ThankYouPageState extends State<ThankYouPage> {
                       children: [
                         Text(
                           'Radar das respostas',
-                          style: theme.textTheme.titleLarge
-                              ?.copyWith(fontWeight: FontWeight.w600),
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         SizedBox(
                           height: 280,
                           child: values.isEmpty
-                              ? const Center(child: Text('Sem respostas para exibir.'))
+                              ? const Center(
+                                  child: Text('Sem respostas para exibir.'),
+                                )
                               : _SurveyRadarChart(
                                   values: values,
                                   maxValue: maxValue,
@@ -270,23 +276,22 @@ class _ThankYouPageState extends State<ThankYouPage> {
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
-                            children: List.generate(
-                              labels.length,
-                              (index) {
-                                final color = _radarPalette[index % _radarPalette.length];
-                                return _RadarLegendChip(
-                                  label: labels[index],
-                                  color: color,
-                                );
-                              },
-                            ),
+                            children: List.generate(labels.length, (index) {
+                              final color =
+                                  _radarPalette[index % _radarPalette.length];
+                              return _RadarLegendChip(
+                                label: labels[index],
+                                color: color,
+                              );
+                            }),
                           ),
                         ],
                         const SizedBox(height: 24),
                         Text(
                           'Resumo das respostas',
-                          style: theme.textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         for (final summary in summaries)
@@ -337,8 +342,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                       children: [
                         Text(
                           'Avaliação preliminar',
-                          style: theme.textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         if (_isAgentLoading)
@@ -347,7 +353,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                               const SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
                               const SizedBox(width: 12),
                               Text(
@@ -361,14 +369,21 @@ class _ThankYouPageState extends State<ThankYouPage> {
                             width: double.infinity,
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: _withOpacity(theme.colorScheme.error, 0.12),
+                              color: _withOpacity(
+                                theme.colorScheme.error,
+                                0.12,
+                              ),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: theme.colorScheme.error),
+                              border: Border.all(
+                                color: theme.colorScheme.error,
+                              ),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.warning_amber_rounded,
-                                    color: theme.colorScheme.error),
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: theme.colorScheme.error,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -433,7 +448,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                                 color: theme.colorScheme.onSurface,
                               ),
                               'p': Style(margin: Margins.only(bottom: 12.0)),
-                              'a': Style(textDecoration: TextDecoration.underline),
+                              'a': Style(
+                                textDecoration: TextDecoration.underline,
+                              ),
                             },
                           ),
                         ],
@@ -455,14 +472,16 @@ class _ThankYouPageState extends State<ThankYouPage> {
                       children: [
                         Text(
                           'Quer um relatório mais detalhado?',
-                          style: theme.textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Você pode adicionar seus dados pessoais para enriquecer a análise ou seguir direto para o relatório.',
-                          style: theme.textTheme.bodyMedium
-                              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         DsFilledButton(
@@ -483,12 +502,17 @@ class _ThankYouPageState extends State<ThankYouPage> {
                   width: double.infinity,
                   child: DsOutlinedButton(
                     label: 'Iniciar nova avaliação',
-                    onPressed: () {
-                      Provider.of<AppSettings>(
+                    onPressed: () async {
+                      final settings = Provider.of<AppSettings>(
                         context,
                         listen: false,
-                      ).clearPatientData();
-                      AppNavigator.replaceWithWelcome(context);
+                      );
+                      settings.clearPatientData();
+                      await settings.clearInitialNoticeAgreement();
+                      if (!context.mounted) {
+                        return;
+                      }
+                      AppNavigator.replaceWithEntryGate(context);
                     },
                   ),
                 ),
@@ -502,10 +526,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
 }
 
 class _RadarLegendChip extends StatelessWidget {
-  const _RadarLegendChip({
-    required this.label,
-    required this.color,
-  });
+  const _RadarLegendChip({required this.label, required this.color});
 
   final String label;
   final Color color;
@@ -524,16 +545,10 @@ class _RadarLegendChip extends StatelessWidget {
           Container(
             width: 8,
             height: 8,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          Text(label, style: Theme.of(context).textTheme.bodySmall),
         ],
       ),
     );
@@ -568,7 +583,9 @@ class _SurveyRadarChart extends StatelessWidget {
             borderColor: borderColor,
             borderWidth: 2,
             entryRadius: 3,
-            dataEntries: values.map((value) => RadarEntry(value: value)).toList(),
+            dataEntries: values
+                .map((value) => RadarEntry(value: value))
+                .toList(),
           ),
         ],
         titleTextStyle: theme.textTheme.bodySmall?.copyWith(

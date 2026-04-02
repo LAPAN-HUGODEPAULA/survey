@@ -29,6 +29,8 @@ class _$ScreenerProfile extends ScreenerProfile {
   final String degree;
   @override
   final int? darvCourseYear;
+  @override
+  final DateTime? initialNoticeAcceptedAt;
 
   factory _$ScreenerProfile([void Function(ScreenerProfileBuilder)? updates]) =>
       (ScreenerProfileBuilder()..update(updates))._build();
@@ -44,7 +46,8 @@ class _$ScreenerProfile extends ScreenerProfile {
       required this.professionalCouncil,
       required this.jobTitle,
       required this.degree,
-      this.darvCourseYear})
+      this.darvCourseYear,
+      this.initialNoticeAcceptedAt})
       : super._();
   @override
   ScreenerProfile rebuild(void Function(ScreenerProfileBuilder) updates) =>
@@ -67,7 +70,8 @@ class _$ScreenerProfile extends ScreenerProfile {
         professionalCouncil == other.professionalCouncil &&
         jobTitle == other.jobTitle &&
         degree == other.degree &&
-        darvCourseYear == other.darvCourseYear;
+        darvCourseYear == other.darvCourseYear &&
+        initialNoticeAcceptedAt == other.initialNoticeAcceptedAt;
   }
 
   @override
@@ -84,6 +88,7 @@ class _$ScreenerProfile extends ScreenerProfile {
     _$hash = $jc(_$hash, jobTitle.hashCode);
     _$hash = $jc(_$hash, degree.hashCode);
     _$hash = $jc(_$hash, darvCourseYear.hashCode);
+    _$hash = $jc(_$hash, initialNoticeAcceptedAt.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -101,7 +106,8 @@ class _$ScreenerProfile extends ScreenerProfile {
           ..add('professionalCouncil', professionalCouncil)
           ..add('jobTitle', jobTitle)
           ..add('degree', degree)
-          ..add('darvCourseYear', darvCourseYear))
+          ..add('darvCourseYear', darvCourseYear)
+          ..add('initialNoticeAcceptedAt', initialNoticeAcceptedAt))
         .toString();
   }
 }
@@ -157,6 +163,11 @@ class ScreenerProfileBuilder
   set darvCourseYear(int? darvCourseYear) =>
       _$this._darvCourseYear = darvCourseYear;
 
+  DateTime? _initialNoticeAcceptedAt;
+  DateTime? get initialNoticeAcceptedAt => _$this._initialNoticeAcceptedAt;
+  set initialNoticeAcceptedAt(DateTime? initialNoticeAcceptedAt) =>
+      _$this._initialNoticeAcceptedAt = initialNoticeAcceptedAt;
+
   ScreenerProfileBuilder() {
     ScreenerProfile._defaults(this);
   }
@@ -175,6 +186,7 @@ class ScreenerProfileBuilder
       _jobTitle = $v.jobTitle;
       _degree = $v.degree;
       _darvCourseYear = $v.darvCourseYear;
+      _initialNoticeAcceptedAt = $v.initialNoticeAcceptedAt;
       _$v = null;
     }
     return this;
@@ -217,6 +229,7 @@ class ScreenerProfileBuilder
             degree: BuiltValueNullFieldError.checkNotNull(
                 degree, r'ScreenerProfile', 'degree'),
             darvCourseYear: darvCourseYear,
+            initialNoticeAcceptedAt: initialNoticeAcceptedAt,
           );
     } catch (_) {
       late String _$failedField;

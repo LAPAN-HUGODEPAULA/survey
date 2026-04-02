@@ -67,6 +67,32 @@ class ScreenerRepository:
             return ScreenerModel.model_validate(self._normalize(result))
         return None
 
+    def record_initial_notice_agreement(
+        self,
+        screener_id: str,
+        accepted_at: datetime,
+    ) -> Optional[ScreenerModel]:
+        obj_id = ObjectId(screener_id)
+        result = self._col.find_one_and_update(
+            {
+                "_id": obj_id,
+                "$or": [
+                    {"initialNoticeAcceptedAt": {"$exists": False}},
+                    {"initialNoticeAcceptedAt": None},
+                ],
+            },
+            {
+                "$set": {
+                    "initialNoticeAcceptedAt": accepted_at,
+                    "updatedAt": accepted_at,
+                },
+            },
+            return_document=ReturnDocument.AFTER,
+        )
+        if result:
+            return ScreenerModel.model_validate(self._normalize(result))
+        return self.find_by_id(screener_id)
+
     def ensure_system_screener(self, password_hash: str) -> ScreenerModel:
         existing = self._col.find_one({"_id": ObjectId(SYSTEM_SCREENER_ID)}) or self._col.find_one(
             {"email": SYSTEM_SCREENER_EMAIL}
@@ -96,6 +122,7 @@ class ScreenerRepository:
             jobTitle="",
             degree="",
             darvCourseYear=None,
+            initialNoticeAcceptedAt=None,
             createdAt=now,
             updatedAt=now,
         )

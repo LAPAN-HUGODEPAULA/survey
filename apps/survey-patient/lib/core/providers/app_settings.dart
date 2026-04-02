@@ -5,11 +5,11 @@
 library;
 
 import 'package:flutter/material.dart';
-
 import 'package:patient_app/core/models/patient.dart';
 import 'package:patient_app/core/models/screener.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/repositories/survey_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Coordinates cross-screen state for the patient workflow.
 ///
@@ -17,14 +17,19 @@ import 'package:patient_app/core/repositories/survey_repository.dart';
 /// updates to the patient demographic payload.
 class AppSettings extends ChangeNotifier {
   AppSettings({SurveyRepository? surveyRepository})
-      : _surveyRepository = surveyRepository ?? SurveyRepository();
+    : _surveyRepository = surveyRepository ?? SurveyRepository();
 
   final SurveyRepository _surveyRepository;
   static const String _preferredSurveyId = 'lapan_q7';
+  static const String _initialNoticePreferenceKey =
+      'survey_patient_initial_notice_accepted';
   static const String systemScreenerId = '000000000000000000000001';
 
   final Screener _screener = const Screener(id: systemScreenerId);
   Patient _patient = Patient.initial();
+  bool _hasAcceptedInitialNotice = false;
+  bool _isLoadingInitialNotice = false;
+  bool _hasLoadedInitialNotice = false;
 
   List<Survey> _surveys = const [];
   String? _selectedSurveyId;
@@ -33,6 +38,8 @@ class AppSettings extends ChangeNotifier {
 
   Screener get screener => _screener;
   Patient get patient => _patient;
+  bool get hasAcceptedInitialNotice => _hasAcceptedInitialNotice;
+  bool get isLoadingInitialNotice => _isLoadingInitialNotice;
   bool get isLoadingSurveys => _isLoadingSurveys;
   String? get surveyLoadError => _loadError;
 
@@ -57,6 +64,42 @@ class AppSettings extends ChangeNotifier {
     return survey.surveyDisplayName.isNotEmpty
         ? survey.surveyDisplayName
         : survey.surveyName;
+  }
+
+  Future<void> loadInitialNoticeAgreement() async {
+    if (_hasLoadedInitialNotice || _isLoadingInitialNotice) {
+      return;
+    }
+
+    _isLoadingInitialNotice = true;
+    notifyListeners();
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      _hasAcceptedInitialNotice =
+          preferences.getBool(_initialNoticePreferenceKey) ?? false;
+      _hasLoadedInitialNotice = true;
+    } finally {
+      _isLoadingInitialNotice = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> acceptInitialNotice() async {
+    _hasAcceptedInitialNotice = true;
+    _hasLoadedInitialNotice = true;
+    notifyListeners();
+
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setBool(_initialNoticePreferenceKey, true);
+  }
+
+  Future<void> clearInitialNoticeAgreement() async {
+    _hasAcceptedInitialNotice = false;
+    _hasLoadedInitialNotice = true;
+    notifyListeners();
+
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.remove(_initialNoticePreferenceKey);
   }
 
   Future<void> loadAvailableSurveys() async {

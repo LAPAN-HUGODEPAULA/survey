@@ -77,13 +77,14 @@ class ClinicianLoginPage extends StatelessWidget {
       if (!context.mounted) {
         return const DsAuthOperationResult.success();
       }
-      settings.setScreenerSession(
-        token: accessToken,
-        profile: profile,
-      );
+      settings.setScreenerSession(token: accessToken, profile: profile);
       chatProvider.setAuthToken(accessToken);
 
-      AppNavigator.toDemographics(context);
+      if (settings.requiresInitialNoticeAgreement) {
+        AppNavigator.toInitialNotice(context);
+      } else {
+        AppNavigator.toDemographics(context);
+      }
       return const DsAuthOperationResult.success();
     } on DioException catch (error) {
       return DsAuthOperationResult.error(_buildLoginErrorMessage(error));

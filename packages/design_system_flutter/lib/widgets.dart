@@ -7,6 +7,8 @@ export 'components/auth/ds_professional_auth.dart';
 export 'components/async/ds_async_page.dart';
 export 'components/forms/ds_form_validators.dart';
 export 'components/forms/ds_normalized_key_field.dart';
+export 'components/legal/ds_legal_notice.dart';
+export 'components/legal/ds_legal_viewer.dart';
 export 'components/respondent_flow/ds_demographics_catalog_loader.dart';
 export 'components/respondent_flow/ds_patient_identity_section.dart';
 export 'components/respondent_flow/ds_survey_demographics_section.dart';

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 class AppNavigator {
   static const String loginRoute = '/login';
   static const String registrationRoute = '/register';
+  static const String initialNoticeRoute = '/initial-notice';
   static const String demographicsRoute = '/demographics';
   static const String narrativeRoute = '/narrative';
   static const String chatRoute = '/chat';
@@ -30,6 +31,10 @@ class AppNavigator {
 
   static Future<void> toDemographics(BuildContext context) {
     return Navigator.pushReplacementNamed(context, demographicsRoute);
+  }
+
+  static Future<void> toInitialNotice(BuildContext context) {
+    return Navigator.pushReplacementNamed(context, initialNoticeRoute);
   }
 
   static Future<void> toLogin(BuildContext context) {

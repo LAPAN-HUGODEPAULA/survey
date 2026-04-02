@@ -78,6 +78,11 @@ class ScreenerModel(BaseModel):
         description="Ano de conclusão do curso DARV (opcional), deve ser maior ou igual a 2000",
         ge=2000,
     )
+    initialNoticeAcceptedAt: Optional[datetime] = Field(
+        default=None,
+        alias="initialNoticeAcceptedAt",
+        description="Data de aceite do aviso inicial de uso da plataforma",
+    )
 
     @field_validator("phone")
     @classmethod

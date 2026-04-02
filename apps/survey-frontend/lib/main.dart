@@ -14,6 +14,7 @@ import 'package:survey_app/core/providers/api_provider.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/features/access_links/pages/access_link_launch_page.dart';
 import 'package:survey_app/features/demographics/pages/demographics_page.dart';
+import 'package:survey_app/features/screener/pages/screener_initial_notice_page.dart';
 import 'package:survey_app/features/screener/pages/screener_login_page.dart';
 import 'package:survey_app/features/screener/pages/screener_profile_page.dart';
 import 'package:survey_app/features/screener/pages/screener_registration_page.dart';
@@ -28,6 +29,7 @@ String? _routeGuard(BuildContext context, GoRouterState state) {
   final path = state.uri.path;
   final isPublicPath =
       path == '/login' || path == '/register' || path.startsWith('/access/');
+  final isInitialNoticePath = path == '/initial-notice';
   final allowsLockedAssessmentRoute =
       path == '/demographics' && _appSettings.isLockedAssessmentMode;
 
@@ -35,6 +37,16 @@ String? _routeGuard(BuildContext context, GoRouterState state) {
       !isPublicPath &&
       !allowsLockedAssessmentRoute) {
     return '/login';
+  }
+
+  if (_appSettings.requiresInitialNoticeAgreement &&
+      !isPublicPath &&
+      !isInitialNoticePath) {
+    return '/initial-notice';
+  }
+
+  if (!_appSettings.requiresInitialNoticeAgreement && isInitialNoticePath) {
+    return '/demographics';
   }
 
   if (_appSettings.isLoggedIn && (path == '/login' || path == '/register')) {
@@ -71,6 +83,10 @@ final _router = GoRouter(
         GoRoute(
           path: '/login',
           builder: (context, state) => const ScreenerLoginPage(),
+        ),
+        GoRoute(
+          path: '/initial-notice',
+          builder: (context, state) => const ScreenerInitialNoticePage(),
         ),
         GoRoute(
           path: '/profile',

@@ -6,6 +6,7 @@ import 'package:clinical_narrative_app/core/navigation/app_navigator.dart';
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
 import 'package:clinical_narrative_app/core/providers/chat_provider.dart';
 import 'package:clinical_narrative_app/features/chat/pages/chat_page.dart';
+import 'package:clinical_narrative_app/features/clinician/pages/clinician_initial_notice_page.dart';
 import 'package:clinical_narrative_app/features/clinician/pages/clinician_login_page.dart';
 import 'package:clinical_narrative_app/features/clinician/pages/clinician_registration_page.dart';
 import 'package:clinical_narrative_app/features/demographics/pages/demographics_page.dart';
@@ -58,6 +59,10 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute<void>(
               builder: (_) => const ClinicianRegistrationPage(),
             );
+          case AppNavigator.initialNoticeRoute:
+            return MaterialPageRoute<void>(
+              builder: (_) => const ClinicianInitialNoticePage(),
+            );
           case AppNavigator.demographicsRoute:
             return MaterialPageRoute<void>(
               builder: (_) => const DemographicsPage(),
@@ -87,6 +92,9 @@ class MyApp extends StatelessWidget {
       },
       home: Consumer<AppSettings>(
         builder: (context, settings, _) {
+          if (settings.requiresInitialNoticeAgreement) {
+            return const ClinicianInitialNoticePage();
+          }
           if (settings.isLoggedIn) {
             return const DemographicsPage();
           }

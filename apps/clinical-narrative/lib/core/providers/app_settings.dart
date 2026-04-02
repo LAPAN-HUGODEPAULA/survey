@@ -13,6 +13,8 @@ class AppSettings extends ChangeNotifier {
   ScreenerProfile? get screenerProfile => _screenerProfile;
   bool get isLoggedIn =>
       (_authToken?.isNotEmpty ?? false) && _screenerProfile != null;
+  bool get requiresInitialNoticeAgreement =>
+      isLoggedIn && _screenerProfile?.initialNoticeAcceptedAt == null;
   String get screenerDisplayName =>
       _screenerProfile?.displayName.isNotEmpty == true
       ? _screenerProfile!.displayName
@@ -43,6 +45,15 @@ class AppSettings extends ChangeNotifier {
   void clearPatientData() {
     _patient = Patient.initial();
     _narrative = '';
+    notifyListeners();
+  }
+
+  void markInitialNoticeAccepted(DateTime acceptedAt) {
+    final profile = _screenerProfile;
+    if (profile == null) {
+      return;
+    }
+    _screenerProfile = profile.copyWith(initialNoticeAcceptedAt: acceptedAt);
     notifyListeners();
   }
 

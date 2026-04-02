@@ -48,13 +48,13 @@ import 'package:survey_backend_api/survey_backend_api.dart';
 
 
 final api = SurveyBackendApi().getDefaultApi();
-final ClinicalWriterAnalysisRequest clinicalWriterAnalysisRequest = ; // ClinicalWriterAnalysisRequest | 
+final String authorization = authorization_example; // String | Bearer token in the format `Bearer <token>`
 
 try {
-    final response = await api.analyzeClinicalWriter(clinicalWriterAnalysisRequest);
+    final response = await api.acceptScreenerInitialNoticeAgreement(authorization);
     print(response);
 } catch on DioException (e) {
-    print("Exception when calling DefaultApi->analyzeClinicalWriter: $e\n");
+    print("Exception when calling DefaultApi->acceptScreenerInitialNoticeAgreement: $e\n");
 }
 
 ```
@@ -65,6 +65,7 @@ All URIs are relative to *http://localhost:8000/api/v1*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+[*DefaultApi*](doc/DefaultApi.md) | [**acceptScreenerInitialNoticeAgreement**](doc/DefaultApi.md#acceptscreenerinitialnoticeagreement) | **POST** /screeners/me/initial-notice-agreement | Record the current screener initial notice agreement
 [*DefaultApi*](doc/DefaultApi.md) | [**analyzeClinicalWriter**](doc/DefaultApi.md#analyzeclinicalwriter) | **POST** /clinical_writer/analysis | Analyze conversation context with Clinical Writer
 [*DefaultApi*](doc/DefaultApi.md) | [**approveTemplate**](doc/DefaultApi.md#approvetemplate) | **POST** /templates/{templateId}/approve | Approve template
 [*DefaultApi*](doc/DefaultApi.md) | [**archiveTemplate**](doc/DefaultApi.md#archivetemplate) | **POST** /templates/{templateId}/archive | Archive template

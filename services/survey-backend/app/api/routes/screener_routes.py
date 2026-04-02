@@ -105,6 +105,7 @@ class ScreenerProfile(BaseModel):
     jobTitle: str
     degree: str
     darvCourseYear: Optional[int] = None
+    initialNoticeAcceptedAt: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
@@ -288,4 +289,32 @@ async def get_current_screener(
     if not screener or not screener.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Screener not found")
     profile_data = screener.model_dump(by_alias=True, exclude={"password"})
+    return ScreenerProfile.model_validate(profile_data)
+
+
+@router.post(
+    "/screeners/me/initial-notice-agreement",
+    response_model=ScreenerProfile,
+)
+async def accept_initial_notice_agreement(
+    authorization: Optional[str] = Header(default=None, alias="Authorization"),
+    repo: ScreenerRepository = Depends(get_screener_repo),
+):
+    """Persist the platform-wide initial notice agreement for the current screener."""
+    email = _get_email_from_authorization_header(authorization)
+    screener = repo.find_by_email(email)
+    if not screener or not screener.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Screener not found")
+
+    accepted_screener = repo.record_initial_notice_agreement(
+        screener_id=screener.id,
+        accepted_at=datetime.utcnow(),
+    )
+    if not accepted_screener:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Não foi possível registrar o aceite do aviso inicial.",
+        )
+
+    profile_data = accepted_screener.model_dump(by_alias=True, exclude={"password"})
     return ScreenerProfile.model_validate(profile_data)

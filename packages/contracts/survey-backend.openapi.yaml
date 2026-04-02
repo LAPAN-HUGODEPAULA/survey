@@ -474,6 +474,28 @@ paths:
           description: Not authenticated or invalid token
         '404':
           description: Screener not found
+  /screeners/me/initial-notice-agreement:
+    post:
+      summary: Record the current screener initial notice agreement
+      operationId: acceptScreenerInitialNoticeAgreement
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: Bearer token in the format `Bearer <token>`
+      responses:
+        '200':
+          description: Updated screener profile after agreement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenerProfile'
+        '401':
+          description: Not authenticated or invalid token
+        '404':
+          description: Screener not found
   /screener_access_links/:
     post:
       summary: Create a prepared screener access link
@@ -1680,6 +1702,11 @@ components:
           type: integer
           description: Ano de conclusão do curso DARV (opcional)
           minimum: 2000
+        initialNoticeAcceptedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Data de aceite do aviso inicial de uso da plataforma
     ScreenerModel:
       type: object
       required:
@@ -1729,6 +1756,11 @@ components:
           type: integer
           description: Ano de conclusão do curso DARV (opcional)
           minimum: 2000
+        initialNoticeAcceptedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Data de aceite do aviso inicial de uso da plataforma
     ScreenerRegister:
       type: object
       required:

@@ -9,6 +9,7 @@ All URIs are relative to **
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**acceptScreenerInitialNoticeAgreement**](DefaultApi.md#acceptscreenerinitialnoticeagreement) | **POST** /screeners/me/initial-notice-agreement | Record the current screener initial notice agreement
 [**analyzeClinicalWriter**](DefaultApi.md#analyzeclinicalwriter) | **POST** /clinical_writer/analysis | Analyze conversation context with Clinical Writer
 [**approveTemplate**](DefaultApi.md#approvetemplate) | **POST** /templates/{templateId}/approve | Approve template
 [**archiveTemplate**](DefaultApi.md#archivetemplate) | **POST** /templates/{templateId}/archive | Archive template
@@ -60,6 +61,47 @@ Method | HTTP request | Description
 [**updateSurveyPrompt**](DefaultApi.md#updatesurveyprompt) | **PUT** /survey_prompts/{promptKey} | Update reusable survey prompt
 [**updateTemplate**](DefaultApi.md#updatetemplate) | **PUT** /templates/{templateId} | Update template (new version)
 
+
+# **acceptScreenerInitialNoticeAgreement**
+> ScreenerProfile acceptScreenerInitialNoticeAgreement(authorization)
+
+Record the current screener initial notice agreement
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String authorization = authorization_example; // String | Bearer token in the format `Bearer <token>`
+
+try {
+    final response = api.acceptScreenerInitialNoticeAgreement(authorization);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->acceptScreenerInitialNoticeAgreement: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **authorization** | **String**| Bearer token in the format `Bearer <token>` | 
+
+### Return type
+
+[**ScreenerProfile**](ScreenerProfile.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **analyzeClinicalWriter**
 > ClinicalWriterAnalysisResponse analyzeClinicalWriter(clinicalWriterAnalysisRequest)

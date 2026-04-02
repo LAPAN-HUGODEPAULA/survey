@@ -60,6 +60,7 @@ class ScreenerProfile {
     required this.jobTitle,
     required this.degree,
     required this.darvCourseYear,
+    required this.initialNoticeAcceptedAt,
   });
 
   factory ScreenerProfile.fromJson(Map<String, dynamic> json) {
@@ -83,6 +84,9 @@ class ScreenerProfile {
       darvCourseYear: json['darvCourseYear'] is int
           ? json['darvCourseYear'] as int
           : int.tryParse(json['darvCourseYear']?.toString() ?? ''),
+      initialNoticeAcceptedAt: DateTime.tryParse(
+        json['initialNoticeAcceptedAt']?.toString() ?? '',
+      ),
     );
   }
 
@@ -97,6 +101,25 @@ class ScreenerProfile {
   final String jobTitle;
   final String degree;
   final int? darvCourseYear;
+  final DateTime? initialNoticeAcceptedAt;
 
   String get displayName => '$firstName $surname'.trim();
+
+  ScreenerProfile copyWith({DateTime? initialNoticeAcceptedAt}) {
+    return ScreenerProfile(
+      id: id,
+      cpf: cpf,
+      firstName: firstName,
+      surname: surname,
+      email: email,
+      phone: phone,
+      address: address,
+      professionalCouncil: professionalCouncil,
+      jobTitle: jobTitle,
+      degree: degree,
+      darvCourseYear: darvCourseYear,
+      initialNoticeAcceptedAt:
+          initialNoticeAcceptedAt ?? this.initialNoticeAcceptedAt,
+    );
+  }
 }
