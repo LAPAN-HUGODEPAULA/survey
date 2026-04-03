@@ -1,6 +1,6 @@
 # TERMO DE USO E POLÍTICA DE PRIVACIDADE
 
-**Plataforma LAPAN Survey**
+**Plataforma Survey**
 **Módulos: Survey Patient, Survey Frontend, Clinical Narrative e componentes associados**
 **Versão:** 1.0
 **Última atualização:** 12 de abril de 2026
@@ -281,5 +281,4 @@ Este documento será regido pela legislação brasileira.
 Qualquer controvérsia relacionada a este Termo de Uso e Política de Privacidade será submetida ao foro competente, conforme a legislação aplicável.
 
 Sem prejuízo das vias administrativas e judiciais cabíveis, o titular poderá também apresentar reclamação à Autoridade Nacional de Proteção de Dados, nos termos da legislação vigente.
-
 

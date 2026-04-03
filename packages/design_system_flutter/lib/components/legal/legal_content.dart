@@ -35,38 +35,46 @@ class DsLegalContentRepository {
     switch (type) {
       case DsLegalDocumentType.termsOfUse:
         final markdown = await rootBundle.loadString(_termsPath);
-        return DsLegalDocument(
-          type: type,
-          title: 'Termo de Uso e Política de Privacidade',
-          markdown: markdown.trim(),
-        );
+        return parseTermsOfUse(markdown);
       case DsLegalDocumentType.initialNotice:
         final rawMarkdown = await rootBundle.loadString(_initialNoticePath);
-        final markerIndex = rawMarkdown.indexOf(_checkboxMarker);
-        if (markerIndex == -1) {
-          return DsLegalDocument(
-            type: type,
-            title: 'Aviso Inicial de Uso',
-            markdown: rawMarkdown.trim(),
-          );
-        }
-
-        final body = rawMarkdown.substring(0, markerIndex).trim();
-        final trailing =
-            rawMarkdown.substring(markerIndex + _checkboxMarker.length).trim();
-        final checkboxLabel = trailing
-            .split('\n')
-            .map((line) => line.trim())
-            .where((line) => line.isNotEmpty)
-            .map((line) => line.replaceFirst(RegExp(r'^\[\s*\]\s*'), '').trim())
-            .firstWhere((line) => line.isNotEmpty, orElse: () => '');
-
-        return DsLegalDocument(
-          type: type,
-          title: 'Aviso Inicial de Uso',
-          markdown: body,
-          checkboxLabel: checkboxLabel.isEmpty ? null : checkboxLabel,
-        );
+        return parseInitialNotice(rawMarkdown);
     }
+  }
+
+  static DsLegalDocument parseTermsOfUse(String markdown) {
+    return DsLegalDocument(
+      type: DsLegalDocumentType.termsOfUse,
+      title: 'Termo de Uso e Política de Privacidade',
+      markdown: markdown.trim(),
+    );
+  }
+
+  static DsLegalDocument parseInitialNotice(String rawMarkdown) {
+    final markerIndex = rawMarkdown.indexOf(_checkboxMarker);
+    if (markerIndex == -1) {
+      return DsLegalDocument(
+        type: DsLegalDocumentType.initialNotice,
+        title: 'Aviso Inicial de Uso',
+        markdown: rawMarkdown.trim(),
+      );
+    }
+
+    final body = rawMarkdown.substring(0, markerIndex).trim();
+    final trailing =
+        rawMarkdown.substring(markerIndex + _checkboxMarker.length).trim();
+    final checkboxLabel = trailing
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .map((line) => line.replaceFirst(RegExp(r'^\[\s*\]\s*'), '').trim())
+        .firstWhere((line) => line.isNotEmpty, orElse: () => '');
+
+    return DsLegalDocument(
+      type: DsLegalDocumentType.initialNotice,
+      title: 'Aviso Inicial de Uso',
+      markdown: body,
+      checkboxLabel: checkboxLabel.isEmpty ? null : checkboxLabel,
+    );
   }
 }

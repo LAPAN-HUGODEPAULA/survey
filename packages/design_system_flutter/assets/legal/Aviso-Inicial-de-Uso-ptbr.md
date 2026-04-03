@@ -15,6 +15,5 @@ Quando houver geração assistida de conteúdo por automação ou inteligência 
 Ao clicar em “Li e concordo”, você declara que leu e compreendeu este aviso e concorda com o Termo de Uso e Política de Privacidade da plataforma Survey.
 
 **Checkbox sugerido**
+
 [ ] Li e concordo com o Termo de Uso e Política de Privacidade e estou ciente de que o fornecimento dos meus dados é voluntário, nos termos informados.
-
-

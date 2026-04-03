@@ -282,4 +282,3 @@ Qualquer controvérsia relacionada a este Termo de Uso e Política de Privacidad
 
 Sem prejuízo das vias administrativas e judiciais cabíveis, o titular poderá também apresentar reclamação à Autoridade Nacional de Proteção de Dados, nos termos da legislação vigente.
 
-
