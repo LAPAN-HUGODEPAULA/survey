@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LAPAN - Exam Details: Helena Silveira</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&amp;family=Newsreader:opsz,wght@6..72,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#E67E22",
+                    "primary-light": "#FFB783",
+                    "on-primary": "#FFFFFF",
+                    "surface-variant": "#20262c",
+                    "surface-container": "#161a1e",
+                    "surface-container-low": "#111416",
+                    "on-surface": "#e0e6ed",
+                    "on-surface-variant": "#a6acb2",
+                    "outline": "#70767c",
+                    "outline-variant": "#42494e",
+                    "background": "#0c0e10",
+                    "surface": "#0c0e10",
+                    "error": "#ed7f64",
+                    "secondary": "#E67E22"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Manrope"],
+                    "body": ["Manrope"],
+                    "label": ["Manrope"],
+                    "serif": ["Newsreader"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .neuro-grid {
+            background-image: radial-gradient(circle, #E67E22 1px, transparent 1px);
+            background-size: 24px 24px;
+            opacity: 0.03;
+        }
+        body {
+            background-color: #0c0e10;
+            color: #e0e6ed;
+            font-family: 'Manrope', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(18, 20, 22, 0.8);
+            backdrop-filter: blur(20px);
+        }
+        .nav-active {
+            color: #FFB783;
+            border-bottom: 2px solid #E67E22;
+        }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden selection:bg-primary/30">
+<!-- TopAppBar (Shared Component) -->
+<header class="fixed top-0 w-full z-50 bg-[#121416]/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(0,0,0,0.25)] flex justify-between items-center px-8 h-16 w-full">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#E67E22]" data-icon="biotech">biotech</span>
+<h1 class="text-2xl font-bold tracking-tighter text-[#FFB783] font-['Manrope']">LAPAN</h1>
+</div>
+<div class="hidden md:flex gap-8 items-center font-['Manrope'] tracking-tight">
+<nav class="flex gap-6 h-full items-center">
+<a class="text-[#DCC1B1] hover:text-[#FFB783] transition-colors duration-300 uppercase text-[11px] font-medium tracking-wider py-5" href="#">Research</a>
+<a class="nav-active uppercase text-[11px] font-bold tracking-wider py-5" href="#">Patients</a>
+<a class="text-[#DCC1B1] hover:text-[#FFB783] transition-colors duration-300 uppercase text-[11px] font-medium tracking-wider py-5" href="#">Insights</a>
+<a class="text-[#DCC1B1] hover:text-[#FFB783] transition-colors duration-300 uppercase text-[11px] font-medium tracking-wider py-5" href="#">Profile</a>
+</nav>
+<div class="h-8 w-8 rounded-full bg-[#1A1C1E] overflow-hidden border border-outline-variant/20 active:scale-95 transition-transform cursor-pointer">
+<img alt="User clinical profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAJVHALIHtGn7jAIGrYkeyiFo2EIMQWGq5HgRzDCwGQ8dw00QXWosf0E7jBtxeQZF2OYkvEA4a32Bg6B0M8dY349S2dT7uCTq3THO6fDlQn7hPZ8xu5Fnaa8hwPbkhoYD31LZ1yTTTu71MHfgQe_TLCANu8c-IoltaDoStqrmegU1VX9OpUMiafZRGp6DkSO2_bJDNbtqQ_Zf-Ao1S5KPS8qHrSOy2VlVKA_7toGLI-fE4ro-FhW5vqzJA79l28tAUIXNy_sJAkno"/>
+</div>
+</div>
+</header>
+<!-- SideNavBar (Shared Component Focused) -->
+<aside class="h-screen w-64 fixed left-0 top-0 border-r border-[#564337]/15 bg-[#0C0E10] hidden lg:flex flex-col py-6 space-y-4 z-40">
+<div class="px-8 mb-8 mt-16">
+<h2 class="font-black text-[#E67E22] text-xl tracking-tighter">LAPAN Systems</h2>
+<p class="text-[0.6rem] text-[#DCC1B1] opacity-60 uppercase tracking-[0.2em]">Clinical Diagnostic Suite</p>
+</div>
+<nav class="flex-1 px-4 space-y-2 font-['Manrope'] uppercase tracking-widest text-[0.75rem]">
+<a class="flex items-center gap-4 px-4 py-3 text-[#DCC1B1] opacity-70 hover:bg-[#1A1C1E] hover:text-[#FFB783] transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="science">science</span>
+<span>Research</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 bg-[#282A2C] text-[#FFB783] border-l-4 border-[#E67E22] font-bold rounded-r-lg" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="group">group</span>
+<span>Patients</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#DCC1B1] opacity-70 hover:bg-[#1A1C1E] hover:text-[#FFB783] transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="analytics">analytics</span>
+<span>Insights</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3 text-[#DCC1B1] opacity-70 hover:bg-[#1A1C1E] hover:text-[#FFB783] transition-all duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined text-xl" data-icon="account_circle">account_circle</span>
+<span>Profile</span>
+</a>
+</nav>
+<div class="px-6 pt-6 border-t border-[#564337]/10">
+<button class="w-full py-3 px-4 bg-[#E67E22] text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all">
+            New Analysis
+        </button>
+</div>
+<div class="px-4 mt-auto space-y-1 font-['Manrope'] uppercase tracking-widest text-[0.65rem]">
+<a class="flex items-center gap-4 px-4 py-2 text-[#DCC1B1] opacity-70 hover:text-[#FFB783]" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="settings">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-2 text-[#DCC1B1] opacity-70 hover:text-[#FFB783]" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="help">help</span>
+<span>Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="lg:ml-64 pt-24 pb-32 px-6 md:px-12 max-w-7xl mx-auto">
+<!-- Hero Section -->
+<section class="relative mb-12">
+<div class="absolute inset-0 neuro-grid pointer-events-none"></div>
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 relative z-10">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="bg-[#E67E22]/10 text-[#E67E22] px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase border border-[#E67E22]/20">Clinical Detail</span>
+<span class="text-on-surface-variant text-sm">• ID: #LS-99201</span>
+</div>
+<h2 class="text-4xl md:text-5xl font-serif font-bold text-on-surface leading-tight mb-2">Helena Silveira</h2>
+<p class="text-xl text-on-surface-variant max-w-2xl font-light">Computerized Campimetry • Visual Field Analysis (SITA-Fast 24-2)</p>
+</div>
+<div class="flex gap-4">
+<button class="flex items-center gap-2 bg-[#1A1C1E] text-on-surface-variant px-5 py-3 rounded-xl hover:bg-surface-variant transition-all border border-outline-variant/10">
+<span class="material-symbols-outlined text-xl" data-icon="share">share</span>
+<span class="text-sm font-semibold">Share Result</span>
+</button>
+<button class="flex items-center gap-2 bg-[#E67E22] text-white px-6 py-3 rounded-xl hover:bg-[#D35400] transition-all shadow-lg shadow-[#E67E22]/20">
+<span class="material-symbols-outlined text-xl" data-icon="download">download</span>
+<span class="text-sm font-bold uppercase tracking-wider">Download PDF</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Left Column -->
+<div class="md:col-span-4 flex flex-col gap-6">
+<!-- Status Card -->
+<div class="bg-[#121416] p-6 rounded-2xl border border-outline-variant/10">
+<h3 class="text-xs font-black text-primary uppercase tracking-[0.2em] mb-6">Exam Parameters</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/5">
+<span class="text-on-surface-variant text-sm">Date</span>
+<span class="text-on-surface font-semibold text-sm">Oct 24, 2023</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/5">
+<span class="text-on-surface-variant text-sm">Fixation Monitor</span>
+<span class="text-on-surface font-semibold text-sm">Gaze/Blind Spot</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/5">
+<span class="text-on-surface-variant text-sm">Fixation Losses</span>
+<span class="text-primary font-bold text-sm">0/14 (Stable)</span>
+</div>
+<div class="flex justify-between items-center py-2 border-b border-outline-variant/5">
+<span class="text-on-surface-variant text-sm">False POS Errors</span>
+<span class="text-on-surface font-semibold text-sm">2%</span>
+</div>
+<div class="flex justify-between items-center py-2">
+<span class="text-on-surface-variant text-sm">False NEG Errors</span>
+<span class="text-error font-semibold text-sm">8%</span>
+</div>
+</div>
+</div>
+<!-- Patient Profile Mini -->
+<div class="bg-[#1A1C1E] p-6 rounded-2xl border border-outline-variant/10">
+<div class="flex items-center gap-4 mb-6">
+<div class="w-16 h-16 rounded-full overflow-hidden border-2 border-primary/30">
+<img alt="Patient photo" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3DkOf7tkFsctE8H_UYvmOHZ8HhicFEOH2_O6duK7Ojvd3RyfTWajHGS8t3XWhJWIMH74I-pDj_vn_d6p_KilsfvpDBOXZUBbgHURYHfIdZSnF6ZGXOfjwPQ-xqkBXXY4-ePIbd_3t9tbOdBQINPJvLQG2oUk5MMSXsKnzcGJShjF50nYkpXvXUKGzXbHQaEfDR3_siXOcI6CR4ghYLiilG-VR8_nq50w9dquEFfZui4rE3uSke765J7JT-uVWfI4Oxs1_M75zob4"/>
+</div>
+<div>
+<p class="text-xs text-primary font-black uppercase tracking-tighter">Patient Profile</p>
+<p class="text-lg font-bold">Helena Silveira</p>
+<p class="text-xs text-on-surface-variant">Age: 68 • F</p>
+</div>
+</div>
+<div class="bg-black/20 p-4 rounded-xl">
+<p class="text-[10px] text-primary/80 font-black uppercase mb-2 tracking-widest">Previous Diagnosis</p>
+<p class="text-sm italic text-on-surface/80 leading-relaxed">Early-stage Open Angle Glaucoma. Monitoring progression since 2021.</p>
+</div>
+</div>
+</div>
+<!-- Middle Column: Main Visualization -->
+<div class="md:col-span-8 flex flex-col gap-6">
+<div class="bg-[#121416] p-8 rounded-2xl border border-outline-variant/10">
+<div class="flex justify-between items-center mb-10">
+<h3 class="text-xl font-headline font-bold text-on-surface">Visual Field Results (OS)</h3>
+<div class="flex gap-2">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 bg-primary/10 border border-primary/20 rounded text-[10px] font-black text-primary uppercase tracking-widest">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span> STABLE
+                        </span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+<!-- Threshold Map -->
+<div class="flex flex-col items-center">
+<p class="text-[10px] font-black tracking-[0.2em] text-on-surface-variant uppercase mb-6 text-center">Threshold Map (dB)</p>
+<div class="relative w-full aspect-square max-w-[280px] bg-black/40 rounded-full flex items-center justify-center p-6 border border-outline-variant/5">
+<div class="grid grid-cols-7 grid-rows-7 gap-2 w-full h-full opacity-90">
+<!-- Grid Mock Data -->
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">28</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">30</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">29</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">31</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">30</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">29</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">27</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">31</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/10 rounded-sm text-primary font-black">32</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/10 rounded-sm text-primary font-black">33</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/10 rounded-sm text-primary font-black">32</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/10 rounded-sm text-primary font-black">33</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/10 rounded-sm text-primary font-black">31</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">30</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">29</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/10 rounded-sm text-primary font-black">33</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/20 rounded-sm text-primary font-black">34</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/20 rounded-sm text-primary font-black">34</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/20 rounded-sm text-primary font-black">33</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/10 rounded-sm text-primary font-black">32</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">28</div>
+<div class="flex items-center justify-center text-[10px] text-on-surface-variant font-bold">22</div>
+<div class="flex items-center justify-center text-[10px] bg-error/10 rounded-sm text-error font-bold">14</div>
+<div class="flex items-center justify-center text-[10px] bg-error/30 rounded-sm text-error font-bold">08</div>
+<div class="flex items-center justify-center text-[10px] bg-white/20 rounded-sm text-white font-bold">&lt;0</div>
+<div class="flex items-center justify-center text-[10px] bg-error/30 rounded-sm text-error font-bold">09</div>
+<div class="flex items-center justify-center text-[10px] bg-error/10 rounded-sm text-error font-bold">15</div>
+<div class="flex items-center justify-center text-[10px] text-on-surface-variant font-bold">24</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">27</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/10 rounded-sm text-primary font-black">31</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/20 rounded-sm text-primary font-black">33</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/20 rounded-sm text-primary font-black">34</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/20 rounded-sm text-primary font-black">32</div>
+<div class="flex items-center justify-center text-[10px] bg-primary/10 rounded-sm text-primary font-black">30</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">26</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">26</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">29</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">31</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">30</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">29</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">28</div>
+<div class="flex items-center justify-center text-[10px] text-primary-light font-bold">25</div>
+<div class="flex items-center justify-center text-[10px] text-on-surface-variant font-bold">22</div>
+<div class="flex items-center justify-center text-[10px] text-on-surface-variant font-bold">24</div>
+<div class="flex items-center justify-center text-[10px] text-on-surface-variant font-bold">26</div>
+<div class="flex items-center justify-center text-[10px] text-on-surface-variant font-bold">25</div>
+<div class="flex items-center justify-center text-[10px] text-on-surface-variant font-bold">24</div>
+<div class="flex items-center justify-center text-[10px] text-on-surface-variant font-bold">23</div>
+<div class="flex items-center justify-center text-[10px] text-on-surface-variant font-bold">21</div>
+</div>
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="w-px h-full bg-primary/10"></div>
+<div class="h-px w-full bg-primary/10"></div>
+</div>
+</div>
+</div>
+<!-- Pattern Deviation -->
+<div class="flex flex-col items-center">
+<p class="text-[10px] font-black tracking-[0.2em] text-on-surface-variant uppercase mb-6 text-center">Pattern Deviation (%)</p>
+<div class="relative w-full aspect-square max-w-[280px] bg-black/40 rounded-full overflow-hidden flex items-center justify-center border border-outline-variant/5">
+<div class="w-full h-full bg-gradient-to-br from-black/20 via-primary/5 to-primary/10 opacity-60"></div>
+<div class="absolute inset-0 flex items-center justify-center flex-wrap gap-4 p-8">
+<div class="w-12 h-12 bg-primary/80 rounded-sm mix-blend-screen"></div>
+<div class="w-8 h-8 bg-primary/60 rounded-sm"></div>
+<div class="w-14 h-14 bg-primary/90 rounded-sm"></div>
+<div class="w-10 h-10 bg-primary/40 rounded-sm"></div>
+<div class="w-6 h-6 bg-primary/20 rounded-sm"></div>
+</div>
+<p class="absolute bottom-8 text-[10px] text-primary-light font-bold italic tracking-wider">Nasal Step Detected</p>
+</div>
+</div>
+</div>
+<!-- Global Indices -->
+<div class="mt-12 grid grid-cols-3 gap-6">
+<div class="bg-black/30 p-5 rounded-2xl border border-outline-variant/5 group hover:border-primary/30 transition-all">
+<p class="text-[10px] font-black text-primary/60 uppercase tracking-widest mb-1">VFI</p>
+<p class="text-3xl font-headline font-black text-primary-light">94%</p>
+<p class="text-[10px] text-on-surface-variant font-medium">Visual Field Index</p>
+</div>
+<div class="bg-black/30 p-5 rounded-2xl border border-outline-variant/5 group hover:border-error/30 transition-all">
+<p class="text-[10px] font-black text-error/60 uppercase tracking-widest mb-1">MD</p>
+<p class="text-3xl font-headline font-black text-error">-2.45 dB</p>
+<p class="text-[10px] text-on-surface-variant font-medium">Mean Deviation</p>
+</div>
+<div class="bg-black/30 p-5 rounded-2xl border border-outline-variant/5 group hover:border-primary/30 transition-all">
+<p class="text-[10px] font-black text-primary/60 uppercase tracking-widest mb-1">PSD</p>
+<p class="text-3xl font-headline font-black text-primary">+3.12 dB</p>
+<p class="text-[10px] text-on-surface-variant font-medium">Pattern Std. Dev.</p>
+</div>
+</div>
+</div>
+<!-- Medical Report Section -->
+<div class="bg-[#121416] p-10 rounded-2xl border border-outline-variant/10">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="description">description</span>
+<h3 class="text-xl font-headline font-bold text-on-surface">Laudo Médico (Clinical Report)</h3>
+</div>
+<div class="space-y-6 text-on-surface/80 leading-relaxed font-body text-lg">
+<p>
+                        O exame de campimetria computadorizada do olho esquerdo (OS) revela uma preservação significativa da sensibilidade central. No entanto, observa-se um degrau nasal incipiente e alguns pontos de depressão relativa no campo superior periférico.
+                    </p>
+<p>
+                        Os índices de confiabilidade estão dentro dos parâmetros aceitáveis (Perda de fixação 0/14), validando a acurácia dos resultados. O VFI de 94% sugere uma função visual global robusta, apesar da progressão discreta do escotoma paracentral observado em exames anteriores.
+                    </p>
+<p class="font-bold border-l-4 border-primary pl-6 py-4 bg-primary/5 rounded-r-xl text-on-surface">
+                        Conclusão: Glaucoma de ângulo aberto em estágio inicial com estabilidade clínica nos últimos 6 meses. Recomenda-se manutenção da terapêutica atual e reavaliação em 180 dias.
+                    </p>
+</div>
+<div class="mt-12 pt-8 border-t border-outline-variant/10 flex justify-between items-center">
+<div class="flex items-center gap-4">
+<img alt="Doctor Signature" class="w-14 h-14 rounded-full object-cover border-2 border-primary/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTTSK5uZbhgNYuqSTUJcYkgPFRXY4r7Q2Maw1bUsN6dMjaxFw-wnZ1LWIXePhIkDLkUkQokzsazF9AUHckwd4z6MYtVgcyyHRK7nhnqrw7UjDCdFthc8JEhH3PwyvQMgKF4clYX3lFPw0E741G6m3MruCmdPMjE6Dd71HzmpNFNUplwxjp0-spXFADNIIn9CUeChDPumccUrrM03M5b2kJfUMN8V0-BbUG4mdlSegtKxxHhRVda3oJjfXv9Zyu_vEdt9bHVF-BLpY"/>
+<div>
+<p class="text-base font-bold text-on-surface">Dr. Ricardo M. Fontes</p>
+<p class="text-xs text-primary font-medium tracking-wide">CRM/SP 123456 • Ophthalmology Specialist</p>
+</div>
+</div>
+<div class="text-right">
+<img alt="Stamp" class="h-12 opacity-30 grayscale contrast-150 hover:opacity-60 transition-opacity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAK-DTgsFwVin9Eu3yqE4REoV8H4gwhhjgHcxUps6k6D3wXYTgsF57Cr0vZaZMxQVecGodsnFgvK535e-FlPZv3qzrL7E2xHqK0ciDXz-4442aAR78EsWzZ_V3P28rH4MCZCBFVPIsfJtv79V_c2WX-scR_X0vJ_NpCjH5oz7sVUtpLGhUoVEdfBzO4AwQE__anyaBWAF2yPuwptIOjRbPDyU5VQU-keGkElRGO-5rbO0IRMpFSEHOxz6ROJq6r7PtmUnNp_xO81XA"/>
+<p class="text-[10px] text-on-surface-variant mt-2 font-bold uppercase tracking-widest">Digitally Signed: 24/10/2023 15:42</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="mt-20 py-8 border-t border-outline-variant/10 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-xs text-on-surface-variant font-medium">© 2024 LAPAN Medical Systems • Laboratory for Advanced Perimetry &amp; Neurosciences</p>
+<div class="flex gap-8">
+<a class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Protocol</a>
+<a class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">Data Security</a>
+<a class="text-[11px] font-black uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">Help Center</a>
+</div>
+</footer>
+</main>
+<!-- Bottom Nav (Mobile Only) -->
+<nav class="lg:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-[#121416]/95 backdrop-blur-xl z-50 rounded-t-2xl border-t border-outline-variant/10">
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1.5">
+<span class="material-symbols-outlined" data-icon="science">science</span>
+<span class="text-[10px] font-bold uppercase tracking-widest mt-1">Research</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary px-4 py-1.5">
+<span class="material-symbols-outlined" data-icon="group" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="text-[10px] font-bold uppercase tracking-widest mt-1">Patients</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1.5">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-[10px] font-bold uppercase tracking-widest mt-1">Insights</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1.5">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span class="text-[10px] font-bold uppercase tracking-widest mt-1">Profile</span>
+</div>
+</nav>
+</body></html>
