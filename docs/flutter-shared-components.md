@@ -28,6 +28,7 @@ Define where reusable Flutter UI belongs in the monorepo and how application cod
 - `lib/components/admin/`
 - `lib/components/forms/`
 - `lib/widgets/`
+- `lib/theme/`
 
 The first shared feature wave includes:
 
@@ -39,6 +40,13 @@ The first shared feature wave includes:
 - `DsSurveyDetailsPanel` for reusable survey metadata presentation
 - `DsAdminCatalogShell` and `DsAdminCatalogItem` for builder catalogs
 - `DsAdminFormShell`, `DsNormalizedKeyField`, and `DsInlineConflictMessage` for builder forms
+
+The current shared dark-theme foundation also includes:
+
+- `AppTheme.dark()` as the canonical LAPAN Flutter theme
+- `LapanColorTokens`, `LapanSurfaceTokens`, `LapanGradientTokens`, `LapanSpacingTokens`, and `LapanInteractionTokens` for the dark palette, surfaces, gradients, spacing, and interaction states
+- `DsScaffold`, `DsPageHeader`, `DsPageFrame`, `DsPanel`, `DsSection`, `DsFocusFrame`, and `DsFieldChrome` for the shared dark shell and tonal surface hierarchy
+- shared dark-theme variants for buttons, dialogs, chips, indicators, chat bubbles, legal screens, respondent-flow widgets, auth widgets, and report widgets
 
 The current professional-auth surface also includes:
 
@@ -62,6 +70,17 @@ The current professional-auth surface also includes:
   - repeated presentation states
   - repeated CRUD shell composition
   - repeated professional auth presentation and account-menu composition
+  - the canonical LAPAN dark palette and surface hierarchy
+  - reusable tonal panels, section containers, focus frames, and shared status/footer treatments
+
+## Dark-Theme Usage Rules
+
+- All production Flutter apps in this repo should use `AppTheme.dark()` as the only application theme.
+- New full-screen routes should default to `DsScaffold` and prefer its `title`, `subtitle`, `header`, `actions`, and `footer` API before introducing local page shells.
+- Prefer `DsSection`, `DsPanel`, and `DsFocusFrame` instead of local `Card`, ad-hoc bordered `Container`, or one-off tonal wrappers.
+- Prefer `DsAdminCatalogShell`, `DsAdminCatalogItem`, and `DsAdminFormShell` for administrative CRUD routes before creating builder-local shells.
+- Keep text contrast aligned with `docs/lapan-design/lapan-design.md`; body text and important labels must not rely on alpha values below the documented floor.
+- If a screen needs route-specific navigation actions, keep the navigation logic in the app and compose it around the shared shell instead of moving app routing into `design_system_flutter`.
 
 ## Implementation Plan For New Reuse
 

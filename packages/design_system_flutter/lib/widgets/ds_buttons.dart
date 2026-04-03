@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:design_system_flutter/theme/app_theme.dart';
 
 enum DsButtonSize { small, medium, large }
 
@@ -47,29 +48,74 @@ class DsFilledButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final buttonSize = _buttonSize(size);
     final textStyle = _buttonTextStyle(context, size);
+    final theme = Theme.of(context);
+    final gradients = theme.extension<LapanGradientTokens>();
+    final disabled = loading || onPressed == null;
     final child = loading
         ? SizedBox(
             width: buttonSize.height * 0.5,
             height: buttonSize.height * 0.5,
             child: const CircularProgressIndicator(strokeWidth: 2),
           )
-        : Text(label, style: textStyle);
+        : Text(label);
 
     return Semantics(
       button: true,
       label: semanticsLabel ?? label,
-      child: SizedBox(
-        height: buttonSize.height,
-        child: icon == null
-            ? FilledButton(
-                onPressed: loading ? null : onPressed,
-                child: child,
-              )
-            : FilledButton.icon(
-                onPressed: loading ? null : onPressed,
-                icon: Icon(icon, size: textStyle.fontSize != null ? textStyle.fontSize! + 2 : 16),
-                label: child,
+      enabled: !disabled,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: buttonSize.height),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: disabled ? null : gradients?.primaryAction,
+            color: disabled ? theme.colorScheme.surfaceContainerHighest : null,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: disabled ? null : onPressed,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (icon != null && !loading) ...[
+                      Icon(
+                        icon,
+                        size: textStyle.fontSize != null
+                            ? textStyle.fontSize! + 2
+                            : 16,
+                        color: disabled
+                            ? theme.disabledColor
+                            : theme.colorScheme.onPrimary,
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    DefaultTextStyle(
+                      style: textStyle.copyWith(
+                        color: disabled
+                            ? theme.disabledColor
+                            : theme.colorScheme.onPrimary,
+                      ),
+                      child: IconTheme(
+                        data: IconThemeData(
+                          color: disabled
+                              ? theme.disabledColor
+                              : theme.colorScheme.onPrimary,
+                        ),
+                        child: child,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -117,7 +163,10 @@ class DsOutlinedButton extends StatelessWidget {
               )
             : OutlinedButton.icon(
                 onPressed: loading ? null : onPressed,
-                icon: Icon(icon, size: textStyle.fontSize != null ? textStyle.fontSize! + 2 : 16),
+                icon: Icon(icon,
+                    size: textStyle.fontSize != null
+                        ? textStyle.fontSize! + 2
+                        : 16),
                 label: child,
               ),
       ),
@@ -167,7 +216,10 @@ class DsTextButton extends StatelessWidget {
               )
             : TextButton.icon(
                 onPressed: loading ? null : onPressed,
-                icon: Icon(icon, size: textStyle.fontSize != null ? textStyle.fontSize! + 2 : 16),
+                icon: Icon(icon,
+                    size: textStyle.fontSize != null
+                        ? textStyle.fontSize! + 2
+                        : 16),
                 label: child,
               ),
       ),

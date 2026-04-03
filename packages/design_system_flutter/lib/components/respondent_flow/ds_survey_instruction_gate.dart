@@ -1,4 +1,6 @@
 import 'package:design_system_flutter/components/respondent_flow/respondent_flow_models.dart';
+import 'package:design_system_flutter/widgets/ds_buttons.dart';
+import 'package:design_system_flutter/widgets/ds_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 
@@ -52,101 +54,88 @@ class _DsSurveyInstructionGateState extends State<DsSurveyInstructionGate> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
-      child: Container(
-        padding: const EdgeInsets.all(24),
+      child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 700),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Html(
-                      data: widget.instructions.preambleHtml,
-                      style: {
-                        'body': Style(
-                          fontSize: FontSize(16),
-                          lineHeight: const LineHeight(1.4),
-                        ),
-                        'p': Style(margin: Margins.only(bottom: 12)),
-                        'ul': Style(
-                          margin: Margins.symmetric(vertical: 8),
-                          padding: HtmlPaddings.only(left: 20),
-                        ),
-                        'li': Style(margin: Margins.only(bottom: 4)),
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      widget.instructions.questionText,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ...widget.instructions.answers.map(_buildAnswerTile),
-                    if (_showError)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 16),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.errorContainer,
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
+        child: DsPanel(
+          tone: DsPanelTone.base,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Html(
+                        data: widget.instructions.preambleHtml,
+                        style: {
+                          'body': Style(
+                            fontSize: FontSize(16),
+                            lineHeight: const LineHeight(1.4),
                           ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.error_outline,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onErrorContainer,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Por favor, selecione a resposta correta para continuar.',
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onErrorContainer,
-                                    fontSize: 14,
+                          'p': Style(margin: Margins.only(bottom: 12)),
+                          'ul': Style(
+                            margin: Margins.symmetric(vertical: 8),
+                            padding: HtmlPaddings.only(left: 20),
+                          ),
+                          'li': Style(margin: Margins.only(bottom: 4)),
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        widget.instructions.questionText,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const SizedBox(height: 16),
+                      ...widget.instructions.answers.map(_buildAnswerTile),
+                      if (_showError)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: DsPanel(
+                            tone: DsPanelTone.high,
+                            backgroundColor: colorScheme.errorContainer,
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  color: colorScheme.onErrorContainer,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Por favor, selecione a resposta correta para continuar.',
+                                    style: TextStyle(
+                                      color: colorScheme.onErrorContainer,
+                                      fontSize: 14,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _tryContinue,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    ],
                   ),
                 ),
-                child: Text(
-                  widget.buttonLabel,
-                  style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: DsFilledButton(
+                  label: widget.buttonLabel,
+                  onPressed: _tryContinue,
+                  size: DsButtonSize.large,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

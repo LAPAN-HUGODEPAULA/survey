@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-import os
 from datetime import UTC, datetime
 
 from pymongo import MongoClient
+
+from _env import load_migration_env, resolve_mongo_db_name, resolve_mongo_uri
 
 
 DEFAULT_SURVEY_PROMPT_KEY = "survey7"
@@ -67,17 +68,6 @@ DEFAULT_PERSONA_SKILLS = [
 ]
 
 
-def _resolve_mongo_uri() -> str:
-    mongo_uri = os.getenv("MONGO_URI")
-    if mongo_uri:
-        return mongo_uri
-    username = os.getenv("MONGO_USERNAME")
-    password = os.getenv("MONGO_PASSWORD")
-    if username and password:
-        return f"mongodb://{username}:{password}@localhost:27017/"
-    return "mongodb://localhost:27017/"
-
-
 def _normalize_questionnaire_prompt(document: dict) -> dict:
     timestamp = document.get("modifiedAt") or document.get("createdAt") or datetime.now(UTC)
     return {
@@ -91,8 +81,9 @@ def _normalize_questionnaire_prompt(document: dict) -> dict:
 
 
 def main() -> None:
-    client = MongoClient(_resolve_mongo_uri(), serverSelectionTimeoutMS=5000)
-    db = client[os.getenv("MONGO_DB_NAME", "survey_db")]
+    load_migration_env()
+    client = MongoClient(resolve_mongo_uri(), serverSelectionTimeoutMS=5000)
+    db = client[resolve_mongo_db_name()]
     try:
         questionnaire_prompts = db[QUESTIONNAIRE_PROMPTS_COLLECTION]
         persona_skills = db[PERSONA_SKILLS_COLLECTION]

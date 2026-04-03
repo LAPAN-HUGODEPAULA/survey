@@ -461,14 +461,14 @@ class _ThankYouPageState extends State<ThankYouPage> {
     final reportDocument = _agentResponse == null
         ? null
         : _resolveReportDocument(settings, _agentResponse!);
+    final theme = Theme.of(context);
+    final displayName = widget.survey.surveyDisplayName.isNotEmpty
+        ? widget.survey.surveyDisplayName
+        : widget.survey.surveyName;
 
     return DsScaffold(
-      appBar: AppBar(
-        title: const Text('Finalizado'),
-        backgroundColor: Colors.orange,
-        // Hide back navigation because the survey flow is complete here.
-        automaticallyImplyLeading: false,
-      ),
+      title: 'Avaliacao finalizada',
+      subtitle: 'Revise o envio e os proximos passos da triagem.',
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
@@ -519,8 +519,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                                 _savedResponseId != null
                                     ? 'Respostas enviadas para o servidor com sucesso!'
                                     : 'Respostas salvas localmente.',
-                                style: const TextStyle(
-                                  fontSize: 14,
+                                style: theme.textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -529,12 +528,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Questionário: ${widget.survey.surveyDisplayName.isNotEmpty ? widget.survey.surveyDisplayName : widget.survey.surveyName}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onTertiaryContainer,
+                          'Questionario: $displayName',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onTertiaryContainer,
                           ),
                         ),
                         if (_savedResponseId != null) ...[
@@ -544,11 +540,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                               Expanded(
                                 child: Text(
                                   'Protocolo da submissão: $_savedResponseId',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onTertiaryContainer,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color:
+                                        theme.colorScheme.onTertiaryContainer,
                                     fontFamily: 'monospace',
                                   ),
                                 ),
@@ -562,11 +556,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                               Expanded(
                                 child: Text(
                                   'Arquivo salvo em: $_savedFilePath',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onTertiaryContainer,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color:
+                                        theme.colorScheme.onTertiaryContainer,
                                     fontFamily: 'monospace',
                                   ),
                                 ),
@@ -581,11 +573,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                               Expanded(
                                 child: Text(
                                   _saveError!,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onTertiaryContainer,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color:
+                                        theme.colorScheme.onTertiaryContainer,
                                   ),
                                 ),
                               ),
@@ -607,10 +597,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
                     const SizedBox(height: 24),
                   ],
                   if (reportDocument == null && kDebugMode) ...[
-                    OutlinedButton.icon(
+                    DsOutlinedButton(
                       onPressed: _loadDemoReport,
-                      icon: const Icon(Icons.visibility_outlined),
-                      label: const Text('Carregar relatorio de exemplo'),
+                      icon: Icons.visibility_outlined,
+                      label: 'Carregar relatorio de exemplo',
                     ),
                     if (_demoReportError != null) ...[
                       const SizedBox(height: 8),
@@ -669,23 +659,22 @@ class _ThankYouPageState extends State<ThankYouPage> {
                 if (!_isSaving && _saveSuccess)
                   const SizedBox.shrink()
                 else if (!_isSaving)
-                  const Column(
+                  Column(
                     children: [
                       Icon(
                         Icons.check_circle_outline,
-                        color: Colors.orange,
+                        color: theme.colorScheme.primary,
                         size: 100,
                       ),
-                      SizedBox(height: 24),
+                      const SizedBox(height: 24),
                     ],
                   ),
 
                 // Primary confirmation message shown for every completion state.
                 Text(
                   'Obrigado por responder!',
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -694,9 +683,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                 // Include the survey name when it helps disambiguate the completed form.
                 Text(
                   widget.survey.surveyDisplayName.isNotEmpty
-                      ? 'Suas respostas para o questionário "${widget.survey.surveyDisplayName}" foram registradas.'
+                      ? 'Suas respostas para o questionario "${widget.survey.surveyDisplayName}" foram registradas.'
                       : 'Suas respostas foram registradas com sucesso.',
-                  style: const TextStyle(fontSize: 18),
+                  style: theme.textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
 
@@ -728,12 +717,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
                             const SizedBox(width: 8),
                             Text(
                               'Informações Importantes',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSecondaryContainer,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: theme.colorScheme.onSecondaryContainer,
                               ),
                             ),
                           ],
@@ -745,7 +731,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                             "body": Style(
                               fontSize: FontSize(16.0),
                               lineHeight: const LineHeight(1.5),
-                              color: Colors.black87,
+                              color: theme.colorScheme.onSurface,
                             ),
                             "p": Style(margin: Margins.only(bottom: 12.0)),
                             "strong": Style(fontWeight: FontWeight.bold),
@@ -763,7 +749,8 @@ class _ThankYouPageState extends State<ThankYouPage> {
                 const SizedBox(height: 40),
 
                 // Let staff reset the workflow for the next respondent.
-                ElevatedButton(
+                DsFilledButton(
+                  label: 'Iniciar nova avaliacao',
                   onPressed: () {
                     // Clear shared patient state before returning to the first screen.
                     final settings = Provider.of<AppSettings>(
@@ -774,19 +761,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
                     Navigator.of(context).popUntil((route) => route.isFirst);
                   },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Iniciar Nova Avaliação',
-                    style: TextStyle(fontSize: 16),
-                  ),
+                  size: DsButtonSize.large,
                 ),
               ],
             ),

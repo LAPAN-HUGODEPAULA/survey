@@ -180,6 +180,8 @@ class _SurveyListPageState extends State<SurveyListPage> {
   Widget build(BuildContext context) {
     return DsScaffold(
       title: 'Construtor de Questionários',
+      subtitle:
+          'Gerencie questionarios, prompts e personas no shell administrativo compartilhado.',
       useSafeArea: true,
       actions: [
         IconButton(
@@ -254,8 +256,9 @@ class _SurveyListPageState extends State<SurveyListPage> {
                           const SizedBox(height: 8),
                       itemBuilder: (context, index) {
                         final survey = _surveys[index];
-                        return Card(
-                          elevation: 1,
+                        return DsPanel(
+                          tone: DsPanelTone.high,
+                          padding: EdgeInsets.zero,
                           child: ListTile(
                             title: Text(survey.surveyDisplayName),
                             subtitle: Column(
@@ -265,14 +268,12 @@ class _SurveyListPageState extends State<SurveyListPage> {
                                 Text(_plainSummary(survey.surveyDescription)),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Rótulos: ${_questionLabelPreview(survey)}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
+                                  'Rotulos: ${_questionLabelPreview(survey)}',
+                                  style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
                                       ),
                                 ),
                               ],

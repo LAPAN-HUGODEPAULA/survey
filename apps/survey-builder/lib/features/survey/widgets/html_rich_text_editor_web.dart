@@ -1,6 +1,7 @@
 import 'dart:js_interop';
 import 'dart:ui_web' as ui;
 
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 
@@ -155,21 +156,21 @@ class _PlatformHtmlRichTextEditorState
     final controller = TextEditingController();
     final link = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Inserir link'),
+      builder: (context) => DsDialog(
+        title: 'Inserir link',
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(labelText: 'URL'),
           autofocus: true,
         ),
         actions: [
-          TextButton(
+          DsTextButton(
+            label: 'Cancelar',
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
           ),
-          FilledButton(
+          DsFilledButton(
+            label: 'Inserir',
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Inserir'),
           ),
         ],
       ),

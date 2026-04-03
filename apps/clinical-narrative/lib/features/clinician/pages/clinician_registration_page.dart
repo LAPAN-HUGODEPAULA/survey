@@ -1,7 +1,6 @@
 import 'package:clinical_narrative_app/core/config/runtime_config.dart';
 import 'package:clinical_narrative_app/core/navigation/app_navigator.dart';
 import 'package:clinical_narrative_app/core/services/api_config.dart';
-import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -12,9 +11,10 @@ class ClinicianRegistrationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: const ClinicianNavigationAppBar(
-        title: Text('Cadastro do Profissional'),
-      ),
+      title: 'Cadastro do profissional',
+      subtitle:
+          'Crie sua conta profissional com os mesmos dados usados no ambiente de avaliacao.',
+      scrollable: true,
       body: DsProfessionalSignUpCard(
         header: const Icon(Icons.medical_information_outlined, size: 56),
         subtitle:

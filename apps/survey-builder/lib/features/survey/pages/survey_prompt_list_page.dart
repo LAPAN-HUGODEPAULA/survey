@@ -89,7 +89,8 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(title: const Text('Prompts reutilizáveis')),
+      title: 'Prompts reutilizaveis',
+      subtitle: 'Gerencie os prompts compartilhados usados pelos fluxos de IA.',
       body: DsAdminCatalogShell<SurveyPromptDraft>(
         heading: 'Catálogo de prompts',
         createLabel: 'Criar prompt',

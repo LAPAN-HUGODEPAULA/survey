@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import logging
-import os
 from datetime import datetime
 
-from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.database import Database
+
+from _env import load_migration_env, resolve_mongo_db_name, resolve_mongo_uri
 
 
 logging.basicConfig(
@@ -22,27 +22,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger("migration_004")
 
-load_dotenv()
+load_migration_env()
 
 SURVEY_RESPONSES_COLLECTION = "survey_responses"
 LEGACY_SURVEY_RESULTS_COLLECTION = "survey_results"
 PATIENT_RESPONSES_COLLECTION = "patient_responses"
 LEGACY_PATIENT_RESULTS_COLLECTION = "patient_results"
-
-
-def _resolve_mongo_uri() -> str:
-    mongo_uri = os.getenv("MONGO_URI")
-    if not mongo_uri:
-        username = os.getenv("MONGO_USERNAME")
-        password = os.getenv("MONGO_PASSWORD")
-        if username and password:
-            return f"mongodb://{username}:{password}@localhost:27017/"
-        return "mongodb://localhost:27017/"
-
-    if not mongo_uri.startswith(("mongodb://", "mongodb+srv://")):
-        return f"mongodb://{mongo_uri}"
-
-    return mongo_uri
 
 
 def _copy_documents(source: Collection, target: Collection) -> int:
@@ -84,8 +69,8 @@ def _migrate_collection(
 
 
 def main() -> None:
-    mongo_uri = _resolve_mongo_uri()
-    mongo_db_name = os.getenv("MONGO_DB_NAME", "survey_db")
+    mongo_uri = resolve_mongo_uri()
+    mongo_db_name = resolve_mongo_db_name()
     client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
     try:
         client.admin.command("ping")

@@ -1,6 +1,6 @@
 # TERMO DE USO E POLÍTICA DE PRIVACIDADE
 
-**Plataforma Survey**
+**Plataforma LAPAN Survey**
 **Módulos: Survey Patient, Survey Frontend, Clinical Narrative e componentes associados**
 **Versão:** 1.0
 **Última atualização:** 12 de abril de 2026

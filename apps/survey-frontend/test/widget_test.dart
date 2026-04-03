@@ -28,7 +28,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => ApiProvider()),
         ],
         child: MaterialApp(
-          theme: AppTheme.light(),
+          theme: AppTheme.dark(),
           home: const ScreenerLoginPage(),
         ),
       ),
@@ -36,7 +36,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Login do Avaliador'), findsOneWidget);
+    expect(find.text('Login do avaliador'), findsOneWidget);
     expect(find.text('Não tem uma conta? Registre-se'), findsOneWidget);
     expect(find.byType(DsScaffold), findsOneWidget);
     expect(find.text(dsSharedStatusBarText), findsOneWidget);

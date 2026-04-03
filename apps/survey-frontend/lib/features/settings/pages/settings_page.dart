@@ -187,214 +187,176 @@ class _SettingsPageState extends State<SettingsPage> {
         final generatedUrl = _generatedLink == null
             ? null
             : _accessLinkRepository.buildShareableUrl(_generatedLink!.token);
+        final theme = Theme.of(context);
+
+        Widget surveySelectionChild;
+        if (settings.isLoadingSurveys) {
+          surveySelectionChild = const Center(
+            child: CircularProgressIndicator(),
+          );
+        } else if (settings.availableSurveys.isEmpty) {
+          surveySelectionChild = DsFocusFrame(
+            child: Text(
+              'Nenhum questionario foi encontrado no servidor. Verifique se o backend esta em execucao.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          );
+        } else {
+          surveySelectionChild = Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DropdownButtonFormField<String>(
+                key: ValueKey(settings.selectedSurveyId),
+                initialValue: settings.selectedSurveyId,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  labelText: 'Questionario selecionado *',
+                ),
+                items: settings.availableSurveys.map<DropdownMenuItem<String>>((
+                  survey,
+                ) {
+                  final displayName = survey.surveyDisplayName.isNotEmpty
+                      ? survey.surveyDisplayName
+                      : survey.surveyName;
+                  return DropdownMenuItem<String>(
+                    value: survey.id,
+                    child: Text(displayName),
+                  );
+                }).toList(),
+                validator: (value) =>
+                    value == null ? 'Campo obrigatório' : null,
+                onChanged: settings.isLockedAssessmentMode
+                    ? null
+                    : (value) {
+                        settings.selectSurvey(value);
+                      },
+              ),
+              const SizedBox(height: 16),
+              DsOutlinedButton(
+                label: 'Ver detalhes do questionario',
+                icon: Icons.info_outline,
+                onPressed: settings.selectedSurvey != null
+                    ? () => _showSurveyDetails(settings.selectedSurvey!)
+                    : null,
+              ),
+            ],
+          );
+        }
 
         return DsScaffold(
           appBar: const ScreenerNavigationAppBar(
             currentRoute: '/settings',
             title: Text('Configurações'),
           ),
+          scrollable: true,
           body: Center(
-            child: Container(
+            child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 700),
               child: Form(
                 key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (settings.isLockedAssessmentMode) ...[
                       _buildLockedModeCard(settings),
                       const SizedBox(height: 24),
                     ],
-                    const Text(
-                      'Questionário Ativo',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
+                    DsSection(
+                      eyebrow: 'Questionario ativo',
+                      title: 'Selecao do questionario',
+                      subtitle: settings.isLockedAssessmentMode
+                          ? 'Este questionario foi preparado com antecedencia e nao pode ser alterado nesta sessao.'
+                          : 'Selecione qual questionario sera aplicado nesta triagem.',
+                      child: surveySelectionChild,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      settings.isLockedAssessmentMode
-                          ? 'Este questionário foi preparado com antecedência e não pode ser alterado nesta sessão.'
-                          : 'Selecione qual questionário será aplicado:',
-                      style: const TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 16),
-                    if (settings.isLoadingSurveys) ...[
-                      const Center(child: CircularProgressIndicator()),
-                    ] else if (settings.availableSurveys.isEmpty) ...[
-                      Card(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.surfaceContainerHighest,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text(
-                            'Nenhum questionário foi encontrado no servidor. Verifique se o backend está em execução.',
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ] else ...[
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              DropdownButtonFormField<String>(
-                                key: ValueKey(settings.selectedSurveyId),
-                                initialValue: settings.selectedSurveyId,
-                                isExpanded: true,
-                                decoration: const InputDecoration(
-                                  labelText: 'Questionário Selecionado *',
-                                  border: OutlineInputBorder(),
-                                  contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 16.0,
-                                  ),
-                                ),
-                                items: settings.availableSurveys
-                                    .map<DropdownMenuItem<String>>((survey) {
-                                      final displayName =
-                                          survey.surveyDisplayName.isNotEmpty
-                                          ? survey.surveyDisplayName
-                                          : survey.surveyName;
-                                      return DropdownMenuItem<String>(
-                                        value: survey.id,
-                                        child: Text(displayName),
-                                      );
-                                    })
-                                    .toList(),
-                                validator: (value) =>
-                                    value == null ? 'Campo obrigatório' : null,
-                                onChanged: settings.isLockedAssessmentMode
-                                    ? null
-                                    : (value) {
-                                        settings.selectSurvey(value);
-                                      },
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton.icon(
-                                onPressed: settings.selectedSurvey != null
-                                    ? () => _showSurveyDetails(
-                                        settings.selectedSurvey!,
-                                      )
-                                    : null,
-                                icon: const Icon(Icons.info_outline),
-                                label: const Text(
-                                  'Ver Detalhes do Questionário',
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
                     const SizedBox(height: 24),
                     if (!settings.isLockedAssessmentMode) ...[
                       _buildPreparedLinkSection(settings, generatedUrl),
                       const SizedBox(height: 24),
                     ],
-                    Card(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.info_outline,
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onPrimaryContainer,
+                    DsPanel(
+                      tone: DsPanelTone.high,
+                      backgroundColor: theme.colorScheme.primaryContainer,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                color: theme.colorScheme.onPrimaryContainer,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Status das configuracoes',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: theme.colorScheme.onPrimaryContainer,
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Status das Configurações',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimaryContainer,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            _buildStatusItem(
-                              'Questionário selecionado:',
-                              settings.selectedSurvey != null
-                                  ? settings.selectedSurveyName
-                                  : 'Nenhum selecionado',
-                              settings.selectedSurvey != null,
-                            ),
-                            _buildStatusItem(
-                              'Questionários disponíveis:',
-                              '${settings.availableSurveys.length} encontrado(s)',
-                              settings.availableSurveys.isNotEmpty,
-                            ),
-                            _buildStatusItem(
-                              'Modo preparado:',
-                              settings.isLockedAssessmentMode
-                                  ? 'Ativo'
-                                  : 'Desativado',
-                              true,
-                            ),
-                          ],
-                        ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          _buildStatusItem(
+                            'Questionario selecionado:',
+                            settings.selectedSurvey != null
+                                ? settings.selectedSurveyName
+                                : 'Nenhum selecionado',
+                            settings.selectedSurvey != null,
+                            foregroundColor:
+                                theme.colorScheme.onPrimaryContainer,
+                          ),
+                          _buildStatusItem(
+                            'Questionarios disponiveis:',
+                            '${settings.availableSurveys.length} encontrado(s)',
+                            settings.availableSurveys.isNotEmpty,
+                            foregroundColor:
+                                theme.colorScheme.onPrimaryContainer,
+                          ),
+                          _buildStatusItem(
+                            'Modo preparado:',
+                            settings.isLockedAssessmentMode
+                                ? 'Ativo'
+                                : 'Desativado',
+                            true,
+                            foregroundColor:
+                                theme.colorScheme.onPrimaryContainer,
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(16.0),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.secondaryContainer,
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
+                    DsFocusFrame(
                       child: Row(
                         children: [
                           Icon(
                             Icons.info_outline,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSecondaryContainer,
+                            color: theme.colorScheme.primary,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               settings.isLockedAssessmentMode
-                                  ? 'Esta sessão foi aberta com um link preparado. As configurações ficam protegidas para evitar alterações acidentais.'
-                                  : 'Campos marcados com (*) são obrigatórios e serão validados antes de salvar.',
-                              style: const TextStyle(fontSize: 14),
+                                  ? 'Esta sessao foi aberta com um link preparado. As configuracoes ficam protegidas para evitar alteracoes acidentais.'
+                                  : 'Campos marcados com (*) sao obrigatorios e serao validados antes de salvar.',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: _submitForm,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        'Salvar e Voltar',
-                        style: TextStyle(fontSize: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      child: DsFilledButton(
+                        label: 'Salvar e voltar',
+                        onPressed: _submitForm,
+                        size: DsButtonSize.large,
                       ),
                     ),
                   ],
@@ -408,146 +370,141 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildLockedModeCard(AppSettings settings) {
-    return Card(
-      color: Theme.of(context).colorScheme.primaryContainer,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Sessão preparada',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
+    return DsPanel(
+      tone: DsPanelTone.high,
+      backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Sessao preparada',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Este acesso foi preparado para ${settings.screenerDisplayName} com o questionário ${settings.selectedSurveyName}.',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Este acesso foi preparado para ${settings.screenerDisplayName} com o questionario ${settings.selectedSurveyName}.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildPreparedLinkSection(AppSettings settings, String? generatedUrl) {
     final canGenerate = settings.isLoggedIn && settings.selectedSurvey != null;
+    final theme = Theme.of(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Link do Questionário',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Gere um link direto com screener e questionário já preparados para facilitar o uso por pessoas com pouca familiaridade tecnológica.',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
-        ),
-        const SizedBox(height: 16),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  canGenerate
-                      ? 'O link será criado para ${settings.screenerDisplayName} e o questionário ${settings.selectedSurveyName}.'
-                      : 'Entre com um screener e selecione um questionário para gerar o link preparado.',
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton.icon(
-                  onPressed: canGenerate && !_isGeneratingLink
-                      ? _generatePreparedLink
-                      : null,
-                  icon: _isGeneratingLink
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.link),
-                  label: const Text('Gerar link do questionário'),
-                ),
-                if (_generationError != null) ...[
-                  const SizedBox(height: 12),
-                  Text(
-                    _generationError!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
+    return DsSection(
+      eyebrow: 'Link preparado',
+      title: 'Compartilhamento assistido',
+      subtitle:
+          'Gere um link direto com screener e questionario ja preparados para facilitar o uso por pessoas com pouca familiaridade tecnologica.',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            canGenerate
+                ? 'O link sera criado para ${settings.screenerDisplayName} e o questionario ${settings.selectedSurveyName}.'
+                : 'Entre com um screener e selecione um questionario para gerar o link preparado.',
+            style: theme.textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 16),
+          DsFilledButton(
+            label: 'Gerar link do questionario',
+            icon: Icons.link,
+            onPressed: canGenerate && !_isGeneratingLink
+                ? _generatePreparedLink
+                : null,
+            loading: _isGeneratingLink,
+          ),
+          if (_generationError != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              _generationError!,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ],
+          if (generatedUrl != null && _generatedLink != null) ...[
+            const SizedBox(height: 16),
+            DsFocusFrame(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SelectableText(
+                    generatedUrl,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  Center(
+                    child: QrImageView(
+                      data: generatedUrl,
+                      size: 180,
+                      backgroundColor: Colors.white,
                     ),
                   ),
                 ],
-                if (generatedUrl != null && _generatedLink != null) ...[
-                  const SizedBox(height: 16),
-                  SelectableText(
-                    generatedUrl,
-                    style: const TextStyle(fontSize: 15),
-                  ),
-                  const SizedBox(height: 16),
-                  QrImageView(
-                    data: generatedUrl,
-                    size: 180,
-                    backgroundColor: Colors.white,
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () => _copyLink(generatedUrl),
-                        icon: const Icon(Icons.copy),
-                        label: const Text('Copiar link'),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () => _saveLinkText(generatedUrl),
-                        icon: const Icon(Icons.description_outlined),
-                        label: const Text('Salvar texto'),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () => _saveQrPng(generatedUrl),
-                        icon: const Icon(Icons.qr_code_2),
-                        label: const Text('Salvar QR em PNG'),
-                      ),
-                    ],
-                  ),
-                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                DsOutlinedButton(
+                  label: 'Copiar link',
+                  icon: Icons.copy,
+                  onPressed: () => _copyLink(generatedUrl),
+                ),
+                DsOutlinedButton(
+                  label: 'Salvar texto',
+                  icon: Icons.description_outlined,
+                  onPressed: () => _saveLinkText(generatedUrl),
+                ),
+                DsOutlinedButton(
+                  label: 'Salvar QR em PNG',
+                  icon: Icons.qr_code_2,
+                  onPressed: () => _saveQrPng(generatedUrl),
+                ),
               ],
             ),
-          ),
-        ),
-      ],
+          ],
+        ],
+      ),
     );
   }
 
-  Widget _buildStatusItem(String label, String value, bool isValid) {
+  Widget _buildStatusItem(
+    String label,
+    String value,
+    bool isValid, {
+    Color? foregroundColor,
+  }) {
+    final theme = Theme.of(context);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Icon(
             isValid ? Icons.check_circle : Icons.cancel,
             color: isValid
-                ? Theme.of(context).colorScheme.tertiary
-                : Theme.of(context).colorScheme.error,
+                ? theme.colorScheme.tertiary
+                : theme.colorScheme.error,
             size: 20,
           ),
           const SizedBox(width: 8),
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Theme.of(context).colorScheme.onSurface,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: foregroundColor ?? theme.colorScheme.onSurface,
                 ),
                 children: [
                   TextSpan(

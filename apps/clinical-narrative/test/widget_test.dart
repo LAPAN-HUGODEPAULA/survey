@@ -9,9 +9,9 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
-        theme: AppTheme.light(),
+        theme: AppTheme.dark(),
         home: DsScaffold(
-          appBar: AppBar(title: const Text('Login do Profissional')),
+          title: 'Login do profissional',
           body: DsProfessionalSignInCard(
             subtitle:
                 'Entre com sua conta profissional cadastrada para iniciar sessões e registrar narrativas clínicas.',
@@ -22,7 +22,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Login do Profissional'), findsOneWidget);
+    expect(find.text('Login do profissional'), findsOneWidget);
     expect(find.byType(DsScaffold), findsOneWidget);
     expect(find.text(dsSharedStatusBarText), findsOneWidget);
     expect(find.text('Não tem uma conta? Registre-se'), findsOneWidget);

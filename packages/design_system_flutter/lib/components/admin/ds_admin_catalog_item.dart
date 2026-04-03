@@ -1,5 +1,6 @@
 import 'package:design_system_flutter/widgets/ds_buttons.dart';
 import 'package:design_system_flutter/widgets/ds_dialog.dart';
+import 'package:design_system_flutter/widgets/ds_surface.dart';
 import 'package:flutter/material.dart';
 
 class DsAdminCatalogItem extends StatelessWidget {
@@ -18,8 +19,11 @@ class DsAdminCatalogItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return DsPanel(
+      tone: DsPanelTone.high,
+      padding: EdgeInsets.zero,
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         title: Text(title),
         subtitle: Text(subtitle),
         trailing: Wrap(

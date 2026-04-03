@@ -14,6 +14,8 @@ class DsStatusIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Semantics(
       liveRegion: liveRegion,
       child: Row(
@@ -30,7 +32,9 @@ class DsStatusIndicator extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: Theme.of(context).textTheme.labelMedium,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
           ),
         ],
       ),
@@ -48,6 +52,7 @@ class DsRecordingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final minutes = (seconds ~/ 60).toString().padLeft(2, '0');
     final remaining = (seconds % 60).toString().padLeft(2, '0');
     return Row(
@@ -63,16 +68,18 @@ class DsRecordingIndicator extends StatelessWidget {
           child: Container(
             width: 10,
             height: 10,
-            decoration: const BoxDecoration(
-              color: Colors.redAccent,
+            decoration: BoxDecoration(
+              color: colorScheme.primary,
               shape: BoxShape.circle,
             ),
           ),
         ),
         const SizedBox(width: 6),
         Text(
-          'Recording $minutes:$remaining',
-          style: Theme.of(context).textTheme.labelMedium,
+          'Gravando $minutes:$remaining',
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
         ),
       ],
     );

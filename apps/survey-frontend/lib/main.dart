@@ -136,7 +136,7 @@ class MyApp extends StatelessWidget {
       ],
       supportedLocales: const [Locale('pt', 'BR')],
       locale: const Locale('pt', 'BR'),
-      theme: AppTheme.light(),
+      theme: AppTheme.dark(),
       debugShowCheckedModeBanner: false,
       routerConfig: _router,
     );

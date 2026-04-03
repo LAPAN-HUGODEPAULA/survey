@@ -496,37 +496,19 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
   Widget build(BuildContext context) {
     final isEditing = _draft.id != null && _draft.id!.isNotEmpty;
     return DsScaffold(
-      appBar: AppBar(
-        title: Text(isEditing ? 'Editar questionário' : 'Criar questionário'),
-      ),
+      title: isEditing ? 'Editar questionario' : 'Criar questionario',
+      subtitle:
+          'Configure conteudo, instrucoes, prompts e perguntas usando o shell administrativo compartilhado.',
+      scrollable: true,
       body: Form(
         key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+        child: DsAdminFormShell(
+          isSaving: _saving,
+          onCancel: _saving ? () {} : _confirmCancel,
+          onSave: _saving ? () {} : _save,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  const Spacer(),
-                  SizedBox(
-                    width: 140,
-                    child: DsOutlinedButton(
-                      label: 'Cancelar',
-                      onPressed: _saving ? null : _confirmCancel,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 140,
-                    child: DsFilledButton(
-                      label: _saving ? 'Salvando...' : 'Salvar',
-                      onPressed: _saving ? null : _save,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
               Text(
                 'Detalhes do questionário',
                 style: Theme.of(context).textTheme.titleMedium,
@@ -671,28 +653,17 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
               if (_loadingPrompts)
                 const LinearProgressIndicator()
               else if (_promptLoadError != null)
-                Container(
-                  width: double.infinity,
+                DsPanel(
+                  tone: DsPanelTone.high,
+                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
                   child: Text(
                     'Não foi possível carregar os prompts: $_promptLoadError',
                   ),
                 )
               else ...[
                 if (_availablePrompts.isEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                  DsFocusFrame(
                     child: const Text(
                       'Nenhum prompt disponível. O questionário usará o fluxo legado até que prompts sejam cadastrados.',
                     ),
@@ -747,28 +718,17 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
               if (_loadingPersonaSkills)
                 const LinearProgressIndicator()
               else if (_personaSkillLoadError != null)
-                Container(
-                  width: double.infinity,
+                DsPanel(
+                  tone: DsPanelTone.high,
+                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.errorContainer,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
                   child: Text(
                     'Não foi possível carregar as personas: $_personaSkillLoadError',
                   ),
                 )
               else ...[
                 if (_availablePersonaSkills.isEmpty)
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                  DsFocusFrame(
                     child: const Text(
                       'Nenhuma persona disponível. O questionário continuará usando os padrões legados até que personas sejam cadastradas.',
                     ),
@@ -869,16 +829,16 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                     width: 160,
                     child: DsOutlinedButton(
                       label: 'Adicionar pergunta',
-                          onPressed: () {
-                            setState(() {
-                              _questions.add(
-                                QuestionDraft(
-                                  id: _nextQuestionId(),
-                                  questionText: '',
-                                  label: '',
-                                  answers: [''],
-                                ),
-                              );
+                      onPressed: () {
+                        setState(() {
+                          _questions.add(
+                            QuestionDraft(
+                              id: _nextQuestionId(),
+                              questionText: '',
+                              label: '',
+                              answers: [''],
+                            ),
+                          );
                           _markDirty();
                         });
                       },
@@ -898,159 +858,157 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                 itemCount: _questions.length,
                 itemBuilder: (context, questionIndex) {
                   final question = _questions[questionIndex];
-                  return Card(
+                  return DsSection(
                     key: ValueKey('question-card-${question.id}'),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              IconButton(
-                                tooltip: 'Mover para cima',
-                                icon: const Icon(Icons.arrow_upward),
-                                onPressed: questionIndex == 0
-                                    ? null
-                                    : () => _moveQuestion(
-                                        questionIndex,
-                                        questionIndex - 1,
-                                      ),
-                              ),
-                              IconButton(
-                                tooltip: 'Mover para baixo',
-                                icon: const Icon(Icons.arrow_downward),
-                                onPressed:
-                                    questionIndex == _questions.length - 1
-                                    ? null
-                                    : () => _moveQuestion(
-                                        questionIndex,
-                                        questionIndex + 1,
-                                      ),
-                              ),
-                          Expanded(
-                            child: TextFormField(
-                              key: ValueKey(
-                                'question-$questionIndex-${question.id}',
-                              ),
-                              initialValue: question.questionText,
-                              decoration: const InputDecoration(
-                                labelText: 'Texto da pergunta *',
-                              ),
-                              validator: (value) =>
-                                  value == null || value.trim().isEmpty
-                                  ? 'Campo obrigatório'
-                                  : null,
-                              onChanged: (value) {
-                                _markDirty();
-                                question.questionText = value;
-                              },
-                            ),
+                    tone: DsPanelTone.high,
+                    title: 'Pergunta ${questionIndex + 1}',
+                    action: Wrap(
+                      spacing: 4,
+                      children: [
+                        IconButton(
+                          tooltip: 'Mover para cima',
+                          icon: const Icon(Icons.arrow_upward),
+                          onPressed: questionIndex == 0
+                              ? null
+                              : () => _moveQuestion(
+                                  questionIndex,
+                                  questionIndex - 1,
+                                ),
+                        ),
+                        IconButton(
+                          tooltip: 'Mover para baixo',
+                          icon: const Icon(Icons.arrow_downward),
+                          onPressed: questionIndex == _questions.length - 1
+                              ? null
+                              : () => _moveQuestion(
+                                  questionIndex,
+                                  questionIndex + 1,
+                                ),
+                        ),
+                        IconButton(
+                          tooltip: 'Remover pergunta',
+                          icon: const Icon(Icons.delete_outline),
+                          onPressed: () {
+                            setState(() {
+                              _questions.removeAt(questionIndex);
+                              _markDirty();
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        TextFormField(
+                          key: ValueKey(
+                            'question-$questionIndex-${question.id}',
                           ),
-                          IconButton(
-                            tooltip: 'Remover pergunta',
-                            icon: const Icon(Icons.delete_outline),
+                          initialValue: question.questionText,
+                          decoration: const InputDecoration(
+                            labelText: 'Texto da pergunta *',
+                          ),
+                          validator: (value) =>
+                              value == null || value.trim().isEmpty
+                              ? 'Campo obrigatório'
+                              : null,
+                          onChanged: (value) {
+                            _markDirty();
+                            question.questionText = value;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          key: ValueKey(
+                            'question-label-$questionIndex-${question.id}',
+                          ),
+                          initialValue: question.label,
+                          decoration: const InputDecoration(
+                            labelText: 'Rótulo exibido no radar',
+                            helperText:
+                                'Opcional, usado no radar e nas prévias para pacientes.',
+                          ),
+                          onChanged: (value) {
+                            _markDirty();
+                            question.label = value;
+                          },
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Rótulo atual: ${question.label.trim().isNotEmpty ? question.label.trim() : 'Q${question.id}'}',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Respostas',
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        const SizedBox(height: 8),
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: question.answers.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 8),
+                          itemBuilder: (context, answerIndex) {
+                            return Row(
+                              children: [
+                                Expanded(
+                                  child: TextFormField(
+                                    key: ValueKey(
+                                      'question-$questionIndex-answer-$answerIndex-${question.answers[answerIndex]}',
+                                    ),
+                                    initialValue: question.answers[answerIndex],
+                                    decoration: const InputDecoration(
+                                      labelText: 'Resposta *',
+                                    ),
+                                    validator: (value) =>
+                                        value == null || value.trim().isEmpty
+                                        ? 'Campo obrigatório'
+                                        : null,
+                                    onChanged: (value) {
+                                      _markDirty();
+                                      question.answers[answerIndex] = value;
+                                    },
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: 'Remover resposta',
+                                  icon: const Icon(Icons.delete_outline),
+                                  onPressed: question.answers.length <= 1
+                                      ? null
+                                      : () {
+                                          setState(() {
+                                            question.answers.removeAt(
+                                              answerIndex,
+                                            );
+                                            _markDirty();
+                                          });
+                                        },
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton.icon(
                             onPressed: () {
                               setState(() {
-                                _questions.removeAt(questionIndex);
+                                question.answers.add('');
                                 _markDirty();
                               });
                             },
+                            icon: const Icon(Icons.add),
+                            label: const Text('Adicionar resposta'),
                           ),
-                        ],
-                      ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            key: ValueKey(
-                              'question-label-$questionIndex-${question.id}',
-                            ),
-                            initialValue: question.label,
-                            decoration: const InputDecoration(
-                              labelText: 'Rótulo exibido no radar',
-                              helperText:
-                                  'Opcional, usado no radar e nas prévias para pacientes.',
-                            ),
-                            onChanged: (value) {
-                              _markDirty();
-                              question.label = value;
-                            },
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Rótulo atual: ${question.label.trim().isNotEmpty ? question.label.trim() : 'Q${question.id}'}',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Respostas',
-                            style: Theme.of(context).textTheme.titleSmall,
-                          ),
-                          const SizedBox(height: 8),
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: question.answers.length,
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(height: 8),
-                            itemBuilder: (context, answerIndex) {
-                              return Row(
-                                children: [
-                                  Expanded(
-                                    child: TextFormField(
-                                      key: ValueKey(
-                                        'question-$questionIndex-answer-$answerIndex-${question.answers[answerIndex]}',
-                                      ),
-                                      initialValue:
-                                          question.answers[answerIndex],
-                                      decoration: const InputDecoration(
-                                        labelText: 'Resposta *',
-                                      ),
-                                      validator: (value) =>
-                                          value == null || value.trim().isEmpty
-                                          ? 'Campo obrigatório'
-                                          : null,
-                                      onChanged: (value) {
-                                        _markDirty();
-                                        question.answers[answerIndex] = value;
-                                      },
-                                    ),
-                                  ),
-                                  IconButton(
-                                    tooltip: 'Remover resposta',
-                                    icon: const Icon(Icons.delete_outline),
-                                    onPressed: question.answers.length <= 1
-                                        ? null
-                                        : () {
-                                            setState(() {
-                                              question.answers.removeAt(
-                                                answerIndex,
-                                              );
-                                              _markDirty();
-                                            });
-                                          },
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: TextButton.icon(
-                              onPressed: () {
-                                setState(() {
-                                  question.answers.add('');
-                                  _markDirty();
-                                });
-                              },
-                              icon: const Icon(Icons.add),
-                              label: const Text('Adicionar resposta'),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   );
                 },

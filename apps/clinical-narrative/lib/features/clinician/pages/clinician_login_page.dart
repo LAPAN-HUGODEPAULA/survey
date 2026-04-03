@@ -4,7 +4,6 @@ import 'package:clinical_narrative_app/core/providers/app_settings.dart';
 import 'package:clinical_narrative_app/core/providers/chat_provider.dart';
 import 'package:clinical_narrative_app/core/services/api_config.dart';
 import 'package:clinical_narrative_app/features/clinician/pages/clinician_registration_page.dart';
-import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -16,9 +15,10 @@ class ClinicianLoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: const ClinicianNavigationAppBar(
-        title: Text('Login do Profissional'),
-      ),
+      title: 'Login do profissional',
+      subtitle:
+          'Acesse sua conta para iniciar sessoes e registrar narrativas clinicas.',
+      scrollable: true,
       body: DsProfessionalSignInCard(
         header: const Icon(Icons.medical_services_outlined, size: 56),
         subtitle:

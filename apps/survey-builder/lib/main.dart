@@ -18,7 +18,7 @@ class SurveyBuilderApp extends StatelessWidget {
     return MaterialApp(
       title: 'LAPAN Construtor de Questionários',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
+      theme: AppTheme.dark(),
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

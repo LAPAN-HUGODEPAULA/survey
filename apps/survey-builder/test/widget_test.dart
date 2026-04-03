@@ -104,7 +104,7 @@ Widget _wrap({
   required _FakePersonaSkillRepository personaSkillRepository,
 }) {
   return MaterialApp(
-    theme: AppTheme.light(),
+    theme: AppTheme.dark(),
     home: SurveyFormPage(
       initialDraft: draft,
       repository: repository,

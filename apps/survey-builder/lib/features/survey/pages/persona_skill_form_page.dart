@@ -169,9 +169,10 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? 'Editar persona' : 'Criar persona'),
-      ),
+      title: _isEditing ? 'Editar persona' : 'Criar persona',
+      subtitle:
+          'Configure personas e perfis de saida reutilizaveis para os relatos clinicos.',
+      scrollable: true,
       body: Form(
         key: _formKey,
         child: DsAdminFormShell(

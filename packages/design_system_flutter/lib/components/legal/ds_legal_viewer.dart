@@ -1,4 +1,5 @@
 import 'package:design_system_flutter/components/legal/legal_content.dart';
+import 'package:design_system_flutter/widgets/ds_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:markdown/markdown.dart' as md;
@@ -23,58 +24,60 @@ class DsLegalDocumentDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Dialog(
+      backgroundColor: Colors.transparent,
       insetPadding: const EdgeInsets.all(24),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 920,
-          maxHeight: 760,
-        ),
-        child: FutureBuilder<DsLegalDocument>(
-          future: DsLegalContentRepository.load(documentType),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
+      child: DsPanel(
+        tone: DsPanelTone.glass,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: 920,
+            maxHeight: 760,
+          ),
+          child: FutureBuilder<DsLegalDocument>(
+            future: DsLegalContentRepository.load(documentType),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return _LegalDialogFrame(
+                  title: 'Aviso legal',
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        'Não foi possível carregar o documento legal agora.',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              if (!snapshot.hasData) {
+                return const _LegalDialogFrame(
+                  title: 'Carregando documento',
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              final document = snapshot.data!;
               return _LegalDialogFrame(
-                title: 'Aviso legal',
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(
-                      'Não foi possível carregar o documento legal agora.',
-                      style: Theme.of(context).textTheme.bodyLarge,
-                      textAlign: TextAlign.center,
+                title: document.title,
+                child: DsFocusFrame(
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                      child: Html(
+                        data: md.markdownToHtml(document.markdown),
+                        style: dsLegalHtmlStyles(context),
+                      ),
                     ),
                   ),
                 ),
               );
-            }
-
-            if (!snapshot.hasData) {
-              return const _LegalDialogFrame(
-                title: 'Carregando documento',
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-
-            final document = snapshot.data!;
-            return _LegalDialogFrame(
-              title: document.title,
-              child: Container(
-                color: colorScheme.surface,
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  child: SingleChildScrollView(
-                    child: Html(
-                      data: md.markdownToHtml(document.markdown),
-                      style: dsLegalHtmlStyles(context),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
+            },
+          ),
         ),
       ),
     );
@@ -154,7 +157,7 @@ class _LegalDialogFrame extends StatelessWidget {
             ],
           ),
         ),
-        const Divider(height: 1),
+        const SizedBox(height: 8),
         Expanded(child: child),
       ],
     );

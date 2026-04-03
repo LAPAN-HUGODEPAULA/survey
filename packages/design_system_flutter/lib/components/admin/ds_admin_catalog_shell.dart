@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:design_system_flutter/widgets/ds_buttons.dart';
 import 'package:design_system_flutter/widgets/ds_scaffold.dart';
+import 'package:design_system_flutter/widgets/ds_surface.dart';
 
 class DsAdminCatalogShell<T> extends StatelessWidget {
   const DsAdminCatalogShell({
@@ -33,23 +34,21 @@ class DsAdminCatalogShell<T> extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Flexible(
-                child: Text(
-                  heading,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              const SizedBox(width: 16),
+          DsPageHeader(
+            title: heading,
+            eyebrow: 'Catalogo',
+            subtitle:
+                'Gerencie itens administrativos usando o shell compartilhado.',
+            actions: [
               DsFilledButton(
                 label: createLabel,
                 onPressed: onCreate,
               ),
-              IconButton(
-                tooltip: 'Atualizar',
-                icon: const Icon(Icons.refresh),
+              DsOutlinedButton(
+                label: 'Atualizar',
+                icon: Icons.refresh,
                 onPressed: isLoading ? null : onRefresh,
               ),
             ],
@@ -62,13 +61,26 @@ class DsAdminCatalogShell<T> extends StatelessWidget {
                     ? DsError(message: error!, onRetry: onRetry ?? onRefresh)
                     : items.isEmpty
                         ? DsEmpty(message: emptyMessage)
-                        : ListView.separated(
-                            itemCount: items.length,
-                            separatorBuilder:
-                                (BuildContext context, int index) =>
-                                    const SizedBox(height: 8),
-                            itemBuilder: (BuildContext context, int index) =>
-                                itemBuilder(context, items[index]),
+                        : Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: SingleChildScrollView(
+                              child: DsPanel(
+                                tone: DsPanelTone.low,
+                                child: Column(
+                                  children: [
+                                    for (var index = 0;
+                                        index < items.length;
+                                        index++) ...[
+                                      if (index > 0) const SizedBox(height: 12),
+                                      itemBuilder(
+                                        context,
+                                        items[index],
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
           ),
         ],

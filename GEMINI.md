@@ -1,8 +1,14 @@
 ## Project Overview
 
-This is the LAPAN Survey Platform, a comprehensive healthcare application designed to assess visual hypersensitivity in neurodevelopmental disorders (NDDs) in Brazil. It digitizes and validates the Brazilian Portuguese version of the Cardiff Hypersensitivity Scale (CHYPS-Br).
+This is the **LAPAN Survey Platform**, a comprehensive healthcare application designed to assess visual hypersensitivity in neurodevelopmental disorders (NDDs) in Brazil. It digitizes and validates the Brazilian Portuguese version of the Cardiff Hypersensitivity Scale (CHYPS-Br).
 
 The platform uses a microservices architecture with a Python/FastAPI backend, MongoDB, and multiple Flutter web frontends. It features an AI-powered multi-agent system for clinical narrative generation and documentation.
+
+## Mandatory Documentation Rules
+
+- **Legal Documents:** NEVER modify files under `docs/legal/**`. Only legal staff is authorized to change these documents.
+- **Naming:** Use "**LAPAN Survey Platform**" as the official name for the whole ecosystem. In Portuguese documentation, use "**Plataforma LAPAN Survey**".
+- **Localization:** All application UI and code comments MUST be in Brazilian Portuguese (pt-BR).
 
 ## Project Evolution & Milestones
 
@@ -20,31 +26,36 @@ The project has evolved from a basic screening tool into a comprehensive clinica
     - Stabilized response processing and collection naming (`survey_responses`, `patient_responses`).
     - Implemented systematic migration framework for database consistency.
     - Launched version `0.1.0` following Semantic Versioning (tracked in root `VERSION` file).
-- **Multi-Agent Architecture Adoption (Mar 2026):**
+- **Multi-Agent Architecture & Professional Core (Mar 2026):**
     - Adopted a 4-stage LangGraph state graph (ContextLoader → ClinicalAnalyzer → PersonaWriter → ReflectorNode) for clinical report generation.
     - Introduced composable prompt architecture (Domain + Persona + Context layers).
     - Implemented reflection cycles for hallucination mitigation and clinical safety.
-    - Stored Agent Skills (Personas) in MongoDB for CMS-style management via survey-builder.
+    - Stored Agent Skills (Personas) in MongoDB for CMS-style management via `survey-builder`.
+    - **Shared Screener Auth:** Unified authentication across all professional applications.
+    - **Shared Component Library:** Launched `packages/design_system_flutter` for UI consistency.
+- **Autonomous Development & OpenSpec (Apr 2026):**
+    - Adoption of the **OpenSpec** workflow for change management and design-first development.
+    - Integration of specialized agent skills for exploration, proposal, and implementation.
 
 ## Application Components
 
-The system consists of four interconnected Flutter web applications:
+The system consists of four interconnected Flutter web applications sharing a common design system:
 
 - **`survey-patient`**: A public-facing screening tool (7 questions) for preliminary assessment. Compliant with WCAG 2.1 Level AA.
 - **`survey-frontend`**: A professional platform for authorized screeners to administer full assessments (CHYPS-Br), manage patient records, and generate formal reports.
-- **`clinical-narrative`**: A conversational documentation tool that transforms clinician-patient interactions into structured medical records using AI.
-- **`survey-builder`**: An administrative tool for creating and managing questionnaires, surveys, and reusable clinical prompts.
+- **`clinical-narrative`**: A conversational documentation tool that transforms clinician-patient interactions into structured medical records using AI. Features voice capture and hybrid transcription.
+- **`survey-builder`**: An administrative tool for managing questionnaires, surveys, and reusable clinical prompts (Persona Skills).
 
 ## Survey Prompt Management
 
 The platform features a centralized system for managing clinical AI prompts:
 - **Reusable Prompts**: Prompts are stored in the `survey_prompts` collection and can be referenced by multiple surveys.
 - **Prompt References**: Surveys now reference a specific `promptKey`, ensuring consistent AI processing across different survey instances.
-- **Management UI**: The `survey-builder` application provides a dedicated interface for CRUD operations on these reusable prompts.
+- **Management UI**: The `survey-builder` application provides a dedicated interface for CRUD operations on these reusable prompts and Persona Skills.
 
 ## Multi-Agent Architecture
 
-The Clinical Writer AI service uses a **4-stage LangGraph state graph** that separates clinical interpretation from narrative generation and applies reflection-based safety validation. See `docs/multiagent-architecture.md` for the full architectural rationale.
+The Clinical Writer AI service uses a **4-stage LangGraph state graph** that separates clinical interpretation from narrative generation and applies reflection-based safety validation.
 
 ### 4-Stage Orchestration Graph
 
@@ -59,12 +70,15 @@ The Clinical Writer AI service uses a **4-stage LangGraph state graph** that sep
 - **Persona Layer (Profile):** Tone, vocabulary, and output format from `PersonaSkills` MongoDB collection.
 - **Contextual Data Layer:** Pseudonymized patient response JSON.
 
-### Key Decisions
+## OpenSpec Workflow
 
-- Skills/Personas stored in MongoDB as a clinical CMS managed via survey-builder.
-- Reflection cycles for hallucination mitigation and clinical safety.
-- Asymmetric model usage (lightweight models for analysis, advanced models for critique).
-- API-only inference — no self-hosted GPU infrastructure; LoRA fine-tuning evaluated and deferred.
+The project uses the **OpenSpec** framework for managing changes:
+- **Explore Mode**: For investigating problems and clarifying requirements.
+- **Propose Mode**: For generating design artifacts, specs, and implementation tasks.
+- **Apply Mode**: For executing tasks and implementing changes.
+- **Archive Mode**: For finalizing and documenting completed changes.
+
+All specs are stored in the `openspec/` directory.
 
 ## Database Schema & Migrations
 
@@ -78,7 +92,7 @@ The project uses MongoDB with a systematic migration framework:
     - `patient_responses`: Records of public screenings (pseudonymized).
     - `screeners`: Registered healthcare professionals.
     - `clinical_writer_run_logs`: Audit logs for AI processing tasks.
-- **Migrations**: Found in `tools/migrations/survey-backend/`, these scripts ensure schema consistency and handle collection renaming or data normalization.
+- **Migrations**: Found in `tools/migrations/survey-backend/`, these scripts ensure schema consistency.
 
 ## Domain Context
 
@@ -91,7 +105,7 @@ The project uses MongoDB with a systematic migration framework:
 
 - **Versioning**: Semantic Versioning (v0.1.0+) tracked in root `VERSION` file.
 - **Backend:** Python 3.13/FastAPI (`survey-backend`, `survey-worker`).
-- **AI Service:** Python 3.13/FastAPI with a 4-stage LangGraph state graph (`clinical-writer-api`). See Multi-Agent Architecture section.
+- **AI Service:** Python 3.13/FastAPI with a 4-stage LangGraph state graph (`clinical-writer-api`).
 - **Frontend:** Flutter for Web, sharing `packages/design_system_flutter`.
 - **Database:** MongoDB (surveys, reusable prompts, responses, credentials, logs).
 - **Containerization:** Orchestrated with Docker Compose.
@@ -169,7 +183,3 @@ Regenerate SDKs after API changes:
 - **Types:** `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `perf`, `style`, `build`, `ops`.
 - **Small Commits:** Keep changes surgical and independent.
 - **PRs:** Link issues, describe testing performed and any gaps.
-
-## When stuck
-
-- Ask a clarifying question, propose a short plan, or open a draft PR with notes.

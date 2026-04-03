@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This project, the LAPAN Survey Platform, is a comprehensive healthcare application designed to address the lack of validated tools for assessing visual hypersensitivity in neurodevelopmental disorders (NDDs) within the Brazilian context. It aims to digitize and validate the Brazilian Portuguese version of the Cardiff Hypersensitivity Scale (CHYPS-Br).
+The **LAPAN Survey Platform** is a comprehensive healthcare application designed to address the lack of validated tools for assessing visual hypersensitivity in neurodevelopmental disorders (NDDs) within the Brazilian context. It aims to digitize and validate the Brazilian Portuguese version of the Cardiff Hypersensitivity Scale (CHYPS-Br).
 
 The platform serves three primary goals:
 

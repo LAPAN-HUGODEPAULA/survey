@@ -1,4 +1,5 @@
 import 'package:design_system_flutter/components/respondent_flow/respondent_flow_models.dart';
+import 'package:design_system_flutter/widgets/ds_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 
@@ -18,6 +19,8 @@ class DsSurveyDetailsPanel extends StatelessWidget {
   }
 
   Widget _buildDetailRow(String label, String value, BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -25,17 +28,16 @@ class DsSurveyDetailsPanel extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(
+            style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               value,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -45,26 +47,12 @@ class DsSurveyDetailsPanel extends StatelessWidget {
   }
 
   Widget _buildInfoCard(String title, Widget content, BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 8),
-            content,
-          ],
-        ),
-      ),
+    return DsSection(
+      title: title,
+      tone: DsPanelTone.low,
+      padding: const EdgeInsets.all(16),
+      headerSpacing: 8,
+      child: content,
     );
   }
 

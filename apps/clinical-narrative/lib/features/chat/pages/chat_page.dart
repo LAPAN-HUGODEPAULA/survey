@@ -182,20 +182,18 @@ class _ChatPageState extends State<ChatPage> {
         ? Icons.pending_actions
         : Icons.radio_button_unchecked;
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
+    return DsSection(
+      eyebrow: 'Sessao',
+      title: 'Conversa ativa',
+      subtitle: 'Acompanhe o estado da consulta e ajuste a fase da entrevista.',
+      tone: DsPanelTone.low,
+      padding: const EdgeInsets.all(16),
+      headerSpacing: 12,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text('Sessão', style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(width: 8),
               DsStatusChip(
                 label: statusLabel,
                 type: statusType,
@@ -260,34 +258,25 @@ class _ChatPageState extends State<ChatPage> {
         ? Icons.mic_off
         : Icons.check_circle;
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
+    return DsSection(
+      eyebrow: 'Captura',
+      title: 'Captura de voz',
+      subtitle:
+          'O audio e usado apenas para transcricao e e descartado apos o processamento.',
+      tone: DsPanelTone.low,
+      padding: const EdgeInsets.all(16),
+      headerSpacing: 12,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(
-                'Captura de voz',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(width: 8),
               DsStatusChip(
                 label: statusLabel,
                 type: statusType,
                 icon: statusIcon,
               ),
             ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'O áudio é usado apenas para transcrição e é descartado após o processamento.',
-            style: Theme.of(context).textTheme.bodySmall,
           ),
           if (_voiceError != null)
             Padding(
@@ -735,17 +724,17 @@ class _ChatPageState extends State<ChatPage> {
     final controller = TextEditingController(text: message.content);
     final updated = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Editar mensagem'),
+      builder: (context) => DsDialog(
+        title: 'Editar mensagem',
         content: TextField(controller: controller, maxLines: 4),
         actions: [
-          TextButton(
+          DsTextButton(
+            label: 'Cancelar',
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
           ),
-          FilledButton(
+          DsFilledButton(
+            label: 'Salvar',
             onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Salvar'),
           ),
         ],
       ),
@@ -872,21 +861,26 @@ class _ChatPageState extends State<ChatPage> {
                     order: const NumericFocusOrder(2),
                     child: Semantics(
                       label: 'Mensagens da conversa',
-                      child: provider.messages.isEmpty
-                          ? const DsEmpty(message: 'Ainda não há mensagens.')
-                          : ListView.separated(
-                              controller: _scrollController,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              itemCount: provider.messages.length,
-                              itemBuilder: (context, index) {
-                                final message = provider.messages[index];
-                                return _buildMessage(message, provider);
-                              },
-                              separatorBuilder: (context, index) =>
-                                  const SizedBox(height: 4),
-                            ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: DsPanel(
+                          tone: DsPanelTone.base,
+                          child: provider.messages.isEmpty
+                              ? const DsEmpty(
+                                  message: 'Ainda não há mensagens.',
+                                )
+                              : ListView.separated(
+                                  controller: _scrollController,
+                                  itemCount: provider.messages.length,
+                                  itemBuilder: (context, index) {
+                                    final message = provider.messages[index];
+                                    return _buildMessage(message, provider);
+                                  },
+                                  separatorBuilder: (context, index) =>
+                                      const SizedBox(height: 4),
+                                ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -975,96 +969,99 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Column(
-                    children: [
-                      FocusTraversalOrder(
-                        order: const NumericFocusOrder(3),
-                        child: Row(
-                          children: [
-                            Semantics(
-                              button: true,
-                              label: _voiceMode
-                                  ? 'Desativar modo de voz'
-                                  : 'Ativar modo de voz',
-                              child: IconButton(
-                                icon: Icon(
-                                  _voiceMode ? Icons.mic : Icons.mic_none,
-                                ),
-                                tooltip: _voiceMode
+                  child: DsPanel(
+                    tone: DsPanelTone.low,
+                    child: Column(
+                      children: [
+                        FocusTraversalOrder(
+                          order: const NumericFocusOrder(3),
+                          child: Row(
+                            children: [
+                              Semantics(
+                                button: true,
+                                label: _voiceMode
                                     ? 'Desativar modo de voz'
                                     : 'Ativar modo de voz',
-                                onPressed: inputEnabled
-                                    ? () {
-                                        setState(
-                                          () => _voiceMode = !_voiceMode,
-                                        );
-                                      }
-                                    : null,
-                              ),
-                            ),
-                            Expanded(
-                              child: TextField(
-                                controller: _controller,
-                                decoration: InputDecoration(
-                                  labelText: 'Mensagem',
-                                  hintText: _voiceMode
-                                      ? 'Modo de voz ativado'
-                                      : 'Digite sua mensagem',
+                                child: IconButton(
+                                  icon: Icon(
+                                    _voiceMode ? Icons.mic : Icons.mic_none,
+                                  ),
+                                  tooltip: _voiceMode
+                                      ? 'Desativar modo de voz'
+                                      : 'Ativar modo de voz',
+                                  onPressed: inputEnabled
+                                      ? () {
+                                          setState(
+                                            () => _voiceMode = !_voiceMode,
+                                          );
+                                        }
+                                      : null,
                                 ),
-                                minLines: 1,
-                                maxLines: 4,
-                                enabled: inputEnabled,
-                                textInputAction: TextInputAction.send,
-                                onSubmitted: inputEnabled
-                                    ? (_) => _send(provider)
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  controller: _controller,
+                                  decoration: InputDecoration(
+                                    labelText: 'Mensagem',
+                                    hintText: _voiceMode
+                                        ? 'Modo de voz ativado'
+                                        : 'Digite sua mensagem',
+                                  ),
+                                  minLines: 1,
+                                  maxLines: 4,
+                                  enabled: inputEnabled,
+                                  textInputAction: TextInputAction.send,
+                                  onSubmitted: inputEnabled
+                                      ? (_) => _send(provider)
+                                      : null,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              DsFilledButton(
+                                label: 'Enviar',
+                                onPressed: inputEnabled
+                                    ? () => _send(provider)
                                     : null,
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            DsFilledButton(
-                              label: 'Enviar',
-                              onPressed: inputEnabled
-                                  ? () => _send(provider)
-                                  : null,
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (_voiceMode)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 12),
-                          child: FocusTraversalOrder(
-                            order: const NumericFocusOrder(4),
-                            child: _buildVoicePanel(provider, inputEnabled),
+                            ],
                           ),
                         ),
-                      const SizedBox(height: 8),
-                      FocusTraversalOrder(
-                        order: const NumericFocusOrder(5),
-                        child: Row(
-                          children: [
-                            DsOutlinedButton(
-                              label: 'Gerar documento',
-                              onPressed: provider.isOffline
-                                  ? null
-                                  : () => _openDocumentDialog(provider),
+                        if (_voiceMode)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: FocusTraversalOrder(
+                              order: const NumericFocusOrder(4),
+                              child: _buildVoicePanel(provider, inputEnabled),
                             ),
-                            const SizedBox(width: 8),
-                            DsOutlinedButton(
-                              label: 'Encerrar consulta',
-                              onPressed:
-                                  provider.isOffline || isSessionCompleted
-                                  ? null
-                                  : () => _confirmEndSession(provider),
-                            ),
-                            const Spacer(),
-                            if (analysisPhase != null &&
-                                analysisPhase.isNotEmpty)
-                              Text('Fase da IA: $analysisPhase'),
-                          ],
+                          ),
+                        const SizedBox(height: 8),
+                        FocusTraversalOrder(
+                          order: const NumericFocusOrder(5),
+                          child: Row(
+                            children: [
+                              DsOutlinedButton(
+                                label: 'Gerar documento',
+                                onPressed: provider.isOffline
+                                    ? null
+                                    : () => _openDocumentDialog(provider),
+                              ),
+                              const SizedBox(width: 8),
+                              DsOutlinedButton(
+                                label: 'Encerrar consulta',
+                                onPressed:
+                                    provider.isOffline || isSessionCompleted
+                                    ? null
+                                    : () => _confirmEndSession(provider),
+                              ),
+                              const Spacer(),
+                              if (analysisPhase != null &&
+                                  analysisPhase.isNotEmpty)
+                                Text('Fase da IA: $analysisPhase'),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -1084,24 +1081,14 @@ class _InsightPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
+    return DsSection(
+      title: title,
+      tone: DsPanelTone.high,
+      padding: const EdgeInsets.all(16),
+      headerSpacing: 8,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 6),
           for (final item in items)
             Padding(
               padding: const EdgeInsets.only(bottom: 4),

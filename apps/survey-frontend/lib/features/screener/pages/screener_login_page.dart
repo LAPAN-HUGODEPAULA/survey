@@ -14,7 +14,9 @@ class ScreenerLoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(title: const Text('Login do Avaliador')),
+      title: 'Login do avaliador',
+      subtitle: 'Acesse sua conta profissional para iniciar uma nova triagem.',
+      scrollable: true,
       body: DsProfessionalSignInCard(
         header: Image.asset('assets/images/lapan_logo_reduced.png', height: 56),
         onSubmit: (credentials) => _loginScreener(context, credentials),

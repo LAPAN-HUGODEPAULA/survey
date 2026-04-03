@@ -15,6 +15,7 @@ import 'package:clinical_narrative_app/features/report/pages/report_page.dart';
 import 'package:clinical_narrative_app/features/thankyou/pages/thankyou_page.dart';
 import 'package:design_system_flutter/report/report_models.dart';
 import 'package:design_system_flutter/theme/app_theme.dart';
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -47,7 +48,7 @@ class MyApp extends StatelessWidget {
       ],
       supportedLocales: const [Locale('pt', 'BR')],
       locale: const Locale('pt', 'BR'),
-      theme: AppTheme.light(),
+      theme: AppTheme.dark(),
       debugShowCheckedModeBanner: false,
       onGenerateRoute: (settings) {
         switch (settings.name) {
@@ -110,9 +111,15 @@ class _MissingReportRoutePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return const DsScaffold(
+      title: 'Relatorio ausente',
+      subtitle: 'A rota foi aberta sem um documento clinico valido.',
       body: Center(
-        child: Text('Nenhum relatório foi fornecido para esta rota.'),
+        child: DsSection(
+          eyebrow: 'Navegacao',
+          title: 'Nenhum relatorio foi fornecido para esta rota.',
+          child: SizedBox.shrink(),
+        ),
       ),
     );
   }

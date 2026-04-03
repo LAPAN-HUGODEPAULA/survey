@@ -13,7 +13,10 @@ class ScreenerRegistrationPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(title: const Text('Registro de Avaliador')),
+      title: 'Cadastro do avaliador',
+      subtitle:
+          'Crie uma conta profissional para acessar os fluxos protegidos da plataforma.',
+      scrollable: true,
       body: DsProfessionalSignUpCard(
         header: Image.asset('assets/images/lapan_logo_reduced.png', height: 56),
         onLookupCep: _lookupCep,

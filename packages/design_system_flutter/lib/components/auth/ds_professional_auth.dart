@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:design_system_flutter/widgets/ds_buttons.dart';
+import 'package:design_system_flutter/widgets/ds_surface.dart';
 
 class DsAuthOperationResult {
   const DsAuthOperationResult._({
@@ -124,8 +125,6 @@ class DsProfessionalAuthPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 760),
@@ -138,39 +137,26 @@ class DsProfessionalAuthPanel extends StatelessWidget {
                 Center(child: header!),
                 const SizedBox(height: 24),
               ],
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: colorScheme.outlineVariant),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 24,
-                      offset: const Offset(0, 12),
+              DsPanel(
+                tone: DsPanelTone.base,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.headlineSmall,
                     ),
+                    const SizedBox(height: 8),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                    const SizedBox(height: 24),
+                    child,
                   ],
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        subtitle,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                      ),
-                      const SizedBox(height: 24),
-                      child,
-                    ],
-                  ),
                 ),
               ),
             ],
@@ -325,7 +311,6 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
               controller: _emailController,
               decoration: const InputDecoration(
                 labelText: 'E-mail',
-                border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.emailAddress,
               validator: _validateEmail,
@@ -335,7 +320,6 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
               controller: _passwordController,
               decoration: const InputDecoration(
                 labelText: 'Senha',
-                border: OutlineInputBorder(),
               ),
               obscureText: true,
               validator: _validatePassword,
@@ -760,7 +744,6 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
         onChanged: onChanged,
         decoration: InputDecoration(
           labelText: labelText,
-          border: const OutlineInputBorder(),
         ),
         validator: validator ?? (required ? _validateRequired : null),
       ),
@@ -776,7 +759,6 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
         initialValue: _selectedState,
         decoration: const InputDecoration(
           labelText: 'Estado (UF) *',
-          border: OutlineInputBorder(),
         ),
         items: _brazilStates
             .map(
@@ -814,7 +796,6 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
         initialValue: _selectedDarvYear,
         decoration: const InputDecoration(
           labelText: 'Ano de Conclusão do Curso DARV (Opcional)',
-          border: OutlineInputBorder(),
         ),
         items: years
             .map(
@@ -959,13 +940,11 @@ class _DsFeedbackBanner extends StatelessWidget {
         ? colorScheme.onErrorContainer
         : colorScheme.onSecondaryContainer;
 
-    return Container(
+    return DsPanel(
+      tone: isError ? DsPanelTone.high : DsPanelTone.focus,
+      backgroundColor: backgroundColor,
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
       child: Text(
         message!,
         style: TextStyle(color: foregroundColor),

@@ -5,7 +5,6 @@ import 'package:clinical_narrative_app/core/models/agent_response.dart';
 import 'package:clinical_narrative_app/core/navigation/app_navigator.dart';
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
 import 'package:clinical_narrative_app/core/services/clinical_writer_service.dart';
-import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/report/report_models.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
@@ -105,43 +104,48 @@ class _NarrativePageState extends State<NarrativePage> {
     final patient = Provider.of<AppSettings>(context).patient;
 
     return DsScaffold(
-      appBar: ClinicianNavigationAppBar(
-        title: Text('Narrativa Clínica - ${patient.name}'),
-        showHomeButton: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _narrativeController,
-                decoration: const InputDecoration(
-                  hintText: 'Digite a narrativa aqui...',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: null,
-                expands: true,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
+      title: 'Narrativa clinica',
+      subtitle: patient.name.isNotEmpty
+          ? 'Paciente: ${patient.name}'
+          : 'Paciente nao informado',
+      scrollable: true,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: DsSection(
+            eyebrow: 'Redacao',
+            title: 'Rascunho da narrativa',
+            subtitle:
+                'Revise o conteudo clinico antes de gerar o prontuario final.',
+            child: Column(
               children: [
-                Expanded(
-                  child: ElevatedButton(
+                DsFocusFrame(
+                  child: SizedBox(
+                    height: 420,
+                    child: TextField(
+                      controller: _narrativeController,
+                      decoration: const InputDecoration(
+                        hintText: 'Digite a narrativa aqui...',
+                        border: InputBorder.none,
+                      ),
+                      maxLines: null,
+                      expands: true,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: DsFilledButton(
+                    label: 'Gerar prontuario',
                     onPressed: _isGenerating ? null : _generateNarrative,
-                    child: _isGenerating
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Gerar prontuário'),
+                    loading: _isGenerating,
+                    size: DsButtonSize.large,
                   ),
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );

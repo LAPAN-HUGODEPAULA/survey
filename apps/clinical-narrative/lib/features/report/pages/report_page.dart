@@ -5,7 +5,6 @@ import 'dart:io';
 import 'dart:js_interop';
 
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
-import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/report/report_models.dart';
 import 'package:design_system_flutter/report/report_view.dart';
 import 'package:design_system_flutter/widgets.dart';
@@ -116,22 +115,18 @@ class _ReportPageState extends State<ReportPage> {
     final settings = Provider.of<AppSettings>(context);
 
     return DsScaffold(
-      appBar: const ClinicianNavigationAppBar(
-        title: Text('Prontuário gerado'),
-        showHomeButton: true,
-      ),
+      title: 'Prontuario gerado',
+      subtitle: 'Revise, imprima ou exporte o documento clinico consolidado.',
+      scrollable: true,
       body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 900),
-            child: ReportView(
-              report: widget.report,
-              footer:
-                  'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
-              onPrint: kIsWeb ? _printReport : null,
-              onExport: () => _exportReport(settings, widget.report),
-            ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: ReportView(
+            report: widget.report,
+            footer:
+                'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
+            onPrint: kIsWeb ? _printReport : null,
+            onExport: () => _exportReport(settings, widget.report),
           ),
         ),
       ),

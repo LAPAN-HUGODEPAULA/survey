@@ -31,18 +31,17 @@ class _InstructionsPageState extends State<InstructionsPage> {
         final isLoading = settings.isLoadingSurveys;
         final error = settings.surveyLoadError;
 
-        return DsAsyncPage(
+        return DsScaffold(
           isLoading: isLoading,
           error: error != null
               ? 'Falha ao carregar questionário: $error'
               : survey == null
               ? 'Nenhum questionário disponível. Verifique sua conexão com a internet.'
               : null,
-          appBar: AppBar(
-            title: const Text('Instruções'),
-            automaticallyImplyLeading: false,
-          ),
-          child: survey == null
+          title: 'Instruções',
+          subtitle:
+              'Leia as orientações e confirme o entendimento antes de iniciar.',
+          body: survey == null
               ? const SizedBox.shrink()
               : Builder(
                   builder: (context) {

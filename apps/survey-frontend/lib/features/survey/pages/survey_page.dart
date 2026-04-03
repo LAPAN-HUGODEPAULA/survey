@@ -24,19 +24,15 @@ class _SurveyPageState extends State<SurveyPage> {
 
   @override
   Widget build(BuildContext context) {
+    final displayName = _survey.surveyDisplayName.isNotEmpty
+        ? _survey.surveyDisplayName
+        : _survey.surveyName;
+
     return DsScaffold(
-      appBar: AppBar(
-        title: Text(
-          _survey.surveyDisplayName.isNotEmpty
-              ? _survey.surveyDisplayName
-              : _survey.surveyName,
-        ),
-        automaticallyImplyLeading: false,
-      ),
+      title: displayName,
+      subtitle: 'Responda uma pergunta por vez para concluir a triagem.',
       body: DsSurveyQuestionRunner(
-        surveyTitle: _survey.surveyDisplayName.isNotEmpty
-            ? _survey.surveyDisplayName
-            : _survey.surveyName,
+        surveyTitle: displayName,
         questions: _survey.questions
             .map(
               (question) => DsSurveyQuestionData(

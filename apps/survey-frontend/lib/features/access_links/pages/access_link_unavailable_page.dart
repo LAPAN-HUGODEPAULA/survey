@@ -1,4 +1,3 @@
-
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 
@@ -8,36 +7,25 @@ class AccessLinkUnavailablePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(title: const Text('Link indisponível')),
+      title: 'Link indisponivel',
+      subtitle: 'O link preparado nao pode mais ser usado nesta sessao.',
       body: Center(
-        child: Container(
+        child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
-          padding: const EdgeInsets.all(24),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Icon(Icons.info_outline, size: 40),
-                  SizedBox(height: 16),
-                  Text(
-                    'Este questionário preparado não está mais disponível.',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    'Entre em contato com o(a) seu(sua) screener atual para receber um novo link de acesso.',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    'Se precisar de ajuda, envie uma mensagem para lapan.hugodepaula@gmail.com.',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
+          child: DsSection(
+            eyebrow: 'Acesso',
+            title: 'Este questionario preparado nao esta mais disponivel.',
+            subtitle:
+                'Entre em contato com o screener responsavel para solicitar um novo link.',
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline, size: 40),
+                SizedBox(height: 16),
+                Text(
+                  'Se precisar de ajuda, envie uma mensagem para lapan.hugodepaula@gmail.com.',
+                ),
+              ],
             ),
           ),
         ),

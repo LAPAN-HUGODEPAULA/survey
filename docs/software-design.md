@@ -69,9 +69,10 @@
 ## Flutter Design (`apps/*`)
 
 - **Structure**: feature-first (e.g., `features/<feature>/data|domain|presentation`) with shared utilities under `shared/`.
-- **Design system**: `packages/design_system_flutter` provides the `AppTheme.light()` theme seeded with `Colors.orange`, common widgets, input/button styling, and the shared `DsScaffold` page shell.
+- **Design system**: `packages/design_system_flutter` provides the canonical `AppTheme.dark()` LAPAN theme, including shared dark palette tokens, gradients, tonal surface primitives, common widgets, and the shared `DsScaffold` page shell.
 - **Shared professional auth surfaces**: `packages/design_system_flutter` owns the reusable `DsProfessionalSignInCard`, `DsProfessionalSignUpCard`, and `DsAccountMenuButton` primitives used by `survey-frontend` and `clinical-narrative`. Consuming apps provide backend calls, route changes, and session persistence through callbacks.
-- **Shared scaffold contract**: full-screen Flutter pages should render through `DsScaffold`, which standardizes `appBar + body + mandatory footer/status bar` while allowing each app to provide its own app bar widgets, route configuration, and workflow-specific content.
+- **Shared scaffold contract**: full-screen Flutter pages should render through `DsScaffold`, which standardizes the dark page frame, header regions, tonal background, and mandatory footer/status bar while allowing each app to provide its own route configuration and workflow-specific content.
+- **Shared surface contract**: repeated route sections should prefer `DsSection`, `DsPanel`, `DsFocusFrame`, and `DsFieldChrome` over local `Card`/`Container` shells, and administrative CRUD routes should prefer `DsAdminCatalogShell` and `DsAdminFormShell`.
 - **API consumption**: use generated Dart SDK from `packages/contracts/generated/dart`; manual HTTP clients are discouraged.
 - **API consumption**: prefer the generated Dart SDK from `packages/contracts/generated/dart` for stable contract-backed flows. `survey-builder` also uses lightweight `Dio` repositories for prompt and persona admin screens that reuse the same backend routes.
 - **Apps**:

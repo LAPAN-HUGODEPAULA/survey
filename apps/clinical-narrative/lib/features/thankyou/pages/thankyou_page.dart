@@ -4,7 +4,6 @@ library;
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
 import 'package:clinical_narrative_app/core/services/narrative_service.dart';
 import 'package:clinical_narrative_app/features/demographics/pages/demographics_page.dart';
-import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -37,70 +36,78 @@ class _ThankYouPageState extends State<ThankYouPage> {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: const ClinicianNavigationAppBar(
-        title: Text('Obrigado!'),
-        showHomeButton: true,
-      ),
+      title: 'Narrativa concluida',
+      subtitle: 'Finalize o fluxo ou reinicie uma nova narrativa clinica.',
       body: Center(
         child: FutureBuilder<void>(
           future: _saveNarrativeFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const CircularProgressIndicator();
-            } else if (snapshot.hasError) {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 100, color: Colors.red),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Erro ao salvar a narrativa!',
-                    style: TextStyle(fontSize: 24),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(snapshot.error.toString()),
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(_saveNarrative);
-                    },
-                    child: const Text('Tentar Novamente'),
-                  ),
-                ],
-              );
-            } else {
-              return Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.check_circle_outline,
-                    size: 100,
-                    color: Colors.green,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Narrativa salva com sucesso!',
-                    style: TextStyle(fontSize: 24),
-                  ),
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    onPressed: () {
-                      Provider.of<AppSettings>(
-                        context,
-                        listen: false,
-                      ).clearPatientData();
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute<void>(
-                          builder: (context) => const DemographicsPage(),
-                        ),
-                        (Route<dynamic> route) => false,
-                      );
-                    },
-                    child: const Text('Iniciar Nova Narrativa'),
-                  ),
-                ],
+              return const SizedBox(
+                width: 48,
+                height: 48,
+                child: CircularProgressIndicator(),
               );
             }
+
+            if (snapshot.hasError) {
+              return ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: DsSection(
+                  eyebrow: 'Persistencia',
+                  title: 'Erro ao salvar a narrativa',
+                  subtitle: snapshot.error.toString(),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: DsOutlinedButton(
+                      label: 'Tentar novamente',
+                      onPressed: () {
+                        setState(_saveNarrative);
+                      },
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            return ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: DsSection(
+                eyebrow: 'Persistencia',
+                title: 'Narrativa salva com sucesso',
+                subtitle:
+                    'Os dados foram registrados e o fluxo pode ser reiniciado para um novo paciente.',
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline,
+                      size: 96,
+                      color: Theme.of(context).colorScheme.tertiary,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: DsFilledButton(
+                        label: 'Iniciar nova narrativa',
+                        onPressed: () {
+                          Provider.of<AppSettings>(
+                            context,
+                            listen: false,
+                          ).clearPatientData();
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute<void>(
+                              builder: (context) => const DemographicsPage(),
+                            ),
+                            (Route<dynamic> route) => false,
+                          );
+                        },
+                        size: DsButtonSize.large,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
           },
         ),
       ),

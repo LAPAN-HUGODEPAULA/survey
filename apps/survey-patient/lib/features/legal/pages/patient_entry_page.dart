@@ -31,7 +31,9 @@ class _PatientEntryPageState extends State<PatientEntryPage> {
       builder: (context, settings, _) {
         if (settings.isLoadingInitialNotice) {
           return const DsScaffold(
-            body: Center(child: CircularProgressIndicator()),
+            title: 'Carregando',
+            subtitle: 'Preparando a experiencia compartilhada do paciente.',
+            body: DsLoading(),
           );
         }
 

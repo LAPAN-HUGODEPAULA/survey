@@ -92,7 +92,9 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(title: const Text('Personas de saída')),
+      title: 'Personas de saida',
+      subtitle:
+          'Gerencie personas compartilhadas e perfis padrao para relatorios.',
       body: DsAdminCatalogShell<PersonaSkillDraft>(
         heading: 'Catálogo de personas',
         createLabel: 'Criar persona',

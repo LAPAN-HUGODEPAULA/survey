@@ -14,7 +14,8 @@ class SurveyDetailsPage extends StatelessWidget {
         : survey.surveyName;
 
     return DsScaffold(
-      appBar: AppBar(title: Text('Detalhes - $displayName')),
+      title: displayName,
+      subtitle: 'Detalhes do questionario selecionado.',
       body: DsSurveyDetailsPanel(
         details: DsSurveyDetailsData(
           id: survey.id,

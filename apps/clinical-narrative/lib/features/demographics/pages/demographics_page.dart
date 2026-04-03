@@ -3,7 +3,6 @@ library;
 
 import 'package:clinical_narrative_app/core/navigation/app_navigator.dart';
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
-import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -43,19 +42,28 @@ class _DemographicsPageState extends State<DemographicsPage> {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: const ClinicianNavigationAppBar(
-        title: Text('Informações do Paciente'),
-      ),
+      title: 'Informacoes do paciente',
+      subtitle:
+          'Registre a identificacao basica antes de iniciar a conversa clinica.',
+      scrollable: true,
       body: Form(
         key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: DsPatientIdentitySection(
-            nameController: _nameController,
-            medicalRecordIdController: _medicalRecordIdController,
-            showMedicalRecordId: true,
-            continueLabel: 'Continuar para o Chat',
-            onContinue: _submitForm,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: DsSection(
+              eyebrow: 'Abertura',
+              title: 'Identificacao inicial',
+              subtitle:
+                  'Esses dados acompanham a conversa e o prontuario gerado.',
+              child: DsPatientIdentitySection(
+                nameController: _nameController,
+                medicalRecordIdController: _medicalRecordIdController,
+                showMedicalRecordId: true,
+                continueLabel: 'Continuar para o chat',
+                onContinue: _submitForm,
+              ),
+            ),
           ),
         ),
       ),

@@ -192,25 +192,31 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return DsAsyncPage(
+    final displayName = widget.survey.surveyDisplayName.isNotEmpty
+        ? widget.survey.surveyDisplayName
+        : widget.survey.surveyName;
+
+    return DsScaffold(
       isLoading: _isLoadingCatalogs,
       error: _catalogError,
-      appBar: AppBar(
-        title: Text(
-          'Informações Demográficas: ${widget.survey.surveyDisplayName.isNotEmpty ? widget.survey.surveyDisplayName : widget.survey.surveyName}',
-        ),
-      ),
-      child: Center(
-        child: Container(
+      title: 'Informacoes Demograficas',
+      subtitle:
+          'Complete os dados adicionais para enriquecer o relatorio de $displayName.',
+      scrollable: true,
+      body: Center(
+        child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 700),
           child: Form(
             key: _formKey,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DsPatientIdentitySection(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DsSection(
+                  eyebrow: 'Paciente',
+                  title: 'Identificacao',
+                  subtitle:
+                      'Informe os dados essenciais para contextualizar a avaliacao.',
+                  child: DsPatientIdentitySection(
                     nameController: _nameController,
                     emailController: _emailController,
                     birthDateController: _dobController,
@@ -219,8 +225,14 @@ class _DemographicsPageState extends State<DemographicsPage> {
                     showBirthDate: true,
                     emailLabel: 'E-mail *',
                   ),
-                  const SizedBox(height: 16),
-                  DsSurveyDemographicsSection(
+                ),
+                const SizedBox(height: 16),
+                DsSection(
+                  eyebrow: 'Contexto clinico',
+                  title: 'Dados complementares',
+                  subtitle:
+                      'Essas informacoes ajudam a montar um relatorio mais completo.',
+                  child: DsSurveyDemographicsSection(
                     catalogs:
                         _catalogs ??
                         const DsDemographicsCatalogs(
@@ -255,8 +267,8 @@ class _DemographicsPageState extends State<DemographicsPage> {
                     continueLabel: 'Ver Resultados',
                     onContinue: _submitForm,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

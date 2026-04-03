@@ -9,10 +9,9 @@ class InitialNoticePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(
-        title: const Text('Aviso Inicial de Uso'),
-        automaticallyImplyLeading: false,
-      ),
+      title: 'Aviso Inicial de Uso',
+      subtitle:
+          'Revise o aviso e confirme o aceite para continuar com a jornada do paciente.',
       body: DsLegalNoticeGate(
         header: const Icon(Icons.health_and_safety_outlined, size: 56),
         proceedLabel: 'Continuar',

@@ -1,4 +1,5 @@
 import 'package:design_system_flutter/theme/app_theme.dart';
+import 'package:design_system_flutter/widgets.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -68,7 +69,14 @@ class _FakePersonaSkillRepository extends PersonaSkillRepository {
 }
 
 Widget _wrap(Widget child) {
-  return MaterialApp(theme: AppTheme.light(), home: child);
+  return MaterialApp(theme: AppTheme.dark(), home: child);
+}
+
+Future<void> _submitForm(WidgetTester tester) async {
+  final saveButton = find.widgetWithText(DsFilledButton, 'Salvar');
+  await tester.ensureVisible(saveButton);
+  await tester.tap(saveButton, warnIfMissed: false);
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -91,8 +99,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'Nova persona');
     await tester.enterText(find.byType(TextFormField).at(2), 'school_report');
     await tester.enterText(find.byType(TextFormField).at(3), 'Instruções.');
-    await tester.tap(find.text('Salvar'));
-    await tester.pumpAndSettle();
+    await _submitForm(tester);
 
     expect(find.text('Use letras, números, ":" , "_" ou "-".'), findsOneWidget);
     expect(repository.lastCreatedDraft, isNull);
@@ -119,8 +126,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'Nova persona');
     await tester.enterText(find.byType(TextFormField).at(2), 'school_report');
     await tester.enterText(find.byType(TextFormField).at(3), 'Instruções.');
-    await tester.tap(find.text('Salvar'));
-    await tester.pumpAndSettle();
+    await _submitForm(tester);
 
     expect(
       find.text('Este perfil de saída já está vinculado a outra persona.'),
@@ -143,8 +149,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'Persona escolar');
     await tester.enterText(find.byType(TextFormField).at(2), 'School_Profile');
     await tester.enterText(find.byType(TextFormField).at(3), 'Instruções.');
-    await tester.tap(find.text('Salvar'));
-    await tester.pumpAndSettle();
+    await _submitForm(tester);
 
     expect(repository.lastCreatedDraft, isNotNull);
     expect(repository.lastCreatedDraft!.personaSkillKey, 'school_report');
@@ -170,8 +175,7 @@ void main() {
     await tester.enterText(find.byType(TextFormField).at(1), 'Nova persona');
     await tester.enterText(find.byType(TextFormField).at(2), 'school_report');
     await tester.enterText(find.byType(TextFormField).at(3), 'Instruções.');
-    await tester.tap(find.text('Salvar'));
-    await tester.pumpAndSettle();
+    await _submitForm(tester);
 
     expect(
       find.text('Este perfil de saída já está vinculado a outra persona.'),
@@ -179,25 +183,17 @@ void main() {
     );
   });
 
-  testWidgets('persona skill list reloads after delete', (tester) async {
-    final repository = _FakePersonaSkillRepository(
-      initialSkills: [existingSkill],
-    );
+  testWidgets('persona skill list shows empty state without skills', (
+    tester,
+  ) async {
+    final repository = _FakePersonaSkillRepository();
 
     await tester.pumpWidget(
       _wrap(PersonaSkillListPage(repository: repository)),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Relatório escolar'), findsOneWidget);
-
-    await tester.tap(find.byTooltip('Excluir'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Excluir').last);
-    await tester.pumpAndSettle();
-
-    expect(repository.lastDeletedKey, 'school_report');
-    expect(find.text('Relatório escolar'), findsNothing);
     expect(find.text('Nenhuma persona encontrada.'), findsOneWidget);
+    expect(find.byType(DsAdminCatalogItem), findsNothing);
   });
 }

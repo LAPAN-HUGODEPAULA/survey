@@ -5,12 +5,68 @@ import 'package:flutter_test/flutter_test.dart';
 
 Widget _wrap(Widget child) {
   return MaterialApp(
-    theme: AppTheme.light(),
+    theme: AppTheme.dark(),
     home: Scaffold(body: child),
   );
 }
 
 void main() {
+  testWidgets('surface primitives render shared content and helper text', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        DsSection(
+          eyebrow: 'Clinico',
+          title: 'Resumo',
+          subtitle: 'Superficie tonal compartilhada.',
+          child: const DsFieldChrome(
+            label: 'Campo',
+            supportingText: 'Ajuda compartilhada.',
+            child: Text('Conteudo'),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Clinico'), findsOneWidget);
+    expect(find.text('Resumo'), findsOneWidget);
+    expect(find.text('Ajuda compartilhada.'), findsOneWidget);
+    expect(find.text('Conteudo'), findsOneWidget);
+  });
+
+  testWidgets('DsPageHeader renders eyebrow and shared actions', (
+    WidgetTester tester,
+  ) async {
+    var pressed = 0;
+
+    await tester.pumpWidget(
+      _wrap(
+        DsPageHeader(
+          eyebrow: 'Paciente',
+          title: 'Tela principal',
+          subtitle: 'Cabecalho compartilhado.',
+          actions: [
+            DsFilledButton(
+              label: 'Acao',
+              onPressed: () {
+                pressed += 1;
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('Paciente'), findsOneWidget);
+    expect(find.text('Tela principal'), findsOneWidget);
+
+    await tester.tap(find.text('Acao'));
+    await tester.pumpAndSettle();
+
+    expect(pressed, 1);
+  });
+
   testWidgets(
       'DsSurveyInstructionGate blocks continue until the correct answer is selected',
       (
@@ -76,7 +132,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: AppTheme.light(),
+        theme: AppTheme.dark(),
         home: Scaffold(
           body: DsAdminCatalogShell<String>(
             heading: 'Catálogo',

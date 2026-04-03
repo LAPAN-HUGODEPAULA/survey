@@ -2,30 +2,16 @@
 
 from __future__ import annotations
 
-import os
 from datetime import datetime
 
 from pymongo import MongoClient
-
-
-def _resolve_mongo_uri() -> str:
-    mongo_uri = os.getenv("MONGO_URI")
-    if mongo_uri:
-        return mongo_uri
-    username = os.getenv("MONGO_USERNAME")
-    password = os.getenv("MONGO_PASSWORD")
-    if username and password:
-        return f"mongodb://{username}:{password}@localhost:27017/"
-    return "mongodb://localhost:27017/"
-
-
-def _resolve_db_name() -> str:
-    return os.getenv("MONGO_DB_NAME", "survey_db")
+from _env import load_migration_env, resolve_mongo_db_name, resolve_mongo_uri
 
 
 def main() -> None:
-    client = MongoClient(_resolve_mongo_uri(), serverSelectionTimeoutMS=5000)
-    db = client[_resolve_db_name()]
+    load_migration_env()
+    client = MongoClient(resolve_mongo_uri(), serverSelectionTimeoutMS=5000)
+    db = client[resolve_mongo_db_name()]
     screeners = db["screeners"]
     updated = 0
     try:

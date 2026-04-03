@@ -85,9 +85,10 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? 'Editar prompt' : 'Criar prompt'),
-      ),
+      title: _isEditing ? 'Editar prompt' : 'Criar prompt',
+      subtitle:
+          'Mantenha chaves estaveis e reutilize instrucoes compartilhadas.',
+      scrollable: true,
       body: Form(
         key: _formKey,
         child: DsAdminFormShell(

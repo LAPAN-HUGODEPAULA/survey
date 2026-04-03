@@ -79,7 +79,7 @@ class _ScreenerInitialNoticePageState extends State<ScreenerInitialNoticePage> {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(title: const Text('Aviso Inicial de Uso')),
+      scrollable: true,
       body: DsLegalNoticeGate(
         header: Image.asset('assets/images/lapan_logo_reduced.png', height: 56),
         proceedLabel: 'Continuar para a plataforma',

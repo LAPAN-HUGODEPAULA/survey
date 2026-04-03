@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:design_system_flutter/widgets/ds_surface.dart';
 
 class ClinicalReportSection {
   final String title;
@@ -11,7 +12,8 @@ class ClinicalReportSection {
     this.bullets = const [],
   });
 
-  bool get hasContent => (body != null && body!.trim().isNotEmpty) || bullets.isNotEmpty;
+  bool get hasContent =>
+      (body != null && body!.trim().isNotEmpty) || bullets.isNotEmpty;
 }
 
 List<ClinicalReportSection> buildClinicalReportSections({
@@ -123,21 +125,10 @@ class ClinicalReportView extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return Container(
+    return DsPanel(
       width: double.infinity,
+      tone: DsPanelTone.base,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outlineVariant),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -154,7 +145,6 @@ class ClinicalReportView extends StatelessWidget {
             const SizedBox(height: 16),
           ],
           if (footer != null && footer!.trim().isNotEmpty) ...[
-            Divider(color: scheme.outlineVariant),
             const SizedBox(height: 8),
             Text(
               footer!,
@@ -273,62 +263,60 @@ class _ReportSection extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final bodyStyle = Theme.of(context).textTheme.bodyMedium;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          section.title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: scheme.onSurface,
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-        const SizedBox(height: 8),
-        if (section.body != null && section.body!.trim().isNotEmpty)
-          SelectableText(
-            section.body!,
-            style: bodyStyle?.copyWith(
-              height: 1.5,
-              color: scheme.onSurface,
-            ),
-          ),
-        if (section.bullets.isNotEmpty) ...[
+    return DsSection(
+      tone: DsPanelTone.low,
+      title: section.title,
+      padding: const EdgeInsets.all(16),
+      headerSpacing: 8,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           if (section.body != null && section.body!.trim().isNotEmpty)
-            const SizedBox(height: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: section.bullets
-                .map(
-                  (bullet) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '\u2022',
-                          style: bodyStyle?.copyWith(
-                            color: scheme.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: SelectableText(
-                            bullet,
+            SelectableText(
+              section.body!,
+              style: bodyStyle?.copyWith(
+                height: 1.5,
+                color: scheme.onSurface,
+              ),
+            ),
+          if (section.bullets.isNotEmpty) ...[
+            if (section.body != null && section.body!.trim().isNotEmpty)
+              const SizedBox(height: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: section.bullets
+                  .map(
+                    (bullet) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '\u2022',
                             style: bodyStyle?.copyWith(
-                              height: 1.5,
-                              color: scheme.onSurface,
+                              color: scheme.primary,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: SelectableText(
+                              bullet,
+                              style: bodyStyle?.copyWith(
+                                height: 1.5,
+                                color: scheme.onSurface,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                )
-                .toList(),
-          ),
+                  )
+                  .toList(),
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }

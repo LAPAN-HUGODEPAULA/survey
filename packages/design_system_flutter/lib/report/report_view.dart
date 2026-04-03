@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:design_system_flutter/widgets/ds_surface.dart';
 
 import 'report_models.dart';
 
@@ -20,21 +21,10 @@ class ReportView extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return Container(
+    return DsPanel(
       width: double.infinity,
+      tone: DsPanelTone.base,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outlineVariant),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -55,7 +45,6 @@ class ReportView extends StatelessWidget {
             const SizedBox(height: 16),
           ],
           if (footer != null && footer!.trim().isNotEmpty) ...[
-            Divider(color: scheme.outlineVariant),
             const SizedBox(height: 8),
             Text(
               footer!,
@@ -186,13 +175,8 @@ class _PatientCard extends StatelessWidget {
         _PatientField(label: 'Sexo', value: patient.sex!),
     ];
 
-    return Container(
+    return DsFocusFrame(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.outlineVariant),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -259,31 +243,15 @@ class _ReportSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return Container(
+    return DsSection(
+      tone: DsPanelTone.low,
+      title: section.title,
+      action: Icon(_sectionIcon(section.title), color: scheme.primary),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.outlineVariant),
-      ),
+      headerSpacing: 12,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(_sectionIcon(section.title), color: scheme.primary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  section.title,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
           for (final block in section.blocks) ...[
             _BlockView(block: block),
             const SizedBox(height: 12),

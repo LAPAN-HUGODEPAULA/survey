@@ -3,8 +3,9 @@ import json
 import os
 import logging
 from pymongo import MongoClient
-from dotenv import load_dotenv
 from datetime import datetime
+
+from _env import load_migration_env, resolve_mongo_db_name
 
 # Configure logging for migration script
 logging.basicConfig(
@@ -18,7 +19,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("migration")
 
-load_dotenv()
+load_migration_env()
 
 # --- Configuração da Conexão ---
 MONGO_URI = f"mongodb+srv://{os.getenv('MONGO_USERNAME')}:{os.getenv('MONGO_PASSWORD')}@lapan.xttqjbk.mongodb.net/?retryWrites=true&w=majority&appName=Lapan"
@@ -39,7 +40,7 @@ try:
 except Exception as e:
     print(e)
 
-db = client[os.getenv("MONGO_DB_NAME", "survey_db")]
+db = client[resolve_mongo_db_name()]
 SYSTEM_SCREENER_ID = "000000000000000000000001"
 
 # --- Caminhos para os dados ---

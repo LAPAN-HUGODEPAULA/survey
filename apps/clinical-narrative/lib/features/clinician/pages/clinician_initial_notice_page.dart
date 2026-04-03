@@ -2,7 +2,6 @@ import 'package:clinical_narrative_app/core/models/screener_profile.dart';
 import 'package:clinical_narrative_app/core/navigation/app_navigator.dart';
 import 'package:clinical_narrative_app/core/providers/app_settings.dart';
 import 'package:clinical_narrative_app/core/services/api_config.dart';
-import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -78,9 +77,7 @@ class _ClinicianInitialNoticePageState
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: const ClinicianNavigationAppBar(
-        title: Text('Aviso Inicial de Uso'),
-      ),
+      scrollable: true,
       body: DsLegalNoticeGate(
         header: const Icon(Icons.medical_services_outlined, size: 56),
         proceedLabel: 'Continuar para a plataforma',

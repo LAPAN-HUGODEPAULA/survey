@@ -1,4 +1,3 @@
-
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -55,8 +54,23 @@ class _AccessLinkLaunchPageState extends State<AccessLinkLaunchPage> {
     }
 
     return const DsScaffold(
+      title: 'Validando link preparado',
+      subtitle: 'Carregando o questionario e protegendo a sessao.',
       body: Center(
-        child: CircularProgressIndicator(),
+        child: DsPanel(
+          tone: DsPanelTone.low,
+          child: SizedBox(
+            width: 240,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Preparando acesso...', textAlign: TextAlign.center),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -215,309 +215,247 @@ class _ThankYouPageState extends State<ThankYouPage> {
     final values = summaries.map((item) => item.value).toList(growable: false);
     final labels = summaries.map((item) => item.label).toList(growable: false);
     final theme = Theme.of(context);
+    final displayName = widget.survey.surveyDisplayName.isNotEmpty
+        ? widget.survey.surveyDisplayName
+        : widget.survey.surveyName;
 
     return DsScaffold(
-      appBar: AppBar(
-        title: const Text('Relatório Clínico do Questionário Lapan Q7'),
-        automaticallyImplyLeading: false,
-      ),
+      title: 'Obrigado por responder!',
+      subtitle:
+          'Veja o resumo da avaliacao do questionario $displayName antes de seguir para o relatorio.',
+      scrollable: true,
       body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 900),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Obrigado por responder!',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Veja o resumo das suas respostas antes de seguir para o relatório.',
-                  style: theme.textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 24),
-                Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: theme.colorScheme.outline),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Radar das respostas',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: 280,
-                          child: values.isEmpty
-                              ? const Center(
-                                  child: Text('Sem respostas para exibir.'),
-                                )
-                              : _SurveyRadarChart(
-                                  values: values,
-                                  maxValue: maxValue,
-                                  labels: labels,
-                                ),
-                        ),
-                        if (labels.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: List.generate(labels.length, (index) {
-                              final color =
-                                  _radarPalette[index % _radarPalette.length];
-                              return _RadarLegendChip(
-                                label: labels[index],
-                                color: color,
-                              );
-                            }),
-                          ),
-                        ],
-                        const SizedBox(height: 24),
-                        Text(
-                          'Resumo das respostas',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        for (final summary in summaries)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  summary.label,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  summary.questionText,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  summary.answerText,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                              ],
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DsSection(
+                eyebrow: 'Resumo visual',
+                title: 'Radar das respostas',
+                subtitle:
+                    'Compare as respostas e revise o que foi registrado em cada pergunta.',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 280,
+                      child: values.isEmpty
+                          ? const Center(
+                              child: Text('Sem respostas para exibir.'),
+                            )
+                          : _SurveyRadarChart(
+                              values: values,
+                              maxValue: maxValue,
+                              labels: labels,
                             ),
-                          ),
-                      ],
                     ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: theme.colorScheme.outline),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Avaliação preliminar',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        if (_isAgentLoading)
-                          Row(
-                            children: [
-                              const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Processando análise',
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ],
-                          )
-                        else if (_agentError != null)
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: _withOpacity(
-                                theme.colorScheme.error,
-                                0.12,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: theme.colorScheme.error,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.warning_amber_rounded,
-                                  color: theme.colorScheme.error,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    _agentError!,
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: _loadAgentResponse,
-                                  child: const Text('Recarregar'),
-                                ),
-                              ],
-                            ),
-                          )
-                        else if (_agentResponse != null)
-                          Column(
+                    if (labels.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: List.generate(labels.length, (index) {
+                          final color =
+                              _radarPalette[index % _radarPalette.length];
+                          return _RadarLegendChip(
+                            label: labels[index],
+                            color: color,
+                          );
+                        }),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    Text(
+                      'Resumo das respostas',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    for (final summary in summaries)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: DsFocusFrame(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              LimitedBox(
-                                maxHeight: 180,
-                                child: SingleChildScrollView(
-                                  child: Text(
-                                    _agentSummaryText(_agentResponse!),
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
+                              Text(
+                                summary.label,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.primary,
                                 ),
                               ),
-                            ],
-                          )
-                        else
-                          Text(
-                            'Ainda não conseguimos gerar a avaliação preliminar.',
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                        if (widget.survey.finalNotes != null &&
-                            widget.survey.finalNotes!.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          const Divider(),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const SizedBox(width: 8),
+                              const SizedBox(height: 4),
                               Text(
-                                'Notas finais',
-                                style: theme.textTheme.titleSmall?.copyWith(
+                                summary.questionText,
+                                style: theme.textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
+                              const SizedBox(height: 4),
+                              Text(
+                                summary.answerText,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Html(
-                            data: widget.survey.finalNotes!,
-                            style: {
-                              'body': Style(
-                                fontSize: FontSize(15.0),
-                                lineHeight: const LineHeight(1.5),
-                                color: theme.colorScheme.onSurface,
-                              ),
-                              'p': Style(margin: Margins.only(bottom: 12.0)),
-                              'a': Style(
-                                textDecoration: TextDecoration.underline,
-                              ),
-                            },
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              DsSection(
+                eyebrow: 'Leitura clinica',
+                title: 'Avaliacao preliminar',
+                subtitle:
+                    'A sintese abaixo e gerada com base nas respostas fornecidas.',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_isAgentLoading)
+                      Row(
+                        children: [
+                          const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Processando analise',
+                            style: theme.textTheme.bodyMedium,
                           ),
                         ],
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: BorderSide(color: theme.colorScheme.outline),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Quer um relatório mais detalhado?',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
+                      )
+                    else if (_agentError != null)
+                      DsPanel(
+                        tone: DsPanelTone.high,
+                        backgroundColor: _withOpacity(
+                          theme.colorScheme.error,
+                          0.12,
+                        ),
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              color: theme.colorScheme.error,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _agentError!,
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: _loadAgentResponse,
+                              child: const Text('Recarregar'),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (_agentResponse != null)
+                      LimitedBox(
+                        maxHeight: 180,
+                        child: SingleChildScrollView(
+                          child: Text(
+                            _agentSummaryText(_agentResponse!),
+                            style: theme.textTheme.bodyMedium,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Você pode adicionar seus dados pessoais para enriquecer a análise ou seguir direto para o relatório.',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
+                      )
+                    else
+                      Text(
+                        'Ainda nao conseguimos gerar a avaliacao preliminar.',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    if (widget.survey.finalNotes != null &&
+                        widget.survey.finalNotes!.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      DsFocusFrame(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Notas finais',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Html(
+                              data: widget.survey.finalNotes!,
+                              style: {
+                                'body': Style(
+                                  fontSize: FontSize(15.0),
+                                  lineHeight: const LineHeight(1.5),
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                                'p': Style(margin: Margins.only(bottom: 12.0)),
+                                'a': Style(
+                                  textDecoration: TextDecoration.underline,
+                                ),
+                              },
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        DsFilledButton(
-                          label: 'Adicionar Informações',
-                          onPressed: () => AppNavigator.toDemographics(
-                            context,
-                            survey: widget.survey,
-                            surveyAnswers: widget.surveyAnswers,
-                            surveyQuestions: widget.surveyQuestions,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              DsSection(
+                eyebrow: 'Proximo passo',
+                title: 'Quer um relatorio mais detalhado?',
+                subtitle:
+                    'Voce pode adicionar seus dados pessoais para enriquecer a analise ou seguir direto para o relatorio.',
+                child: DsFilledButton(
+                  label: 'Adicionar Informacoes',
+                  onPressed: () => AppNavigator.toDemographics(
+                    context,
+                    survey: widget.survey,
+                    surveyAnswers: widget.surveyAnswers,
+                    surveyQuestions: widget.surveyQuestions,
                   ),
                 ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: DsOutlinedButton(
-                    label: 'Iniciar nova avaliação',
-                    onPressed: () async {
-                      final settings = Provider.of<AppSettings>(
-                        context,
-                        listen: false,
-                      );
-                      settings.clearPatientData();
-                      await settings.clearInitialNoticeAgreement();
-                      if (!context.mounted) {
-                        return;
-                      }
-                      AppNavigator.replaceWithEntryGate(context);
-                    },
-                  ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: DsOutlinedButton(
+                  label: 'Iniciar nova avaliação',
+                  onPressed: () async {
+                    final settings = Provider.of<AppSettings>(
+                      context,
+                      listen: false,
+                    );
+                    settings.clearPatientData();
+                    await settings.clearInitialNoticeAgreement();
+                    if (!context.mounted) {
+                      return;
+                    }
+                    AppNavigator.replaceWithEntryGate(context);
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -533,12 +471,11 @@ class _RadarLegendChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DsPanel(
+      tone: DsPanelTone.high,
+      backgroundColor: _withOpacity(color, 0.2),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: _withOpacity(color, 0.2),
-        borderRadius: BorderRadius.circular(16),
-      ),
+      borderRadius: BorderRadius.circular(16),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

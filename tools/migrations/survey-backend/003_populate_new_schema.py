@@ -10,9 +10,10 @@ from pathlib import Path
 
 import bcrypt
 from bson import ObjectId
-from dotenv import load_dotenv
 from pymongo import MongoClient
 from pymongo.database import Database
+
+from _env import load_migration_env, resolve_mongo_db_name, resolve_mongo_uri
 
 
 logging.basicConfig(
@@ -25,7 +26,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("migration_003")
 
-load_dotenv()
+load_migration_env()
 
 SYSTEM_SCREENER_ID = "000000000000000000000001"
 SYSTEM_SCREENER_EMAIL = "lapan.hugodepaula@gmail.com"
@@ -100,23 +101,8 @@ DEFAULT_PERSONA_SKILLS = [
 ]
 
 
-def _resolve_mongo_uri() -> str:
-    mongo_uri = os.getenv("MONGO_URI")
-    if not mongo_uri:
-        username = os.getenv("MONGO_USERNAME")
-        password = os.getenv("MONGO_PASSWORD")
-        if username and password:
-            return f"mongodb://{username}:{password}@localhost:27017/"
-        return "mongodb://localhost:27017/"
-
-    if not mongo_uri.startswith(("mongodb://", "mongodb+srv://")):
-        return f"mongodb://{mongo_uri}"
-
-    return mongo_uri
-
-
-MONGO_URI = _resolve_mongo_uri()
-MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "survey_db")
+MONGO_URI = resolve_mongo_uri()
+MONGO_DB_NAME = resolve_mongo_db_name()
 client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
 
 try:
