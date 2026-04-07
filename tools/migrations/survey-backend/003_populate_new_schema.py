@@ -43,6 +43,27 @@ Regras:
 - Produza um texto técnico, adequado para prontuário.
 """.strip()
 
+NEUROCHECK_PROMPT_KEY = "neurocheck"
+NEUROCHECK_PROMPT_NAME = "NeuroCheck Clinical Report"
+NEUROCHECK_PROMPT_TEXT = """
+Você receberá um JSON com o questionário NeuroCheck (Indicador de Saúde Mental e Sensorial) e deverá produzir um laudo clínico estruturado em português brasileiro.
+
+O questionário avalia 4 eixos principais:
+1. Fotosensibilidade (Luz Natural, Luz Artificial, Faróis, Cores)
+2. Visuomotor (Enjôo, Leitura)
+3. Filtros (Tato, Paladar, Olfato, Audição)
+4. Biológico (Enxaqueca, Familiar)
+
+O sistema de pontuação é: Confortável (0), Razoável (2), Desconfortável (5).
+
+Regras para o laudo:
+- Analise a pontuação em cada um dos 4 eixos.
+- Identifique sinais de sobrecarga biológica (uma pontuação total superior a 24 indica sobrecarga).
+- Descreva o impacto funcional sugerido pelas respostas em cada eixo.
+- Mantenha um tom técnico, objetivo e clínico.
+- Use apenas as informações fornecidas no JSON.
+""".strip()
+
 SURVEY_RESPONSES_COLLECTION = "survey_responses"
 LEGACY_SURVEY_RESULTS_COLLECTION = "survey_results"
 PATIENT_RESPONSES_COLLECTION = "patient_responses"
@@ -452,6 +473,21 @@ def migrate_survey_prompts() -> None:
     questionnaire_prompts_collection.replace_one(
         {"promptKey": DEFAULT_SURVEY_PROMPT_KEY},
         payload,
+        upsert=True,
+    )
+
+    neurocheck_payload = {
+        "promptKey": NEUROCHECK_PROMPT_KEY,
+        "name": NEUROCHECK_PROMPT_NAME,
+        "promptText": NEUROCHECK_PROMPT_TEXT,
+        "createdAt": datetime.now(UTC),
+        "modifiedAt": datetime.now(UTC),
+        "legacySource": "003_populate_new_schema",
+    }
+    prompts_collection.replace_one({"promptKey": NEUROCHECK_PROMPT_KEY}, neurocheck_payload, upsert=True)
+    questionnaire_prompts_collection.replace_one(
+        {"promptKey": NEUROCHECK_PROMPT_KEY},
+        neurocheck_payload,
         upsert=True,
     )
     logger.info("Survey prompt catalog ready.")

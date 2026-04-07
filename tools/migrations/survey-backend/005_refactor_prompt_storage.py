@@ -16,6 +16,16 @@ DEFAULT_SURVEY_PROMPT_TEXT = (
     "clínico estruturado em português brasileiro. "
     "Use apenas os dados presentes no JSON, não invente fatos e mantenha linguagem técnica."
 )
+
+NEUROCHECK_PROMPT_KEY = "neurocheck"
+NEUROCHECK_PROMPT_NAME = "NeuroCheck Clinical Report"
+NEUROCHECK_PROMPT_TEXT = (
+    "Você receberá um JSON com o questionário NeuroCheck (Indicador de Saúde Mental e Sensorial) "
+    "e deverá produzir um laudo clínico estruturado em português brasileiro. "
+    "Analise os 4 eixos (Fotosensibilidade, Visuomotor, Filtros, Biológico) e identifique sinais "
+    "de sobrecarga biológica (total > 24). Mantenha um tom técnico, objetivo e clínico."
+)
+
 QUESTIONNAIRE_PROMPTS_COLLECTION = "QuestionnairePrompts"
 PERSONA_SKILLS_COLLECTION = "PersonaSkills"
 LEGACY_SURVEY_PROMPTS_COLLECTION = "survey_prompts"
@@ -110,6 +120,20 @@ def main() -> None:
                 normalized,
                 upsert=True,
             )
+
+        neurocheck_payload = {
+            "promptKey": NEUROCHECK_PROMPT_KEY,
+            "name": NEUROCHECK_PROMPT_NAME,
+            "promptText": NEUROCHECK_PROMPT_TEXT,
+            "createdAt": datetime.now(UTC),
+            "modifiedAt": datetime.now(UTC),
+            "legacySource": "005_refactor_prompt_storage",
+        }
+        questionnaire_prompts.replace_one(
+            {"promptKey": NEUROCHECK_PROMPT_KEY},
+            neurocheck_payload,
+            upsert=True,
+        )
 
         for persona in DEFAULT_PERSONA_SKILLS:
             persona_skills.replace_one(
