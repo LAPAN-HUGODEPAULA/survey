@@ -20,6 +20,7 @@ dependencies:
     path: ../../packages/runtime_api_url
   survey_backend_api:
     path: ../../packages/contracts/generated/dart
+  shared_preferences: ^2.5.3
 
   cupertino_icons: ^1.0.8
 

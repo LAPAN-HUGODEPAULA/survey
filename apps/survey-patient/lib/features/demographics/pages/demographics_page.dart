@@ -39,7 +39,9 @@ class _DemographicsPageState extends State<DemographicsPage> {
   DsDemographicsCatalogs? _catalogs;
   String? _catalogError;
   bool _isLoadingCatalogs = true;
-  List<String> _validationErrors = const <String>[];
+  bool _hasSubmitted = false;
+  List<DsValidationSummaryItem> _validationItems =
+      const <DsValidationSummaryItem>[];
   String? _selectedSex;
   String? _selectedRace;
   String? _selectedEducationLevel;
@@ -50,6 +52,11 @@ class _DemographicsPageState extends State<DemographicsPage> {
   void initState() {
     super.initState();
     _loadInitialData();
+    _nameController.addListener(_syncValidationSummary);
+    _emailController.addListener(_syncValidationSummary);
+    _dobController.addListener(_syncValidationSummary);
+    _professionController.addListener(_syncValidationSummary);
+    _medicationNameController.addListener(_syncValidationSummary);
     Provider.of<AppSettings>(
       context,
       listen: false,
@@ -62,6 +69,11 @@ class _DemographicsPageState extends State<DemographicsPage> {
       context,
       listen: false,
     ).removeListener(_onSettingsChanged);
+    _nameController.removeListener(_syncValidationSummary);
+    _emailController.removeListener(_syncValidationSummary);
+    _dobController.removeListener(_syncValidationSummary);
+    _professionController.removeListener(_syncValidationSummary);
+    _medicationNameController.removeListener(_syncValidationSummary);
     _nameController.dispose();
     _emailController.dispose();
     _dobController.dispose();
@@ -119,6 +131,8 @@ class _DemographicsPageState extends State<DemographicsPage> {
       _selectedRace = null;
       _selectedEducationLevel = null;
       _usesMedication = null;
+      _hasSubmitted = false;
+      _validationItems = const <DsValidationSummaryItem>[];
       _selectedDiagnoses = <String, bool>{
         for (final String diagnosis in _catalogs?.diagnoses ?? const <String>[])
           diagnosis: false,
@@ -126,40 +140,89 @@ class _DemographicsPageState extends State<DemographicsPage> {
     });
   }
 
-  void _formatDateInput(String value) {
-    String digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
-    if (digitsOnly.length > 8) {
-      digitsOnly = digitsOnly.substring(0, 8);
+  void _syncValidationSummary() {
+    if (!_hasSubmitted || !mounted) {
+      return;
     }
-    var formatted = '';
-    for (var index = 0; index < digitsOnly.length; index++) {
-      if (index == 2 || index == 4) {
-        formatted += '/';
+    setState(() {
+      _validationItems = _buildValidationItems();
+    });
+  }
+
+  List<DsValidationSummaryItem> _buildValidationItems() {
+    final items = <DsValidationSummaryItem>[];
+
+    void addItem(String label, String? message) {
+      if (message == null || message.trim().isEmpty) {
+        return;
       }
-      formatted += digitsOnly[index];
+      items.add(DsValidationSummaryItem(label: label, message: message));
     }
-    if (formatted != _dobController.text) {
-      _dobController.value = TextEditingValue(
-        text: formatted,
-        selection: TextSelection.collapsed(offset: formatted.length),
+
+    addItem(
+      'Nome completo',
+      DsFormValidators.validatePersonName(
+        _nameController.text,
+        context: 'patient',
+      ),
+    );
+    addItem(
+      'E-mail',
+      DsFormValidators.validateEmail(_emailController.text, context: 'patient'),
+    );
+    addItem(
+      'Data de nascimento',
+      DsFormValidators.validateBirthDate(_dobController.text),
+    );
+    addItem(
+      'Sexo',
+      DsFormValidators.validateDropdownSelection(_selectedSex, 'Sexo'),
+    );
+    addItem(
+      'Raça/Etnia',
+      DsFormValidators.validateDropdownSelection(_selectedRace, 'Raça/Etnia'),
+    );
+    addItem(
+      'Grau de escolaridade',
+      DsFormValidators.validateDropdownSelection(
+        _selectedEducationLevel,
+        'Grau de Escolaridade',
+      ),
+    );
+    addItem('Uso de medicação psiquiátrica', _validateUsesMedication());
+    if (_usesMedication == 'Sim') {
+      addItem(
+        'Nome do(s) medicamento(s)',
+        DsFormValidators.validateRequired(_medicationNameController.text),
       );
     }
+
+    return items;
+  }
+
+  String? _validateUsesMedication() {
+    if (_usesMedication == null) {
+      return 'Informe se você faz uso de medicação psiquiátrica.';
+    }
+    return null;
   }
 
   void _submitForm() {
-    final errors = <String>[];
     final isFormValid = _formKey.currentState!.validate();
+    final validationItems = _buildValidationItems();
 
-    if (_usesMedication == null) {
-      errors.add('Informe se você faz uso de medicação psiquiátrica.');
-    }
-
-    if (!isFormValid || errors.isNotEmpty) {
-      setState(() => _validationErrors = errors);
+    if (!isFormValid || validationItems.isNotEmpty) {
+      setState(() {
+        _hasSubmitted = true;
+        _validationItems = validationItems;
+      });
       return;
     }
 
-    setState(() => _validationErrors = const <String>[]);
+    setState(() {
+      _hasSubmitted = false;
+      _validationItems = const <DsValidationSummaryItem>[];
+    });
 
     Provider.of<AppSettings>(context, listen: false).setPatientData(
       name: _nameController.text.trim(),
@@ -207,9 +270,9 @@ class _DemographicsPageState extends State<DemographicsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (_validationErrors.isNotEmpty) ...[
+                if (_validationItems.isNotEmpty) ...[
                   DsValidationSummary(
-                    errors: _validationErrors,
+                    items: _validationItems,
                     description:
                         'Corrija os itens abaixo e os campos destacados antes de continuar.',
                   ),
@@ -224,10 +287,10 @@ class _DemographicsPageState extends State<DemographicsPage> {
                     nameController: _nameController,
                     emailController: _emailController,
                     birthDateController: _dobController,
-                    onBirthDateChanged: _formatDateInput,
                     showEmail: true,
                     showBirthDate: true,
                     emailLabel: 'E-mail *',
+                    submitted: _hasSubmitted,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -252,22 +315,46 @@ class _DemographicsPageState extends State<DemographicsPage> {
                     selectedEducationLevel: _selectedEducationLevel,
                     usesMedication: _usesMedication,
                     onSexChanged: (String? value) {
-                      setState(() => _selectedSex = value);
+                      setState(() {
+                        _selectedSex = value;
+                        if (_hasSubmitted) {
+                          _validationItems = _buildValidationItems();
+                        }
+                      });
                     },
                     onRaceChanged: (String? value) {
-                      setState(() => _selectedRace = value);
+                      setState(() {
+                        _selectedRace = value;
+                        if (_hasSubmitted) {
+                          _validationItems = _buildValidationItems();
+                        }
+                      });
                     },
                     onEducationChanged: (String? value) {
-                      setState(() => _selectedEducationLevel = value);
+                      setState(() {
+                        _selectedEducationLevel = value;
+                        if (_hasSubmitted) {
+                          _validationItems = _buildValidationItems();
+                        }
+                      });
                     },
                     onUsesMedicationChanged: (String? value) {
-                      setState(() => _usesMedication = value);
+                      setState(() {
+                        _usesMedication = value;
+                        if (_hasSubmitted) {
+                          _validationItems = _buildValidationItems();
+                        }
+                      });
                     },
                     onDiagnosisChanged: (String diagnosis, bool isSelected) {
                       setState(() {
                         _selectedDiagnoses[diagnosis] = isSelected;
                       });
                     },
+                    submitted: _hasSubmitted,
+                    usesMedicationErrorText: _hasSubmitted
+                        ? _validateUsesMedication()
+                        : null,
                     continueLabel: 'Ver Resultados',
                     onContinue: _submitForm,
                   ),

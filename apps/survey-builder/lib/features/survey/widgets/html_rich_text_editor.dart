@@ -15,6 +15,8 @@ class HtmlRichTextEditor extends StatefulWidget {
     required this.onChanged,
     this.minHeight = 220,
     this.hintText,
+    this.supportingText,
+    this.errorText,
   });
 
   final String label;
@@ -22,6 +24,8 @@ class HtmlRichTextEditor extends StatefulWidget {
   final ValueChanged<String> onChanged;
   final double minHeight;
   final String? hintText;
+  final String? supportingText;
+  final String? errorText;
 
   @override
   State<HtmlRichTextEditor> createState() => HtmlRichTextEditorState();
@@ -79,7 +83,11 @@ class HtmlRichTextEditorState extends State<HtmlRichTextEditor>
           const SizedBox(height: 8),
           TextFormField(
             controller: _testController,
-            decoration: InputDecoration(labelText: widget.label),
+            decoration: InputDecoration(
+              labelText: widget.label,
+              helperText: widget.supportingText,
+              errorText: widget.errorText,
+            ),
             minLines: 6,
             maxLines: null,
             onChanged: _handleChanged,
@@ -93,6 +101,8 @@ class HtmlRichTextEditorState extends State<HtmlRichTextEditor>
       children: [
         DsFieldChrome(
           label: widget.label,
+          supportingText: widget.supportingText,
+          errorText: widget.errorText,
           child: PlatformHtmlRichTextEditor(
             initialHtml: widget.initialHtml,
             minHeight: widget.minHeight,
