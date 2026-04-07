@@ -22,6 +22,7 @@ export 'widgets/ds_buttons.dart';
 export 'widgets/ds_chip.dart';
 export 'widgets/ds_indicator.dart';
 export 'widgets/ds_dialog.dart';
+export 'widgets/ds_feedback.dart';
 export 'widgets/ds_chat_bubble.dart';
 export 'widgets/ds_scaffold.dart';
 export 'widgets/ds_surface.dart';

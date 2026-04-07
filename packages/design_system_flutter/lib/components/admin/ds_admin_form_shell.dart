@@ -10,6 +10,7 @@ class DsAdminFormShell extends StatelessWidget {
     this.isSaving = false,
     this.saveLabel = 'Salvar',
     this.cancelLabel = 'Cancelar',
+    this.feedback,
   });
 
   final Widget child;
@@ -18,6 +19,7 @@ class DsAdminFormShell extends StatelessWidget {
   final bool isSaving;
   final String saveLabel;
   final String cancelLabel;
+  final Widget? feedback;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +49,10 @@ class DsAdminFormShell extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
+          if (feedback != null) ...[
+            feedback!,
+            const SizedBox(height: 16),
+          ],
           child,
         ],
       ),

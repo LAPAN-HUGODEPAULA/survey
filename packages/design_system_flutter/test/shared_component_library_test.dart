@@ -178,6 +178,148 @@ void main() {
     expect(find.text('Não tem uma conta? Registre-se'), findsOneWidget);
   });
 
+  testWidgets('DsProfessionalSignInCard starts obscured and toggles visibility',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        DsProfessionalSignInCard(
+          onSubmit: (_) async => const DsAuthOperationResult.success(),
+        ),
+      ),
+    );
+
+    final passwordFieldFinder = find.byWidgetPredicate(
+      (widget) =>
+          widget is TextField && widget.decoration?.labelText == 'Senha',
+    );
+
+    final initialField = tester.widget<TextField>(passwordFieldFinder);
+    expect(initialField.obscureText, isTrue);
+    expect(initialField.autofillHints, contains(AutofillHints.password));
+    expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Mostrar senha'));
+    await tester.pumpAndSettle();
+
+    final toggledField = tester.widget<TextField>(passwordFieldFinder);
+    expect(toggledField.obscureText, isFalse);
+    expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
+  });
+
+  testWidgets(
+      'DsProfessionalSignInCard preserves the password cursor when toggling',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        DsProfessionalSignInCard(
+          onSubmit: (_) async => const DsAuthOperationResult.success(),
+        ),
+      ),
+    );
+
+    final passwordFieldFinder = find.byWidgetPredicate(
+      (widget) =>
+          widget is TextField && widget.decoration?.labelText == 'Senha',
+    );
+    final passwordField = tester.widget<TextField>(passwordFieldFinder);
+    final controller = passwordField.controller!;
+
+    controller
+      ..text = 'segredo123'
+      ..selection = const TextSelection.collapsed(offset: 4);
+    await tester.pump();
+
+    await tester.tap(find.byTooltip('Mostrar senha'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(controller.selection, const TextSelection.collapsed(offset: 4));
+  });
+
+  testWidgets(
+      'DsProfessionalSignUpCard shows password guidance and supports autofill',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        DsProfessionalSignUpCard(
+          onSubmit: (_) async => const DsAuthOperationResult.success(),
+        ),
+      ),
+    );
+
+    expect(find.text('Use pelo menos 8 caracteres'), findsOneWidget);
+
+    final passwordFieldFinder = find.descendant(
+      of: find.byKey(const ValueKey('screener-registration-password')),
+      matching: find.byType(TextField),
+    );
+
+    final initialField = tester.widget<TextField>(passwordFieldFinder);
+    expect(initialField.obscureText, isTrue);
+    expect(initialField.autofillHints, contains(AutofillHints.newPassword));
+
+    await tester.tap(find.byTooltip('Mostrar senha'));
+    await tester.pumpAndSettle();
+
+    final toggledField = tester.widget<TextField>(passwordFieldFinder);
+    expect(toggledField.obscureText, isFalse);
+  });
+
+  testWidgets('DsFeedbackBanner renders severity title, icon, and semantics', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        const DsFeedbackBanner(
+          feedback: DsFeedbackMessage(
+            severity: DsStatusType.warning,
+            title: 'Atenção',
+            message: 'Revise os campos antes de continuar.',
+          ),
+          margin: EdgeInsets.zero,
+        ),
+      ),
+    );
+
+    expect(find.text('Atenção'), findsOneWidget);
+    expect(find.text('Revise os campos antes de continuar.'), findsOneWidget);
+    expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
+    final semanticsWidgets = tester
+        .widgetList<Semantics>(find.byType(Semantics))
+        .toList(growable: false);
+    expect(
+      semanticsWidgets.any((widget) => widget.properties.liveRegion == true),
+      isTrue,
+    );
+    expect(
+      semanticsWidgets.any(
+        (widget) =>
+            widget.properties.label ==
+            'Mensagem de alerta: Atenção. Revise os campos antes de continuar.',
+      ),
+      isTrue,
+    );
+  });
+
+  testWidgets('DsValidationSummary renders each validation item', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        const DsValidationSummary(
+          errors: <String>[
+            'Informe o e-mail.',
+            'Selecione um questionário.',
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('Revise os campos obrigatórios'), findsOneWidget);
+    expect(find.text('Informe o e-mail.'), findsOneWidget);
+    expect(find.text('Selecione um questionário.'), findsOneWidget);
+  });
+
   testWidgets('DsAccountMenuButton shows configured actions', (
     WidgetTester tester,
   ) async {

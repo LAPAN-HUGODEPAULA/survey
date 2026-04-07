@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:design_system_flutter/components/legal/ds_legal_viewer.dart';
 import 'package:design_system_flutter/components/legal/legal_content.dart';
 import 'package:design_system_flutter/theme/app_theme.dart';
+import 'package:design_system_flutter/widgets/ds_chip.dart';
+import 'package:design_system_flutter/widgets/ds_feedback.dart';
 import 'package:design_system_flutter/widgets/ds_surface.dart';
 
 const dsSharedStatusBarText =
@@ -333,7 +335,7 @@ class DsEmpty extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: DsSection(
-        title: 'Nenhum dado disponivel',
+        title: 'Nenhum dado disponível',
         subtitle: message,
         tone: DsPanelTone.low,
         child: const SizedBox.shrink(),
@@ -350,26 +352,23 @@ class DsError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Center(
-      child: DsPanel(
-        tone: DsPanelTone.high,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline,
-              color: colorScheme.error,
-            ),
-            const SizedBox(height: 12),
-            Text(message, textAlign: TextAlign.center),
-            if (onRetry != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: DsPrimaryButton(label: 'Retry', onPressed: onRetry!),
-              ),
-          ],
+      child: SizedBox(
+        width: 480,
+        child: DsFeedbackBanner(
+          feedback: DsFeedbackMessage(
+            severity: DsStatusType.error,
+            title: 'Não foi possível carregar este conteúdo',
+            message: message,
+            primaryAction: onRetry == null
+                ? null
+                : DsFeedbackAction(
+                    label: 'Tentar novamente',
+                    onPressed: onRetry!,
+                    icon: Icons.refresh,
+                  ),
+          ),
+          margin: EdgeInsets.zero,
         ),
       ),
     );

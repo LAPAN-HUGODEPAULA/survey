@@ -1,22 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:design_system_flutter/widgets/ds_buttons.dart';
+import 'package:design_system_flutter/widgets/ds_chip.dart';
+import 'package:design_system_flutter/widgets/ds_feedback.dart';
 import 'package:design_system_flutter/widgets/ds_surface.dart';
 
 class DsAuthOperationResult {
   const DsAuthOperationResult._({
-    required this.isSuccess,
+    required this.severity,
     this.message,
   });
 
   const DsAuthOperationResult.success([String? message])
-      : this._(isSuccess: true, message: message);
+      : this._(severity: DsStatusType.success, message: message);
 
   const DsAuthOperationResult.error(String message)
-      : this._(isSuccess: false, message: message);
+      : this._(severity: DsStatusType.error, message: message);
 
-  final bool isSuccess;
+  const DsAuthOperationResult.warning(String message)
+      : this._(severity: DsStatusType.warning, message: message);
+
+  const DsAuthOperationResult.info(String message)
+      : this._(severity: DsStatusType.info, message: message);
+
+  final DsStatusType severity;
   final String? message;
+
+  bool get isSuccess => severity == DsStatusType.success;
 }
 
 class DsScreenerLoginData {
@@ -197,8 +207,8 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
   final _passwordController = TextEditingController();
 
   bool _isSubmitting = false;
-  String? _feedbackMessage;
-  bool _feedbackIsError = true;
+  bool _obscurePassword = true;
+  DsFeedbackMessage? _feedback;
 
   @override
   void dispose() {
@@ -209,12 +219,19 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
 
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
+      setState(() {
+        _feedback = const DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Revise os dados informados',
+          message: 'Corrija os campos destacados antes de continuar.',
+        );
+      });
       return;
     }
 
     setState(() {
       _isSubmitting = true;
-      _feedbackMessage = null;
+      _feedback = null;
     });
 
     try {
@@ -228,8 +245,7 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
         return;
       }
       setState(() {
-        _feedbackMessage = result.message;
-        _feedbackIsError = !result.isSuccess;
+        _feedback = _feedbackFromResult(result);
       });
     } finally {
       if (mounted) {
@@ -247,15 +263,18 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
     final validation = _validateEmail(email);
     if (validation != null) {
       setState(() {
-        _feedbackMessage = validation;
-        _feedbackIsError = true;
+        _feedback = DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Informe um e-mail válido',
+          message: validation,
+        );
       });
       return;
     }
 
     setState(() {
       _isSubmitting = true;
-      _feedbackMessage = null;
+      _feedback = null;
     });
 
     try {
@@ -264,8 +283,7 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
         return;
       }
       setState(() {
-        _feedbackMessage = result.message;
-        _feedbackIsError = !result.isSuccess;
+        _feedback = _feedbackFromResult(result);
       });
     } finally {
       if (mounted) {
@@ -292,57 +310,103 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
     return null;
   }
 
+  void _togglePasswordVisibility() {
+    final selection = _passwordController.selection;
+
+    setState(() {
+      _obscurePassword = !_obscurePassword;
+    });
+
+    _restoreSelection(
+      controller: _passwordController,
+      selection: selection,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final visibleFeedback = _isSubmitting
+        ? const DsFeedbackMessage(
+            severity: DsStatusType.info,
+            title: 'Validando acesso',
+            message: 'Estamos verificando suas credenciais.',
+          )
+        : _feedback;
+
     return DsProfessionalAuthPanel(
       header: widget.header,
       title: widget.title,
       subtitle: widget.subtitle,
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _DsFeedbackBanner(
-              message: _feedbackMessage,
-              isError: _feedbackIsError,
-            ),
-            TextFormField(
-              controller: _emailController,
-              decoration: const InputDecoration(
-                labelText: 'E-mail',
+      child: AutofillGroup(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (visibleFeedback != null)
+                DsFeedbackBanner(feedback: visibleFeedback),
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'E-mail',
+                ),
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [
+                  AutofillHints.username,
+                  AutofillHints.email,
+                ],
+                validator: _validateEmail,
               ),
-              keyboardType: TextInputType.emailAddress,
-              validator: _validateEmail,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Senha',
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _passwordController,
+                decoration: InputDecoration(
+                  labelText: 'Senha',
+                  suffixIcon: IconButton(
+                    tooltip:
+                        _obscurePassword ? 'Mostrar senha' : 'Ocultar senha',
+                    onPressed: _togglePasswordVisibility,
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                    ),
+                  ),
+                ),
+                obscureText: _obscurePassword,
+                autofillHints: const [AutofillHints.password],
+                enableSuggestions: false,
+                autocorrect: false,
+                validator: _validatePassword,
               ),
-              obscureText: true,
-              validator: _validatePassword,
-            ),
-            const SizedBox(height: 16),
-            DsFilledButton(
-              label: 'Entrar',
-              onPressed: _submit,
-              loading: _isSubmitting,
-            ),
-            if (widget.onShowSignUp != null)
-              DsTextButton(
-                label: 'Não tem uma conta? Registre-se',
-                onPressed: _isSubmitting ? null : widget.onShowSignUp,
+              const SizedBox(height: 16),
+              DsFilledButton(
+                label: 'Entrar',
+                onPressed: _submit,
+                loading: _isSubmitting,
               ),
-            if (widget.onForgotPassword != null)
-              DsTextButton(
-                label: 'Esqueceu a senha?',
-                onPressed: _isSubmitting ? null : _recoverPassword,
-              ),
-          ],
+              if (widget.onShowSignUp != null)
+                DsTextButton(
+                  label: 'Não tem uma conta? Registre-se',
+                  onPressed: _isSubmitting ? null : widget.onShowSignUp,
+                ),
+              if (widget.onForgotPassword != null)
+                DsTextButton(
+                  label: 'Esqueceu a senha?',
+                  onPressed: _isSubmitting ? null : _recoverPassword,
+                ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  DsFeedbackMessage _feedbackFromResult(DsAuthOperationResult result) {
+    return DsFeedbackMessage(
+      severity: result.severity,
+      title: dsFeedbackDefaultTitle(result.severity),
+      message: result.message!,
     );
   }
 }
@@ -402,9 +466,9 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
   bool _cpfEditing = false;
   bool _isLoading = false;
   bool _isLookingUpCep = false;
+  bool _obscurePassword = true;
   String? _lastLookedUpCep;
-  String? _feedbackMessage;
-  bool _feedbackIsError = true;
+  DsFeedbackMessage? _feedback;
 
   @override
   void initState() {
@@ -452,12 +516,19 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
   Future<void> _submit() async {
     _cpfEditing = false;
     if (!(_formKey.currentState?.validate() ?? false)) {
+      setState(() {
+        _feedback = const DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Revise o cadastro',
+          message: 'Corrija os campos destacados antes de enviar o formulário.',
+        );
+      });
       return;
     }
 
     setState(() {
       _isLoading = true;
-      _feedbackMessage = null;
+      _feedback = null;
     });
 
     try {
@@ -494,8 +565,11 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
         return;
       }
       setState(() {
-        _feedbackMessage = result.message;
-        _feedbackIsError = !result.isSuccess;
+        _feedback = DsFeedbackMessage(
+          severity: result.severity,
+          title: dsFeedbackDefaultTitle(result.severity),
+          message: result.message!,
+        );
       });
     } finally {
       if (mounted) {
@@ -540,174 +614,202 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
 
   @override
   Widget build(BuildContext context) {
+    final visibleFeedback = _isLoading
+        ? const DsFeedbackMessage(
+            severity: DsStatusType.info,
+            title: 'Enviando cadastro',
+            message:
+                'Estamos validando e registrando seus dados profissionais.',
+          )
+        : _feedback;
+
     return DsProfessionalAuthPanel(
       header: widget.header,
       title: widget.title,
       subtitle: widget.subtitle,
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _DsFeedbackBanner(
-              message: _feedbackMessage,
-              isError: _feedbackIsError,
-            ),
-            _buildTextField(
-              fieldKey: _cpfFieldKey,
-              controller: _cpfController,
-              wrapperKey: const ValueKey('screener-registration-cpf'),
-              label: 'CPF',
-              keyboardType: TextInputType.number,
-              focusNode: _cpfFocusNode,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(11),
-              ],
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-              validator: _validateCpf,
-            ),
-            _buildTextField(
-              controller: _firstNameController,
-              wrapperKey: const ValueKey('screener-registration-first-name'),
-              label: 'Primeiro Nome',
-            ),
-            _buildTextField(
-              controller: _surnameController,
-              wrapperKey: const ValueKey('screener-registration-surname'),
-              label: 'Sobrenome',
-            ),
-            _buildTextField(
-              controller: _emailController,
-              wrapperKey: const ValueKey('screener-registration-email'),
-              label: 'E-mail',
-              keyboardType: TextInputType.emailAddress,
-              validator: _validateEmail,
-            ),
-            _buildTextField(
-              controller: _passwordController,
-              wrapperKey: const ValueKey('screener-registration-password'),
-              label: 'Senha',
-              obscureText: true,
-              validator: _validatePasswordLength,
-            ),
-            _buildTextField(
-              controller: _phoneController,
-              wrapperKey: const ValueKey('screener-registration-phone'),
-              label: 'Telefone',
-              keyboardType: TextInputType.phone,
-              inputFormatters: [_PhoneNumberInputFormatter()],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Endereço',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-            _buildTextField(
-              fieldKey: _postalCodeFieldKey,
-              controller: _postalCodeController,
-              wrapperKey: const ValueKey('screener-registration-postal-code'),
-              label: 'CEP',
-              keyboardType: TextInputType.number,
-              focusNode: _postalCodeFocusNode,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(8),
-              ],
-              validator: _validateCep,
-              onChanged: (value) {
-                final digits = _digitsOnly(value);
-                if (digits.length != 8) {
-                  _lastLookedUpCep = null;
-                  return;
-                }
-                if (_lastLookedUpCep != digits) {
-                  _lookupCep();
-                }
-              },
-            ),
-            _buildTextField(
-              controller: _streetController,
-              wrapperKey: const ValueKey('screener-registration-street'),
-              label: 'Rua',
-              readOnly: _isLookingUpCep,
-            ),
-            _buildTextField(
-              controller: _numberController,
-              wrapperKey: const ValueKey('screener-registration-number'),
-              label: 'Número',
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-              ],
-            ),
-            _buildTextField(
-              controller: _complementController,
-              wrapperKey: const ValueKey('screener-registration-complement'),
-              label: 'Complemento (Opcional)',
-              required: false,
-            ),
-            _buildTextField(
-              controller: _neighborhoodController,
-              wrapperKey: const ValueKey('screener-registration-neighborhood'),
-              label: 'Bairro',
-              readOnly: _isLookingUpCep,
-            ),
-            _buildTextField(
-              controller: _cityController,
-              wrapperKey: const ValueKey('screener-registration-city'),
-              label: 'Cidade',
-              readOnly: _isLookingUpCep,
-            ),
-            _buildStateDropdown(),
-            const SizedBox(height: 12),
-            Text(
-              'Informações Profissionais',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-            _buildTextField(
-              controller: _professionalCouncilTypeController,
-              wrapperKey: const ValueKey('screener-registration-council-type'),
-              label: 'Tipo de Conselho (ex: CRP, CRM) ou "Nenhum"',
-              required: false,
-              validator: _validateCouncilType,
-            ),
-            _buildTextField(
-              controller: _professionalCouncilRegistrationNumberController,
-              wrapperKey: const ValueKey(
-                'screener-registration-council-registration',
+      child: AutofillGroup(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (visibleFeedback != null)
+                DsFeedbackBanner(feedback: visibleFeedback),
+              _buildTextField(
+                fieldKey: _cpfFieldKey,
+                controller: _cpfController,
+                wrapperKey: const ValueKey('screener-registration-cpf'),
+                label: 'CPF',
+                keyboardType: TextInputType.number,
+                focusNode: _cpfFocusNode,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(11),
+                ],
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                validator: _validateCpf,
               ),
-              label: 'Número de Registro no Conselho',
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              required: false,
-              validator: _validateCouncilRegistration,
-            ),
-            _buildTextField(
-              controller: _jobTitleController,
-              wrapperKey: const ValueKey('screener-registration-job-title'),
-              label: 'Cargo/Profissão',
-            ),
-            _buildTextField(
-              controller: _degreeController,
-              wrapperKey: const ValueKey('screener-registration-degree'),
-              label: 'Formação Acadêmica/Grau',
-            ),
-            _buildDarvYearDropdown(),
-            const SizedBox(height: 16),
-            DsFilledButton(
-              label: 'Registrar',
-              onPressed: _submit,
-              loading: _isLoading,
-            ),
-            if (widget.onShowSignIn != null)
-              DsTextButton(
-                label: 'Já tem uma conta? Entre',
-                onPressed: _isLoading ? null : widget.onShowSignIn,
+              _buildTextField(
+                controller: _firstNameController,
+                wrapperKey: const ValueKey('screener-registration-first-name'),
+                label: 'Primeiro Nome',
               ),
-          ],
+              _buildTextField(
+                controller: _surnameController,
+                wrapperKey: const ValueKey('screener-registration-surname'),
+                label: 'Sobrenome',
+              ),
+              _buildTextField(
+                controller: _emailController,
+                wrapperKey: const ValueKey('screener-registration-email'),
+                label: 'E-mail',
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [
+                  AutofillHints.username,
+                  AutofillHints.email,
+                ],
+                validator: _validateEmail,
+              ),
+              _buildTextField(
+                controller: _passwordController,
+                wrapperKey: const ValueKey('screener-registration-password'),
+                label: 'Senha',
+                obscureText: _obscurePassword,
+                autofillHints: const [AutofillHints.newPassword],
+                enableSuggestions: false,
+                autocorrect: false,
+                helperText: 'Use pelo menos 8 caracteres',
+                suffixIcon: IconButton(
+                  tooltip: _obscurePassword ? 'Mostrar senha' : 'Ocultar senha',
+                  onPressed: _togglePasswordVisibility,
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
+                ),
+                validator: _validatePasswordLength,
+              ),
+              _buildTextField(
+                controller: _phoneController,
+                wrapperKey: const ValueKey('screener-registration-phone'),
+                label: 'Telefone',
+                keyboardType: TextInputType.phone,
+                inputFormatters: [_PhoneNumberInputFormatter()],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Endereço',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 12),
+              _buildTextField(
+                fieldKey: _postalCodeFieldKey,
+                controller: _postalCodeController,
+                wrapperKey: const ValueKey('screener-registration-postal-code'),
+                label: 'CEP',
+                keyboardType: TextInputType.number,
+                focusNode: _postalCodeFocusNode,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(8),
+                ],
+                validator: _validateCep,
+                onChanged: (value) {
+                  final digits = _digitsOnly(value);
+                  if (digits.length != 8) {
+                    _lastLookedUpCep = null;
+                    return;
+                  }
+                  if (_lastLookedUpCep != digits) {
+                    _lookupCep();
+                  }
+                },
+              ),
+              _buildTextField(
+                controller: _streetController,
+                wrapperKey: const ValueKey('screener-registration-street'),
+                label: 'Rua',
+                readOnly: _isLookingUpCep,
+              ),
+              _buildTextField(
+                controller: _numberController,
+                wrapperKey: const ValueKey('screener-registration-number'),
+                label: 'Número',
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+              ),
+              _buildTextField(
+                controller: _complementController,
+                wrapperKey: const ValueKey('screener-registration-complement'),
+                label: 'Complemento (Opcional)',
+                required: false,
+              ),
+              _buildTextField(
+                controller: _neighborhoodController,
+                wrapperKey:
+                    const ValueKey('screener-registration-neighborhood'),
+                label: 'Bairro',
+                readOnly: _isLookingUpCep,
+              ),
+              _buildTextField(
+                controller: _cityController,
+                wrapperKey: const ValueKey('screener-registration-city'),
+                label: 'Cidade',
+                readOnly: _isLookingUpCep,
+              ),
+              _buildStateDropdown(),
+              const SizedBox(height: 12),
+              Text(
+                'Informações Profissionais',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 12),
+              _buildTextField(
+                controller: _professionalCouncilTypeController,
+                wrapperKey:
+                    const ValueKey('screener-registration-council-type'),
+                label: 'Tipo de Conselho (ex: CRP, CRM) ou "Nenhum"',
+                required: false,
+                validator: _validateCouncilType,
+              ),
+              _buildTextField(
+                controller: _professionalCouncilRegistrationNumberController,
+                wrapperKey: const ValueKey(
+                  'screener-registration-council-registration',
+                ),
+                label: 'Número de Registro no Conselho',
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                required: false,
+                validator: _validateCouncilRegistration,
+              ),
+              _buildTextField(
+                controller: _jobTitleController,
+                wrapperKey: const ValueKey('screener-registration-job-title'),
+                label: 'Cargo/Profissão',
+              ),
+              _buildTextField(
+                controller: _degreeController,
+                wrapperKey: const ValueKey('screener-registration-degree'),
+                label: 'Formação Acadêmica/Grau',
+              ),
+              _buildDarvYearDropdown(),
+              const SizedBox(height: 16),
+              DsFilledButton(
+                label: 'Registrar',
+                onPressed: _submit,
+                loading: _isLoading,
+              ),
+              if (widget.onShowSignIn != null)
+                DsTextButton(
+                  label: 'Já tem uma conta? Entre',
+                  onPressed: _isLoading ? null : widget.onShowSignIn,
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -727,6 +829,11 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
     List<TextInputFormatter>? inputFormatters,
     AutovalidateMode? autovalidateMode,
     ValueChanged<String>? onChanged,
+    Iterable<String>? autofillHints,
+    bool? enableSuggestions,
+    bool? autocorrect,
+    String? helperText,
+    Widget? suffixIcon,
   }) {
     final labelText = required ? '$label *' : label;
     return Padding(
@@ -742,8 +849,13 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
         inputFormatters: inputFormatters,
         autovalidateMode: autovalidateMode,
         onChanged: onChanged,
+        autofillHints: autofillHints,
+        enableSuggestions: enableSuggestions ?? true,
+        autocorrect: autocorrect ?? true,
         decoration: InputDecoration(
           labelText: labelText,
+          helperText: helperText,
+          suffixIcon: suffixIcon,
         ),
         validator: validator ?? (required ? _validateRequired : null),
       ),
@@ -841,6 +953,19 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
     return null;
   }
 
+  void _togglePasswordVisibility() {
+    final selection = _passwordController.selection;
+
+    setState(() {
+      _obscurePassword = !_obscurePassword;
+    });
+
+    _restoreSelection(
+      controller: _passwordController,
+      selection: selection,
+    );
+  }
+
   String? _validateCpf(String? value) {
     if (_cpfEditing) {
       return null;
@@ -918,41 +1043,6 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
   }
 }
 
-class _DsFeedbackBanner extends StatelessWidget {
-  const _DsFeedbackBanner({
-    required this.message,
-    required this.isError,
-  });
-
-  final String? message;
-  final bool isError;
-
-  @override
-  Widget build(BuildContext context) {
-    if (message == null || message!.trim().isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final colorScheme = Theme.of(context).colorScheme;
-    final backgroundColor =
-        isError ? colorScheme.errorContainer : colorScheme.secondaryContainer;
-    final foregroundColor = isError
-        ? colorScheme.onErrorContainer
-        : colorScheme.onSecondaryContainer;
-
-    return DsPanel(
-      tone: isError ? DsPanelTone.high : DsPanelTone.focus,
-      backgroundColor: backgroundColor,
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      child: Text(
-        message!,
-        style: TextStyle(color: foregroundColor),
-      ),
-    );
-  }
-}
-
 String _normalizeCouncilType(String councilTypeRaw) {
   if (councilTypeRaw.isEmpty) {
     return 'none';
@@ -974,6 +1064,28 @@ const Set<String> _allowedCouncilTypes = {
   'CRN',
   'none',
 };
+
+void _restoreSelection({
+  required TextEditingController controller,
+  required TextSelection selection,
+}) {
+  if (!selection.isValid) {
+    return;
+  }
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final textLength = controller.text.length;
+    final baseOffset = selection.baseOffset.clamp(0, textLength);
+    final extentOffset = selection.extentOffset.clamp(0, textLength);
+
+    controller.value = controller.value.copyWith(
+      selection: TextSelection(
+        baseOffset: baseOffset,
+        extentOffset: extentOffset,
+      ),
+    );
+  });
+}
 
 class _PhoneNumberInputFormatter extends TextInputFormatter {
   @override

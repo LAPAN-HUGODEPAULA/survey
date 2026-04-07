@@ -16,6 +16,7 @@ class DsAdminCatalogShell<T> extends StatelessWidget {
     required this.emptyMessage,
     this.error,
     this.onRetry,
+    this.feedback,
   });
 
   final String heading;
@@ -28,6 +29,7 @@ class DsAdminCatalogShell<T> extends StatelessWidget {
   final String emptyMessage;
   final String? error;
   final VoidCallback? onRetry;
+  final Widget? feedback;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +40,7 @@ class DsAdminCatalogShell<T> extends StatelessWidget {
         children: [
           DsPageHeader(
             title: heading,
-            eyebrow: 'Catalogo',
+            eyebrow: 'Catálogo',
             subtitle:
                 'Gerencie itens administrativos usando o shell compartilhado.',
             actions: [
@@ -53,6 +55,10 @@ class DsAdminCatalogShell<T> extends StatelessWidget {
               ),
             ],
           ),
+          if (feedback != null) ...[
+            const SizedBox(height: 16),
+            feedback!,
+          ],
           const SizedBox(height: 16),
           Expanded(
             child: isLoading

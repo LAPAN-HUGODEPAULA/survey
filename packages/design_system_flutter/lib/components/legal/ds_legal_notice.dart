@@ -1,6 +1,7 @@
 import 'package:design_system_flutter/components/legal/ds_legal_viewer.dart';
 import 'package:design_system_flutter/components/legal/legal_content.dart';
 import 'package:design_system_flutter/widgets/ds_buttons.dart';
+import 'package:design_system_flutter/widgets/ds_feedback.dart';
 import 'package:design_system_flutter/widgets/ds_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -16,6 +17,7 @@ class DsLegalNoticeGate extends StatefulWidget {
     this.proceedLabel = 'Prosseguir',
     this.header,
     this.isSubmitting = false,
+    this.feedback,
   });
 
   final Future<void> Function() onProceed;
@@ -24,6 +26,7 @@ class DsLegalNoticeGate extends StatefulWidget {
   final String proceedLabel;
   final Widget? header;
   final bool isSubmitting;
+  final DsFeedbackMessage? feedback;
 
   @override
   State<DsLegalNoticeGate> createState() => _DsLegalNoticeGateState();
@@ -130,6 +133,13 @@ class _DsLegalNoticeGateState extends State<DsLegalNoticeGate> {
                         'Abrir Termo de Uso e Política de Privacidade',
                       ),
                     ),
+                    if (widget.feedback != null) ...[
+                      const SizedBox(height: 12),
+                      DsFeedbackBanner(
+                        feedback: widget.feedback!,
+                        margin: EdgeInsets.zero,
+                      ),
+                    ],
                     const SizedBox(height: 8),
                     CheckboxListTile(
                       value: _accepted,
