@@ -1,5 +1,9 @@
+import 'package:design_system_flutter/components/forms/ds_validated_fields.dart';
 import 'package:design_system_flutter/components/forms/ds_form_validators.dart';
 import 'package:design_system_flutter/components/respondent_flow/respondent_flow_models.dart';
+import 'package:design_system_flutter/widgets/ds_buttons.dart';
+import 'package:design_system_flutter/widgets/ds_chip.dart';
+import 'package:design_system_flutter/widgets/ds_feedback.dart';
 import 'package:flutter/material.dart';
 
 class DsSurveyDemographicsSection extends StatelessWidget {
@@ -20,6 +24,8 @@ class DsSurveyDemographicsSection extends StatelessWidget {
     required this.onDiagnosisChanged,
     this.continueLabel,
     this.onContinue,
+    this.submitted = false,
+    this.usesMedicationErrorText,
   });
 
   final DsDemographicsCatalogs catalogs;
@@ -37,6 +43,8 @@ class DsSurveyDemographicsSection extends StatelessWidget {
   final void Function(String diagnosis, bool isSelected) onDiagnosisChanged;
   final String? continueLabel;
   final VoidCallback? onContinue;
+  final bool submitted;
+  final String? usesMedicationErrorText;
 
   static const List<String> sexOptions = <String>[
     'Feminino',
@@ -60,8 +68,9 @@ class DsSurveyDemographicsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        DropdownButtonFormField<String>(
+        DsValidatedDropdownButtonFormField<String>(
           key: const ValueKey('sex'),
+          submitted: submitted,
           initialValue: selectedSex,
           decoration: const InputDecoration(labelText: 'Sexo *'),
           items: sexOptions
@@ -77,8 +86,9 @@ class DsSurveyDemographicsSection extends StatelessWidget {
               DsFormValidators.validateDropdownSelection(value, 'Sexo'),
         ),
         const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
+        DsValidatedDropdownButtonFormField<String>(
           key: const ValueKey('race'),
+          submitted: submitted,
           initialValue: selectedRace,
           decoration: const InputDecoration(labelText: 'Raça/Etnia *'),
           items: raceOptions
@@ -94,8 +104,9 @@ class DsSurveyDemographicsSection extends StatelessWidget {
               DsFormValidators.validateDropdownSelection(value, 'Raça/Etnia'),
         ),
         const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
+        DsValidatedDropdownButtonFormField<String>(
           key: const ValueKey('education'),
+          submitted: submitted,
           initialValue: selectedEducationLevel,
           decoration: const InputDecoration(
             labelText: 'Grau de Escolaridade *',
@@ -135,9 +146,11 @@ class DsSurveyDemographicsSection extends StatelessWidget {
             FocusNode focusNode,
             VoidCallback onFieldSubmitted,
           ) {
-            return TextFormField(
+            return DsValidatedTextFormField(
               controller: professionController,
               focusNode: focusNode,
+              submitted: submitted,
+              textCapitalization: TextCapitalization.words,
               decoration: const InputDecoration(labelText: 'Profissão'),
               validator: (value) => DsFormValidators.validateProfession(value),
             );
@@ -164,6 +177,17 @@ class DsSurveyDemographicsSection extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         const Text('Faz uso de medicamento psiquiátrico? *'),
+        if (usesMedicationErrorText != null) ...[
+          const SizedBox(height: 8),
+          DsInlineFeedback(
+            feedback: DsFeedbackMessage(
+              severity: DsStatusType.error,
+              title: 'Revise este campo',
+              message: usesMedicationErrorText!,
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
         RadioGroup<String>(
           groupValue: usesMedication,
           onChanged: onUsesMedicationChanged,
@@ -181,8 +205,9 @@ class DsSurveyDemographicsSection extends StatelessWidget {
         ),
         if (usesMedication == 'Sim') ...[
           const SizedBox(height: 8),
-          TextFormField(
+          DsValidatedTextFormField(
             controller: medicationNameController,
+            submitted: submitted,
             decoration: const InputDecoration(
               labelText: 'Nome do(s) medicamento(s)',
             ),
@@ -196,9 +221,9 @@ class DsSurveyDemographicsSection extends StatelessWidget {
         ],
         if (continueLabel != null && onContinue != null) ...[
           const SizedBox(height: 32),
-          ElevatedButton(
+          DsFilledButton(
+            label: continueLabel!,
             onPressed: onContinue,
-            child: Text(continueLabel!),
           ),
         ],
       ],

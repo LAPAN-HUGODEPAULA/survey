@@ -57,7 +57,12 @@ class DsFilledButton extends StatelessWidget {
             height: buttonSize.height * 0.5,
             child: const CircularProgressIndicator(strokeWidth: 2),
           )
-        : Text(label);
+        : Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+          );
 
     return Semantics(
       button: true,
@@ -95,19 +100,21 @@ class DsFilledButton extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                     ],
-                    DefaultTextStyle(
-                      style: textStyle.copyWith(
-                        color: disabled
-                            ? theme.disabledColor
-                            : theme.colorScheme.onPrimary,
-                      ),
-                      child: IconTheme(
-                        data: IconThemeData(
+                    Flexible(
+                      child: DefaultTextStyle(
+                        style: textStyle.copyWith(
                           color: disabled
                               ? theme.disabledColor
                               : theme.colorScheme.onPrimary,
                         ),
-                        child: child,
+                        child: IconTheme(
+                          data: IconThemeData(
+                            color: disabled
+                                ? theme.disabledColor
+                                : theme.colorScheme.onPrimary,
+                          ),
+                          child: child,
+                        ),
                       ),
                     ),
                   ],

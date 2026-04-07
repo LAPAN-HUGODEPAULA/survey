@@ -1,6 +1,8 @@
+import 'package:design_system_flutter/components/forms/ds_form_formatters.dart';
 import 'package:design_system_flutter/components/forms/ds_form_validators.dart';
+import 'package:design_system_flutter/components/forms/ds_validated_fields.dart';
+import 'package:design_system_flutter/widgets/ds_buttons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class DsPatientIdentitySection extends StatelessWidget {
   const DsPatientIdentitySection({
@@ -12,6 +14,7 @@ class DsPatientIdentitySection extends StatelessWidget {
     this.onBirthDateChanged,
     this.continueLabel,
     this.onContinue,
+    this.submitted = false,
     this.nameLabel = 'Nome Completo *',
     this.emailLabel = 'E-mail *',
     this.birthDateLabel = 'Data de Nascimento *',
@@ -29,6 +32,7 @@ class DsPatientIdentitySection extends StatelessWidget {
   final ValueChanged<String>? onBirthDateChanged;
   final String? continueLabel;
   final VoidCallback? onContinue;
+  final bool submitted;
   final String nameLabel;
   final String emailLabel;
   final String birthDateLabel;
@@ -43,16 +47,21 @@ class DsPatientIdentitySection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        TextFormField(
+        DsValidatedTextFormField(
           controller: nameController,
+          submitted: submitted,
+          textCapitalization: TextCapitalization.words,
           decoration: InputDecoration(labelText: nameLabel),
           validator: (value) =>
               DsFormValidators.validatePersonName(value, context: 'patient'),
         ),
         if (showEmail && emailController != null) ...[
           const SizedBox(height: 16),
-          TextFormField(
+          DsValidatedTextFormField(
             controller: emailController,
+            submitted: submitted,
+            keyboardType: TextInputType.emailAddress,
+            autofillHints: const [AutofillHints.email],
             decoration: InputDecoration(labelText: emailLabel),
             validator: (value) =>
                 DsFormValidators.validateEmail(value, context: 'patient'),
@@ -60,34 +69,34 @@ class DsPatientIdentitySection extends StatelessWidget {
         ],
         if (showBirthDate && birthDateController != null) ...[
           const SizedBox(height: 16),
-          TextFormField(
+          DsValidatedTextFormField(
             controller: birthDateController,
+            submitted: submitted,
             decoration: InputDecoration(
               labelText: birthDateLabel,
               hintText: birthDateHint,
+              helperText: 'Use o formato DD/MM/AAAA.',
             ),
             keyboardType: TextInputType.datetime,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(8),
-            ],
+            inputFormatters: DsFormFormatters.dateBr(),
             onChanged: onBirthDateChanged,
             validator: DsFormValidators.validateBirthDate,
           ),
         ],
         if (showMedicalRecordId && medicalRecordIdController != null) ...[
           const SizedBox(height: 16),
-          TextFormField(
+          DsValidatedTextFormField(
             controller: medicalRecordIdController,
+            submitted: submitted,
             decoration: InputDecoration(labelText: medicalRecordIdLabel),
             validator: DsFormValidators.validateMedicalRecordId,
           ),
         ],
         if (continueLabel != null && onContinue != null) ...[
           const SizedBox(height: 32),
-          ElevatedButton(
+          DsFilledButton(
+            label: continueLabel!,
             onPressed: onContinue,
-            child: Text(continueLabel!),
           ),
         ],
       ],

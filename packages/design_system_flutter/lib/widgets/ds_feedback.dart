@@ -14,6 +14,26 @@ class DsFeedbackAction {
   final IconData? icon;
 }
 
+class DsValidationSummaryItem {
+  const DsValidationSummaryItem({
+    required this.message,
+    this.label,
+    this.onTap,
+  });
+
+  final String? label;
+  final String message;
+  final VoidCallback? onTap;
+
+  String get displayText {
+    final normalizedLabel = label?.trim();
+    if (normalizedLabel == null || normalizedLabel.isEmpty) {
+      return message;
+    }
+    return '$normalizedLabel: $message';
+  }
+}
+
 class DsFeedbackMessage {
   const DsFeedbackMessage({
     required this.severity,
@@ -168,7 +188,8 @@ class DsInlineFeedback extends StatelessWidget {
 class DsValidationSummary extends StatelessWidget {
   const DsValidationSummary({
     super.key,
-    required this.errors,
+    this.errors = const <String>[],
+    this.items = const <DsValidationSummaryItem>[],
     this.title = 'Revise os campos obrigatórios',
     this.description,
     this.primaryAction,
@@ -176,6 +197,7 @@ class DsValidationSummary extends StatelessWidget {
   });
 
   final List<String> errors;
+  final List<DsValidationSummaryItem> items;
   final String title;
   final String? description;
   final DsFeedbackAction? primaryAction;
@@ -183,7 +205,13 @@ class DsValidationSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (errors.isEmpty) {
+    final resolvedItems = items.isNotEmpty
+        ? items
+        : errors
+            .map((error) => DsValidationSummaryItem(message: error))
+            .toList(growable: false);
+
+    if (resolvedItems.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -199,14 +227,21 @@ class DsValidationSummary extends StatelessWidget {
       footer: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final error in errors)
+          for (final item in resolvedItems)
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('• '),
-                  Expanded(child: Text(error)),
+                  Expanded(
+                    child: item.onTap == null
+                        ? Text(item.displayText)
+                        : InkWell(
+                            onTap: item.onTap,
+                            child: Text(item.displayText),
+                          ),
+                  ),
                 ],
               ),
             ),

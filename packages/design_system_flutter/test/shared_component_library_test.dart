@@ -178,6 +178,38 @@ void main() {
     expect(find.text('Não tem uma conta? Registre-se'), findsOneWidget);
   });
 
+  testWidgets('DsValidatedTextFormField validates after blur', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        const Form(
+          child: Column(
+            children: [
+              DsValidatedTextFormField(
+                decoration: InputDecoration(labelText: 'Campo'),
+                validator: DsFormValidators.validateRequired,
+              ),
+              DsValidatedTextFormField(
+                decoration: InputDecoration(labelText: 'Outro campo'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Campo'), findsOneWidget);
+    expect(find.text('Campo obrigatório.'), findsNothing);
+
+    await tester.tap(find.widgetWithText(TextField, 'Campo'));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(TextField, 'Outro campo'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Campo obrigatório'), findsOneWidget);
+  });
+
   testWidgets('DsProfessionalSignInCard starts obscured and toggles visibility',
       (WidgetTester tester) async {
     await tester.pumpWidget(
@@ -318,6 +350,35 @@ void main() {
     expect(find.text('Revise os campos obrigatórios'), findsOneWidget);
     expect(find.text('Informe o e-mail.'), findsOneWidget);
     expect(find.text('Selecione um questionário.'), findsOneWidget);
+  });
+
+  testWidgets('DsValidationSummary renders labeled tappable items', (
+    WidgetTester tester,
+  ) async {
+    var tapped = 0;
+
+    await tester.pumpWidget(
+      _wrap(
+        DsValidationSummary(
+          items: <DsValidationSummaryItem>[
+            DsValidationSummaryItem(
+              label: 'E-mail',
+              message: 'Informe um e-mail válido.',
+              onTap: () {
+                tapped += 1;
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('E-mail: Informe um e-mail válido.'), findsOneWidget);
+
+    await tester.tap(find.text('E-mail: Informe um e-mail válido.'));
+    await tester.pumpAndSettle();
+
+    expect(tapped, 1);
   });
 
   testWidgets('DsAccountMenuButton shows configured actions', (

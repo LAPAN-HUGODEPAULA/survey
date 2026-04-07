@@ -1,3 +1,5 @@
+import 'package:design_system_flutter/components/forms/ds_form_formatters.dart';
+import 'package:design_system_flutter/components/forms/ds_validated_fields.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:design_system_flutter/widgets/ds_buttons.dart';
@@ -208,6 +210,7 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
 
   bool _isSubmitting = false;
   bool _obscurePassword = true;
+  bool _hasSubmitted = false;
   DsFeedbackMessage? _feedback;
 
   @override
@@ -220,6 +223,7 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
   Future<void> _submit() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       setState(() {
+        _hasSubmitted = true;
         _feedback = const DsFeedbackMessage(
           severity: DsStatusType.error,
           title: 'Revise os dados informados',
@@ -345,8 +349,9 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
             children: [
               if (visibleFeedback != null)
                 DsFeedbackBanner(feedback: visibleFeedback),
-              TextFormField(
+              DsValidatedTextFormField(
                 controller: _emailController,
+                submitted: _hasSubmitted,
                 decoration: const InputDecoration(
                   labelText: 'E-mail',
                 ),
@@ -358,8 +363,9 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
                 validator: _validateEmail,
               ),
               const SizedBox(height: 12),
-              TextFormField(
+              DsValidatedTextFormField(
                 controller: _passwordController,
+                submitted: _hasSubmitted,
                 decoration: InputDecoration(
                   labelText: 'Senha',
                   suffixIcon: IconButton(
@@ -437,9 +443,6 @@ class DsProfessionalSignUpCard extends StatefulWidget {
 
 class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
   final _formKey = GlobalKey<FormState>();
-  final _cpfFieldKey = GlobalKey<FormFieldState<String>>();
-  final _postalCodeFieldKey = GlobalKey<FormFieldState<String>>();
-  final _stateFieldKey = GlobalKey<FormFieldState<String>>();
   final _cpfController = TextEditingController();
   final _firstNameController = TextEditingController();
   final _surnameController = TextEditingController();
@@ -467,6 +470,7 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
   bool _isLoading = false;
   bool _isLookingUpCep = false;
   bool _obscurePassword = true;
+  bool _hasSubmitted = false;
   String? _lastLookedUpCep;
   DsFeedbackMessage? _feedback;
 
@@ -478,12 +482,10 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
         setState(() => _cpfEditing = true);
       } else {
         _cpfEditing = false;
-        _cpfFieldKey.currentState?.validate();
       }
     });
     _postalCodeFocusNode.addListener(() {
       if (!_postalCodeFocusNode.hasFocus) {
-        _postalCodeFieldKey.currentState?.validate();
         _lookupCep();
       }
     });
@@ -517,6 +519,7 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
     _cpfEditing = false;
     if (!(_formKey.currentState?.validate() ?? false)) {
       setState(() {
+        _hasSubmitted = true;
         _feedback = const DsFeedbackMessage(
           severity: DsStatusType.error,
           title: 'Revise o cadastro',
@@ -534,14 +537,14 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
     try {
       final result = await widget.onSubmit(
         DsScreenerRegistrationData(
-          cpf: _digitsOnly(_cpfController.text),
+          cpf: DsFormFormatters.digitsOnly(_cpfController.text),
           firstName: _firstNameController.text.trim(),
           surname: _surnameController.text.trim(),
           email: _emailController.text.trim(),
           password: _passwordController.text,
-          phone: _digitsOnly(_phoneController.text),
+          phone: DsFormFormatters.digitsOnly(_phoneController.text),
           address: DsScreenerAddressData(
-            postalCode: _digitsOnly(_postalCodeController.text),
+            postalCode: DsFormFormatters.digitsOnly(_postalCodeController.text),
             street: _streetController.text.trim(),
             number: _numberController.text.trim(),
             complement: _complementController.text.trim(),
@@ -579,7 +582,7 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
   }
 
   Future<void> _lookupCep() async {
-    final digits = _digitsOnly(_postalCodeController.text);
+    final digits = DsFormFormatters.digitsOnly(_postalCodeController.text);
     if (widget.onLookupCep == null || digits.length != 8) {
       return;
     }
@@ -636,17 +639,12 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
               if (visibleFeedback != null)
                 DsFeedbackBanner(feedback: visibleFeedback),
               _buildTextField(
-                fieldKey: _cpfFieldKey,
                 controller: _cpfController,
                 wrapperKey: const ValueKey('screener-registration-cpf'),
                 label: 'CPF',
                 keyboardType: TextInputType.number,
                 focusNode: _cpfFocusNode,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(11),
-                ],
-                autovalidateMode: AutovalidateMode.onUserInteraction,
+                inputFormatters: DsFormFormatters.cpf(),
                 validator: _validateCpf,
               ),
               _buildTextField(
@@ -695,7 +693,7 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
                 wrapperKey: const ValueKey('screener-registration-phone'),
                 label: 'Telefone',
                 keyboardType: TextInputType.phone,
-                inputFormatters: [_PhoneNumberInputFormatter()],
+                inputFormatters: DsFormFormatters.phoneBr(),
               ),
               const SizedBox(height: 12),
               Text(
@@ -704,19 +702,15 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
               ),
               const SizedBox(height: 12),
               _buildTextField(
-                fieldKey: _postalCodeFieldKey,
                 controller: _postalCodeController,
                 wrapperKey: const ValueKey('screener-registration-postal-code'),
                 label: 'CEP',
                 keyboardType: TextInputType.number,
                 focusNode: _postalCodeFocusNode,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(8),
-                ],
+                inputFormatters: DsFormFormatters.cep(),
                 validator: _validateCep,
                 onChanged: (value) {
-                  final digits = _digitsOnly(value);
+                  final digits = DsFormFormatters.digitsOnly(value);
                   if (digits.length != 8) {
                     _lastLookedUpCep = null;
                     return;
@@ -816,7 +810,6 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
   }
 
   Widget _buildTextField({
-    GlobalKey<FormFieldState<String>>? fieldKey,
     required TextEditingController controller,
     Key? wrapperKey,
     required String label,
@@ -827,7 +820,6 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
     bool readOnly = false,
     String? Function(String?)? validator,
     List<TextInputFormatter>? inputFormatters,
-    AutovalidateMode? autovalidateMode,
     ValueChanged<String>? onChanged,
     Iterable<String>? autofillHints,
     bool? enableSuggestions,
@@ -839,15 +831,14 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
     return Padding(
       key: wrapperKey,
       padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        key: fieldKey,
+      child: DsValidatedTextFormField(
         controller: controller,
+        submitted: _hasSubmitted,
         keyboardType: keyboardType,
         focusNode: focusNode,
         obscureText: obscureText,
         readOnly: readOnly,
         inputFormatters: inputFormatters,
-        autovalidateMode: autovalidateMode,
         onChanged: onChanged,
         autofillHints: autofillHints,
         enableSuggestions: enableSuggestions ?? true,
@@ -866,9 +857,9 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
     return Padding(
       key: const ValueKey('screener-registration-state'),
       padding: const EdgeInsets.only(bottom: 12),
-      child: DropdownButtonFormField<String>(
-        key: _stateFieldKey,
+      child: DsValidatedDropdownButtonFormField<String>(
         initialValue: _selectedState,
+        submitted: _hasSubmitted,
         decoration: const InputDecoration(
           labelText: 'Estado (UF) *',
         ),
@@ -970,7 +961,7 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
     if (_cpfEditing) {
       return null;
     }
-    final digits = _digitsOnly(value ?? '');
+    final digits = DsFormFormatters.digitsOnly(value ?? '');
     if (digits.isEmpty) {
       return 'Campo obrigatório.';
     }
@@ -981,7 +972,7 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
   }
 
   String? _validateCep(String? value) {
-    final digits = _digitsOnly(value ?? '');
+    final digits = DsFormFormatters.digitsOnly(value ?? '');
     if (digits.isEmpty) {
       return 'Campo obrigatório.';
     }
@@ -1014,10 +1005,6 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
       return 'Informe o número de registro.';
     }
     return null;
-  }
-
-  String _digitsOnly(String input) {
-    return input.replaceAll(RegExp(r'[^0-9]'), '');
   }
 
   bool _isValidCpf(String cpf) {
@@ -1085,38 +1072,6 @@ void _restoreSelection({
       ),
     );
   });
-}
-
-class _PhoneNumberInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
-    final limited = digits.length > 11 ? digits.substring(0, 11) : digits;
-
-    final buffer = StringBuffer();
-    for (var i = 0; i < limited.length; i++) {
-      final digit = limited[i];
-      if (i == 0) {
-        buffer.write('(');
-      }
-      if (i == 2) {
-        buffer.write(') ');
-      }
-      if (i == 7) {
-        buffer.write('-');
-      }
-      buffer.write(digit);
-    }
-
-    final formatted = buffer.toString();
-    return TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
-    );
-  }
 }
 
 const List<String> _brazilStates = [
