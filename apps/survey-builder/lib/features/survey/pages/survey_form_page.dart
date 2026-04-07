@@ -39,6 +39,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
   bool _loadingPersonaSkills = true;
   String? _promptLoadError;
   String? _personaSkillLoadError;
+  DsFeedbackMessage? _feedback;
 
   late TextEditingController _displayNameController;
   late TextEditingController _nameController;
@@ -415,7 +416,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
       }
 
       if (!mounted) return;
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(true);
     } catch (error) {
       _showError('Falha ao salvar: $error');
     } finally {
@@ -427,9 +428,13 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    setState(() {
+      _feedback = DsFeedbackMessage(
+        severity: DsStatusType.error,
+        title: 'Revise o formulário',
+        message: message,
+      );
+    });
   }
 
   bool _isHtmlEmpty(String html) {
@@ -496,9 +501,9 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
   Widget build(BuildContext context) {
     final isEditing = _draft.id != null && _draft.id!.isNotEmpty;
     return DsScaffold(
-      title: isEditing ? 'Editar questionario' : 'Criar questionario',
+      title: isEditing ? 'Editar questionário' : 'Criar questionário',
       subtitle:
-          'Configure conteudo, instrucoes, prompts e perguntas usando o shell administrativo compartilhado.',
+          'Configure conteúdo, instruções, prompts e perguntas usando o shell administrativo compartilhado.',
       scrollable: true,
       body: Form(
         key: _formKey,
@@ -506,6 +511,18 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
           isSaving: _saving,
           onCancel: _saving ? () {} : _confirmCancel,
           onSave: _saving ? () {} : _save,
+          feedback: _feedback == null
+              ? null
+              : DsFeedbackBanner(
+                  feedback: DsFeedbackMessage(
+                    severity: _feedback!.severity,
+                    title: _feedback!.title,
+                    message: _feedback!.message,
+                    dismissible: true,
+                    onDismiss: () => setState(() => _feedback = null),
+                  ),
+                  margin: EdgeInsets.zero,
+                ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

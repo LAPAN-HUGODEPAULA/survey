@@ -18,6 +18,7 @@ class ClinicianInitialNoticePage extends StatefulWidget {
 class _ClinicianInitialNoticePageState
     extends State<ClinicianInitialNoticePage> {
   bool _isSubmitting = false;
+  DsFeedbackMessage? _feedback;
 
   Future<void> _acceptNotice() async {
     if (_isSubmitting) {
@@ -40,6 +41,7 @@ class _ClinicianInitialNoticePageState
       if (!mounted) {
         return;
       }
+      setState(() => _feedback = null);
       context.read<AppSettings>().markInitialNoticeAccepted(
         profile.initialNoticeAcceptedAt ?? DateTime.now().toUtc(),
       );
@@ -52,20 +54,24 @@ class _ClinicianInitialNoticePageState
       final message = detail is Map<String, dynamic> && detail['detail'] != null
           ? detail['detail'].toString()
           : 'Não foi possível registrar o aceite do aviso inicial.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      setState(() {
+        _feedback = DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Não foi possível continuar',
+          message: message,
+        );
+      });
     } catch (_) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Não foi possível registrar o aceite do aviso inicial.',
-          ),
-        ),
-      );
+      setState(() {
+        _feedback = const DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Não foi possível continuar',
+          message: 'Não foi possível registrar o aceite do aviso inicial.',
+        );
+      });
     } finally {
       dio.close();
       if (mounted) {
@@ -82,6 +88,7 @@ class _ClinicianInitialNoticePageState
         header: const Icon(Icons.medical_services_outlined, size: 56),
         proceedLabel: 'Continuar para a plataforma',
         isSubmitting: _isSubmitting,
+        feedback: _feedback,
         onProceed: _acceptNotice,
       ),
     );

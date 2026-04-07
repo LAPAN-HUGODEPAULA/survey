@@ -31,6 +31,7 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
   bool _saving = false;
   String? _personaSkillKeyConflictText;
   String? _outputProfileConflictText;
+  DsFeedbackMessage? _feedback;
 
   @override
   void initState() {
@@ -111,6 +112,11 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
       _outputProfileConflictText = duplicates.outputProfileConflict
           ? 'Este perfil de saída já está vinculado a outra persona.'
           : null;
+      _feedback = const DsFeedbackMessage(
+        severity: DsStatusType.warning,
+        title: 'Conflito de cadastro',
+        message: 'Revise os campos com conflito antes de salvar novamente.',
+      );
     });
   }
 
@@ -148,17 +154,25 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
       if (latestDuplicates.hasConflict) {
         _applyDuplicateErrors(latestDuplicates);
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Falha ao salvar persona: $error')),
-        );
+        setState(() {
+          _feedback = DsFeedbackMessage(
+            severity: DsStatusType.error,
+            title: 'Falha ao salvar persona',
+            message: 'Falha ao salvar persona: $error',
+          );
+        });
       }
     } on Exception catch (error) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Falha ao salvar persona: $error')),
-      );
+      setState(() {
+        _feedback = DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Falha ao salvar persona',
+          message: 'Falha ao salvar persona: $error',
+        );
+      });
     } finally {
       if (mounted) {
         setState(() => _saving = false);
@@ -171,7 +185,7 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
     return DsScaffold(
       title: _isEditing ? 'Editar persona' : 'Criar persona',
       subtitle:
-          'Configure personas e perfis de saida reutilizaveis para os relatos clinicos.',
+          'Configure personas e perfis de saída reutilizáveis para os relatos clínicos.',
       scrollable: true,
       body: Form(
         key: _formKey,
@@ -179,6 +193,18 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
           isSaving: _saving,
           onCancel: () => Navigator.of(context).pop(),
           onSave: _save,
+          feedback: _feedback == null
+              ? null
+              : DsFeedbackBanner(
+                  feedback: DsFeedbackMessage(
+                    severity: _feedback!.severity,
+                    title: _feedback!.title,
+                    message: _feedback!.message,
+                    dismissible: true,
+                    onDismiss: () => setState(() => _feedback = null),
+                  ),
+                  margin: EdgeInsets.zero,
+                ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

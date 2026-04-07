@@ -29,6 +29,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
   DsDemographicsCatalogs? _catalogs;
   String? _catalogError;
   bool _isLoadingCatalogs = true;
+  List<String> _validationErrors = const <String>[];
   String? _selectedSex;
   String? _selectedRace;
   String? _selectedEducationLevel;
@@ -136,26 +137,23 @@ class _DemographicsPageState extends State<DemographicsPage> {
   }
 
   void _submitForm() {
-    if (!_formKey.currentState!.validate()) {
+    final settings = Provider.of<AppSettings>(context, listen: false);
+    final errors = <String>[];
+    final isFormValid = _formKey.currentState!.validate();
+
+    if (_usesMedication == null) {
+      errors.add('Informe se a pessoa faz uso de medicação psiquiátrica.');
+    }
+    if (settings.selectedSurvey == null) {
+      errors.add('Selecione um questionário antes de continuar.');
+    }
+
+    if (!isFormValid || errors.isNotEmpty) {
+      setState(() => _validationErrors = errors);
       return;
     }
 
-    final settings = Provider.of<AppSettings>(context, listen: false);
-    if (_selectedSex == null ||
-        _selectedRace == null ||
-        _selectedEducationLevel == null ||
-        _usesMedication == null ||
-        settings.selectedSurvey == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Por favor, preencha todos os campos obrigatórios.',
-          ),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-      return;
-    }
+    setState(() => _validationErrors = const <String>[]);
 
     settings.setPatientData(
       name: _nameController.text.trim(),
@@ -198,23 +196,21 @@ class _DemographicsPageState extends State<DemographicsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (_validationErrors.isNotEmpty) ...[
+                    DsValidationSummary(
+                      errors: _validationErrors,
+                      description:
+                          'Corrija os itens abaixo e os campos destacados antes de avançar.',
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   if (settings.isLockedAssessmentMode)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      margin: const EdgeInsets.only(bottom: 24),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'Este acesso foi preparado para ${settings.screenerDisplayName} e o questionário ${settings.selectedSurveyName}. As configurações estão protegidas durante esta sessão.',
-                        style: TextStyle(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onPrimaryContainer,
-                          fontSize: 15,
-                        ),
+                    DsFeedbackBanner(
+                      feedback: DsFeedbackMessage(
+                        severity: DsStatusType.info,
+                        title: 'Sessão preparada',
+                        message:
+                            'Este acesso foi preparado para ${settings.screenerDisplayName} e o questionário ${settings.selectedSurveyName}. As configurações estão protegidas durante esta sessão.',
                       ),
                     ),
                   DsPatientIdentitySection(

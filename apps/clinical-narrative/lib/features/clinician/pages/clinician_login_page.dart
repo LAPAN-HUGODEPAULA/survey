@@ -17,7 +17,7 @@ class ClinicianLoginPage extends StatelessWidget {
     return DsScaffold(
       title: 'Login do profissional',
       subtitle:
-          'Acesse sua conta para iniciar sessoes e registrar narrativas clinicas.',
+          'Acesse sua conta para iniciar sessões e registrar narrativas clínicas.',
       scrollable: true,
       body: DsProfessionalSignInCard(
         header: const Icon(Icons.medical_services_outlined, size: 56),

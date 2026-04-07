@@ -21,6 +21,7 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
   late final TextEditingController _keyController;
   late final TextEditingController _promptTextController;
   bool _saving = false;
+  DsFeedbackMessage? _feedback;
 
   @override
   void initState() {
@@ -72,9 +73,13 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Falha ao salvar prompt: $error')));
+      setState(() {
+        _feedback = DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Falha ao salvar prompt',
+          message: 'Falha ao salvar prompt: $error',
+        );
+      });
     } finally {
       if (mounted) {
         setState(() => _saving = false);
@@ -87,7 +92,7 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
     return DsScaffold(
       title: _isEditing ? 'Editar prompt' : 'Criar prompt',
       subtitle:
-          'Mantenha chaves estaveis e reutilize instrucoes compartilhadas.',
+          'Mantenha chaves estáveis e reutilize instruções compartilhadas.',
       scrollable: true,
       body: Form(
         key: _formKey,
@@ -95,6 +100,18 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
           isSaving: _saving,
           onCancel: () => Navigator.of(context).pop(),
           onSave: _save,
+          feedback: _feedback == null
+              ? null
+              : DsFeedbackBanner(
+                  feedback: DsFeedbackMessage(
+                    severity: _feedback!.severity,
+                    title: _feedback!.title,
+                    message: _feedback!.message,
+                    dismissible: true,
+                    onDismiss: () => setState(() => _feedback = null),
+                  ),
+                  margin: EdgeInsets.zero,
+                ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

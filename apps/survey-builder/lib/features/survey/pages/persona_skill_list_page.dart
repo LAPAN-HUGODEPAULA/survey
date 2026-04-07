@@ -17,6 +17,7 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
   late final PersonaSkillRepository _repository;
   bool _loading = true;
   String? _error;
+  DsFeedbackMessage? _feedback;
   List<PersonaSkillDraft> _skills = <PersonaSkillDraft>[];
 
   @override
@@ -60,6 +61,13 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
     );
     if (changed == true && mounted) {
       await _load();
+      setState(() {
+        _feedback = const DsFeedbackMessage(
+          severity: DsStatusType.success,
+          title: 'Persona salva',
+          message: 'As alterações da persona foram salvas com sucesso.',
+        );
+      });
     }
   }
 
@@ -79,22 +87,33 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
         return;
       }
       await _load();
+      setState(() {
+        _feedback = const DsFeedbackMessage(
+          severity: DsStatusType.success,
+          title: 'Persona excluída',
+          message: 'A persona foi removida com sucesso.',
+        );
+      });
     } on Exception catch (error) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Falha ao excluir persona: $error')),
-      );
+      setState(() {
+        _feedback = DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Falha ao excluir persona',
+          message: 'Falha ao excluir persona: $error',
+        );
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      title: 'Personas de saida',
+      title: 'Personas de saída',
       subtitle:
-          'Gerencie personas compartilhadas e perfis padrao para relatorios.',
+          'Gerencie personas compartilhadas e perfis padrão para relatórios.',
       body: DsAdminCatalogShell<PersonaSkillDraft>(
         heading: 'Catálogo de personas',
         createLabel: 'Criar persona',
@@ -102,6 +121,18 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
         items: _skills,
         emptyMessage: 'Nenhuma persona encontrada.',
         error: _error,
+        feedback: _feedback == null
+            ? null
+            : DsFeedbackBanner(
+                feedback: DsFeedbackMessage(
+                  severity: _feedback!.severity,
+                  title: _feedback!.title,
+                  message: _feedback!.message,
+                  dismissible: true,
+                  onDismiss: () => setState(() => _feedback = null),
+                ),
+                margin: EdgeInsets.zero,
+              ),
         onRetry: _load,
         onRefresh: _load,
         onCreate: _openForm,

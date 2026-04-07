@@ -17,6 +17,7 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
   late final SurveyPromptRepository _repository;
   bool _loading = true;
   String? _error;
+  DsFeedbackMessage? _feedback;
   List<SurveyPromptDraft> _prompts = <SurveyPromptDraft>[];
 
   @override
@@ -57,6 +58,13 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
     );
     if (changed == true && mounted) {
       await _load();
+      setState(() {
+        _feedback = const DsFeedbackMessage(
+          severity: DsStatusType.success,
+          title: 'Prompt salvo',
+          message: 'As alterações do prompt foram salvas com sucesso.',
+        );
+      });
     }
   }
 
@@ -76,20 +84,31 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
         return;
       }
       await _load();
+      setState(() {
+        _feedback = const DsFeedbackMessage(
+          severity: DsStatusType.success,
+          title: 'Prompt excluído',
+          message: 'O prompt foi removido com sucesso.',
+        );
+      });
     } on Exception catch (error) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Falha ao excluir prompt: $error')),
-      );
+      setState(() {
+        _feedback = DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Falha ao excluir prompt',
+          message: 'Falha ao excluir prompt: $error',
+        );
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      title: 'Prompts reutilizaveis',
+      title: 'Prompts reutilizáveis',
       subtitle: 'Gerencie os prompts compartilhados usados pelos fluxos de IA.',
       body: DsAdminCatalogShell<SurveyPromptDraft>(
         heading: 'Catálogo de prompts',
@@ -98,6 +117,18 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
         items: _prompts,
         emptyMessage: 'Nenhum prompt encontrado.',
         error: _error,
+        feedback: _feedback == null
+            ? null
+            : DsFeedbackBanner(
+                feedback: DsFeedbackMessage(
+                  severity: _feedback!.severity,
+                  title: _feedback!.title,
+                  message: _feedback!.message,
+                  dismissible: true,
+                  onDismiss: () => setState(() => _feedback = null),
+                ),
+                margin: EdgeInsets.zero,
+              ),
         onRetry: _load,
         onRefresh: _load,
         onCreate: _openForm,

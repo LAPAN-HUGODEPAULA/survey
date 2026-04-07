@@ -7,25 +7,24 @@ class AccessLinkUnavailablePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      title: 'Link indisponivel',
-      subtitle: 'O link preparado nao pode mais ser usado nesta sessao.',
+      title: 'Link indisponível',
+      subtitle: 'O link preparado não pode mais ser usado nesta sessão.',
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
           child: DsSection(
             eyebrow: 'Acesso',
-            title: 'Este questionario preparado nao esta mais disponivel.',
+            title: 'Este questionário preparado não está mais disponível.',
             subtitle:
-                'Entre em contato com o screener responsavel para solicitar um novo link.',
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.info_outline, size: 40),
-                SizedBox(height: 16),
-                Text(
-                  'Se precisar de ajuda, envie uma mensagem para lapan.hugodepaula@gmail.com.',
-                ),
-              ],
+                'Entre em contato com a pessoa responsável pela triagem para solicitar um novo link.',
+            child: const DsFeedbackBanner(
+              feedback: DsFeedbackMessage(
+                severity: DsStatusType.info,
+                title: 'Link expirado ou já utilizado',
+                message:
+                    'Se precisar de ajuda, envie uma mensagem para lapan.hugodepaula@gmail.com.',
+              ),
+              margin: EdgeInsets.zero,
             ),
           ),
         ),

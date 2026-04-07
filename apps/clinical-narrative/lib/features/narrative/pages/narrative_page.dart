@@ -20,6 +20,7 @@ class NarrativePage extends StatefulWidget {
 class _NarrativePageState extends State<NarrativePage> {
   final _narrativeController = TextEditingController();
   bool _isGenerating = false;
+  DsFeedbackMessage? _feedback;
 
   @override
   void dispose() {
@@ -30,16 +31,26 @@ class _NarrativePageState extends State<NarrativePage> {
   Future<void> _generateNarrative() async {
     final rawContent = _narrativeController.text.trim();
     if (rawContent.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Informe o conteúdo para gerar a narrativa.'),
-        ),
-      );
+      setState(() {
+        _feedback = const DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Conteúdo obrigatório',
+          message: 'Informe o conteúdo antes de gerar a narrativa.',
+        );
+      });
       return;
     }
 
     final settings = Provider.of<AppSettings>(context, listen: false);
-    setState(() => _isGenerating = true);
+    setState(() {
+      _isGenerating = true;
+      _feedback = const DsFeedbackMessage(
+        severity: DsStatusType.info,
+        title: 'Gerando narrativa',
+        message:
+            'Estamos estruturando um texto clínico consistente a partir do conteúdo informado.',
+      );
+    });
     try {
       final service = ClinicalWriterService();
       final response = await service.processContent(rawContent);
@@ -50,16 +61,24 @@ class _NarrativePageState extends State<NarrativePage> {
       }
       settings.setNarrative(report.toPlainText());
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Narrativa gerada com sucesso.')),
-        );
+        setState(() {
+          _feedback = const DsFeedbackMessage(
+            severity: DsStatusType.success,
+            title: 'Narrativa gerada',
+            message: 'A narrativa foi gerada com sucesso.',
+          );
+        });
         AppNavigator.toReport(context, report);
       }
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao gerar narrativa: $error')),
-        );
+        setState(() {
+          _feedback = DsFeedbackMessage(
+            severity: DsStatusType.error,
+            title: 'Falha ao gerar narrativa',
+            message: 'Erro ao gerar narrativa: $error',
+          );
+        });
       }
     } finally {
       if (mounted) {
@@ -104,21 +123,24 @@ class _NarrativePageState extends State<NarrativePage> {
     final patient = Provider.of<AppSettings>(context).patient;
 
     return DsScaffold(
-      title: 'Narrativa clinica',
+      title: 'Narrativa clínica',
       subtitle: patient.name.isNotEmpty
           ? 'Paciente: ${patient.name}'
-          : 'Paciente nao informado',
+          : 'Paciente não informado',
       scrollable: true,
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
           child: DsSection(
-            eyebrow: 'Redacao',
+            eyebrow: 'Redação',
             title: 'Rascunho da narrativa',
             subtitle:
-                'Revise o conteudo clinico antes de gerar o prontuario final.',
+                'Revise o conteúdo clínico antes de gerar o prontuário final.',
             child: Column(
               children: [
+                if (_feedback != null) ...[
+                  DsFeedbackBanner(feedback: _feedback!),
+                ],
                 DsFocusFrame(
                   child: SizedBox(
                     height: 420,
@@ -137,7 +159,7 @@ class _NarrativePageState extends State<NarrativePage> {
                 SizedBox(
                   width: double.infinity,
                   child: DsFilledButton(
-                    label: 'Gerar prontuario',
+                    label: 'Gerar prontuário',
                     onPressed: _isGenerating ? null : _generateNarrative,
                     loading: _isGenerating,
                     size: DsButtonSize.large,

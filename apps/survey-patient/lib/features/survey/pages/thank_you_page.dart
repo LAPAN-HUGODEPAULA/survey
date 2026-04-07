@@ -222,7 +222,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
     return DsScaffold(
       title: 'Obrigado por responder!',
       subtitle:
-          'Veja o resumo da avaliacao do questionario $displayName antes de seguir para o relatorio.',
+          'Veja o resumo da avaliação do questionário $displayName antes de seguir para o relatório.',
       scrollable: true,
       body: Center(
         child: ConstrainedBox(
@@ -311,55 +311,36 @@ class _ThankYouPageState extends State<ThankYouPage> {
               ),
               const SizedBox(height: 16),
               DsSection(
-                eyebrow: 'Leitura clinica',
-                title: 'Avaliacao preliminar',
+                eyebrow: 'Leitura clínica',
+                title: 'Avaliação preliminar',
                 subtitle:
-                    'A sintese abaixo e gerada com base nas respostas fornecidas.',
+                    'A síntese abaixo é gerada com base nas respostas fornecidas.',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (_isAgentLoading)
-                      Row(
-                        children: [
-                          const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            'Processando analise',
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                        ],
+                      const DsInlineFeedback(
+                        feedback: DsFeedbackMessage(
+                          severity: DsStatusType.info,
+                          title: 'Preparando avaliação',
+                          message:
+                              'Estamos analisando as respostas para montar uma leitura preliminar clara e acolhedora.',
+                        ),
+                        margin: EdgeInsets.zero,
                       )
                     else if (_agentError != null)
-                      DsPanel(
-                        tone: DsPanelTone.high,
-                        backgroundColor: _withOpacity(
-                          theme.colorScheme.error,
-                          0.12,
+                      DsFeedbackBanner(
+                        feedback: DsFeedbackMessage(
+                          severity: DsStatusType.warning,
+                          title: 'Não foi possível concluir a avaliação agora',
+                          message: _agentError!,
+                          primaryAction: DsFeedbackAction(
+                            label: 'Tentar novamente',
+                            onPressed: _loadAgentResponse,
+                            icon: Icons.refresh,
+                          ),
                         ),
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.warning_amber_rounded,
-                              color: theme.colorScheme.error,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                _agentError!,
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: _loadAgentResponse,
-                              child: const Text('Recarregar'),
-                            ),
-                          ],
-                        ),
+                        margin: EdgeInsets.zero,
                       )
                     else if (_agentResponse != null)
                       LimitedBox(
@@ -373,7 +354,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                       )
                     else
                       Text(
-                        'Ainda nao conseguimos gerar a avaliacao preliminar.',
+                        'Ainda não conseguimos gerar a avaliação preliminar.',
                         style: theme.textTheme.bodyMedium,
                       ),
                     if (widget.survey.finalNotes != null &&
@@ -422,12 +403,12 @@ class _ThankYouPageState extends State<ThankYouPage> {
               ),
               const SizedBox(height: 16),
               DsSection(
-                eyebrow: 'Proximo passo',
-                title: 'Quer um relatorio mais detalhado?',
+                eyebrow: 'Próximo passo',
+                title: 'Quer um relatório mais detalhado?',
                 subtitle:
-                    'Voce pode adicionar seus dados pessoais para enriquecer a analise ou seguir direto para o relatorio.',
+                    'Você pode adicionar seus dados pessoais para enriquecer a análise ou seguir direto para o relatório.',
                 child: DsFilledButton(
-                  label: 'Adicionar Informacoes',
+                  label: 'Adicionar informações',
                   onPressed: () => AppNavigator.toDemographics(
                     context,
                     survey: widget.survey,

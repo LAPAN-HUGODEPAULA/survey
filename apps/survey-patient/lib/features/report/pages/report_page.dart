@@ -334,7 +334,14 @@ class _ReportPageState extends State<ReportPage> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+    showDsFeedbackSnackBar(
+      context,
+      feedback: DsFeedbackMessage(
+        severity: DsStatusType.success,
+        title: 'Exportação concluída',
+        message: result,
+      ),
+    );
   }
 
   Future<void> _exportPdf() async {
@@ -345,9 +352,12 @@ class _ReportPageState extends State<ReportPage> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Exportação em PDF disponível apenas no navegador.'),
+    showDsFeedbackSnackBar(
+      context,
+      feedback: const DsFeedbackMessage(
+        severity: DsStatusType.info,
+        title: 'Exportação em PDF',
+        message: 'A exportação em PDF está disponível apenas no navegador.',
       ),
     );
   }
@@ -410,8 +420,8 @@ class _ReportPageState extends State<ReportPage> {
         : widget.survey.surveyName;
 
     return DsScaffold(
-      title: 'Relatorio',
-      subtitle: 'Analise consolidada do questionario $displayName.',
+      title: 'Relatório',
+      subtitle: 'Análise consolidada do questionário $displayName.',
       scrollable: true,
       body: Center(
         child: ConstrainedBox(
@@ -422,27 +432,45 @@ class _ReportPageState extends State<ReportPage> {
               if (_isSaving) ...[
                 const Center(child: DsLoading()),
                 const SizedBox(height: 16),
-                const Text('Gerando relatorio...', textAlign: TextAlign.center),
+                const DsInlineFeedback(
+                  feedback: DsFeedbackMessage(
+                    severity: DsStatusType.info,
+                    title: 'Preparando relatório',
+                    message:
+                        'Estamos organizando suas respostas para gerar uma versão clara e útil.',
+                  ),
+                  margin: EdgeInsets.zero,
+                ),
                 const SizedBox(height: 24),
               ],
               if (_saveSuccess && !_isSaving)
-                _StatusBanner(
-                  icon: Icons.check_circle_outline,
-                  message: _savedResponseId != null
-                      ? 'Respostas enviadas com sucesso!'
-                      : 'Respostas salvas localmente.',
-                  detail: _savedResponseId != null
-                      ? 'Protocolo: $_savedResponseId'
-                      : _savedFilePath,
-                  color: Theme.of(context).colorScheme.tertiary,
+                DsFeedbackBanner(
+                  feedback: DsFeedbackMessage(
+                    severity: DsStatusType.success,
+                    title: _savedResponseId != null
+                        ? 'Respostas enviadas'
+                        : 'Respostas salvas localmente',
+                    message: _savedResponseId != null
+                        ? 'Suas respostas foram enviadas com sucesso.'
+                        : 'Não conseguimos enviar ao servidor, mas os dados foram preservados localmente.',
+                  ),
+                  footer: (_savedResponseId != null || _savedFilePath != null)
+                      ? Text(
+                          _savedResponseId != null
+                              ? 'Protocolo: $_savedResponseId'
+                              : 'Arquivo salvo em: $_savedFilePath',
+                        )
+                      : null,
                 ),
               if (_saveError != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0),
-                  child: _StatusBanner(
-                    icon: Icons.warning_amber_outlined,
-                    message: _saveError!,
-                    color: Theme.of(context).colorScheme.error,
+                  child: DsFeedbackBanner(
+                    feedback: DsFeedbackMessage(
+                      severity: DsStatusType.warning,
+                      title: 'Envio com ressalvas',
+                      message: _saveError!,
+                    ),
                   ),
                 ),
               const SizedBox(height: 16),
@@ -474,7 +502,7 @@ class _ReportPageState extends State<ReportPage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 24.0),
                   child: Text(
-                    'Ainda estamos processando o seu relatorio. Aguarde alguns instantes.',
+                    'Ainda estamos processando o seu relatório. Aguarde alguns instantes.',
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
@@ -482,57 +510,6 @@ class _ReportPageState extends State<ReportPage> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _StatusBanner extends StatelessWidget {
-  const _StatusBanner({
-    required this.icon,
-    required this.message,
-    this.detail,
-    required this.color,
-  });
-
-  final IconData icon;
-  final String message;
-  final String? detail;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return DsPanel(
-      tone: DsPanelTone.high,
-      backgroundColor: color.withValues(alpha: 0.12),
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: color),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  message,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                ),
-              ),
-            ],
-          ),
-          if (detail != null && detail!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              detail!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ],
       ),
     );
   }

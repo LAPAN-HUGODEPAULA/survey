@@ -399,7 +399,14 @@ class _ThankYouPageState extends State<ThankYouPage> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+    showDsFeedbackSnackBar(
+      context,
+      feedback: DsFeedbackMessage(
+        severity: DsStatusType.success,
+        title: 'Exportação concluída',
+        message: result,
+      ),
+    );
   }
 
   void _printReport() {
@@ -467,8 +474,8 @@ class _ThankYouPageState extends State<ThankYouPage> {
         : widget.survey.surveyName;
 
     return DsScaffold(
-      title: 'Avaliacao finalizada',
-      subtitle: 'Revise o envio e os proximos passos da triagem.',
+      title: 'Avaliação finalizada',
+      subtitle: 'Revise o envio e os próximos passos da triagem.',
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
@@ -479,11 +486,14 @@ class _ThankYouPageState extends State<ThankYouPage> {
               children: [
                 // Surface submission progress before the final confirmation UI.
                 if (_isSaving) ...[
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Salvando respostas...',
-                    style: TextStyle(fontSize: 16),
+                  const DsInlineFeedback(
+                    feedback: DsFeedbackMessage(
+                      severity: DsStatusType.info,
+                      title: 'Enviando respostas',
+                      message:
+                          'Estamos registrando as respostas e preparando os próximos passos da triagem.',
+                    ),
+                    margin: EdgeInsets.zero,
                   ),
                   const SizedBox(height: 24),
                 ] else if (_saveSuccess) ...[
@@ -493,94 +503,40 @@ class _ThankYouPageState extends State<ThankYouPage> {
                     size: 100,
                   ),
                   const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.tertiaryContainer,
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
+                  DsFeedbackBanner(
+                    feedback: DsFeedbackMessage(
+                      severity: DsStatusType.success,
+                      title: _savedResponseId != null
+                          ? 'Respostas enviadas'
+                          : 'Respostas salvas localmente',
+                      message: _savedResponseId != null
+                          ? 'As respostas foram enviadas para o servidor com sucesso.'
+                          : 'Não foi possível enviar ao servidor, mas os dados foram preservados localmente.',
                     ),
-                    child: Column(
+                    footer: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.save_alt,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onTertiaryContainer,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                _savedResponseId != null
-                                    ? 'Respostas enviadas para o servidor com sucesso!'
-                                    : 'Respostas salvas localmente.',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Questionario: $displayName',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onTertiaryContainer,
-                          ),
-                        ),
+                        Text('Questionário: $displayName'),
                         if (_savedResponseId != null) ...[
                           const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Protocolo da submissão: $_savedResponseId',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color:
-                                        theme.colorScheme.onTertiaryContainer,
-                                    fontFamily: 'monospace',
-                                  ),
-                                ),
-                              ),
-                            ],
+                          Text(
+                            'Protocolo da submissão: $_savedResponseId',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontFamily: 'monospace',
+                            ),
                           ),
                         ] else if (_savedFilePath != null) ...[
                           const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  'Arquivo salvo em: $_savedFilePath',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color:
-                                        theme.colorScheme.onTertiaryContainer,
-                                    fontFamily: 'monospace',
-                                  ),
-                                ),
-                              ),
-                            ],
+                          Text(
+                            'Arquivo salvo em: $_savedFilePath',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontFamily: 'monospace',
+                            ),
                           ),
                         ],
                         if (_saveError != null) ...[
                           const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  _saveError!,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color:
-                                        theme.colorScheme.onTertiaryContainer,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                          Text(_saveError!),
                         ],
                       ],
                     ),
@@ -600,7 +556,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                     DsOutlinedButton(
                       onPressed: _loadDemoReport,
                       icon: Icons.visibility_outlined,
-                      label: 'Carregar relatorio de exemplo',
+                      label: 'Carregar relatório de exemplo',
                     ),
                     if (_demoReportError != null) ...[
                       const SizedBox(height: 8),
@@ -627,29 +583,11 @@ class _ThankYouPageState extends State<ThankYouPage> {
                     size: 100,
                   ),
                   const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.errorContainer,
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.warning,
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _saveError!,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ),
-                      ],
+                  DsFeedbackBanner(
+                    feedback: DsFeedbackMessage(
+                      severity: DsStatusType.error,
+                      title: 'Falha ao registrar respostas',
+                      message: _saveError!,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -683,7 +621,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                 // Include the survey name when it helps disambiguate the completed form.
                 Text(
                   widget.survey.surveyDisplayName.isNotEmpty
-                      ? 'Suas respostas para o questionario "${widget.survey.surveyDisplayName}" foram registradas.'
+                      ? 'Suas respostas para o questionário "${widget.survey.surveyDisplayName}" foram registradas.'
                       : 'Suas respostas foram registradas com sucesso.',
                   style: theme.textTheme.bodyLarge,
                   textAlign: TextAlign.center,
@@ -750,7 +688,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
                 // Let staff reset the workflow for the next respondent.
                 DsFilledButton(
-                  label: 'Iniciar nova avaliacao',
+                  label: 'Iniciar nova avaliação',
                   onPressed: () {
                     // Clear shared patient state before returning to the first screen.
                     final settings = Provider.of<AppSettings>(

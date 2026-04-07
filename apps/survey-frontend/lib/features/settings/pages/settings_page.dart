@@ -37,6 +37,8 @@ class _SettingsPageState extends State<SettingsPage> {
   ScreenerAccessLink? _generatedLink;
   bool _isGeneratingLink = false;
   String? _generationError;
+  DsFeedbackMessage? _pageFeedback;
+  List<String> _validationErrors = const <String>[];
 
   @override
   void initState() {
@@ -69,6 +71,7 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       _isGeneratingLink = true;
       _generationError = null;
+      _pageFeedback = null;
     });
 
     try {
@@ -83,7 +86,13 @@ class _SettingsPageState extends State<SettingsPage> {
         _generatedLink = link;
         _isGeneratingLink = false;
       });
-      _showMessage('Link preparado com sucesso.');
+      _showMessage(
+        DsFeedbackMessage(
+          severity: DsStatusType.success,
+          title: 'Link preparado',
+          message: 'O link foi gerado com sucesso.',
+        ),
+      );
     } catch (_) {
       if (!mounted) {
         return;
@@ -101,7 +110,13 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!mounted) {
       return;
     }
-    _showMessage('Link copiado.');
+    _showMessage(
+      const DsFeedbackMessage(
+        severity: DsStatusType.success,
+        title: 'Link copiado',
+        message: 'O link preparado foi copiado para a área de transferência.',
+      ),
+    );
   }
 
   Future<void> _saveLinkText(String url) async {
@@ -109,7 +124,13 @@ class _SettingsPageState extends State<SettingsPage> {
       fileName: 'questionario_preparado.txt',
       content: 'Link do questionário preparado:\n$url\n',
     );
-    _showMessage('Arquivo de texto salvo.');
+    _showMessage(
+      const DsFeedbackMessage(
+        severity: DsStatusType.success,
+        title: 'Arquivo salvo',
+        message: 'O arquivo de texto do link preparado foi salvo.',
+      ),
+    );
   }
 
   Future<void> _saveQrPng(String url) async {
@@ -135,12 +156,20 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!mounted) {
       return;
     }
-    _showMessage('QR code em PNG salvo.');
+    _showMessage(
+      const DsFeedbackMessage(
+        severity: DsStatusType.success,
+        title: 'QR Code salvo',
+        message: 'A imagem do QR Code foi salva em PNG.',
+      ),
+    );
   }
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: const Duration(seconds: 2)),
+  void _showMessage(DsFeedbackMessage feedback) {
+    showDsFeedbackSnackBar(
+      context,
+      feedback: feedback,
+      duration: const Duration(seconds: 2),
     );
   }
 
@@ -154,23 +183,31 @@ class _SettingsPageState extends State<SettingsPage> {
     }
 
     if (validationErrors.isNotEmpty || !isFormValid) {
-      final content = validationErrors.isNotEmpty
-          ? 'Campos obrigatórios não preenchidos:\n• ${validationErrors.join('\n• ')}'
-          : 'Por favor, corrija os erros nos campos destacados.';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(content),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
+      setState(() {
+        _validationErrors = validationErrors;
+        _pageFeedback = const DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Revise as configurações',
+          message: 'Corrija os campos destacados antes de continuar.',
+        );
+      });
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Configurações salvas com sucesso!'),
-        backgroundColor: Theme.of(context).colorScheme.tertiary,
-        duration: const Duration(seconds: 2),
+    setState(() {
+      _validationErrors = const <String>[];
+      _pageFeedback = DsFeedbackMessage(
+        severity: DsStatusType.success,
+        title: 'Configurações salvas',
+        message: 'As configurações foram salvas com sucesso.',
+      );
+    });
+
+    _showMessage(
+      const DsFeedbackMessage(
+        severity: DsStatusType.success,
+        title: 'Configurações salvas',
+        message: 'As configurações foram salvas com sucesso.',
       ),
     );
 
@@ -178,6 +215,40 @@ class _SettingsPageState extends State<SettingsPage> {
       if (!mounted) return;
       context.go('/');
     });
+  }
+
+  Widget _buildPageFeedback() {
+    if (_validationErrors.isNotEmpty) {
+      return DsValidationSummary(
+        errors: _validationErrors,
+        description:
+            'Corrija os itens abaixo e também os campos destacados no formulário.',
+        secondaryAction: DsFeedbackAction(
+          label: 'Fechar',
+          onPressed: () {
+            setState(() {
+              _validationErrors = const <String>[];
+              _pageFeedback = null;
+            });
+          },
+        ),
+      );
+    }
+
+    if (_pageFeedback == null) {
+      return const SizedBox.shrink();
+    }
+
+    return DsFeedbackBanner(
+      feedback: DsFeedbackMessage(
+        severity: _pageFeedback!.severity,
+        title: _pageFeedback!.title,
+        message: _pageFeedback!.message,
+        dismissible: true,
+        onDismiss: () => setState(() => _pageFeedback = null),
+      ),
+      margin: EdgeInsets.zero,
+    );
   }
 
   @override
@@ -197,7 +268,7 @@ class _SettingsPageState extends State<SettingsPage> {
         } else if (settings.availableSurveys.isEmpty) {
           surveySelectionChild = DsFocusFrame(
             child: Text(
-              'Nenhum questionario foi encontrado no servidor. Verifique se o backend esta em execucao.',
+              'Nenhum questionário foi encontrado no servidor. Verifique se o backend está em execução.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -212,7 +283,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 initialValue: settings.selectedSurveyId,
                 isExpanded: true,
                 decoration: const InputDecoration(
-                  labelText: 'Questionario selecionado *',
+                  labelText: 'Questionário selecionado *',
                 ),
                 items: settings.availableSurveys.map<DropdownMenuItem<String>>((
                   survey,
@@ -235,7 +306,7 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               const SizedBox(height: 16),
               DsOutlinedButton(
-                label: 'Ver detalhes do questionario',
+                label: 'Ver detalhes do questionário',
                 icon: Icons.info_outline,
                 onPressed: settings.selectedSurvey != null
                     ? () => _showSurveyDetails(settings.selectedSurvey!)
@@ -259,16 +330,21 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (_pageFeedback != null ||
+                        _validationErrors.isNotEmpty) ...[
+                      _buildPageFeedback(),
+                      const SizedBox(height: 24),
+                    ],
                     if (settings.isLockedAssessmentMode) ...[
                       _buildLockedModeCard(settings),
                       const SizedBox(height: 24),
                     ],
                     DsSection(
-                      eyebrow: 'Questionario ativo',
-                      title: 'Selecao do questionario',
+                      eyebrow: 'Questionário ativo',
+                      title: 'Seleção do questionário',
                       subtitle: settings.isLockedAssessmentMode
-                          ? 'Este questionario foi preparado com antecedencia e nao pode ser alterado nesta sessao.'
-                          : 'Selecione qual questionario sera aplicado nesta triagem.',
+                          ? 'Este questionário foi preparado com antecedência e não pode ser alterado nesta sessão.'
+                          : 'Selecione qual questionário será aplicado nesta triagem.',
                       child: surveySelectionChild,
                     ),
                     const SizedBox(height: 24),
@@ -290,7 +366,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Status das configuracoes',
+                                'Status das configurações',
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
                                   color: theme.colorScheme.onPrimaryContainer,
@@ -300,7 +376,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           const SizedBox(height: 8),
                           _buildStatusItem(
-                            'Questionario selecionado:',
+                            'Questionário selecionado:',
                             settings.selectedSurvey != null
                                 ? settings.selectedSurveyName
                                 : 'Nenhum selecionado',
@@ -309,7 +385,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                 theme.colorScheme.onPrimaryContainer,
                           ),
                           _buildStatusItem(
-                            'Questionarios disponiveis:',
+                            'Questionários disponíveis:',
                             '${settings.availableSurveys.length} encontrado(s)',
                             settings.availableSurveys.isNotEmpty,
                             foregroundColor:
@@ -340,8 +416,8 @@ class _SettingsPageState extends State<SettingsPage> {
                           Expanded(
                             child: Text(
                               settings.isLockedAssessmentMode
-                                  ? 'Esta sessao foi aberta com um link preparado. As configuracoes ficam protegidas para evitar alteracoes acidentais.'
-                                  : 'Campos marcados com (*) sao obrigatorios e serao validados antes de salvar.',
+                                  ? 'Esta sessão foi aberta com um link preparado. As configurações ficam protegidas para evitar alterações acidentais.'
+                                  : 'Campos marcados com (*) são obrigatórios e serão validados antes de salvar.',
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -377,7 +453,7 @@ class _SettingsPageState extends State<SettingsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Sessao preparada',
+            'Sessão preparada',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.w700,
               color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -385,7 +461,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Este acesso foi preparado para ${settings.screenerDisplayName} com o questionario ${settings.selectedSurveyName}.',
+            'Este acesso foi preparado para ${settings.screenerDisplayName} com o questionário ${settings.selectedSurveyName}.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: Theme.of(context).colorScheme.onPrimaryContainer,
             ),
@@ -403,19 +479,19 @@ class _SettingsPageState extends State<SettingsPage> {
       eyebrow: 'Link preparado',
       title: 'Compartilhamento assistido',
       subtitle:
-          'Gere um link direto com screener e questionario ja preparados para facilitar o uso por pessoas com pouca familiaridade tecnologica.',
+          'Gere um link direto com avaliador e questionário já preparados para facilitar o uso por pessoas com pouca familiaridade tecnológica.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             canGenerate
-                ? 'O link sera criado para ${settings.screenerDisplayName} e o questionario ${settings.selectedSurveyName}.'
-                : 'Entre com um screener e selecione um questionario para gerar o link preparado.',
+                ? 'O link será criado para ${settings.screenerDisplayName} e o questionário ${settings.selectedSurveyName}.'
+                : 'Entre com um avaliador e selecione um questionário para gerar o link preparado.',
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 16),
           DsFilledButton(
-            label: 'Gerar link do questionario',
+            label: 'Gerar link do questionário',
             icon: Icons.link,
             onPressed: canGenerate && !_isGeneratingLink
                 ? _generatePreparedLink

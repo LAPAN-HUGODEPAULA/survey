@@ -39,6 +39,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
   DsDemographicsCatalogs? _catalogs;
   String? _catalogError;
   bool _isLoadingCatalogs = true;
+  List<String> _validationErrors = const <String>[];
   String? _selectedSex;
   String? _selectedRace;
   String? _selectedEducationLevel;
@@ -146,24 +147,19 @@ class _DemographicsPageState extends State<DemographicsPage> {
   }
 
   void _submitForm() {
-    if (!_formKey.currentState!.validate()) {
+    final errors = <String>[];
+    final isFormValid = _formKey.currentState!.validate();
+
+    if (_usesMedication == null) {
+      errors.add('Informe se você faz uso de medicação psiquiátrica.');
+    }
+
+    if (!isFormValid || errors.isNotEmpty) {
+      setState(() => _validationErrors = errors);
       return;
     }
 
-    if (_selectedSex == null ||
-        _selectedRace == null ||
-        _selectedEducationLevel == null ||
-        _usesMedication == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Por favor, preencha todos os campos obrigatórios.',
-          ),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
-      return;
-    }
+    setState(() => _validationErrors = const <String>[]);
 
     Provider.of<AppSettings>(context, listen: false).setPatientData(
       name: _nameController.text.trim(),
@@ -199,9 +195,9 @@ class _DemographicsPageState extends State<DemographicsPage> {
     return DsScaffold(
       isLoading: _isLoadingCatalogs,
       error: _catalogError,
-      title: 'Informacoes Demograficas',
+      title: 'Informações demográficas',
       subtitle:
-          'Complete os dados adicionais para enriquecer o relatorio de $displayName.',
+          'Complete os dados adicionais para enriquecer o relatório de $displayName.',
       scrollable: true,
       body: Center(
         child: ConstrainedBox(
@@ -211,11 +207,19 @@ class _DemographicsPageState extends State<DemographicsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (_validationErrors.isNotEmpty) ...[
+                  DsValidationSummary(
+                    errors: _validationErrors,
+                    description:
+                        'Corrija os itens abaixo e os campos destacados antes de continuar.',
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 DsSection(
                   eyebrow: 'Paciente',
-                  title: 'Identificacao',
+                  title: 'Identificação',
                   subtitle:
-                      'Informe os dados essenciais para contextualizar a avaliacao.',
+                      'Informe os dados essenciais para contextualizar a avaliação.',
                   child: DsPatientIdentitySection(
                     nameController: _nameController,
                     emailController: _emailController,
@@ -228,10 +232,10 @@ class _DemographicsPageState extends State<DemographicsPage> {
                 ),
                 const SizedBox(height: 16),
                 DsSection(
-                  eyebrow: 'Contexto clinico',
+                  eyebrow: 'Contexto clínico',
                   title: 'Dados complementares',
                   subtitle:
-                      'Essas informacoes ajudam a montar um relatorio mais completo.',
+                      'Essas informações ajudam a montar um relatório mais completo.',
                   child: DsSurveyDemographicsSection(
                     catalogs:
                         _catalogs ??

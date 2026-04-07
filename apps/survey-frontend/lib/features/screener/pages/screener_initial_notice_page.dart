@@ -18,6 +18,7 @@ class ScreenerInitialNoticePage extends StatefulWidget {
 
 class _ScreenerInitialNoticePageState extends State<ScreenerInitialNoticePage> {
   bool _isSubmitting = false;
+  DsFeedbackMessage? _feedback;
 
   Future<void> _acceptNotice() async {
     if (_isSubmitting) {
@@ -46,6 +47,7 @@ class _ScreenerInitialNoticePageState extends State<ScreenerInitialNoticePage> {
       if (!mounted) {
         return;
       }
+      setState(() => _feedback = null);
       context.go('/demographics');
     } on DioException catch (error) {
       if (!mounted) {
@@ -55,20 +57,24 @@ class _ScreenerInitialNoticePageState extends State<ScreenerInitialNoticePage> {
       final message = detail is Map<String, dynamic> && detail['detail'] != null
           ? detail['detail'].toString()
           : 'Não foi possível registrar o aceite do aviso inicial.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      setState(() {
+        _feedback = DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Não foi possível continuar',
+          message: message,
+        );
+      });
     } catch (_) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Não foi possível registrar o aceite do aviso inicial.',
-          ),
-        ),
-      );
+      setState(() {
+        _feedback = const DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Não foi possível continuar',
+          message: 'Não foi possível registrar o aceite do aviso inicial.',
+        );
+      });
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -84,6 +90,7 @@ class _ScreenerInitialNoticePageState extends State<ScreenerInitialNoticePage> {
         header: Image.asset('assets/images/lapan_logo_reduced.png', height: 56),
         proceedLabel: 'Continuar para a plataforma',
         isSubmitting: _isSubmitting,
+        feedback: _feedback,
         onProceed: _acceptNotice,
       ),
     );

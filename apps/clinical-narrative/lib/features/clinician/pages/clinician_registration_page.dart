@@ -13,7 +13,7 @@ class ClinicianRegistrationPage extends StatelessWidget {
     return DsScaffold(
       title: 'Cadastro do profissional',
       subtitle:
-          'Crie sua conta profissional com os mesmos dados usados no ambiente de avaliacao.',
+          'Crie sua conta profissional com os mesmos dados usados no ambiente de avaliação.',
       scrollable: true,
       body: DsProfessionalSignUpCard(
         header: const Icon(Icons.medical_information_outlined, size: 56),

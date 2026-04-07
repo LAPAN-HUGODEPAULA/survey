@@ -21,6 +21,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
   bool _loading = true;
   bool _exporting = false;
   String? _error;
+  DsFeedbackMessage? _feedback;
   List<SurveyDraft> _surveys = [];
 
   @override
@@ -64,18 +65,33 @@ class _SurveyListPageState extends State<SurveyListPage> {
         resolvedDraft = await _repo.fetchSurvey(draft.id!);
       } catch (error) {
         if (!mounted) return;
-        _showSnack('Falha ao carregar detalhes do questionário: $error');
+        setState(() {
+          _feedback = DsFeedbackMessage(
+            severity: DsStatusType.error,
+            title: 'Não foi possível abrir o questionário',
+            message: 'Falha ao carregar detalhes do questionário: $error',
+          );
+        });
         return;
       }
     }
     if (!mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
+    final changed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
         builder: (_) => SurveyFormPage(initialDraft: resolvedDraft),
       ),
     );
     if (!mounted) return;
     await _load();
+    if (changed == true) {
+      setState(() {
+        _feedback = const DsFeedbackMessage(
+          severity: DsStatusType.success,
+          title: 'Questionário salvo',
+          message: 'As alterações do questionário foram salvas com sucesso.',
+        );
+      });
+    }
   }
 
   Future<void> _confirmDelete(SurveyDraft draft) async {
@@ -103,11 +119,24 @@ class _SurveyListPageState extends State<SurveyListPage> {
     try {
       await _repo.deleteSurvey(draft.id!);
       await _load();
+      if (mounted) {
+        setState(() {
+          _feedback = const DsFeedbackMessage(
+            severity: DsStatusType.success,
+            title: 'Questionário excluído',
+            message: 'O questionário foi removido com sucesso.',
+          );
+        });
+      }
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Falha ao excluir: $error')));
+      setState(() {
+        _feedback = DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Falha ao excluir questionário',
+          message: 'Falha ao excluir: $error',
+        );
+      });
     }
   }
 
@@ -118,20 +147,28 @@ class _SurveyListPageState extends State<SurveyListPage> {
       final payload = await _repo.exportSurveys();
       final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
       downloadTextFile('exportacao_questionarios_$timestamp.json', payload);
+      if (mounted) {
+        setState(() {
+          _feedback = const DsFeedbackMessage(
+            severity: DsStatusType.success,
+            title: 'Exportação concluída',
+            message: 'O arquivo de exportação foi preparado com sucesso.',
+          );
+        });
+      }
     } catch (error) {
-      _showSnack('Falha ao exportar: $error');
+      setState(() {
+        _feedback = DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Falha ao exportar',
+          message: 'Falha ao exportar: $error',
+        );
+      });
     } finally {
       if (mounted) {
         setState(() => _exporting = false);
       }
     }
-  }
-
-  void _showSnack(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   SurveyDraft _emptyDraft() {
@@ -181,7 +218,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
     return DsScaffold(
       title: 'Construtor de Questionários',
       subtitle:
-          'Gerencie questionarios, prompts e personas no shell administrativo compartilhado.',
+          'Gerencie questionários, prompts e personas no shell administrativo compartilhado.',
       useSafeArea: true,
       actions: [
         IconButton(
@@ -194,6 +231,17 @@ class _SurveyListPageState extends State<SurveyListPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            if (_feedback != null) ...[
+              DsFeedbackBanner(
+                feedback: DsFeedbackMessage(
+                  severity: _feedback!.severity,
+                  title: _feedback!.title,
+                  message: _feedback!.message,
+                  dismissible: true,
+                  onDismiss: () => setState(() => _feedback = null),
+                ),
+              ),
+            ],
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

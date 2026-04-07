@@ -183,7 +183,7 @@ class _ChatPageState extends State<ChatPage> {
         : Icons.radio_button_unchecked;
 
     return DsSection(
-      eyebrow: 'Sessao',
+      eyebrow: 'Sessão',
       title: 'Conversa ativa',
       subtitle: 'Acompanhe o estado da consulta e ajuste a fase da entrevista.',
       tone: DsPanelTone.low,
@@ -262,7 +262,7 @@ class _ChatPageState extends State<ChatPage> {
       eyebrow: 'Captura',
       title: 'Captura de voz',
       subtitle:
-          'O audio e usado apenas para transcricao e e descartado apos o processamento.',
+          'O áudio é usado apenas para transcrição e é descartado após o processamento.',
       tone: DsPanelTone.low,
       padding: const EdgeInsets.all(16),
       headerSpacing: 12,
@@ -281,12 +281,13 @@ class _ChatPageState extends State<ChatPage> {
           if (_voiceError != null)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Semantics(
-                liveRegion: true,
-                child: Text(
-                  _voiceError!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+              child: DsInlineFeedback(
+                feedback: DsFeedbackMessage(
+                  severity: DsStatusType.error,
+                  title: 'Falha na captura de voz',
+                  message: _voiceError!,
                 ),
+                margin: EdgeInsets.zero,
               ),
             ),
           const SizedBox(height: 8),
@@ -856,6 +857,17 @@ class _ChatPageState extends State<ChatPage> {
                     child: _buildSessionHeader(provider, session, phase),
                   ),
                 ),
+                if (provider.error != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: DsFeedbackBanner(
+                      feedback: DsFeedbackMessage(
+                        severity: DsStatusType.error,
+                        title: 'Não foi possível carregar a conversa',
+                        message: provider.error!,
+                      ),
+                    ),
+                  ),
                 Expanded(
                   child: FocusTraversalOrder(
                     order: const NumericFocusOrder(2),
@@ -890,15 +902,7 @@ class _ChatPageState extends State<ChatPage> {
                       horizontal: 12,
                       vertical: 4,
                     ),
-                    child: _InsightPanel(
-                      title: 'Alertas',
-                      items: provider.alerts
-                          .map(
-                            (item) =>
-                                '${item['severity'] ?? 'info'}: ${item['text'] ?? ''}',
-                          )
-                          .toList(),
-                    ),
+                    child: _AlertPanel(alerts: provider.alerts),
                   ),
                 if (provider.suggestions.isNotEmpty)
                   Padding(
@@ -961,10 +965,14 @@ class _ChatPageState extends State<ChatPage> {
                 if (provider.isProcessing)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
-                    child: DsStatusIndicator(
-                      label: 'Processando resposta...',
-                      color: Theme.of(context).colorScheme.primary,
-                      liveRegion: true,
+                    child: const DsInlineFeedback(
+                      feedback: DsFeedbackMessage(
+                        severity: DsStatusType.info,
+                        title: 'A IA está preparando a resposta',
+                        message:
+                            'Estamos organizando uma resposta clínica consistente para você.',
+                      ),
+                      margin: EdgeInsets.zero,
                     ),
                   ),
                 Padding(
@@ -1068,6 +1076,52 @@ class _ChatPageState extends State<ChatPage> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _AlertPanel extends StatelessWidget {
+  const _AlertPanel({required this.alerts});
+
+  final List<Map<String, dynamic>> alerts;
+
+  DsStatusType _severityFromAlert(Map<String, dynamic> alert) {
+    switch ((alert['severity'] ?? '').toString().toLowerCase()) {
+      case 'error':
+        return DsStatusType.error;
+      case 'warning':
+        return DsStatusType.warning;
+      case 'success':
+        return DsStatusType.success;
+      default:
+        return DsStatusType.info;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DsSection(
+      title: 'Alertas',
+      tone: DsPanelTone.high,
+      padding: const EdgeInsets.all(16),
+      headerSpacing: 8,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final alert in alerts)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: DsInlineFeedback(
+                feedback: DsFeedbackMessage(
+                  severity: _severityFromAlert(alert),
+                  title: dsFeedbackDefaultTitle(_severityFromAlert(alert)),
+                  message: (alert['text'] ?? '').toString(),
+                ),
+                margin: EdgeInsets.zero,
+              ),
+            ),
+        ],
       ),
     );
   }
