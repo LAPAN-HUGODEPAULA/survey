@@ -5,6 +5,7 @@
 library;
 
 import 'package:design_system_flutter/theme/app_theme.dart';
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:patient_app/core/config/runtime_config.dart';
@@ -44,6 +45,10 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [Locale('pt', 'BR')],
       locale: const Locale('pt', 'BR'),
       theme: AppTheme.dark(),
+      builder: (context, child) => DsEmotionalToneProvider(
+        profile: DsToneProfile.patient,
+        child: child ?? const SizedBox.shrink(),
+      ),
       debugShowCheckedModeBanner: false,
       home: const PatientEntryPage(),
     );

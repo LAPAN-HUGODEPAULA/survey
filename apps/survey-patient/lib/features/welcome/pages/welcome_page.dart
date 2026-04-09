@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:patient_app/core/navigation/app_navigator.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
+import 'package:patient_app/shared/widgets/patient_journey_stepper.dart';
 import 'package:provider/provider.dart';
 
 class WelcomePage extends StatefulWidget {
@@ -37,6 +38,7 @@ class _WelcomePageState extends State<WelcomePage> {
         final survey = settings.selectedSurvey;
         final error = settings.surveyLoadError;
         final isLoading = settings.isLoadingSurveys;
+        final tone = DsEmotionalToneProvider.resolveTokens(context);
 
         return DsScaffold(
           isLoading: isLoading,
@@ -45,9 +47,17 @@ class _WelcomePageState extends State<WelcomePage> {
               : survey == null
               ? 'Nenhum questionário disponível. Verifique sua conexão com a internet.'
               : null,
+          errorWidget: error == null
+              ? null
+              : DsError(
+                  message: 'Falha ao carregar questionário: $error',
+                  onRetry: settings.loadAvailableSurveys,
+                ),
           title: 'Bem-vindo',
           subtitle:
-              'Prepare-se para responder ao questionário inicial de triagem do LAPAN.',
+              'Reserve o tempo que precisar. Vamos conduzir a triagem com cuidado e clareza.',
+          userName: settings.patient.name,
+          showAmbientGreeting: true,
           scrollable: true,
           body: survey == null
               ? const SizedBox.shrink()
@@ -57,6 +67,9 @@ class _WelcomePageState extends State<WelcomePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        const PatientJourneyStepper(
+                          currentStep: PatientJourneyStep.boasVindas,
+                        ),
                         DsSection(
                           eyebrow: 'Questionario ativo',
                           title: survey.surveyDisplayName.isNotEmpty
@@ -97,7 +110,7 @@ class _WelcomePageState extends State<WelcomePage> {
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: Text(
-                                        'Você responderá 7 perguntas rápidas. Ao final, será possível ver um resumo e gerar um relatório.',
+                                        'Você responderá 7 perguntas rápidas. ${tone.waitingSupportMessage}',
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyMedium
@@ -118,7 +131,7 @@ class _WelcomePageState extends State<WelcomePage> {
                         SizedBox(
                           width: double.infinity,
                           child: DsFilledButton(
-                            label: 'Iniciar questionario',
+                            label: 'Iniciar questionário',
                             icon: Icons.play_arrow,
                             size: DsButtonSize.large,
                             onPressed: () =>

@@ -7,6 +7,7 @@ import 'package:patient_app/core/models/survey/question.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/navigation/app_navigator.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
+import 'package:patient_app/shared/widgets/patient_journey_stepper.dart';
 import 'package:provider/provider.dart';
 
 class DemographicsPage extends StatefulWidget {
@@ -241,7 +242,16 @@ class _DemographicsPageState extends State<DemographicsPage> {
           .toList(growable: false),
     );
 
-    AppNavigator.replaceWithReport(
+    AppNavigator.toReport(
+      context,
+      survey: widget.survey,
+      surveyAnswers: widget.surveyAnswers,
+      surveyQuestions: widget.surveyQuestions,
+    );
+  }
+
+  void _skipEnrichment() {
+    AppNavigator.toReport(
       context,
       survey: widget.survey,
       surveyAnswers: widget.surveyAnswers,
@@ -261,6 +271,8 @@ class _DemographicsPageState extends State<DemographicsPage> {
       title: 'Informações demográficas',
       subtitle:
           'Complete os dados adicionais para enriquecer o relatório de $displayName.',
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: 'Voltar para o resumo',
       scrollable: true,
       body: Center(
         child: ConstrainedBox(
@@ -270,6 +282,24 @@ class _DemographicsPageState extends State<DemographicsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const PatientJourneyStepper(
+                  currentStep: PatientJourneyStep.relatorio,
+                ),
+                DsHandoffFork(
+                  title: 'Adicionar informações é opcional',
+                  subtitle: DsHandoffCopy.optionalEnrichmentGuidance,
+                  actions: [
+                    DsHandoffForkAction(
+                      title: 'Se preferir, siga direto para o relatório',
+                      description:
+                          'Você pode preencher os campos abaixo agora ou pular esta etapa sem perder o andamento da avaliação.',
+                      primaryLabel: 'Pular por agora',
+                      onPrimaryPressed: _skipEnrichment,
+                      icon: Icons.analytics_outlined,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
                 if (_validationItems.isNotEmpty) ...[
                   DsValidationSummary(
                     items: _validationItems,
@@ -355,7 +385,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                     usesMedicationErrorText: _hasSubmitted
                         ? _validateUsesMedication()
                         : null,
-                    continueLabel: 'Ver Resultados',
+                    continueLabel: 'Gerar relatório detalhado',
                     onContinue: _submitForm,
                   ),
                 ),

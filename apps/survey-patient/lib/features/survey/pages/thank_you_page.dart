@@ -13,6 +13,7 @@ import 'package:patient_app/core/models/survey_response.dart';
 import 'package:patient_app/core/navigation/app_navigator.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/core/repositories/survey_repository.dart';
+import 'package:patient_app/shared/widgets/patient_journey_stepper.dart';
 import 'package:provider/provider.dart';
 
 const _radarPalette = <Color>[
@@ -50,17 +51,24 @@ class ThankYouPage extends StatefulWidget {
   State<ThankYouPage> createState() => _ThankYouPageState();
 }
 
+enum HandoffState { registering, registered, analyzing, ready }
+
 class _ThankYouPageState extends State<ThankYouPage> {
   SurveyRepository? _surveyRepository;
   bool _ownsRepository = false;
-  bool _isAgentLoading = true;
+  HandoffState _handoffState = HandoffState.registering;
   String? _agentError;
+  bool _agentRetryable = false;
   AgentResponse? _agentResponse;
+  AIProgress? _aiProgress;
+  String? _savedResponseId;
 
   @override
   void initState() {
     super.initState();
-    if (!widget.skipAgentFetch) {
+    if (widget.skipAgentFetch) {
+      _handoffState = HandoffState.registered;
+    } else {
       WidgetsBinding.instance.addPostFrameCallback((_) => _loadAgentResponse());
     }
   }
@@ -87,39 +95,122 @@ class _ThankYouPageState extends State<ThankYouPage> {
     return _surveyRepository!;
   }
 
+  Future<void> _showRegisteredStep() async {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _handoffState = HandoffState.registered;
+    });
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    if (!mounted || _agentResponse != null) {
+      return;
+    }
+    setState(() {
+      _handoffState = HandoffState.analyzing;
+    });
+  }
+
   Future<void> _loadAgentResponse() async {
     setState(() {
-      _isAgentLoading = true;
+      _handoffState = HandoffState.registering;
       _agentError = null;
+      _agentRetryable = false;
+      _aiProgress = const AIProgress(stage: 'organizing_data');
     });
     final settings = Provider.of<AppSettings>(context, listen: false);
     final surveyResponse = _composeSurveyResponse(settings);
     try {
       final repository = _repository;
       final savedResponse = await repository.submitResponse(surveyResponse);
+      if (!mounted) return;
+      setState(() {
+        _savedResponseId = savedResponse.id;
+      });
+      await _showRegisteredStep();
       AgentResponse? response = savedResponse.agentResponse;
-      if (response == null) {
-        final payload = jsonEncode(surveyResponse.toJson());
-        response = await repository.processClinicalWriter(
-          payload,
-          promptKey: surveyResponse.promptKey,
-        );
-      }
+      response ??= await _startAndPollAgentResponse(repository, surveyResponse);
       if (!mounted) return;
       setState(() {
         _agentResponse = response;
+        _aiProgress = response?.aiProgress ?? _aiProgress;
+        if (_agentError == null && response != null) {
+          _handoffState = HandoffState.ready;
+        }
       });
     } catch (error) {
       if (!mounted) return;
       setState(() {
+        _handoffState = _savedResponseId != null
+            ? HandoffState.analyzing
+            : HandoffState.registering;
         _agentError =
             'Não foi possível obter a avaliação preliminar. Verifique sua conexão e tente novamente.';
+        _agentRetryable = true;
       });
-    } finally {
-      if (mounted) {
-        setState(() => _isAgentLoading = false);
+    }
+  }
+
+  Future<AgentResponse?> _startAndPollAgentResponse(
+    SurveyRepository repository,
+    SurveyResponse surveyResponse,
+  ) async {
+    final payload = jsonEncode(surveyResponse.toJson());
+    final taskStart = await repository.startClinicalWriterTask(
+      payload,
+      promptKey: surveyResponse.promptKey,
+    );
+    final taskId =
+        taskStart['taskId']?.toString() ?? taskStart['task_id']?.toString();
+    if (taskId == null || taskId.isEmpty) {
+      return repository.processClinicalWriter(
+        payload,
+        promptKey: surveyResponse.promptKey,
+      );
+    }
+
+    final startProgress = taskStart['aiProgress'] ?? taskStart['ai_progress'];
+    if (startProgress is Map<String, dynamic> && mounted) {
+      setState(() {
+        _aiProgress = AIProgress.fromJson(startProgress);
+      });
+    }
+
+    for (var attempt = 0; attempt < 120; attempt++) {
+      await Future<void>.delayed(const Duration(seconds: 1));
+      final statusPayload = await repository.getClinicalWriterTaskStatus(
+        taskId,
+      );
+      final progressPayload =
+          statusPayload['aiProgress'] ?? statusPayload['ai_progress'];
+      if (progressPayload is Map<String, dynamic> && mounted) {
+        setState(() {
+          _aiProgress = AIProgress.fromJson(progressPayload);
+        });
+      }
+      final status = statusPayload['status']?.toString() ?? '';
+      if (status == 'completed' &&
+          statusPayload['result'] is Map<String, dynamic>) {
+        return AgentResponse.fromJson(
+          statusPayload['result'] as Map<String, dynamic>,
+        );
+      }
+      if (status == 'failed') {
+        final errorPayload = statusPayload['error'];
+        if (errorPayload is Map<String, dynamic>) {
+          _agentRetryable = errorPayload['retryable'] as bool? ?? false;
+          _agentError =
+              errorPayload['userMessage']?.toString() ??
+              'Não foi possível gerar a análise automática para este caso.';
+        }
+        return null;
       }
     }
+
+    _agentRetryable = true;
+    _agentError =
+        'A análise está demorando mais que o esperado. Tente novamente em instantes.';
+    return null;
   }
 
   SurveyResponse _composeSurveyResponse(AppSettings settings) {
@@ -208,6 +299,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<AppSettings>();
     final summaries = _buildSummaries();
     final maxValue = summaries.isEmpty
         ? 1
@@ -220,9 +312,13 @@ class _ThankYouPageState extends State<ThankYouPage> {
         : widget.survey.surveyName;
 
     return DsScaffold(
-      title: 'Obrigado por responder!',
+      title: 'Obrigado por sua colaboração',
       subtitle:
-          'Veja o resumo da avaliação do questionário $displayName antes de seguir para o relatório.',
+          'Suas respostas no questionário $displayName ajudam a construir um cuidado mais atento.',
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: 'Voltar para o questionário',
+      userName: settings.patient.name,
+      showAmbientGreeting: true,
       scrollable: true,
       body: Center(
         child: ConstrainedBox(
@@ -230,6 +326,18 @@ class _ThankYouPageState extends State<ThankYouPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const PatientJourneyStepper(
+                currentStep: PatientJourneyStep.relatorio,
+              ),
+              const DsInlineMessage(
+                feedback: DsFeedbackMessage(
+                  severity: DsStatusType.success,
+                  title: DsHandoffCopy.registeredLabel,
+                  message: DsHandoffCopy.effortAcknowledgement,
+                ),
+                margin: EdgeInsets.zero,
+              ),
+              const SizedBox(height: 16),
               DsSection(
                 eyebrow: 'Resumo visual',
                 title: 'Radar das respostas',
@@ -314,47 +422,131 @@ class _ThankYouPageState extends State<ThankYouPage> {
                 eyebrow: 'Leitura clínica',
                 title: 'Avaliação preliminar',
                 subtitle:
-                    'A síntese abaixo é gerada com base nas respostas fornecidas.',
+                    'A síntese abaixo acompanha o andamento entre o envio das respostas e a disponibilidade do relatório.',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (_isAgentLoading)
-                      const DsInlineFeedback(
+                    DsHandoffStatusRow(
+                      stage: switch (_handoffState) {
+                        HandoffState.registering => DsHandoffStage.registered,
+                        HandoffState.registered => DsHandoffStage.registered,
+                        HandoffState.analyzing => DsHandoffStage.analyzing,
+                        HandoffState.ready => DsHandoffStage.ready,
+                      },
+                      liveRegion: true,
+                    ),
+                    const SizedBox(height: 12),
+                    if (_handoffState == HandoffState.registered ||
+                        _handoffState == HandoffState.analyzing ||
+                        _handoffState == HandoffState.ready)
+                      DsMessageBanner(
                         feedback: DsFeedbackMessage(
                           severity: DsStatusType.info,
-                          title: 'Preparando avaliação',
-                          message:
-                              'Estamos analisando as respostas para montar uma leitura preliminar clara e acolhedora.',
+                          title: DsHandoffCopy.registeredLabel,
+                          message: DsHandoffCopy.effortAcknowledgement,
                         ),
                         margin: EdgeInsets.zero,
-                      )
-                    else if (_agentError != null)
-                      DsFeedbackBanner(
-                        feedback: DsFeedbackMessage(
-                          severity: DsStatusType.warning,
-                          title: 'Não foi possível concluir a avaliação agora',
-                          message: _agentError!,
-                          primaryAction: DsFeedbackAction(
-                            label: 'Tentar novamente',
-                            onPressed: _loadAgentResponse,
-                            icon: Icons.refresh,
+                        footer: _savedResponseId == null
+                            ? null
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    DsHandoffCopy.referenceIdContext,
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  SelectableText(
+                                    _savedResponseId!,
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      fontFamily: 'monospace',
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
+                    if (_handoffState == HandoffState.analyzing) ...[
+                      const SizedBox(height: 16),
+                      DsSection(
+                        padding: const EdgeInsets.all(16),
+                        tone: DsPanelTone.high,
+                        title: DsHandoffCopy.analyzingLabel,
+                        subtitle:
+                            'Sua avaliação foi salva. Agora estamos organizando os dados para apresentar a síntese inicial.',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            DsHandoffStatusRow(
+                              stage: DsHandoffStage.analyzing,
+                              liveRegion: true,
+                            ),
+                            const SizedBox(height: 12),
+                            if (_agentError != null)
+                              DsInlineMessage(
+                                feedback: DsFeedbackMessage(
+                                  severity: _agentRetryable
+                                      ? DsStatusType.warning
+                                      : DsStatusType.error,
+                                  title:
+                                      'Não foi possível obter a avaliação preliminar.',
+                                  message: _agentError!,
+                                  primaryAction: _agentRetryable
+                                      ? DsFeedbackAction(
+                                          label: 'Tentar novamente',
+                                          onPressed: _loadAgentResponse,
+                                          icon: Icons.refresh,
+                                        )
+                                      : null,
+                                ),
+                                margin: EdgeInsets.zero,
+                              )
+                            else
+                              Row(
+                                children: [
+                                  const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.4,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      _aiProgress?.stageLabel ??
+                                          DsHandoffCopy.analyzingLabel,
+                                      style: theme.textTheme.bodyMedium,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    if (_handoffState == HandoffState.ready &&
+                        _agentResponse != null) ...[
+                      const SizedBox(height: 16),
+                      DsClinicalContentCard(
+                        title: DsHandoffCopy.readyLabel,
+                        subtitle:
+                            'A síntese clínica abaixo foi gerada com base nas respostas registradas.',
+                        child: LimitedBox(
+                          maxHeight: 220,
+                          child: SingleChildScrollView(
+                            child: Text(
+                              _agentSummaryText(_agentResponse!),
+                              style: theme.textTheme.bodyMedium,
+                            ),
                           ),
                         ),
-                        margin: EdgeInsets.zero,
-                      )
-                    else if (_agentResponse != null)
-                      LimitedBox(
-                        maxHeight: 180,
-                        child: SingleChildScrollView(
-                          child: Text(
-                            _agentSummaryText(_agentResponse!),
-                            style: theme.textTheme.bodyMedium,
-                          ),
-                        ),
-                      )
-                    else
+                      ),
+                    ],
+                    if (_handoffState == HandoffState.registered &&
+                        _savedResponseId == null)
                       Text(
-                        'Ainda não conseguimos gerar a avaliação preliminar.',
+                        'Estamos concluindo o registro da avaliação.',
                         style: theme.textTheme.bodyMedium,
                       ),
                     if (widget.survey.finalNotes != null &&
@@ -402,20 +594,25 @@ class _ThankYouPageState extends State<ThankYouPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              DsSection(
-                eyebrow: 'Próximo passo',
-                title: 'Quer um relatório mais detalhado?',
+              DsHandoffFork(
+                title: 'O que você deseja fazer agora?',
                 subtitle:
-                    'Você pode adicionar seus dados pessoais para enriquecer a análise ou seguir direto para o relatório.',
-                child: DsFilledButton(
-                  label: 'Adicionar informações',
-                  onPressed: () => AppNavigator.toDemographics(
-                    context,
-                    survey: widget.survey,
-                    surveyAnswers: widget.surveyAnswers,
-                    surveyQuestions: widget.surveyQuestions,
+                    'Você pode continuar para complementar a avaliação ou iniciar uma nova triagem.',
+                actions: [
+                  DsHandoffForkAction(
+                    title: 'Adicionar informações para melhores insights',
+                    description:
+                        'Estas informações opcionais ajudam em pesquisas estatísticas, mas você pode pular esta etapa se preferir.',
+                    primaryLabel: 'Adicionar informações',
+                    onPrimaryPressed: () => AppNavigator.toDemographics(
+                      context,
+                      survey: widget.survey,
+                      surveyAnswers: widget.surveyAnswers,
+                      surveyQuestions: widget.surveyQuestions,
+                    ),
+                    icon: Icons.person_add_alt_1_outlined,
                   ),
-                ),
+                ],
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -423,12 +620,12 @@ class _ThankYouPageState extends State<ThankYouPage> {
                 child: DsOutlinedButton(
                   label: 'Iniciar nova avaliação',
                   onPressed: () async {
-                    final settings = Provider.of<AppSettings>(
+                    final appSettings = Provider.of<AppSettings>(
                       context,
                       listen: false,
                     );
-                    settings.clearPatientData();
-                    await settings.clearInitialNoticeAgreement();
+                    appSettings.clearPatientData();
+                    await appSettings.clearInitialNoticeAgreement();
                     if (!context.mounted) {
                       return;
                     }
