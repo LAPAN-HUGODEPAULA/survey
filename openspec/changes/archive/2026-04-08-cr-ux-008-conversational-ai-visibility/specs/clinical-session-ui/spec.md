@@ -1,8 +1,5 @@
-# clinical-session-ui Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change add-ux-design-system. Update Purpose after archive.
-## Requirements
 ### Requirement: Clinical Session Creation
 The system SHALL allow starting a new session with or without a patient link.
 
@@ -25,10 +22,11 @@ The system SHALL display a header with humanized session status, duration, and p
 - **WHEN** the session is completed
 - **THEN** the header shows "Sessão Concluída" and input is disabled
 
+## ADDED Requirements
+
 ### Requirement: Session Insight Panel
 The system SHALL display a side panel or dedicated section to show AI-generated insights in real-time, using standardized cards.
 
 #### Scenario: View new insight during session
 - **WHEN** the AI generates a new hypothesis or suggestion
 - **THEN** the system adds a card to the insight panel with the appropriate icon and severity.
-

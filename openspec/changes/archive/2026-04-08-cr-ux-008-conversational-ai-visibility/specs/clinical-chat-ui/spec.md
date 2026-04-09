@@ -1,8 +1,5 @@
-# clinical-chat-ui Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change add-ux-design-system. Update Purpose after archive.
-## Requirements
 ### Requirement: Conversational Message List
 The system SHALL display messages in chronological order with clear author identification, timestamps, and scrollable history that keeps the latest content visible.
 
@@ -24,18 +21,7 @@ The system SHALL offer message actions such as copy, edit, and delete for clinic
 - **WHEN** the clinician selects edit on their own message
 - **THEN** the system allows adjusting the content before resending while preserving message history
 
-### Requirement: Clinical chat MUST distinguish typed feedback surfaces
-The `clinical-narrative` conversation UI MUST distinguish informational, warning, and error feedback consistently across assistant status, alerts, and insight surfaces.
-
-#### Scenario: Assistant feedback is shown during a clinical conversation
-- **WHEN** the conversation UI shows an assistant alert, system status, or typed insight
-- **THEN** the interface MUST render it with a defined severity and a consistent iconographic treatment
-- **AND** the user MUST be able to understand whether the content is informational, cautionary, or blocking
-
-#### Scenario: Nonblocking conversation feedback is announced accessibly
-- **WHEN** a status update appears in the chat screen without moving focus
-- **THEN** the update MUST support an accessible status announcement mechanism
-- **AND** it MUST remain visually consistent with the shared feedback model
+## ADDED Requirements
 
 ### Requirement: Unified Assistant Status Area
 The system SHALL display a unified status area above the input area, informing the current AI phase (e.g., "Analisando sinais clínicos") and offering cancellation or retry controls.
@@ -43,4 +29,3 @@ The system SHALL display a unified status area above the input area, informing t
 #### Scenario: Interrupt AI analysis
 - **WHEN** an analysis is in progress and the user clicks on "Cancelar"
 - **THEN** the system interrupts processing and returns the input area to the ready state
-

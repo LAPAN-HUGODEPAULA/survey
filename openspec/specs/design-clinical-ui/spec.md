@@ -1,19 +1,19 @@
 # design-clinical-ui Specification
 
 ## Purpose
-TBD - created by archiving change add-clinical-narrative-overview. Update Purpose after archive.
+TBD - Update Purpose after archive.
+
 ## Requirements
-### Requirement: Interface Conversacional
-O sistema SHALL oferecer uma interface conversacional clara, com historico e entrada multimodal.
+### Requirement: Conversational Interface
+The system SHALL provide a clear conversational interface with history and multimodal input.
 
-#### Scenario: Visualizar historico
-- **WHEN** o profissional abrir uma sessao
-- **THEN** o sistema mostra o historico em ordem e permite nova interacao
+#### Scenario: View chat history
+- **WHEN** the user opens a session
+- **THEN** the system SHALL show the history in order and allow new interaction
 
-### Requirement: Consistencia de Design
-O sistema SHALL seguir o design system compartilhado entre os apps.
+### Requirement: Shared Design System
+The system SHALL follow the shared design system across all apps.
 
-#### Scenario: Aplicar tema compartilhado
-- **WHEN** a tela principal do `clinical-narrative` for renderizada
-- **THEN** o sistema aplica cores e componentes do `design_system_flutter`
-
+#### Scenario: Apply theme components
+- **WHEN** a screen is rendered
+- **THEN** the system SHALL apply colors and components from `design_system_flutter`

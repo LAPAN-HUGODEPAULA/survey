@@ -1,19 +1,19 @@
 # assist-clinical-conversation Specification
 
 ## Purpose
-TBD - created by archiving change add-clinical-narrative-overview. Update Purpose after archive.
+TBD - Update Purpose after archive.
+
 ## Requirements
-### Requirement: Sugestoes Clinicas
-O sistema SHALL sugerir perguntas de follow-up com base no contexto da conversa.
+### Requirement: Follow-up Question Suggestions
+The system SHALL suggest follow-up questions based on the conversation context.
 
-#### Scenario: Identificar informacao ausente
-- **WHEN** o contexto indicar lacunas em dados essenciais
-- **THEN** o sistema sugere perguntas para completar o registro
+#### Scenario: Suggest questions for incomplete records
+- **WHEN** the conversation lacks specific clinical details
+- **THEN** the system SHALL suggest questions to complete the record
 
-### Requirement: Assistencia de Codigos Clinicos
-O sistema SHALL sugerir codigos CID-10 relevantes quando apropriado.
+### Requirement: ICD-10 Code Suggestions
+The system SHALL suggest relevant ICD-10 codes when appropriate.
 
-#### Scenario: Sugerir CID-10
-- **WHEN** sinais e sintomas forem identificados no texto
-- **THEN** o sistema sugere codigos CID-10 candidatos
-
+#### Scenario: Identify candidate ICD-10 codes
+- **WHEN** clinical signs or symptoms are discussed
+- **THEN** the system SHALL suggest candidate ICD-10 codes

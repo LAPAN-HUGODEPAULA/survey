@@ -1,19 +1,19 @@
 # manage-chat-sessions Specification
 
 ## Purpose
-TBD - created by archiving change add-clinical-narrative-overview. Update Purpose after archive.
+TBD - Update Purpose after archive.
+
 ## Requirements
-### Requirement: Sessao Conversacional
-O sistema SHALL manter sessoes conversacionais com historico de mensagens e metadados basicos (data, autor, origem).
+### Requirement: Session History Maintenance
+The system SHALL maintain conversational sessions with message history and basic metadata (date, author, origin).
 
-#### Scenario: Criar nova sessao
-- **WHEN** o profissional iniciar uma nova consulta
-- **THEN** o sistema cria uma sessao vazia e registra o contexto minimo
+#### Scenario: Create a new session
+- **WHEN** a user starts a new conversation
+- **THEN** the system SHALL create an empty session and register the minimum context
 
-### Requirement: Persistencia de Historico
-O sistema SHALL permitir recuperar o historico de uma sessao para continuidade do atendimento.
+### Requirement: Session History Retrieval
+The system SHALL allow retrieving the history of a session for continuity of care.
 
-#### Scenario: Retomar sessao existente
-- **WHEN** o profissional abrir uma sessao existente
-- **THEN** o sistema retorna o historico de mensagens em ordem cronologica
-
+#### Scenario: Load session history
+- **WHEN** the user reopens a previous session
+- **THEN** the system SHALL return the message history in chronological order
