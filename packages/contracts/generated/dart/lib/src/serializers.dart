@@ -18,6 +18,7 @@ import 'package:survey_backend_api/src/model/ai_progress.dart';
 import 'package:survey_backend_api/src/model/address.dart';
 import 'package:survey_backend_api/src/model/agent_response.dart';
 import 'package:survey_backend_api/src/model/answer.dart';
+import 'package:survey_backend_api/src/model/api_error.dart';
 import 'package:survey_backend_api/src/model/chat_message.dart';
 import 'package:survey_backend_api/src/model/chat_message_create.dart';
 import 'package:survey_backend_api/src/model/chat_message_update.dart';
@@ -79,6 +80,7 @@ part 'serializers.g.dart';
   Address,
   AgentResponse,
   Answer,
+  ApiError,
   ChatMessage,
   ChatMessageCreate,
   ChatMessageUpdate,

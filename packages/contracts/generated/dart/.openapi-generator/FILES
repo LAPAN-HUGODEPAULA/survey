@@ -6,6 +6,7 @@ doc/AIProgress.md
 doc/Address.md
 doc/AgentResponse.md
 doc/Answer.md
+doc/ApiError.md
 doc/ChatMessage.md
 doc/ChatMessageCreate.md
 doc/ChatMessageUpdate.md
@@ -73,6 +74,7 @@ lib/src/model/address.dart
 lib/src/model/agent_response.dart
 lib/src/model/ai_progress.dart
 lib/src/model/answer.dart
+lib/src/model/api_error.dart
 lib/src/model/chat_message.dart
 lib/src/model/chat_message_create.dart
 lib/src/model/chat_message_update.dart
@@ -134,6 +136,7 @@ test/address_test.dart
 test/agent_response_test.dart
 test/ai_progress_test.dart
 test/answer_test.dart
+test/api_error_test.dart
 test/chat_message_create_test.dart
 test/chat_message_test.dart
 test/chat_message_update_test.dart

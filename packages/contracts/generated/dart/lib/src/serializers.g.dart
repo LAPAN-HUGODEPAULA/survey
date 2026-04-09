@@ -15,6 +15,8 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(Address.serializer)
       ..add(AgentResponse.serializer)
       ..add(Answer.serializer)
+      ..add(ApiError.serializer)
+      ..add(ApiErrorSeverityEnum.serializer)
       ..add(ChatMessage.serializer)
       ..add(ChatMessageCreate.serializer)
       ..add(ChatMessageUpdate.serializer)
@@ -98,6 +100,9 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(
               BuiltList, const [const FullType(ClinicalWriterKnowledgeItem)]),
           () => ListBuilder<ClinicalWriterKnowledgeItem>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(JsonObject)]),
+          () => ListBuilder<JsonObject>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(JsonObject)]),
           () => ListBuilder<JsonObject>())

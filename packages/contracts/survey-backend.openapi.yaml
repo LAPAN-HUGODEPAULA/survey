@@ -2131,3 +2131,36 @@ components:
         metadata:
           type: object
           nullable: true
+    ApiError:
+      type: object
+      required:
+        - code
+        - userMessage
+      properties:
+        code:
+          type: string
+          description: Stable string identifier for the error category
+        userMessage:
+          type: string
+          description: Localized, human-readable message in pt-BR
+        severity:
+          type: string
+          enum: [info, warning, error, critical]
+          default: error
+        retryable:
+          type: boolean
+          default: false
+        requestId:
+          type: string
+          nullable: true
+        operation:
+          type: string
+          nullable: true
+        stage:
+          type: string
+          nullable: true
+        details:
+          type: array
+          items:
+            type: object
+          nullable: true

@@ -125,6 +125,7 @@ Class | Method | HTTP request | Description
  - [Address](doc/Address.md)
  - [AgentResponse](doc/AgentResponse.md)
  - [Answer](doc/Answer.md)
+ - [ApiError](doc/ApiError.md)
  - [ChatMessage](doc/ChatMessage.md)
  - [ChatMessageCreate](doc/ChatMessageCreate.md)
  - [ChatMessageUpdate](doc/ChatMessageUpdate.md)

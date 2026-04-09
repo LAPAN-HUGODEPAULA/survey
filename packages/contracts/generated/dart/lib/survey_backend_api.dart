@@ -16,6 +16,7 @@ export 'package:survey_backend_api/src/model/ai_progress.dart';
 export 'package:survey_backend_api/src/model/address.dart';
 export 'package:survey_backend_api/src/model/agent_response.dart';
 export 'package:survey_backend_api/src/model/answer.dart';
+export 'package:survey_backend_api/src/model/api_error.dart';
 export 'package:survey_backend_api/src/model/chat_message.dart';
 export 'package:survey_backend_api/src/model/chat_message_create.dart';
 export 'package:survey_backend_api/src/model/chat_message_update.dart';
