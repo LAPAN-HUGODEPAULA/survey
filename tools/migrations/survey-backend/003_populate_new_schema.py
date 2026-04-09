@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import bcrypt
@@ -275,8 +275,8 @@ def _normalize_survey_doc(raw: dict) -> dict:
         ),
         "creatorName": raw.get("creatorName"),
         "creatorContact": raw.get("creatorContact"),
-        "createdAt": _parse_datetime(raw.get("createdAt")) or datetime.now(UTC),
-        "modifiedAt": _parse_datetime(raw.get("modifiedAt")) or datetime.now(UTC),
+        "createdAt": _parse_datetime(raw.get("createdAt")) or datetime.now(timezone.utc),
+        "modifiedAt": _parse_datetime(raw.get("modifiedAt")) or datetime.now(timezone.utc),
         "instructions": raw.get("instructions") or {},
         "questions": raw.get("questions") or [],
         "finalNotes": raw.get("finalNotes") or "",
@@ -297,7 +297,7 @@ def _normalize_response_doc(raw: dict, *, prompt_key: str) -> dict:
             or raw.get("creatorName")
             or SYSTEM_SCREENER_EMAIL
         ),
-        "testDate": _parse_datetime(raw.get("testDate")) or datetime.now(UTC),
+        "testDate": _parse_datetime(raw.get("testDate")) or datetime.now(timezone.utc),
         "screenerId": raw.get("screenerId") or SYSTEM_SCREENER_ID,
         "accessLinkToken": raw.get("accessLinkToken"),
         "promptKey": raw.get("promptKey") or prompt_key,
@@ -305,6 +305,10 @@ def _normalize_response_doc(raw: dict, *, prompt_key: str) -> dict:
         "outputProfile": output_profile,
         "patient": _normalize_patient(raw.get("patient")),
         "answers": raw.get("answers") or [],
+        # Preserve agent enrichment fields if they exist
+        "agentResponse": raw.get("agentResponse"),
+        "agentResponseStatus": raw.get("agentResponseStatus"),
+        "agentResponseUpdatedAt": raw.get("agentResponseUpdatedAt"),
     }
 
 
@@ -344,7 +348,7 @@ def _build_anonymized_patient_response() -> dict:
         "_id": ANONYMIZED_PATIENT_RESPONSE_ID,
         "surveyId": sample_source.get("surveyId", "lapan_q7"),
         "creatorId": sample_source.get("creatorId") or SYSTEM_SCREENER_EMAIL,
-        "testDate": datetime.now(UTC),
+        "testDate": datetime.now(timezone.utc),
         "screenerId": SYSTEM_SCREENER_ID,
         "promptKey": DEFAULT_SURVEY_PROMPT_KEY,
         "patient": {
@@ -369,7 +373,7 @@ def _build_anonymized_patient_response() -> dict:
 def create_system_screener_data() -> dict:
     system_screener_password = os.getenv("SYSTEM_SCREENER_PASSWORD", "SystemPassword123!")
     hashed_password = bcrypt.hashpw(system_screener_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     return {
         "_id": ObjectId(SYSTEM_SCREENER_ID),
         "cpf": "00000000000",
@@ -402,7 +406,7 @@ def create_system_screener_data() -> dict:
 def create_sample_screener_data() -> dict:
     sample_screener_password = os.getenv("SAMPLE_SCREENER_PASSWORD", "SamplePassword123!")
     hashed_password = bcrypt.hashpw(sample_screener_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-    now = datetime.now(UTC)
+    now = datetime.now(timezone.utc)
     return {
         "cpf": "11111111111",
         "firstName": "Maria",
@@ -465,8 +469,8 @@ def migrate_survey_prompts() -> None:
         "promptKey": DEFAULT_SURVEY_PROMPT_KEY,
         "name": DEFAULT_SURVEY_PROMPT_NAME,
         "promptText": DEFAULT_SURVEY_PROMPT_TEXT,
-        "createdAt": datetime.now(UTC),
-        "modifiedAt": datetime.now(UTC),
+        "createdAt": datetime.now(timezone.utc),
+        "modifiedAt": datetime.now(timezone.utc),
         "legacySource": "003_populate_new_schema",
     }
     prompts_collection.replace_one({"promptKey": DEFAULT_SURVEY_PROMPT_KEY}, payload, upsert=True)
@@ -480,8 +484,8 @@ def migrate_survey_prompts() -> None:
         "promptKey": NEUROCHECK_PROMPT_KEY,
         "name": NEUROCHECK_PROMPT_NAME,
         "promptText": NEUROCHECK_PROMPT_TEXT,
-        "createdAt": datetime.now(UTC),
-        "modifiedAt": datetime.now(UTC),
+        "createdAt": datetime.now(timezone.utc),
+        "modifiedAt": datetime.now(timezone.utc),
         "legacySource": "003_populate_new_schema",
     }
     prompts_collection.replace_one({"promptKey": NEUROCHECK_PROMPT_KEY}, neurocheck_payload, upsert=True)
@@ -503,8 +507,8 @@ def migrate_persona_skills() -> None:
             {"personaSkillKey": item["personaSkillKey"]},
             {
                 **item,
-                "createdAt": datetime.now(UTC),
-                "modifiedAt": datetime.now(UTC),
+                "createdAt": datetime.now(timezone.utc),
+                "modifiedAt": datetime.now(timezone.utc),
             },
             upsert=True,
         )
@@ -612,7 +616,7 @@ def upsert_screeners() -> None:
         if existing:
             payload["_id"] = existing["_id"]
             payload["createdAt"] = existing.get("createdAt", payload["createdAt"])
-            payload["updatedAt"] = datetime.now(UTC)
+            payload["updatedAt"] = datetime.now(timezone.utc)
             screeners_collection.replace_one({"_id": existing["_id"]}, payload)
             logger.info("Screener updated: %s", payload["email"])
             continue
