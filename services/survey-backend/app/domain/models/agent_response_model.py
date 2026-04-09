@@ -15,5 +15,6 @@ class AgentResponse(BaseModel):
     classification: Optional[str] = None
     medical_record: Optional[str] = Field(default=None, alias="medicalRecord")
     error_message: Optional[str] = Field(default=None, alias="errorMessage")
+    ai_progress: Optional[dict] = Field(default=None, alias="aiProgress")
 
     model_config = ConfigDict(populate_by_name=True)

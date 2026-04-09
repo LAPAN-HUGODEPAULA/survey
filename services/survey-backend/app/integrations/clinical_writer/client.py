@@ -71,6 +71,19 @@ def _report_to_text(report: Dict[str, Any]) -> str:
     return "\n".join(line for line in lines if line)
 
 
+def _to_status_endpoint(process_endpoint: str, request_id: str) -> str:
+    normalized = process_endpoint.rstrip("/")
+    if normalized.endswith("/process"):
+        base = normalized[: -len("/process")]
+    else:
+        base = normalized
+    return f"{base}/status/{request_id}"
+
+
+def _candidate_status_endpoints(request_id: str) -> list[str]:
+    return [_to_status_endpoint(endpoint, request_id) for endpoint in _candidate_process_endpoints()]
+
+
 def _normalize_agent_response(payload: Dict[str, Any]) -> Dict[str, Any]:
     if "report" in payload and "medicalRecord" not in payload:
         report_text = _report_to_text(payload.get("report") or {})
@@ -79,6 +92,14 @@ def _normalize_agent_response(payload: Dict[str, Any]) -> Dict[str, Any]:
         payload["medicalRecord"] = payload["medical_record"]
     if "error_message" in payload and "errorMessage" not in payload:
         payload["errorMessage"] = payload["error_message"]
+    progress = payload.get("ai_progress")
+    if isinstance(progress, dict):
+        if "user_message" in progress and "userMessage" not in progress:
+            progress["userMessage"] = progress["user_message"]
+        if "updated_at" in progress and "updatedAt" not in progress:
+            progress["updatedAt"] = progress["updated_at"]
+        if "stage_label" in progress and "stageLabel" not in progress:
+            progress["stageLabel"] = progress["stage_label"]
     return payload
 
 
@@ -174,8 +195,14 @@ async def send_to_langgraph_agent(
     try:
         endpoints = _candidate_process_endpoints()
         last_request_error: httpx.RequestError | None = None
+        request_timeout = httpx.Timeout(
+            connect=10.0,
+            read=float(settings.clinical_writer_http_timeout_seconds),
+            write=10.0,
+            pool=10.0,
+        )
 
-        async with httpx.AsyncClient(timeout=10) as client:
+        async with httpx.AsyncClient(timeout=request_timeout) as client:
             for endpoint in endpoints:
                 try:
                     logger.info(
@@ -230,10 +257,12 @@ async def send_to_langgraph_agent(
             raise last_request_error
     except httpx.HTTPStatusError as exc:
         duration = time.monotonic() - start_time
+        status_code = exc.response.status_code if exc.response is not None else None
+        retryable = status_code in {408, 429, 500, 502, 503, 504}
         logger.error(
             "Clinical writer returned error request_id=%s status=%s duration=%.3fs",
             request_id,
-            exc.response.status_code if exc.response is not None else "unknown",
+            status_code if status_code is not None else "unknown",
             duration,
         )
         _persist_run_log(
@@ -251,7 +280,22 @@ async def send_to_langgraph_agent(
             patient_ref=resolved_patient_ref,
             status="error",
         )
-        return {"error_message": "Agent error: upstream clinical writer rejected the request"}
+        return {
+            "error_message": "Agent error: upstream clinical writer rejected the request",
+            "ai_progress": {
+                "stage": "reviewing_content",
+                "stageLabel": "Revisando conteúdo",
+                "percent": 100,
+                "status": "failed",
+                "severity": "warning" if retryable else "critical",
+                "retryable": retryable,
+                "userMessage": (
+                    "Não foi possível concluir agora. Tente novamente em alguns instantes."
+                    if retryable
+                    else "Não conseguimos gerar a análise automática para este caso."
+                ),
+            },
+        }
     except httpx.RequestError as exc:
         duration = time.monotonic() - start_time
         logger.error(
@@ -275,7 +319,20 @@ async def send_to_langgraph_agent(
             patient_ref=resolved_patient_ref,
             status="error",
         )
-        return {"error_message": "Unable to reach AI agent"}
+        return {
+            "error_message": "Unable to reach AI agent",
+            "ai_progress": {
+                "stage": "reviewing_content",
+                "stageLabel": "Revisando conteúdo",
+                "percent": 100,
+                "status": "failed",
+                "severity": "warning",
+                "retryable": True,
+                "userMessage": (
+                    "Não foi possível concluir agora. Tente novamente em alguns instantes."
+                ),
+            },
+        }
     except Exception as exc:  # pragma: no cover - guard for unexpected failures
         duration = time.monotonic() - start_time
         logger.error(
@@ -317,6 +374,40 @@ async def send_to_langgraph_analysis(payload: Dict[str, Any]) -> Dict[str, Any]:
         response = await client.post(endpoint, json=payload, headers=headers)
         response.raise_for_status()
         return response.json()
+
+
+async def fetch_langgraph_status(request_id: str) -> Dict[str, Any]:
+    """Fetch stage progress from the clinical writer service."""
+    headers: Dict[str, str] = {}
+    token = settings.clinical_writer_token or LANGGRAPH_TOKEN
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    endpoints = _candidate_status_endpoints(request_id)
+    last_request_error: httpx.RequestError | None = None
+
+    async with httpx.AsyncClient(timeout=5) as client:
+        for endpoint in endpoints:
+            try:
+                response = await client.get(endpoint, headers=headers)
+                response.raise_for_status()
+                payload = response.json()
+                if isinstance(payload, dict):
+                    progress = payload.get("ai_progress")
+                    if isinstance(progress, dict):
+                        normalized = _normalize_agent_response({"ai_progress": progress})
+                        return normalized.get("ai_progress", {})
+                    if "stage" in payload:
+                        normalized = _normalize_agent_response({"ai_progress": payload})
+                        return normalized.get("ai_progress", {})
+            except httpx.RequestError as exc:
+                last_request_error = exc
+            except httpx.HTTPStatusError:
+                continue
+
+    if last_request_error is not None:
+        raise last_request_error
+    return {}
 
 
 async def send_to_langgraph_transcription(payload: Dict[str, Any]) -> Dict[str, Any]:

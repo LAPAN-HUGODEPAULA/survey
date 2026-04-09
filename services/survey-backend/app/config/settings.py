@@ -22,6 +22,9 @@ class Settings(BaseModel):
     clinical_writer_url: str = os.getenv("CLINICAL_WRITER_URL", "http://clinical_writer_agent:8000/process")
     clinical_writer_token: str | None = os.getenv("CLINICAL_WRITER_API_TOKEN")
     clinical_writer_transcription_url: str | None = os.getenv("CLINICAL_WRITER_TRANSCRIPTION_URL")
+    clinical_writer_http_timeout_seconds: int = int(
+        os.getenv("CLINICAL_WRITER_HTTP_TIMEOUT_SECONDS", "120")
+    )
 
     # Email delivery settings.
     smtp_host: str | None = os.getenv("SMTP_HOST") or os.getenv("MAIL_SERVER")
