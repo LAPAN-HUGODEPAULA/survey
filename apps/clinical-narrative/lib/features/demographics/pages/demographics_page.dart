@@ -98,10 +98,13 @@ class _DemographicsPageState extends State<DemographicsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<AppSettings>();
     return DsScaffold(
       title: 'Informações do paciente',
       subtitle:
           'Registre a identificação básica antes de iniciar a conversa clínica.',
+      userName: settings.screenerDisplayName,
+      showAmbientGreeting: true,
       scrollable: true,
       body: Form(
         key: _formKey,

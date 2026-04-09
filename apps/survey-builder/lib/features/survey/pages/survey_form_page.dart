@@ -31,7 +31,19 @@ class SurveyFormPage extends StatefulWidget {
 }
 
 class _SurveyFormPageState extends State<SurveyFormPage> {
+  static const String _detailsSectionId = 'details';
+  static const String _instructionsSectionId = 'instructions';
+  static const String _promptSectionId = 'prompt';
+  static const String _personaSectionId = 'persona';
+  static const String _questionsSectionId = 'questions';
+
   final _formKey = GlobalKey<FormState>();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _detailsSectionKey = GlobalKey();
+  final GlobalKey _instructionsSectionKey = GlobalKey();
+  final GlobalKey _promptSectionKey = GlobalKey();
+  final GlobalKey _personaSectionKey = GlobalKey();
+  final GlobalKey _questionsSectionKey = GlobalKey();
   late final SurveyRepository _repo;
   late final SurveyPromptRepository _promptRepo;
   late final PersonaSkillRepository _personaSkillRepo;
@@ -70,6 +82,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
   String? _selectedPromptKey;
   String? _selectedPersonaSkillKey;
   String? _selectedOutputProfile;
+  String _currentSectionId = _detailsSectionId;
 
   @override
   void initState() {
@@ -108,9 +121,15 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     ]) {
       controller.addListener(_handleFieldMutation);
     }
+    _scrollController.addListener(_handleSectionScroll);
     _loadPrompts();
     _loadPersonaSkills();
     unawaited(_restoreLocalDraft());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _handleSectionScroll();
+      }
+    });
   }
 
   @override
@@ -128,6 +147,9 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     _nameController.dispose();
     _creatorIdController.dispose();
     _instructionsQuestionController.dispose();
+    _scrollController
+      ..removeListener(_handleSectionScroll)
+      ..dispose();
     _repo.dispose();
     _promptRepo.dispose();
     _personaSkillRepo.dispose();
@@ -829,6 +851,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => DsDialog(
+        severity: DsStatusType.warning,
         title: 'Descartar alterações?',
         content: const Text(
           'Você tem alterações não salvas. Deseja descartá-las?',
@@ -839,7 +862,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
             onPressed: () => Navigator.pop(context, false),
           ),
           DsOutlinedButton(
-            label: 'Descartar',
+            label: 'Descartar rascunho',
             onPressed: () => Navigator.pop(context, true),
           ),
         ],
@@ -859,22 +882,131 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     return '$hours:$minutes';
   }
 
+  List<MapEntry<String, GlobalKey>> get _sectionAnchors => [
+    MapEntry<String, GlobalKey>(_detailsSectionId, _detailsSectionKey),
+    MapEntry<String, GlobalKey>(
+      _instructionsSectionId,
+      _instructionsSectionKey,
+    ),
+    MapEntry<String, GlobalKey>(_promptSectionId, _promptSectionKey),
+    MapEntry<String, GlobalKey>(_personaSectionId, _personaSectionKey),
+    MapEntry<String, GlobalKey>(_questionsSectionId, _questionsSectionKey),
+  ];
+
+  List<DsStickySectionItem> get _stickySections => const [
+    DsStickySectionItem(id: _detailsSectionId, label: 'Detalhes'),
+    DsStickySectionItem(id: _instructionsSectionId, label: 'Instruções'),
+    DsStickySectionItem(id: _promptSectionId, label: 'Prompt'),
+    DsStickySectionItem(id: _personaSectionId, label: 'Persona'),
+    DsStickySectionItem(id: _questionsSectionId, label: 'Perguntas'),
+  ];
+
+  String _sectionLabel(String sectionId) {
+    switch (sectionId) {
+      case _detailsSectionId:
+        return 'Detalhes';
+      case _instructionsSectionId:
+        return 'Instruções';
+      case _promptSectionId:
+        return 'Prompt de IA';
+      case _personaSectionId:
+        return 'Configuração de persona';
+      case _questionsSectionId:
+        return 'Perguntas';
+      default:
+        return 'Detalhes';
+    }
+  }
+
+  void _handleSectionScroll() {
+    final nextSectionId = _resolveCurrentSectionId();
+    if (nextSectionId == _currentSectionId || !mounted) {
+      return;
+    }
+    setState(() => _currentSectionId = nextSectionId);
+  }
+
+  String _resolveCurrentSectionId() {
+    const activationOffset = 180.0;
+    var resolved = _detailsSectionId;
+    var foundAnchorAboveFold = false;
+
+    for (final MapEntry<String, GlobalKey> entry in _sectionAnchors) {
+      final sectionContext = entry.value.currentContext;
+      if (sectionContext == null) {
+        continue;
+      }
+      final renderObject = sectionContext.findRenderObject();
+      if (renderObject is! RenderBox) {
+        continue;
+      }
+      final top = renderObject.localToGlobal(Offset.zero).dy;
+      if (top <= activationOffset) {
+        resolved = entry.key;
+        foundAnchorAboveFold = true;
+        continue;
+      }
+      if (!foundAnchorAboveFold) {
+        resolved = entry.key;
+      }
+      break;
+    }
+
+    return resolved;
+  }
+
+  void _jumpToSection(String sectionId) {
+    unawaited(_scrollToSection(sectionId));
+  }
+
+  Future<void> _scrollToSection(String sectionId) async {
+    final target = _sectionAnchors
+        .where((MapEntry<String, GlobalKey> entry) => entry.key == sectionId)
+        .map((MapEntry<String, GlobalKey> entry) => entry.value.currentContext)
+        .firstWhere(
+          (BuildContext? context) => context != null,
+          orElse: () => null,
+        );
+    if (target == null) {
+      return;
+    }
+    setState(() => _currentSectionId = sectionId);
+    await Scrollable.ensureVisible(
+      target,
+      alignment: 0.08,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  List<DsBreadcrumbItem> _buildBreadcrumbs(bool isEditing) {
+    return [
+      DsBreadcrumbItem(
+        label: 'Questionários',
+        onPressed: _saving ? null : _confirmCancel,
+      ),
+      DsBreadcrumbItem(
+        label: isEditing ? 'Editar questionário' : 'Criar questionário',
+        isCurrent: true,
+      ),
+    ];
+  }
+
   Widget? _buildDraftStatusFeedback() {
     if (_saving) {
-      return const DsInlineFeedback(
+      return const DsInlineMessage(
         feedback: DsFeedbackMessage(
           severity: DsStatusType.info,
           title: 'Salvando alterações',
-          message:
-              'Estamos publicando o questionário e sincronizando os dados.',
+          message: 'Publicando questionário e sincronizando dados.',
         ),
       );
     }
     if (_isDirty) {
       final message = _lastLocalDraftSavedAt == null
-          ? 'As alterações ainda não foram publicadas. O rascunho local será preservado automaticamente.'
-          : 'As alterações ainda não foram publicadas. Último rascunho local salvo às ${_formatLocalDraftTime(_lastLocalDraftSavedAt!)}.';
-      return DsInlineFeedback(
+          ? 'Alterações ainda não publicadas. Rascunho local preservado automaticamente.'
+          : 'Alterações ainda não publicadas. Último rascunho salvo às ${_formatLocalDraftTime(_lastLocalDraftSavedAt!)}.';
+      return DsInlineMessage(
         feedback: DsFeedbackMessage(
           severity: DsStatusType.warning,
           title: 'Alterações não salvas',
@@ -886,12 +1018,11 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
       final suffix = _lastLocalDraftSavedAt == null
           ? ''
           : ' às ${_formatLocalDraftTime(_lastLocalDraftSavedAt!)}';
-      return DsInlineFeedback(
+      return DsInlineMessage(
         feedback: DsFeedbackMessage(
           severity: DsStatusType.info,
           title: 'Rascunho restaurado',
-          message:
-              'Você está vendo um rascunho local restaurado$suffix. Salve quando revisar as alterações.',
+          message: 'Rascunho local restaurado$suffix. Salve após revisar.',
         ),
       );
     }
@@ -904,18 +1035,28 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     final draftStatusFeedback = _buildDraftStatusFeedback();
     return DsScaffold(
       title: isEditing ? 'Editar questionário' : 'Criar questionário',
-      subtitle:
-          'Configure conteúdo, instruções, prompts e perguntas usando o shell administrativo compartilhado.',
-      scrollable: true,
+      subtitle: 'Configure conteúdo, instruções, prompts e perguntas.',
+      breadcrumbs: _buildBreadcrumbs(isEditing),
+      onBack: _saving ? null : _confirmCancel,
+      backLabel: 'Voltar para questionários',
+      scrollable: false,
       body: Form(
         key: _formKey,
         child: DsAdminFormShell(
           isSaving: _saving,
           onCancel: _saving ? () {} : _confirmCancel,
           onSave: _saving ? () {} : _save,
+          scrollController: _scrollController,
+          stickyHeader: DsStickySectionHeader(
+            title: 'Navegação do formulário',
+            summary: 'Seção atual: ${_sectionLabel(_currentSectionId)}',
+            sections: _stickySections,
+            currentSectionId: _currentSectionId,
+            onSectionSelected: _jumpToSection,
+          ),
           feedback: _feedback == null
               ? null
-              : DsFeedbackBanner(
+              : DsMessageBanner(
                   feedback: DsFeedbackMessage(
                     severity: _feedback!.severity,
                     title: _feedback!.title,
@@ -941,6 +1082,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                 const SizedBox(height: 16),
               ],
               DsSection(
+                key: _detailsSectionKey,
                 eyebrow: 'Questionário',
                 title: 'Detalhes do questionário',
                 subtitle:
@@ -1007,6 +1149,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
               ),
               const SizedBox(height: 16),
               DsSection(
+                key: _instructionsSectionKey,
                 eyebrow: 'Orientação',
                 title: 'Instruções',
                 subtitle:
@@ -1105,6 +1248,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
               ),
               const SizedBox(height: 16),
               DsSection(
+                key: _promptSectionKey,
                 eyebrow: 'Automação',
                 title: 'Prompt de IA',
                 subtitle:
@@ -1181,6 +1325,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
               ),
               const SizedBox(height: 16),
               DsSection(
+                key: _personaSectionKey,
                 eyebrow: 'Narrativa',
                 title: 'Configuração de persona',
                 subtitle:
@@ -1292,6 +1437,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
               ),
               const SizedBox(height: 16),
               DsSection(
+                key: _questionsSectionKey,
                 eyebrow: 'Estrutura',
                 title: 'Perguntas',
                 subtitle:

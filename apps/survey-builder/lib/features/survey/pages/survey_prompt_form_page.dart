@@ -91,9 +91,20 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
   Widget build(BuildContext context) {
     return DsScaffold(
       title: _isEditing ? 'Editar prompt' : 'Criar prompt',
-      subtitle:
-          'Mantenha chaves estáveis e reutilize instruções compartilhadas.',
-      scrollable: true,
+      subtitle: 'Mantenha chaves estáveis e reutilize instruções.',
+      breadcrumbs: [
+        DsBreadcrumbItem(
+          label: 'Prompts reutilizáveis',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        DsBreadcrumbItem(
+          label: _isEditing ? 'Editar prompt' : 'Criar prompt',
+          isCurrent: true,
+        ),
+      ],
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: 'Voltar para prompts',
+      scrollable: false,
       body: Form(
         key: _formKey,
         child: DsAdminFormShell(
@@ -102,7 +113,7 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
           onSave: _save,
           feedback: _feedback == null
               ? null
-              : DsFeedbackBanner(
+              : DsMessageBanner(
                   feedback: DsFeedbackMessage(
                     severity: _feedback!.severity,
                     title: _feedback!.title,

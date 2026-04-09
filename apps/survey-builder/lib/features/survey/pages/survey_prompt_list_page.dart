@@ -58,13 +58,17 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
     );
     if (changed == true && mounted) {
       await _load();
-      setState(() {
-        _feedback = const DsFeedbackMessage(
+      if (!mounted) {
+        return;
+      }
+      showDsToast(
+        context,
+        feedback: const DsFeedbackMessage(
           severity: DsStatusType.success,
           title: 'Prompt salvo',
-          message: 'As alterações do prompt foram salvas com sucesso.',
-        );
-      });
+          message: 'Alterações salvas.',
+        ),
+      );
     }
   }
 
@@ -88,7 +92,7 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
         _feedback = const DsFeedbackMessage(
           severity: DsStatusType.success,
           title: 'Prompt excluído',
-          message: 'O prompt foi removido com sucesso.',
+          message: 'Prompt removido.',
         );
       });
     } on Exception catch (error) {
@@ -109,7 +113,7 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
   Widget build(BuildContext context) {
     return DsScaffold(
       title: 'Prompts reutilizáveis',
-      subtitle: 'Gerencie os prompts compartilhados usados pelos fluxos de IA.',
+      subtitle: 'Gerencie prompts compartilhados dos fluxos de IA.',
       body: DsAdminCatalogShell<SurveyPromptDraft>(
         heading: 'Catálogo de prompts',
         createLabel: 'Criar prompt',
@@ -119,7 +123,7 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
         error: _error,
         feedback: _feedback == null
             ? null
-            : DsFeedbackBanner(
+            : DsMessageBanner(
                 feedback: DsFeedbackMessage(
                   severity: _feedback!.severity,
                   title: _feedback!.title,

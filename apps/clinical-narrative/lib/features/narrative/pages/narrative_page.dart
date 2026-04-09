@@ -21,6 +21,8 @@ class _NarrativePageState extends State<NarrativePage> {
   final _narrativeController = TextEditingController();
   bool _isGenerating = false;
   DsFeedbackMessage? _feedback;
+  AIProgress? _aiProgress;
+  bool _retryableFailure = false;
 
   @override
   void dispose() {
@@ -44,6 +46,8 @@ class _NarrativePageState extends State<NarrativePage> {
     final settings = Provider.of<AppSettings>(context, listen: false);
     setState(() {
       _isGenerating = true;
+      _retryableFailure = false;
+      _aiProgress = const AIProgress(stage: 'organizing_data');
       _feedback = const DsFeedbackMessage(
         severity: DsStatusType.info,
         title: 'Gerando narrativa',
@@ -53,7 +57,13 @@ class _NarrativePageState extends State<NarrativePage> {
     });
     try {
       final service = ClinicalWriterService();
-      final response = await service.processContent(rawContent);
+      final response = await _generateWithPolling(service, rawContent);
+      if (response == null) {
+        throw Exception(
+          _feedback?.message ??
+              'Não foi possível concluir a geração no momento.',
+        );
+      }
       final report = _resolveReportDocument(settings, response);
       if (report == null) {
         final message = response.errorMessage ?? 'Resposta vazia do agente.';
@@ -74,9 +84,18 @@ class _NarrativePageState extends State<NarrativePage> {
       if (mounted) {
         setState(() {
           _feedback = DsFeedbackMessage(
-            severity: DsStatusType.error,
+            severity: _retryableFailure
+                ? DsStatusType.warning
+                : DsStatusType.error,
             title: 'Falha ao gerar narrativa',
             message: 'Erro ao gerar narrativa: $error',
+            primaryAction: _retryableFailure
+                ? DsFeedbackAction(
+                    label: 'Tentar Novamente',
+                    onPressed: _generateNarrative,
+                    icon: Icons.refresh,
+                  )
+                : null,
           );
         });
       }
@@ -85,6 +104,64 @@ class _NarrativePageState extends State<NarrativePage> {
         setState(() => _isGenerating = false);
       }
     }
+  }
+
+  Future<AgentResponse?> _generateWithPolling(
+    ClinicalWriterService service,
+    String rawContent,
+  ) async {
+    final task = await service.startProcessTask(rawContent);
+    final taskId = task['taskId']?.toString() ?? task['task_id']?.toString();
+    if (taskId == null || taskId.isEmpty) {
+      return service.processContent(rawContent);
+    }
+    final startProgress = task['aiProgress'] ?? task['ai_progress'];
+    if (startProgress is Map<String, dynamic> && mounted) {
+      setState(() {
+        _aiProgress = AIProgress.fromJson(startProgress);
+      });
+    }
+    for (var attempt = 0; attempt < 120; attempt++) {
+      await Future<void>.delayed(const Duration(seconds: 1));
+      final statusPayload = await service.fetchTaskStatus(taskId);
+      final progressPayload =
+          statusPayload['aiProgress'] ?? statusPayload['ai_progress'];
+      if (progressPayload is Map<String, dynamic> && mounted) {
+        setState(() {
+          _aiProgress = AIProgress.fromJson(progressPayload);
+        });
+      }
+      final status = statusPayload['status']?.toString() ?? '';
+      if (status == 'completed' &&
+          statusPayload['result'] is Map<String, dynamic>) {
+        return AgentResponse.fromJson(
+          statusPayload['result'] as Map<String, dynamic>,
+        );
+      }
+      if (status == 'failed') {
+        final errorPayload = statusPayload['error'];
+        if (errorPayload is Map<String, dynamic>) {
+          _retryableFailure = errorPayload['retryable'] as bool? ?? false;
+          _feedback = DsFeedbackMessage(
+            severity: _retryableFailure
+                ? DsStatusType.warning
+                : DsStatusType.error,
+            title: 'Falha ao gerar narrativa',
+            message:
+                errorPayload['userMessage']?.toString() ??
+                'Não conseguimos gerar a análise automática para este caso.',
+          );
+        }
+        return null;
+      }
+    }
+    _retryableFailure = true;
+    _feedback = const DsFeedbackMessage(
+      severity: DsStatusType.warning,
+      title: 'A análise está demorando mais que o esperado',
+      message: 'Tente novamente em alguns instantes.',
+    );
+    return null;
   }
 
   ReportDocument? _resolveReportDocument(
@@ -120,13 +197,17 @@ class _NarrativePageState extends State<NarrativePage> {
 
   @override
   Widget build(BuildContext context) {
-    final patient = Provider.of<AppSettings>(context).patient;
+    final settings = Provider.of<AppSettings>(context);
+    final patient = settings.patient;
+    final tone = DsEmotionalToneProvider.resolveTokens(context);
 
     return DsScaffold(
       title: 'Narrativa clínica',
       subtitle: patient.name.isNotEmpty
           ? 'Paciente: ${patient.name}'
           : 'Paciente não informado',
+      userName: settings.screenerDisplayName,
+      showAmbientGreeting: true,
       scrollable: true,
       body: Center(
         child: ConstrainedBox(
@@ -139,7 +220,17 @@ class _NarrativePageState extends State<NarrativePage> {
             child: Column(
               children: [
                 if (_feedback != null) ...[
-                  DsFeedbackBanner(feedback: _feedback!),
+                  DsMessageBanner(feedback: _feedback!),
+                ],
+                if (_isGenerating) ...[
+                  DsAIProgressIndicator(
+                    stage: _aiProgress?.stage ?? 'organizing_data',
+                    severity: _aiProgress?.severity ?? 'info',
+                    retryable: false,
+                    userName: settings.screenerDisplayName,
+                    wayfindingMessage: tone.waitingSupportMessage,
+                  ),
+                  const SizedBox(height: 12),
                 ],
                 DsFocusFrame(
                   child: SizedBox(

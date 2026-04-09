@@ -61,13 +61,17 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
     );
     if (changed == true && mounted) {
       await _load();
-      setState(() {
-        _feedback = const DsFeedbackMessage(
+      if (!mounted) {
+        return;
+      }
+      showDsToast(
+        context,
+        feedback: const DsFeedbackMessage(
           severity: DsStatusType.success,
           title: 'Persona salva',
-          message: 'As alterações da persona foram salvas com sucesso.',
-        );
-      });
+          message: 'Alterações salvas.',
+        ),
+      );
     }
   }
 
@@ -91,7 +95,7 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
         _feedback = const DsFeedbackMessage(
           severity: DsStatusType.success,
           title: 'Persona excluída',
-          message: 'A persona foi removida com sucesso.',
+          message: 'Persona removida.',
         );
       });
     } on Exception catch (error) {
@@ -112,8 +116,7 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
   Widget build(BuildContext context) {
     return DsScaffold(
       title: 'Personas de saída',
-      subtitle:
-          'Gerencie personas compartilhadas e perfis padrão para relatórios.',
+      subtitle: 'Gerencie personas compartilhadas e perfis padrão.',
       body: DsAdminCatalogShell<PersonaSkillDraft>(
         heading: 'Catálogo de personas',
         createLabel: 'Criar persona',
@@ -123,7 +126,7 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
         error: _error,
         feedback: _feedback == null
             ? null
-            : DsFeedbackBanner(
+            : DsMessageBanner(
                 feedback: DsFeedbackMessage(
                   severity: _feedback!.severity,
                   title: _feedback!.title,

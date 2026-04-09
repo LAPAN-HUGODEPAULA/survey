@@ -115,7 +115,7 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
       _feedback = const DsFeedbackMessage(
         severity: DsStatusType.warning,
         title: 'Conflito de cadastro',
-        message: 'Revise os campos com conflito antes de salvar novamente.',
+        message: 'Revise os campos em conflito e salve novamente.',
       );
     });
   }
@@ -184,9 +184,20 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
   Widget build(BuildContext context) {
     return DsScaffold(
       title: _isEditing ? 'Editar persona' : 'Criar persona',
-      subtitle:
-          'Configure personas e perfis de saída reutilizáveis para os relatos clínicos.',
-      scrollable: true,
+      subtitle: 'Configure personas e perfis de saída reutilizáveis.',
+      breadcrumbs: [
+        DsBreadcrumbItem(
+          label: 'Personas de saída',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        DsBreadcrumbItem(
+          label: _isEditing ? 'Editar persona' : 'Criar persona',
+          isCurrent: true,
+        ),
+      ],
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: 'Voltar para personas',
+      scrollable: false,
       body: Form(
         key: _formKey,
         child: DsAdminFormShell(
@@ -195,7 +206,7 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
           onSave: _save,
           feedback: _feedback == null
               ? null
-              : DsFeedbackBanner(
+              : DsMessageBanner(
                   feedback: DsFeedbackMessage(
                     severity: _feedback!.severity,
                     title: _feedback!.title,

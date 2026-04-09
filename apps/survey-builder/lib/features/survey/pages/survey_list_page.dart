@@ -83,14 +83,16 @@ class _SurveyListPageState extends State<SurveyListPage> {
     );
     if (!mounted) return;
     await _load();
+    if (!mounted) return;
     if (changed == true) {
-      setState(() {
-        _feedback = const DsFeedbackMessage(
+      showDsToast(
+        context,
+        feedback: const DsFeedbackMessage(
           severity: DsStatusType.success,
           title: 'Questionário salvo',
-          message: 'As alterações do questionário foram salvas com sucesso.',
-        );
-      });
+          message: 'Alterações salvas.',
+        ),
+      );
     }
   }
 
@@ -98,6 +100,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => DsDialog(
+        severity: DsStatusType.warning,
         title: 'Excluir questionário?',
         content: Text(
           'Isso excluirá permanentemente "${draft.surveyDisplayName}".',
@@ -108,7 +111,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
             onPressed: () => Navigator.pop(context, false),
           ),
           DsFilledButton(
-            label: 'Excluir',
+            label: 'Excluir questionário',
             onPressed: () => Navigator.pop(context, true),
           ),
         ],
@@ -124,7 +127,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
           _feedback = const DsFeedbackMessage(
             severity: DsStatusType.success,
             title: 'Questionário excluído',
-            message: 'O questionário foi removido com sucesso.',
+            message: 'Questionário removido.',
           );
         });
       }
@@ -152,7 +155,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
           _feedback = const DsFeedbackMessage(
             severity: DsStatusType.success,
             title: 'Exportação concluída',
-            message: 'O arquivo de exportação foi preparado com sucesso.',
+            message: 'Arquivo de exportação pronto.',
           );
         });
       }
@@ -217,8 +220,8 @@ class _SurveyListPageState extends State<SurveyListPage> {
   Widget build(BuildContext context) {
     return DsScaffold(
       title: 'Construtor de Questionários',
-      subtitle:
-          'Gerencie questionários, prompts e personas no shell administrativo compartilhado.',
+      subtitle: 'Gerencie questionários, prompts e personas.',
+      showAmbientGreeting: true,
       useSafeArea: true,
       actions: [
         IconButton(
@@ -232,7 +235,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
         child: Column(
           children: [
             if (_feedback != null) ...[
-              DsFeedbackBanner(
+              DsMessageBanner(
                 feedback: DsFeedbackMessage(
                   severity: _feedback!.severity,
                   title: _feedback!.title,

@@ -8,6 +8,7 @@ import 'package:clinical_narrative_app/core/providers/chat_provider.dart';
 import 'package:clinical_narrative_app/core/services/platform_view_registry.dart'
     as platform_view_registry;
 import 'package:clinical_narrative_app/core/services/voice_capture_service.dart';
+import 'package:clinical_narrative_app/features/chat/controllers/assistant_status_controller.dart';
 import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/foundation.dart';
@@ -25,6 +26,7 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  final _assistantStatusController = const AssistantStatusController();
   final _controller = TextEditingController();
   final _voiceTextController = TextEditingController();
   final _scrollController = ScrollController();
@@ -38,6 +40,7 @@ class _ChatPageState extends State<ChatPage> {
   int _recordingSeconds = 0;
   Timer? _recordingTimer;
   int _lastMessageCount = 0;
+  String? _lastAssistantAnnouncement;
 
   @override
   void initState() {
@@ -173,6 +176,8 @@ class _ChatPageState extends State<ChatPage> {
     ChatSession? session,
     String phase,
   ) {
+    final settings = context.read<AppSettings>();
+    final tone = DsEmotionalToneProvider.resolveTokens(context);
     final statusLabel = _sessionStatusLabel(session, provider.isLoading);
     final statusType = _sessionStatusType(session, provider.isLoading);
     final duration = _formatDuration(session?.createdAt, session?.completedAt);
@@ -185,7 +190,8 @@ class _ChatPageState extends State<ChatPage> {
     return DsSection(
       eyebrow: 'Sessão',
       title: 'Conversa ativa',
-      subtitle: 'Acompanhe o estado da consulta e ajuste a fase da entrevista.',
+      subtitle:
+          '${tone.salutationFor(settings.screenerDisplayName, fallback: 'Olá.')} Acompanhe o estado da consulta e ajuste a fase da entrevista.',
       tone: DsPanelTone.low,
       padding: const EdgeInsets.all(16),
       headerSpacing: 12,
@@ -222,9 +228,9 @@ class _ChatPageState extends State<ChatPage> {
                   DropdownMenuItem(value: 'intake', child: Text('Anamnese')),
                   DropdownMenuItem(
                     value: 'assessment',
-                    child: Text('Avaliação'),
+                    child: Text('Avaliação Clínica'),
                   ),
-                  DropdownMenuItem(value: 'plan', child: Text('Plano')),
+                  DropdownMenuItem(value: 'plan', child: Text('Planejamento')),
                   DropdownMenuItem(
                     value: 'wrap_up',
                     child: Text('Encerramento'),
@@ -281,7 +287,7 @@ class _ChatPageState extends State<ChatPage> {
           if (_voiceError != null)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: DsInlineFeedback(
+              child: DsInlineMessage(
                 feedback: DsFeedbackMessage(
                   severity: DsStatusType.error,
                   title: 'Falha na captura de voz',
@@ -369,6 +375,7 @@ class _ChatPageState extends State<ChatPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => DsDialog(
+        severity: DsStatusType.warning,
         title: 'Encerrar consulta?',
         content: const Text('Isso concluirá a sessão atual.'),
         actions: [
@@ -377,7 +384,7 @@ class _ChatPageState extends State<ChatPage> {
             onPressed: () => Navigator.pop(context, false),
           ),
           DsFilledButton(
-            label: 'Encerrar',
+            label: 'Encerrar sessão',
             onPressed: () => Navigator.pop(context, true),
           ),
         ],
@@ -734,7 +741,7 @@ class _ChatPageState extends State<ChatPage> {
             onPressed: () => Navigator.pop(context),
           ),
           DsFilledButton(
-            label: 'Salvar',
+            label: 'Salvar edição',
             onPressed: () => Navigator.pop(context, controller.text.trim()),
           ),
         ],
@@ -806,11 +813,16 @@ class _ChatPageState extends State<ChatPage> {
         builder: (context, provider, _) {
           final session = provider.session;
           final phase = session?.phase ?? 'intake';
-          final analysisPhase = provider.analysisPhase;
           final isSessionCompleted =
               session?.status.toLowerCase() == 'completed';
           final inputEnabled = !provider.isOffline && !isSessionCompleted;
           final messageCount = provider.messages.length;
+          final assistantStatus = _assistantStatusController.resolve(
+            provider: provider,
+            isRecording: _isRecording,
+            isTranscribing: _isTranscribing,
+            voiceError: _voiceError,
+          );
 
           if (messageCount > _lastMessageCount) {
             final newest = provider.messages.last;
@@ -827,6 +839,18 @@ class _ChatPageState extends State<ChatPage> {
             });
           }
           _lastMessageCount = messageCount;
+
+          if (assistantStatus.announcement != _lastAssistantAnnouncement) {
+            _lastAssistantAnnouncement = assistantStatus.announcement;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              SemanticsService.sendAnnouncement(
+                View.of(context),
+                assistantStatus.announcement,
+                Directionality.of(context),
+              );
+            });
+          }
 
           return DsScaffold(
             appBar: ClinicianNavigationAppBar(
@@ -860,7 +884,7 @@ class _ChatPageState extends State<ChatPage> {
                 if (provider.error != null)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: DsFeedbackBanner(
+                    child: DsMessageBanner(
                       feedback: DsFeedbackMessage(
                         severity: DsStatusType.error,
                         title: 'Não foi possível carregar a conversa',
@@ -896,85 +920,48 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                   ),
                 ),
-                if (provider.alerts.isNotEmpty)
+                if (provider.alerts.isNotEmpty ||
+                    provider.suggestions.isNotEmpty ||
+                    provider.hypotheses.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
                       vertical: 4,
                     ),
-                    child: _AlertPanel(alerts: provider.alerts),
+                    child: _AssistantInsightPanel(provider: provider),
                   ),
-                if (provider.suggestions.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    child: _InsightPanel(
-                      title: 'Sugestões',
-                      items: provider.suggestions
-                          .map((item) => item['text']?.toString() ?? '')
-                          .where((text) => text.isNotEmpty)
-                          .toList(),
-                    ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 4,
+                    left: 12,
+                    right: 12,
                   ),
-                if (provider.hypotheses.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    child: _InsightPanel(
-                      title: 'Hipóteses',
-                      items: provider.hypotheses
-                          .map((item) => item['label']?.toString() ?? '')
-                          .where((text) => text.isNotEmpty)
-                          .toList(),
-                    ),
-                  ),
-                if (provider.entities.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    child: _InsightPanel(
-                      title: 'Entidades',
-                      items: provider.entities
-                          .map(
-                            (item) =>
-                                '${item['type'] ?? ''}: ${item['value'] ?? ''}',
+                  child: DsAssistantStatus(
+                    currentPhaseLabel: assistantStatus.phaseLabel,
+                    currentMessage: assistantStatus.currentMessage,
+                    steps: assistantStatus.steps,
+                    severity: assistantStatus.severity,
+                    wayfindingMessage: assistantStatus.wayfindingMessage,
+                    reassuranceMessage: assistantStatus.reassuranceMessage,
+                    processing: assistantStatus.processing,
+                    retryAction: assistantStatus.showRetry
+                        ? DsFeedbackAction(
+                            label: 'Tentar Novamente',
+                            icon: Icons.refresh_rounded,
+                            onPressed: () {
+                              unawaited(provider.retryAssistantProcessing());
+                            },
                           )
-                          .toList(),
-                    ),
+                        : null,
+                    cancelAction: assistantStatus.showCancel
+                        ? DsFeedbackAction(
+                            label: 'Cancelar',
+                            icon: Icons.close_rounded,
+                            onPressed: provider.cancelAssistantProcessing,
+                          )
+                        : null,
                   ),
-                if (provider.knowledge.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    child: _InsightPanel(
-                      title: 'Conhecimento',
-                      items: provider.knowledge
-                          .map((item) => item['label']?.toString() ?? '')
-                          .where((text) => text.isNotEmpty)
-                          .toList(),
-                    ),
-                  ),
-                if (provider.isProcessing)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: const DsInlineFeedback(
-                      feedback: DsFeedbackMessage(
-                        severity: DsStatusType.info,
-                        title: 'A IA está preparando a resposta',
-                        message:
-                            'Estamos organizando uma resposta clínica consistente para você.',
-                      ),
-                      margin: EdgeInsets.zero,
-                    ),
-                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: DsPanel(
@@ -1062,9 +1049,6 @@ class _ChatPageState extends State<ChatPage> {
                                     : () => _confirmEndSession(provider),
                               ),
                               const Spacer(),
-                              if (analysisPhase != null &&
-                                  analysisPhase.isNotEmpty)
-                                Text('Fase da IA: $analysisPhase'),
                             ],
                           ),
                         ),
@@ -1081,73 +1065,70 @@ class _ChatPageState extends State<ChatPage> {
   }
 }
 
-class _AlertPanel extends StatelessWidget {
-  const _AlertPanel({required this.alerts});
+class _AssistantInsightPanel extends StatelessWidget {
+  const _AssistantInsightPanel({required this.provider});
 
-  final List<Map<String, dynamic>> alerts;
+  final ChatProvider provider;
 
   DsStatusType _severityFromAlert(Map<String, dynamic> alert) {
     switch ((alert['severity'] ?? '').toString().toLowerCase()) {
+      case 'critical':
       case 'error':
         return DsStatusType.error;
-      case 'warning':
-        return DsStatusType.warning;
       case 'success':
         return DsStatusType.success;
+      case 'warning':
+        return DsStatusType.warning;
       default:
-        return DsStatusType.info;
+        return DsStatusType.warning;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return DsSection(
-      title: 'Alertas',
+      title: 'Insights do Assistente',
+      subtitle:
+          'Sugestões, alertas e hipóteses atualizados pela análise clínica.',
       tone: DsPanelTone.high,
       padding: const EdgeInsets.all(16),
       headerSpacing: 8,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (final alert in alerts)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: DsInlineFeedback(
-                feedback: DsFeedbackMessage(
-                  severity: _severityFromAlert(alert),
-                  title: dsFeedbackDefaultTitle(_severityFromAlert(alert)),
-                  message: (alert['text'] ?? '').toString(),
-                ),
-                margin: EdgeInsets.zero,
+          for (final suggestion in provider.suggestions)
+            if ((suggestion['text'] ?? '').toString().trim().isNotEmpty)
+              DsAIInsightCard(
+                type: DsAIInsightType.suggestion,
+                title: 'Sugestão do Assistente',
+                message: (suggestion['text'] ?? '').toString(),
+                supportingText:
+                    (suggestion['category'] ?? '').toString().trim().isEmpty
+                    ? null
+                    : 'Categoria: ${suggestion['category']}',
+                margin: const EdgeInsets.only(bottom: 8),
               ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _InsightPanel extends StatelessWidget {
-  const _InsightPanel({required this.title, required this.items});
-
-  final String title;
-  final List<String> items;
-
-  @override
-  Widget build(BuildContext context) {
-    return DsSection(
-      title: title,
-      tone: DsPanelTone.high,
-      padding: const EdgeInsets.all(16),
-      headerSpacing: 8,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (final item in items)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(item),
-            ),
+          for (final alert in provider.alerts)
+            if ((alert['text'] ?? '').toString().trim().isNotEmpty)
+              DsAIInsightCard(
+                type: DsAIInsightType.alert,
+                title: 'Alerta Clínico',
+                message: (alert['text'] ?? '').toString(),
+                supportingText:
+                    (alert['evidence'] ?? '').toString().trim().isEmpty
+                    ? null
+                    : 'Evidência: ${alert['evidence']}',
+                severityOverride: _severityFromAlert(alert),
+                margin: const EdgeInsets.only(bottom: 8),
+              ),
+          for (final hypothesis in provider.hypotheses)
+            if ((hypothesis['label'] ?? '').toString().trim().isNotEmpty)
+              DsAIInsightCard(
+                type: DsAIInsightType.hypothesis,
+                title: 'Hipótese Clínica',
+                message: (hypothesis['label'] ?? '').toString(),
+                margin: const EdgeInsets.only(bottom: 8),
+              ),
         ],
       ),
     );

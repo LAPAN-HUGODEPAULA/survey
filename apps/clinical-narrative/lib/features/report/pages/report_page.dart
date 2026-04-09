@@ -60,7 +60,15 @@ class _ReportPageState extends State<ReportPage> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+    final failed = result.startsWith('Falha');
+    showDsToast(
+      context,
+      feedback: DsFeedbackMessage(
+        severity: failed ? DsStatusType.error : DsStatusType.success,
+        title: failed ? 'Falha ao exportar prontuário' : 'Exportação concluída',
+        message: result,
+      ),
+    );
   }
 
   Future<String> _writeReportFile(String fileName, String content) async {
@@ -115,18 +123,37 @@ class _ReportPageState extends State<ReportPage> {
     final settings = Provider.of<AppSettings>(context);
 
     return DsScaffold(
-      title: 'Prontuario gerado',
-      subtitle: 'Revise, imprima ou exporte o documento clinico consolidado.',
+      title: 'Prontuário gerado',
+      subtitle: 'Revise, imprima ou exporte o documento clínico consolidado.',
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: 'Voltar para a narrativa',
+      userName: settings.screenerDisplayName,
+      showAmbientGreeting: true,
       scrollable: true,
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
-          child: ReportView(
-            report: widget.report,
-            footer:
-                'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
-            onPrint: kIsWeb ? _printReport : null,
-            onExport: () => _exportReport(settings, widget.report),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const DsInlineMessage(
+                feedback: DsFeedbackMessage(
+                  severity: DsStatusType.success,
+                  title: 'Processamento concluído',
+                  message:
+                      'Sessão concluída com sucesso. O registro clínico foi gerado e está pronto para sua revisão.',
+                ),
+                margin: EdgeInsets.zero,
+              ),
+              const SizedBox(height: 16),
+              ReportView(
+                report: widget.report,
+                footer:
+                    'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
+                onPrint: kIsWeb ? _printReport : null,
+                onExport: () => _exportReport(settings, widget.report),
+              ),
+            ],
           ),
         ),
       ),

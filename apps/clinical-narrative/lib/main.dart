@@ -49,6 +49,10 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [Locale('pt', 'BR')],
       locale: const Locale('pt', 'BR'),
       theme: AppTheme.dark(),
+      builder: (context, child) => DsEmotionalToneProvider(
+        profile: DsToneProfile.professional,
+        child: child ?? const SizedBox.shrink(),
+      ),
       debugShowCheckedModeBanner: false,
       onGenerateRoute: (settings) {
         switch (settings.name) {
