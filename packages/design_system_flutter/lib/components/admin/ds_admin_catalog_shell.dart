@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:design_system_flutter/widgets/ds_buttons.dart';
 import 'package:design_system_flutter/widgets/ds_scaffold.dart';
 import 'package:design_system_flutter/widgets/ds_surface.dart';
-
 class DsAdminCatalogShell<T> extends StatelessWidget {
   const DsAdminCatalogShell({
     super.key,
@@ -17,6 +16,9 @@ class DsAdminCatalogShell<T> extends StatelessWidget {
     this.error,
     this.onRetry,
     this.feedback,
+    this.onSearchChanged,
+    this.searchPlaceholder = 'Filtrar itens...',
+    this.searchController,
   });
 
   final String heading;
@@ -30,6 +32,9 @@ class DsAdminCatalogShell<T> extends StatelessWidget {
   final String? error;
   final VoidCallback? onRetry;
   final Widget? feedback;
+  final ValueChanged<String>? onSearchChanged;
+  final String searchPlaceholder;
+  final TextEditingController? searchController;
 
   @override
   Widget build(BuildContext context) {
@@ -60,13 +65,32 @@ class DsAdminCatalogShell<T> extends StatelessWidget {
             feedback!,
           ],
           const SizedBox(height: 16),
+          if (onSearchChanged != null || searchController != null) ...[
+            TextField(
+              controller: searchController,
+              onChanged: onSearchChanged,
+              decoration: InputDecoration(
+                hintText: searchPlaceholder,
+                prefixIcon: const Icon(Icons.search),
+                border: const OutlineInputBorder(),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           Expanded(
             child: isLoading
                 ? const DsLoading()
+...
+
                 : error != null
                     ? DsError(message: error!, onRetry: onRetry ?? onRefresh)
                     : items.isEmpty
-                        ? DsEmpty(message: emptyMessage)
+                        ? DsEmpty(
+                            message: emptyMessage,
+                            actionLabel: createLabel,
+                            onAction: onCreate,
+                          )
                         : Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: SingleChildScrollView(

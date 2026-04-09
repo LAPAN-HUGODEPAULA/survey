@@ -8,10 +8,13 @@ class DsAdminFormShell extends StatelessWidget {
     required this.onCancel,
     required this.onSave,
     this.isSaving = false,
+    this.hasUnsavedChanges = false,
     this.saveLabel = 'Salvar',
     this.cancelLabel = 'Cancelar',
     this.feedback,
     this.stickyHeader,
+    this.stickyFooter,
+    this.sectionalNav,
     this.scrollController,
   });
 
@@ -19,15 +22,47 @@ class DsAdminFormShell extends StatelessWidget {
   final VoidCallback onCancel;
   final VoidCallback onSave;
   final bool isSaving;
+  final bool hasUnsavedChanges;
   final String saveLabel;
   final String cancelLabel;
   final Widget? feedback;
   final PreferredSizeWidget? stickyHeader;
+  final Widget? stickyFooter;
+  final Widget? sectionalNav;
   final ScrollController? scrollController;
 
-  Widget _buildToolbar() {
+  Widget _buildToolbar(BuildContext context) {
     return Row(
       children: [
+        if (hasUnsavedChanges && !isSaving) ...[
+          Icon(
+            Icons.info_outline,
+            size: 16,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Alterações não salvas',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ],
+        if (isSaving) ...[
+          const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            'Salvando...',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+          ),
+        ],
         const Spacer(),
         SizedBox(
           width: 140,
@@ -50,49 +85,92 @@ class DsAdminFormShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final topContent = Column(
+    final theme = Theme.of(context);
+
+    final formContent = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildToolbar(),
-        const SizedBox(height: 16),
+        if (stickyFooter == null) ...[
+          _buildToolbar(context),
+          const SizedBox(height: 16),
+        ],
         if (feedback != null) ...[
           feedback!,
           const SizedBox(height: 16),
         ],
+        child,
       ],
     );
 
+    Widget body;
     if (stickyHeader == null) {
-      return SingleChildScrollView(
+      body = SingleChildScrollView(
         controller: scrollController,
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            topContent,
-            child,
-          ],
-        ),
+        child: formContent,
+      );
+    } else {
+      body = CustomScrollView(
+        controller: scrollController,
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, stickyFooter == null ? 0 : 16),
+            sliver: SliverToBoxAdapter(
+              child: stickyFooter == null ? _buildToolbar(context) : null,
+            ),
+          ),
+          if (feedback != null)
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverToBoxAdapter(child: feedback),
+            ),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _DsStickyHeaderDelegate(
+              header: stickyHeader!,
+              backgroundColor: theme.scaffoldBackgroundColor,
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            sliver: SliverToBoxAdapter(child: child),
+          ),
+        ],
       );
     }
 
-    return CustomScrollView(
-      controller: scrollController,
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          sliver: SliverToBoxAdapter(child: topContent),
-        ),
-        SliverPersistentHeader(
-          pinned: true,
-          delegate: _DsStickyHeaderDelegate(
-            header: stickyHeader!,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    final mainArea = sectionalNav == null
+        ? body
+        : Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: 240,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 16, left: 16),
+                  child: sectionalNav,
+                ),
+              ),
+              const VerticalDivider(width: 1),
+              Expanded(child: body),
+            ],
+          );
+
+    if (stickyFooter == null) {
+      return mainArea;
+    }
+
+    return Column(
+      children: [
+        Expanded(child: mainArea),
+        const Divider(height: 1),
+        Container(
+          padding: const EdgeInsets.all(16),
+          color: theme.scaffoldBackgroundColor,
+          child: SafeArea(
+            top: false,
+            child: _buildToolbar(context),
           ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          sliver: SliverToBoxAdapter(child: child),
         ),
       ],
     );

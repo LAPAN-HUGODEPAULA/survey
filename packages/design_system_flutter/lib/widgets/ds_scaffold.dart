@@ -461,15 +461,27 @@ class DsPrimaryButton extends StatelessWidget {
 }
 
 class DsEmpty extends StatelessWidget {
-  const DsEmpty({super.key, this.message = 'Nenhum conteúdo disponível.'});
+  const DsEmpty({
+    super.key,
+    this.message = 'Nenhum conteúdo disponível.',
+    this.actionLabel,
+    this.onAction,
+    this.visual,
+  });
 
   final String message;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final Widget? visual;
 
   @override
   Widget build(BuildContext context) {
     return DsEmptyState(
       title: 'Nenhum dado disponível',
       description: message,
+      actionLabel: actionLabel,
+      onAction: onAction,
+      visual: visual,
     );
   }
 }
