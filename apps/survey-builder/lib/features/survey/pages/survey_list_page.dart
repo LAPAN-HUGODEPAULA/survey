@@ -18,23 +18,48 @@ class SurveyListPage extends StatefulWidget {
 
 class _SurveyListPageState extends State<SurveyListPage> {
   late final SurveyRepository _repo;
+  final TextEditingController _searchController = TextEditingController();
   bool _loading = true;
   bool _exporting = false;
   String? _error;
   DsFeedbackMessage? _feedback;
   List<SurveyDraft> _surveys = [];
+  String _filter = '';
 
   @override
   void initState() {
     super.initState();
     _repo = widget.repository ?? SurveyRepository();
+    _searchController.addListener(_handleSearchChanged);
     _load();
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_handleSearchChanged);
+    _searchController.dispose();
     _repo.dispose();
     super.dispose();
+  }
+
+  void _handleSearchChanged() {
+    setState(() {
+      _filter = _searchController.text.trim().toLowerCase();
+    });
+  }
+
+  List<SurveyDraft> get _filteredSurveys {
+    if (_filter.isEmpty) {
+      return _surveys;
+    }
+    return _surveys.where((survey) {
+      final title = survey.surveyDisplayName.toLowerCase();
+      final name = survey.surveyName.toLowerCase();
+      final description = _plainSummary(survey.surveyDescription).toLowerCase();
+      return title.contains(_filter) ||
+          name.contains(_filter) ||
+          description.contains(_filter);
+    }).toList();
   }
 
   Future<void> _load() async {
@@ -223,19 +248,23 @@ class _SurveyListPageState extends State<SurveyListPage> {
       subtitle: 'Gerencie questionários, prompts e personas.',
       showAmbientGreeting: true,
       useSafeArea: true,
-      actions: [
-        IconButton(
-          tooltip: 'Atualizar',
-          icon: const Icon(Icons.refresh),
-          onPressed: _loading ? null : _load,
-        ),
-      ],
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            if (_feedback != null) ...[
-              DsMessageBanner(
+      body: DsAdminCatalogShell<SurveyDraft>(
+        heading: 'Questionários',
+        createLabel: 'Criar questionário',
+        isLoading: _loading,
+        error: _error,
+        onRetry: _load,
+        onRefresh: _load,
+        onCreate: () => _openForm(draft: _emptyDraft()),
+        searchController: _searchController,
+        searchPlaceholder: 'Filtrar questionários por título ou descrição...',
+        emptyMessage: _filter.isEmpty
+            ? 'Nenhum questionário encontrado.'
+            : 'Nenhum questionário corresponde ao filtro "$_filter".',
+        items: _filteredSurveys,
+        feedback: _feedback == null
+            ? null
+            : DsMessageBanner(
                 feedback: DsFeedbackMessage(
                   severity: _feedback!.severity,
                   title: _feedback!.title,
@@ -243,114 +272,90 @@ class _SurveyListPageState extends State<SurveyListPage> {
                   dismissible: true,
                   onDismiss: () => setState(() => _feedback = null),
                 ),
+                margin: EdgeInsets.zero,
               ),
-            ],
-            Column(
+        itemBuilder: (context, survey) {
+          return ListTile(
+            title: Text(survey.surveyDisplayName),
+            subtitle: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Questionários',
-                  maxLines: 1,
+                  _plainSummary(survey.surveyDescription),
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    DsFilledButton(
-                      label: 'Criar questionário',
-                      onPressed: () => _openForm(draft: _emptyDraft()),
-                    ),
-                    DsOutlinedButton(
-                      label: 'Gerenciar prompts',
-                      onPressed: () async {
-                        await Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => const SurveyPromptListPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    DsOutlinedButton(
-                      label: 'Gerenciar personas',
-                      onPressed: () async {
-                        await Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => const PersonaSkillListPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    DsOutlinedButton(
-                      label: _exporting
-                          ? 'Exportando...'
-                          : 'Exportar questionários',
-                      onPressed: _exporting ? null : _exportSurveys,
-                    ),
-                  ],
+                const SizedBox(height: 4),
+                Text(
+                  'Rótulos: ${_questionLabelPreview(survey)}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: _loading
-                  ? const DsLoading()
-                  : _error != null
-                  ? DsError(message: _error!, onRetry: _load)
-                  : _surveys.isEmpty
-                  ? const DsEmpty(message: 'Nenhum questionário encontrado.')
-                  : ListView.separated(
-                      itemCount: _surveys.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        final survey = _surveys[index];
-                        return DsPanel(
-                          tone: DsPanelTone.high,
-                          padding: EdgeInsets.zero,
-                          child: ListTile(
-                            title: Text(survey.surveyDisplayName),
-                            subtitle: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(_plainSummary(survey.surveyDescription)),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Rotulos: ${_questionLabelPreview(survey)}',
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.onSurfaceVariant,
-                                      ),
-                                ),
-                              ],
-                            ),
-                            trailing: Wrap(
-                              spacing: 8,
-                              children: [
-                                IconButton(
-                                  tooltip: 'Editar',
-                                  icon: const Icon(Icons.edit),
-                                  onPressed: () => _openForm(draft: survey),
-                                ),
-                                IconButton(
-                                  tooltip: 'Excluir',
-                                  icon: const Icon(Icons.delete_outline),
-                                  onPressed: () => _confirmDelete(survey),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+            trailing: Wrap(
+              spacing: 8,
+              children: [
+                IconButton(
+                  tooltip: 'Editar',
+                  icon: const Icon(Icons.edit),
+                  onPressed: () => _openForm(draft: survey),
+                ),
+                IconButton(
+                  tooltip: 'Excluir',
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: () => _confirmDelete(survey),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
+      ),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton.extended(
+            heroTag: 'manage-prompts',
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const SurveyPromptListPage(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.text_fields),
+            label: const Text('Prompts'),
+          ),
+          const SizedBox(height: 8),
+          FloatingActionButton.extended(
+            heroTag: 'manage-personas',
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const PersonaSkillListPage(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.face),
+            label: const Text('Personas'),
+          ),
+          const SizedBox(height: 8),
+          FloatingActionButton.extended(
+            heroTag: 'export-surveys',
+            onPressed: _exporting ? null : _exportSurveys,
+            icon: _exporting
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.download),
+            label: Text(_exporting ? 'Exportando...' : 'Exportar'),
+          ),
+        ],
       ),
     );
   }

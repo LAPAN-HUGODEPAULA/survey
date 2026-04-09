@@ -15,22 +15,47 @@ class PersonaSkillListPage extends StatefulWidget {
 
 class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
   late final PersonaSkillRepository _repository;
+  final TextEditingController _searchController = TextEditingController();
   bool _loading = true;
   String? _error;
   DsFeedbackMessage? _feedback;
   List<PersonaSkillDraft> _skills = <PersonaSkillDraft>[];
+  String _filter = '';
 
   @override
   void initState() {
     super.initState();
     _repository = widget.repository ?? PersonaSkillRepository();
+    _searchController.addListener(_handleSearchChanged);
     _load();
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_handleSearchChanged);
+    _searchController.dispose();
     _repository.dispose();
     super.dispose();
+  }
+
+  void _handleSearchChanged() {
+    setState(() {
+      _filter = _searchController.text.trim().toLowerCase();
+    });
+  }
+
+  List<PersonaSkillDraft> get _filteredSkills {
+    if (_filter.isEmpty) {
+      return _skills;
+    }
+    return _skills.where((skill) {
+      final name = skill.name.toLowerCase();
+      final key = skill.personaSkillKey.toLowerCase();
+      final profile = skill.outputProfile.toLowerCase();
+      return name.contains(_filter) ||
+          key.contains(_filter) ||
+          profile.contains(_filter);
+    }).toList();
   }
 
   Future<void> _load() async {
@@ -121,8 +146,12 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
         heading: 'Catálogo de personas',
         createLabel: 'Criar persona',
         isLoading: _loading,
-        items: _skills,
-        emptyMessage: 'Nenhuma persona encontrada.',
+        items: _filteredSkills,
+        searchController: _searchController,
+        searchPlaceholder: 'Filtrar personas por nome, chave ou perfil...',
+        emptyMessage: _filter.isEmpty
+            ? 'Nenhuma persona encontrada.'
+            : 'Nenhuma persona corresponde ao filtro "$_filter".',
         error: _error,
         feedback: _feedback == null
             ? null

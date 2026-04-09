@@ -15,22 +15,44 @@ class SurveyPromptListPage extends StatefulWidget {
 
 class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
   late final SurveyPromptRepository _repository;
+  final TextEditingController _searchController = TextEditingController();
   bool _loading = true;
   String? _error;
   DsFeedbackMessage? _feedback;
   List<SurveyPromptDraft> _prompts = <SurveyPromptDraft>[];
+  String _filter = '';
 
   @override
   void initState() {
     super.initState();
     _repository = widget.repository ?? SurveyPromptRepository();
+    _searchController.addListener(_handleSearchChanged);
     _load();
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_handleSearchChanged);
+    _searchController.dispose();
     _repository.dispose();
     super.dispose();
+  }
+
+  void _handleSearchChanged() {
+    setState(() {
+      _filter = _searchController.text.trim().toLowerCase();
+    });
+  }
+
+  List<SurveyPromptDraft> get _filteredPrompts {
+    if (_filter.isEmpty) {
+      return _prompts;
+    }
+    return _prompts.where((prompt) {
+      final name = prompt.name.toLowerCase();
+      final key = prompt.promptKey.toLowerCase();
+      return name.contains(_filter) || key.contains(_filter);
+    }).toList();
   }
 
   Future<void> _load() async {
@@ -118,8 +140,12 @@ class _SurveyPromptListPageState extends State<SurveyPromptListPage> {
         heading: 'Catálogo de prompts',
         createLabel: 'Criar prompt',
         isLoading: _loading,
-        items: _prompts,
-        emptyMessage: 'Nenhum prompt encontrado.',
+        items: _filteredPrompts,
+        searchController: _searchController,
+        searchPlaceholder: 'Filtrar prompts por nome ou chave...',
+        emptyMessage: _filter.isEmpty
+            ? 'Nenhum prompt encontrado.'
+            : 'Nenhum prompt corresponde ao filtro "$_filter".',
         error: _error,
         feedback: _feedback == null
             ? null
