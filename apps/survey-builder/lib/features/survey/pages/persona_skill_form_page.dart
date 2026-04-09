@@ -20,7 +20,14 @@ class PersonaSkillFormPage extends StatefulWidget {
 }
 
 class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
+  static const String _detailsSectionId = 'details';
+  static const String _instructionsSectionId = 'instructions';
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _detailsSectionKey = GlobalKey();
+  final GlobalKey _instructionsSectionKey = GlobalKey();
+
   late final PersonaSkillRepository _repository;
   late final bool _isEditing;
   late final TextEditingController _personaSkillKeyController;
@@ -29,9 +36,12 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
   late final TextEditingController _instructionsController;
   late List<PersonaSkillDraft> _existingSkills;
   bool _saving = false;
+  bool _isDirty = false;
+  bool _hasSubmitted = false;
   String? _personaSkillKeyConflictText;
   String? _outputProfileConflictText;
   DsFeedbackMessage? _feedback;
+  String _currentSectionId = _detailsSectionId;
 
   @override
   void initState() {
@@ -52,21 +62,71 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
         );
     _personaSkillKeyController = TextEditingController(
       text: draft.personaSkillKey,
-    )..addListener(_clearConflictMessages);
-    _nameController = TextEditingController(text: draft.name);
+    )..addListener(_handleFieldMutation);
+    _nameController = TextEditingController(text: draft.name)
+      ..addListener(_handleFieldMutation);
     _outputProfileController = TextEditingController(text: draft.outputProfile)
-      ..addListener(_clearConflictMessages);
-    _instructionsController = TextEditingController(text: draft.instructions);
+      ..addListener(_handleFieldMutation);
+    _instructionsController = TextEditingController(text: draft.instructions)
+      ..addListener(_handleFieldMutation);
+
+    _scrollController.addListener(_handleSectionScroll);
   }
 
   @override
   void dispose() {
+    _personaSkillKeyController.removeListener(_handleFieldMutation);
+    _nameController.removeListener(_handleFieldMutation);
+    _outputProfileController.removeListener(_handleFieldMutation);
+    _instructionsController.removeListener(_handleFieldMutation);
     _personaSkillKeyController.dispose();
     _nameController.dispose();
     _outputProfileController.dispose();
     _instructionsController.dispose();
+    _scrollController.removeListener(_handleSectionScroll);
+    _scrollController.dispose();
     _repository.dispose();
     super.dispose();
+  }
+
+  void _handleFieldMutation() {
+    _clearConflictMessages();
+    if (!_isDirty) {
+      setState(() => _isDirty = true);
+    }
+  }
+
+  void _handleSectionScroll() {
+    final activationOffset = 180.0;
+    String nextSectionId = _detailsSectionId;
+
+    final detailsBox = _detailsSectionKey.currentContext?.findRenderObject() as RenderBox?;
+    final instructionsBox = _instructionsSectionKey.currentContext?.findRenderObject() as RenderBox?;
+
+    if (instructionsBox != null) {
+      final top = instructionsBox.localToGlobal(Offset.zero).dy;
+      if (top <= activationOffset) {
+        nextSectionId = _instructionsSectionId;
+      }
+    }
+
+    if (nextSectionId != _currentSectionId && mounted) {
+      setState(() => _currentSectionId = nextSectionId);
+    }
+  }
+
+  void _jumpToSection(String sectionId) {
+    final targetKey = sectionId == _detailsSectionId ? _detailsSectionKey : _instructionsSectionKey;
+    final context = targetKey.currentContext;
+    if (context != null) {
+      setState(() => _currentSectionId = sectionId);
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        alignment: 0.1,
+      );
+    }
   }
 
   void _clearConflictMessages() {
@@ -120,9 +180,37 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
     });
   }
 
+  List<DsValidationSummaryItem> _buildValidationItems() {
+    final items = <DsValidationSummaryItem>[];
+    void addItem(String label, String? message, GlobalKey targetKey) {
+      if (message != null && message.isNotEmpty) {
+        items.add(DsValidationSummaryItem(
+          label: label,
+          message: message,
+          onTap: () => Scrollable.ensureVisible(
+            targetKey.currentContext!,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            alignment: 0.1,
+          ),
+        ));
+      }
+    }
+
+    addItem('Chave da persona', DsKeyFieldSupport.validateRequired(_personaSkillKeyController.text), _detailsSectionKey);
+    addItem('Nome da persona', DsKeyFieldSupport.validateRequired(_nameController.text), _detailsSectionKey);
+    addItem('Perfil de saída', DsKeyFieldSupport.validateRequired(_outputProfileController.text), _detailsSectionKey);
+    addItem('Instruções', DsKeyFieldSupport.validateRequired(_instructionsController.text), _instructionsSectionKey);
+
+    return items;
+  }
+
   Future<void> _save() async {
+    setState(() => _hasSubmitted = true);
     final state = _formKey.currentState;
-    if (state == null || !state.validate()) {
+    final validationItems = _buildValidationItems();
+
+    if (state == null || !state.validate() || validationItems.isNotEmpty) {
       return;
     }
 
@@ -182,6 +270,8 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final validationItems = _hasSubmitted ? _buildValidationItems() : <DsValidationSummaryItem>[];
+
     return DsScaffold(
       title: _isEditing ? 'Editar persona' : 'Criar persona',
       subtitle: 'Configure personas e perfis de saída reutilizáveis.',
@@ -202,8 +292,21 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
         key: _formKey,
         child: DsAdminFormShell(
           isSaving: _saving,
+          hasUnsavedChanges: _isDirty,
           onCancel: () => Navigator.of(context).pop(),
           onSave: _save,
+          scrollController: _scrollController,
+          stickyFooter: const SizedBox.shrink(),
+          sectionalNav: DsSectionalNav(
+            items: [
+              DsSectionalNavItem(label: 'Detalhes', targetKey: _detailsSectionKey),
+              DsSectionalNavItem(label: 'Instruções', targetKey: _instructionsSectionKey),
+            ],
+            activeItem: _currentSectionId == _detailsSectionId
+                ? DsSectionalNavItem(label: 'Detalhes', targetKey: _detailsSectionKey)
+                : DsSectionalNavItem(label: 'Instruções', targetKey: _instructionsSectionKey),
+            onItemTap: (item) => _jumpToSection(item.targetKey == _detailsSectionKey ? _detailsSectionId : _instructionsSectionId),
+          ),
           feedback: _feedback == null
               ? null
               : DsMessageBanner(
@@ -219,40 +322,59 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              DsNormalizedKeyField(
-                controller: _personaSkillKeyController,
-                readOnly: _isEditing,
-                label: 'Chave da persona *',
-                helperText: 'Use letras minúsculas, números, ":" , "_" ou "-".',
-              ),
-              if (_personaSkillKeyConflictText != null)
-                DsInlineConflictMessage(message: _personaSkillKeyConflictText!),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Nome da persona *',
+              if (validationItems.isNotEmpty) ...[
+                DsValidationSummary(
+                  items: validationItems,
+                  description: 'Revise os campos destacados antes de salvar.',
                 ),
-                validator: DsKeyFieldSupport.validateRequired,
-              ),
-              const SizedBox(height: 12),
-              DsNormalizedKeyField(
-                controller: _outputProfileController,
-                label: 'Perfil de saída *',
-                helperText: 'Use letras minúsculas, números, ":" , "_" ou "-".',
-              ),
-              if (_outputProfileConflictText != null)
-                DsInlineConflictMessage(message: _outputProfileConflictText!),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _instructionsController,
-                minLines: 10,
-                maxLines: 18,
-                decoration: const InputDecoration(
-                  labelText: 'Instruções *',
-                  alignLabelWithHint: true,
+                const SizedBox(height: 16),
+              ],
+              DsSection(
+                key: _detailsSectionKey,
+                title: 'Detalhes da persona',
+                child: Column(
+                  children: [
+                    DsNormalizedKeyField(
+                      controller: _personaSkillKeyController,
+                      readOnly: _isEditing,
+                      label: 'Chave da persona *',
+                      helperText: 'Use letras minúsculas, números, ":" , "_" ou "-".',
+                    ),
+                    if (_personaSkillKeyConflictText != null)
+                      DsInlineConflictMessage(message: _personaSkillKeyConflictText!),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nome da persona *',
+                      ),
+                      validator: DsKeyFieldSupport.validateRequired,
+                    ),
+                    const SizedBox(height: 12),
+                    DsNormalizedKeyField(
+                      controller: _outputProfileController,
+                      label: 'Perfil de saída *',
+                      helperText: 'Use letras minúsculas, números, ":" , "_" ou "-".',
+                    ),
+                    if (_outputProfileConflictText != null)
+                      DsInlineConflictMessage(message: _outputProfileConflictText!),
+                  ],
                 ),
-                validator: DsKeyFieldSupport.validateRequired,
+              ),
+              const SizedBox(height: 24),
+              DsSection(
+                key: _instructionsSectionKey,
+                title: 'Instruções da persona',
+                child: TextFormField(
+                  controller: _instructionsController,
+                  minLines: 15,
+                  maxLines: 25,
+                  decoration: const InputDecoration(
+                    labelText: 'Instruções *',
+                    alignLabelWithHint: true,
+                  ),
+                  validator: DsKeyFieldSupport.validateRequired,
+                ),
               ),
             ],
           ),

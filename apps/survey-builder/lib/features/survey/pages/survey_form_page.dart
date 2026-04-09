@@ -551,46 +551,71 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
   }) {
     final items = <DsValidationSummaryItem>[];
 
-    void addItem(String label, String? message) {
+    void addItem(String label, String? message, GlobalKey? targetKey) {
       if (message == null || message.trim().isEmpty) {
         return;
       }
-      items.add(DsValidationSummaryItem(label: label, message: message));
+      items.add(
+        DsValidationSummaryItem(
+          label: label,
+          message: message,
+          onTap: targetKey == null
+              ? null
+              : () {
+                  final context = targetKey.currentContext;
+                  if (context != null) {
+                    Scrollable.ensureVisible(
+                      context,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      alignment: 0.1,
+                    );
+                  }
+                },
+        ),
+      );
     }
 
     addItem(
       'Nome de exibição do questionário',
       DsFormValidators.validateRequired(_displayNameController.text),
+      null, // Add GlobalKeys for specific fields if needed, or use section keys
     );
     addItem(
       'Nome do questionário',
       DsFormValidators.validateRequired(_nameController.text),
+      null,
     );
     addItem(
       'Descrição do questionário',
       _isHtmlEmpty(descriptionHtml ?? _descriptionHtml)
           ? 'Descrição do questionário é obrigatória.'
           : null,
+      _descriptionEditorKey,
     );
     addItem(
       'ID do criador',
       DsFormValidators.validateRequired(_creatorIdController.text),
+      null,
     );
     addItem(
       'Notas finais',
       _isHtmlEmpty(finalNotesHtml ?? _finalNotesHtml)
           ? 'Notas finais são obrigatórias.'
           : null,
+      _finalNotesEditorKey,
     );
     addItem(
       'Preâmbulo',
       _isHtmlEmpty(preambleHtml ?? _instructionsPreambleHtml)
           ? 'Preâmbulo é obrigatório.'
           : null,
+      _instructionsPreambleEditorKey,
     );
     addItem(
       'Texto da pergunta das instruções',
       DsFormValidators.validateRequired(_instructionsQuestionController.text),
+      null,
     );
 
     if (_instructionAnswers
@@ -1044,15 +1069,32 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
         key: _formKey,
         child: DsAdminFormShell(
           isSaving: _saving,
+          hasUnsavedChanges: _isDirty,
           onCancel: _saving ? () {} : _confirmCancel,
           onSave: _saving ? () {} : _save,
           scrollController: _scrollController,
-          stickyHeader: DsStickySectionHeader(
-            title: 'Navegação do formulário',
-            summary: 'Seção atual: ${_sectionLabel(_currentSectionId)}',
-            sections: _stickySections,
-            currentSectionId: _currentSectionId,
-            onSectionSelected: _jumpToSection,
+          stickyFooter: const SizedBox.shrink(), // Explicitly enable sticky footer
+          sectionalNav: DsSectionalNav(
+            items: _sectionAnchors
+                .map(
+                  (entry) => DsSectionalNavItem(
+                    label: _sectionLabel(entry.key),
+                    targetKey: entry.value,
+                  ),
+                )
+                .toList(),
+            activeItem: _sectionAnchors
+                .where((entry) => entry.key == _currentSectionId)
+                .map(
+                  (entry) => DsSectionalNavItem(
+                    label: _sectionLabel(entry.key),
+                    targetKey: entry.value,
+                  ),
+                )
+                .firstOrNull,
+            onItemTap: (item) => _jumpToSection(
+              _sectionAnchors.firstWhere((e) => e.value == item.targetKey).key,
+            ),
           ),
           feedback: _feedback == null
               ? null
