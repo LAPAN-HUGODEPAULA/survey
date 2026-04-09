@@ -1,20 +1,20 @@
-## 1. Design System: Infraestrutura de Tom e Personalização
+## 1. Design System: Ambient Empathy Infrastructure
 
-- [ ] 1.1 Criar a `ThemeExtension` `DsToneTokens` com suporte a perfis de tom (patient, professional, admin).
-- [ ] 1.2 Implementar o `DsEmotionalToneProvider` para propagação de contexto de tom na árvore de widgets.
-- [ ] 1.3 Implementar utilitários de personalização segura (`DsPersonalizationUtils`) com suporte a fallbacks.
-- [ ] 1.4 Integrar `DsDelightSystem` para micro-animações de sucesso em componentes base (Snackbars, Banners).
+- [x] 1.1 Create `DsToneTokens` `ThemeExtension` with `emotionalVolume` and tone profiles in pt-BR.
+- [x] 1.2 Implement `DsEmotionalToneProvider` for context-aware tone propagation.
+- [x] 1.3 Add frictionless `userName` support to `DsScaffold` and `DsFeedback` with friendly pt-BR fallbacks.
+- [x] 1.4 Integrate `DsAmbientDelight` using primitive-only animations (`Opacity`, `Transform`, `Color`) in success/completion states.
 
-## 2. Implementação nos Aplicativos
+## 2. Application-Specific Tone & Personalization
 
-- [ ] 2.1 Aplicar o tom `patient` no `survey-patient` e atualizar mensagens de boas-vindas e conclusão.
-- [ ] 2.2 Aplicar o tom `professional` no `survey-frontend` e `clinical-narrative`.
-- [ ] 2.3 Aplicar o tom `admin` no `survey-builder`.
-- [ ] 2.4 Integrar saudações personalizadas nas telas principais e estados de espera de IA (narrativa clínica).
+- [x] 2.1 Apply `patient` tone (High Volume) in `survey-patient` (Welcome, Completion, AI waits).
+- [x] 2.2 Apply `professional` tone (Medium Volume) in `survey-frontend` and `clinical-narrative`.
+- [x] 2.3 Apply `admin` tone (Low Volume) in `survey-builder` for minimal, precise feedback.
+- [x] 2.4 Integrate "Ambient Greetings" in main dashboards and clinical session starts using local state.
 
-## 3. Verificação e Refinamento
+## 3. Performance & Content Verification
 
-- [ ] 3.1 Validar se a alternância de temas preserva a consistência do tom emocional.
-- [ ] 3.2 Verificar se as saudações personalizadas tratam corretamente dados ausentes (fallbacks).
-- [ ] 3.3 Testar as micro-animações de deleite em diferentes dispositivos para performance.
-- [ ] 3.4 Revisar todos os textos e rótulos para garantir acentuação correta e naturalidade em Português Brasileiro.
+- [x] 3.1 Verify zero extra interaction steps (clicks/taps) were added for emotional design.
+- [x] 3.2 Benchmark "Ambient Delight" animations to ensure 60fps/90fps consistency on low-end devices.
+- [x] 3.3 Validate that `userName` fallbacks are naturally integrated into pt-BR microcopy.
+- [x] 3.4 Review all humanized AI wait stage labels (CR-UX-005/008) for supportive tone.
