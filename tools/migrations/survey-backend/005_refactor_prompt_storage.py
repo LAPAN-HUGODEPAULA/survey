@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from pymongo import MongoClient
 
@@ -79,7 +79,7 @@ DEFAULT_PERSONA_SKILLS = [
 
 
 def _normalize_questionnaire_prompt(document: dict) -> dict:
-    timestamp = document.get("modifiedAt") or document.get("createdAt") or datetime.now(UTC)
+    timestamp = document.get("modifiedAt") or document.get("createdAt") or datetime.now(timezone.utc)
     return {
         "promptKey": document.get("promptKey") or DEFAULT_SURVEY_PROMPT_KEY,
         "name": document.get("name") or DEFAULT_SURVEY_PROMPT_NAME,
@@ -108,8 +108,8 @@ def main() -> None:
                     "promptKey": DEFAULT_SURVEY_PROMPT_KEY,
                     "name": DEFAULT_SURVEY_PROMPT_NAME,
                     "promptText": DEFAULT_SURVEY_PROMPT_TEXT,
-                    "createdAt": datetime.now(UTC),
-                    "modifiedAt": datetime.now(UTC),
+                    "createdAt": datetime.now(timezone.utc),
+                    "modifiedAt": datetime.now(timezone.utc),
                 }
             ]
 
@@ -125,8 +125,8 @@ def main() -> None:
             "promptKey": NEUROCHECK_PROMPT_KEY,
             "name": NEUROCHECK_PROMPT_NAME,
             "promptText": NEUROCHECK_PROMPT_TEXT,
-            "createdAt": datetime.now(UTC),
-            "modifiedAt": datetime.now(UTC),
+            "createdAt": datetime.now(timezone.utc),
+            "modifiedAt": datetime.now(timezone.utc),
             "legacySource": "005_refactor_prompt_storage",
         }
         questionnaire_prompts.replace_one(
@@ -140,8 +140,8 @@ def main() -> None:
                 {"personaSkillKey": persona["personaSkillKey"]},
                 {
                     **persona,
-                    "createdAt": datetime.now(UTC),
-                    "modifiedAt": datetime.now(UTC),
+                    "createdAt": datetime.now(timezone.utc),
+                    "modifiedAt": datetime.now(timezone.utc),
                 },
                 upsert=True,
             )
