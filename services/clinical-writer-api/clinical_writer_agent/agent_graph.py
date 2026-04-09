@@ -14,7 +14,11 @@ from .agents.other_inputs_handler_agent import OtherInputHandlerAgent
 from .monitoring.base_monitors import CompositeMonitor, ProcessingMonitor
 from .monitoring.logging_monitor import LoggingMonitor
 from .monitoring.metrics_monitor import MetricsMonitor
+from .monitoring.progress_monitor import ProgressMonitor
+from .monitoring.progress_tracker import ProgressTracker
 from .prompt_registry import create_prompt_registry
+
+_progress_tracker = ProgressTracker()
 
 
 def create_graph(
@@ -159,6 +163,7 @@ def create_default_observer() -> CompositeMonitor:
         CompositeObserver with logging and metrics observers
     """
     composite = CompositeMonitor()
+    composite.add_monitor(ProgressMonitor(_progress_tracker))
     composite.add_monitor(LoggingMonitor())
     composite.add_monitor(MetricsMonitor())
     return composite
@@ -183,3 +188,8 @@ clinical_writer_graph = create_graph(_default_observer)
 def get_shared_observer() -> CompositeMonitor:
     """Return the shared composite observer used by the compiled graph."""
     return _default_observer
+
+
+def get_progress_tracker() -> ProgressTracker:
+    """Return the shared in-memory progress tracker."""
+    return _progress_tracker

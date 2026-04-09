@@ -23,6 +23,7 @@ except ModuleNotFoundError:  # pragma: no cover - fallback for test environments
 from .agent_graph import (
     clinical_writer_graph,
     get_metrics_monitor,
+    get_progress_tracker,
     get_shared_observer,
 )
 from .prompt_registry import create_prompt_registry
@@ -110,6 +111,12 @@ class ProcessResponse(BaseModel):
     model_version: str
     report: ReportDocument
     warnings: list[str] = Field(default_factory=list)
+    ai_progress: dict = Field(default_factory=dict)
+
+
+class ProcessStatusResponse(BaseModel):
+    request_id: str
+    ai_progress: dict
 
 
 # ======================================================================================
@@ -156,6 +163,10 @@ def get_graph():
 def get_observer():
     """Dependency to get the shared observer for logging/metrics."""
     return get_shared_observer()
+
+def get_tracker():
+    """Dependency to get the shared progress tracker."""
+    return get_progress_tracker()
 
 _prompt_registry = create_prompt_registry()
 
@@ -204,6 +215,7 @@ async def process_content(
     graph=Depends(get_graph),
     observer=Depends(get_observer),
     prompt_registry=Depends(get_prompt_registry),
+    tracker=Depends(get_tracker),
 ):
     """
     Process clinical content (conversation or JSON) to generate a structured report.
@@ -219,6 +231,7 @@ async def process_content(
         request_id,
         len(body.content),
     )
+    tracker.start(request_id)
     initial_state = {
         "input_content": body.content,
         "observer": observer,
@@ -278,13 +291,33 @@ async def process_content(
         ),
         model_version=final_state.get("model_version", MODEL_VERSION),
         report=report,
+        ai_progress=tracker.get(request_id) or {},
     )
+    tracker.complete(request_id)
+    response.ai_progress = tracker.get(request_id) or response.ai_progress
     logger.info(
         "Process request completed: request_id=%s, prompt_version=%s",
         request_id,
         response.prompt_version,
     )
     return response
+
+
+@app.get(
+    "/status/{request_id}",
+    response_model=ProcessStatusResponse,
+    dependencies=[Depends(verify_token)],
+    tags=["Processing"],
+)
+async def process_status(request_id: str, tracker=Depends(get_tracker)) -> ProcessStatusResponse:
+    """Return LangGraph stage progress for a given request id."""
+    progress = tracker.get(request_id)
+    if progress is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Request progress not found",
+        )
+    return ProcessStatusResponse(request_id=request_id, ai_progress=progress)
 
 
 @app.post("/analysis", response_model=AnalysisResponse, dependencies=[Depends(verify_token)], tags=["Analysis"])
