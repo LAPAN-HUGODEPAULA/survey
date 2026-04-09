@@ -20,25 +20,39 @@ The system MUST present the survey instructions and survey questions to the user
 **Then** the system MUST navigate to the thank you screen.
 
 ### Requirement: Thank You Screen
-The system MUST display a thank you screen with a summary of the user's answers, a radar chart, and an option to provide personal information. Add kind inviting message to encourage users to share their demographic data for better insights.
+The system MUST display a thank you screen that follows a three-step handoff sequence: "Responses Registered", "Analysis in Progress", and "Report Ready". 
+- **Step 1 (Responses Registered)**: Acknowledge effort ("Obrigado por sua colaboração") and confirm data persistence before showing any protocol/reference ID.
+- **Step 2 (Analysis in Progress)**: Show a colorful radar chart that uses question labels, and an **Avaliação preliminar** card with a loading state and stage label ("Análise preliminar em preparo"). 
+- **Step 3 (Report Ready)**: Show the AI summary in a clinical content container and an option to provide personal information. 
+A new “Iniciar nova avaliação” button SHALL reset the app state, clear the patient legal-notice acknowledgement for the next run, and return the user to the initial notice page.
 
 #### Scenario: User provides personal information
-**Given** a user is on the thank you screen
-**When** the user clicks the "Add Information" button
+**Given** a user is on the thank you screen at Step 3  
+**When** the user clicks the "Adicionar informações" button  
 **Then** the system MUST navigate to the demographic information screen.
 
-#### Scenario: User continues without providing personal information
-**Given** a user is on the thank you screen
-**When** the user clicks the "Get Results" button
-**Then** a system MUST send the survey response to the AI agent without personal data and navigate to the report page.
+#### Scenario: Agent result appears in Avaliação preliminar
+- **WHEN** the agent finishes processing the survey (Handoff Step 3)
+- **THEN** the **Avaliação preliminar** card MUST show the agent text in a clinical container and keep the “Adicionar informações” action available
+- **AND** there MUST NOT be a separate “Ver resultados” button on the thank you screen
+
+#### Scenario: User restarts the flow
+- **WHEN** the user taps “Iniciar nova avaliação”
+- **THEN** the app MUST clear the previous response state, agent data, and patient legal-notice acknowledgement state
+- **AND** it MUST navigate back to the patient initial-notice screen so the next assessment requires a fresh acknowledgement before the welcome screen
 
 ### Requirement: Demographic Information Screen
-The system MUST allow the user to enter their demographic information.
+The system MUST allow the user to enter their demographic information. If this step is optional, the system MUST explain the benefits of providing data and allow skipping.
 
 #### Scenario: User submits demographic information
 **Given** a user is on the demographic information screen
 **When** the user fills in the form and clicks "Submit"
 **Then** the system MUST send the survey response to the AI agent with the user's personal data and navigate to the report page.
+
+#### Scenario: Optional demographics explanation
+**Given** a user is on the demographic information screen
+**When** the screen is optional
+**Then** the system MUST display: "Estas informações opcionais ajudam em pesquisas estatísticas, mas você pode pular esta etapa se preferir."
 
 ### Requirement: Report Page
 The system MUST display the AI agent's response on a new report page.
@@ -70,4 +84,26 @@ The backend MUST accept survey responses with or without patient data.
 **Given** a survey response does not contain patient data
 **When** the response is submitted to the `create_survey_response` endpoint
 **Then** the system MUST accept the response and store it with a null value for patient data.
+
+### Requirement: Initial Notice Gate
+The system MUST require acknowledgement of the `Aviso Inicial de Uso` before the public patient welcome screen becomes available.
+
+#### Scenario: Patient opens the Survey Patient app
+- **WHEN** a user opens `survey-patient`
+- **THEN** the application MUST show the initial-notice screen with the full notice content and acknowledgement checkbox
+- **AND** the proceed button MUST remain disabled until the user checks the acknowledgement checkbox
+- **AND** after acknowledgement the application MUST navigate to the patient welcome screen
+
+### Requirement: Patient survey flow MUST use structured feedback messaging
+The `survey-patient` flow MUST present important informational, success, warning, and error states through structured feedback containers that match the user's context in the journey.
+
+#### Scenario: A patient triggers a demographics validation problem
+- **WHEN** the patient attempts to continue with missing required information in the demographics flow
+- **THEN** the application MUST present the validation state near the affected inputs or section
+- **AND** the patient MUST receive clear guidance on what needs attention without relying only on a transient snackbar
+
+#### Scenario: The patient sees survey-processing or report-state feedback
+- **WHEN** the thank-you or report flow needs to communicate submission, fallback, warning, or report-preparation state
+- **THEN** the application MUST render those updates through structured status surfaces with explicit severity and readable text
+- **AND** the flow MUST distinguish informational progress from warnings and errors
 

@@ -1,4 +1,3 @@
-
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -20,7 +19,8 @@ class AccessLinkLaunchPage extends StatefulWidget {
 class _AccessLinkLaunchPageState extends State<AccessLinkLaunchPage> {
   late final ScreenerAccessLinkRepository _repository =
       widget.repository ?? ScreenerAccessLinkRepository();
-  bool _isUnavailable = false;
+  bool _isResolving = true;
+  String? _failureMessage;
 
   @override
   void initState() {
@@ -29,6 +29,13 @@ class _AccessLinkLaunchPageState extends State<AccessLinkLaunchPage> {
   }
 
   Future<void> _resolveLink() async {
+    if (mounted) {
+      setState(() {
+        _isResolving = true;
+        _failureMessage = null;
+      });
+    }
+
     try {
       final settings = context.read<AppSettings>();
       await settings.loadAvailableSurveys();
@@ -38,26 +45,51 @@ class _AccessLinkLaunchPageState extends State<AccessLinkLaunchPage> {
         return;
       }
       context.go('/demographics');
-    } catch (_) {
+    } catch (error) {
       if (!mounted) {
         return;
       }
       setState(() {
-        _isUnavailable = true;
+        _isResolving = false;
+        _failureMessage = DsErrorMapper.toUserMessage(
+          error,
+          fallbackMessage:
+              'Não foi possível validar este link preparado agora. Tente novamente em alguns instantes.',
+        );
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isUnavailable) {
-      return const AccessLinkUnavailablePage();
+    if (_failureMessage != null) {
+      return AccessLinkUnavailablePage(
+        errorMessage: _failureMessage,
+        onRetry: _resolveLink,
+      );
     }
 
-    return const DsScaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
+    return DsScaffold(
+      title: 'Validando link preparado',
+      subtitle: 'Carregando o questionario e protegendo a sessao.',
+      body: !_isResolving
+          ? const SizedBox.shrink()
+          : const Center(
+              child: DsPanel(
+                tone: DsPanelTone.low,
+                child: SizedBox(
+                  width: 240,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('Preparando acesso...', textAlign: TextAlign.center),
+                    ],
+                  ),
+                ),
+              ),
+            ),
     );
   }
 }

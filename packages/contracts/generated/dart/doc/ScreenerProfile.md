@@ -19,6 +19,7 @@ Name | Type | Description | Notes
 **jobTitle** | **String** | Cargo/profissão do Screener | 
 **degree** | **String** | Formação acadêmica/grau do Screener | 
 **darvCourseYear** | **int** | Ano de conclusão do curso DARV (opcional) | [optional] 
+**initialNoticeAcceptedAt** | [**DateTime**](DateTime.md) | Data de aceite do aviso inicial de uso da plataforma | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

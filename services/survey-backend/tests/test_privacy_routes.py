@@ -12,6 +12,28 @@ from app.persistence.deps import (
 client = TestClient(app)
 
 
+def _audit_record(record_id: str, event_type: str) -> dict:
+    return {
+        "_id": record_id,
+        "eventType": event_type,
+        "actor": {"source": "test"},
+        "target": {},
+        "payload": {},
+        "hash": "hash-value",
+    }
+
+
+def _lifecycle_job(job_id: str, request_id: str) -> dict:
+    return {
+        "_id": job_id,
+        "requestId": request_id,
+        "action": "delete",
+        "subjectType": "patient",
+        "subjectId": "patient-2",
+        "status": "queued",
+    }
+
+
 def test_create_privacy_request_creates_audit():
     mock_privacy_repo = MagicMock()
     mock_privacy_repo.create.return_value = {
@@ -24,7 +46,7 @@ def test_create_privacy_request_creates_audit():
     }
     mock_audit_repo = MagicMock()
     mock_audit_repo.get_latest.return_value = {}
-    mock_audit_repo.create.return_value = {"_id": "audit-1", "hash": "hash1"}
+    mock_audit_repo.create.return_value = _audit_record("audit-1", "privacy_request_created")
 
     app.dependency_overrides[get_privacy_request_repo] = lambda: mock_privacy_repo
     app.dependency_overrides[get_security_audit_repo] = lambda: mock_audit_repo
@@ -49,7 +71,7 @@ def test_create_privacy_request_creates_audit():
 def test_list_privacy_requests_requires_admin_token():
     mock_audit_repo = MagicMock()
     mock_audit_repo.get_latest.return_value = {}
-    mock_audit_repo.create.return_value = {"_id": "audit-401", "hash": "hash401"}
+    mock_audit_repo.create.return_value = _audit_record("audit-401", "admin_auth_failed")
     app.dependency_overrides[get_security_audit_repo] = lambda: mock_audit_repo
 
     response = client.get("/api/v1/privacy/requests")
@@ -69,9 +91,9 @@ def test_fulfill_privacy_request_creates_lifecycle_job():
     }
     mock_audit_repo = MagicMock()
     mock_audit_repo.get_latest.return_value = {}
-    mock_audit_repo.create.return_value = {"_id": "audit-2", "hash": "hash2"}
+    mock_audit_repo.create.return_value = _audit_record("audit-2", "privacy_request_updated")
     mock_lifecycle_repo = MagicMock()
-    mock_lifecycle_repo.create.return_value = {"_id": "job-1", "requestId": "req-2"}
+    mock_lifecycle_repo.create.return_value = _lifecycle_job("job-1", "req-2")
 
     app.dependency_overrides[get_privacy_request_repo] = lambda: mock_privacy_repo
     app.dependency_overrides[get_security_audit_repo] = lambda: mock_audit_repo

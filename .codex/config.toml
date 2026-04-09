@@ -1,0 +1,40 @@
+# Base settings
+# model = "gpt-5-codex"
+# model_provider = "openai"
+sandbox_mode = "workspace-write"
+approval_policy = "on-failure"
+model_reasoning_effort = "high"
+
+# Enable network for API calls and package installation
+[sandbox_workspace_write]
+network_access = true
+
+# Safe environment variables
+[shell_environment_policy]
+inherit = "core"
+experimental_use_profile = true
+
+# Development profile
+[profiles.dev]
+model_reasoning_effort = "high"
+model_verbosity = "high"
+sandbox_mode = "workspace-write"
+approval_policy = "on-failure"
+
+# Quick tasks profile
+[profiles.quick]
+model_reasoning_effort = "low"
+sandbox_mode = "workspace-write"
+approval_policy = "never"
+
+# Analysis profile
+[profiles.analyze]
+sandbox_mode = "read-only"
+model_reasoning_effort = "high"
+approval_policy = "never"
+
+# Automation profile
+[profiles.auto]
+sandbox_mode = "danger-full-access"
+approval_policy = "never"
+model_reasoning_summary = "auto"

@@ -1,45 +1,36 @@
 # survey-prompt-management Specification
 
 ## Purpose
-TBD - created by archiving change add-survey-ai-prompts. Update Purpose after archive.
+This specification defines the catalog of reusable AI prompts used for generating clinical reports from survey responses.
 ## Requirements
-### Requirement: The system MUST provide a reusable survey prompt catalog.
+### Requirement: The system MUST provide a MongoDB-backed QuestionnairePrompts catalog for questionnaire-specific clinical logic.
 
-Reusable survey prompts MUST be stored in MongoDB and exposed through application APIs so administrators can create, edit, list, and remove prompt definitions without relying on Google Drive documents.
+The system MUST store questionnaire clinical instructions in a dedicated `QuestionnairePrompts` collection. These documents MUST represent only the clinical logic that belongs to a questionnaire and MUST remain independent from output-profile style concerns.
 
-#### Scenario: Create a reusable survey prompt
-- **Given** an administrator is managing prompts for questionnaire reporting
-- **When** they create a prompt with a human-readable name, a unique `promptKey`, an `outcomeType`, and prompt text
-- **Then** the system MUST persist the prompt in MongoDB
-- **And** it MUST return the stored prompt definition through the API
+#### Scenario: Create a questionnaire prompt
+- **Given** an administrator is configuring AI behavior for a questionnaire
+- **When** they create a `QuestionnairePrompts` document with a human-readable name, a stable questionnaire prompt key, and questionnaire-specific instructions
+- **Then** the system MUST persist that document in MongoDB
+- **And** it MUST make that questionnaire prompt available for runtime resolution
 
-#### Scenario: List reusable survey prompts
-- **Given** reusable survey prompts exist in the system
-- **When** the builder application requests the prompt catalog
-- **Then** the system MUST return the stored prompt definitions with their names, keys, and outcome types
+#### Scenario: List questionnaire prompts
+- **Given** questionnaire prompts exist in the system
+- **When** an administrative client requests the questionnaire prompt catalog
+- **Then** the system MUST return the stored questionnaire prompt definitions
+- **And** it MUST not require persona or output-profile metadata in that catalog response
 
-### Requirement: Survey prompt definitions MUST use a stable runtime key and one of the supported outcome types.
+### Requirement: Questionnaire prompt definitions MUST use stable keys and remain free of persona-specific styling.
 
-The system MUST enforce a stable, code-safe `promptKey` and MUST constrain `outcomeType` to the supported survey reporting taxonomy.
+Each `QuestionnairePrompts` document MUST have a unique stable key suitable for runtime lookup, a non-empty name, and non-empty clinical instructions. The system MUST reject attempts to encode persona-only concerns inside the questionnaire prompt definition when those concerns belong to `PersonaSkills`.
 
-The supported outcome types for survey-based report generation are:
-
-- `patient_condition_overview`
-- `clinical_diagnostic_report`
-- `clinical_referral_letter`
-- `parental_guidance`
-- `educational_support_summary`
-
-Each prompt definition MUST have a unique `promptKey` suitable for use in code and runtime requests.
-
-#### Scenario: Reject an unsupported outcome type
-- **Given** an administrator submits a prompt definition
-- **When** the `outcomeType` is outside the supported set
+#### Scenario: Reject a duplicate questionnaire prompt key
+- **Given** a questionnaire prompt already exists with a given stable key
+- **When** another questionnaire prompt is created or updated to use the same key
 - **Then** the system MUST reject the request with a validation error
 
-#### Scenario: Reject a duplicate prompt key
-- **Given** a prompt already exists with a given `promptKey`
-- **When** another prompt is created or updated to use the same `promptKey`
+#### Scenario: Reject an empty questionnaire prompt
+- **Given** an administrator submits a questionnaire prompt definition
+- **When** the name or clinical instructions are blank
 - **Then** the system MUST reject the request with a validation error
 
 ### Requirement: The system MUST prevent deleting a prompt that is still associated with a survey.

@@ -4,11 +4,7 @@ import 'package:survey_builder/core/models/survey_prompt_draft.dart';
 import 'package:survey_builder/core/repositories/survey_prompt_repository.dart';
 
 class SurveyPromptFormPage extends StatefulWidget {
-  const SurveyPromptFormPage({
-    super.key,
-    this.initialDraft,
-    this.repository,
-  });
+  const SurveyPromptFormPage({super.key, this.initialDraft, this.repository});
 
   final SurveyPromptDraft? initialDraft;
   final SurveyPromptRepository? repository;
@@ -18,15 +14,14 @@ class SurveyPromptFormPage extends StatefulWidget {
 }
 
 class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final SurveyPromptRepository _repository;
   late final bool _isEditing;
-
   late final TextEditingController _nameController;
   late final TextEditingController _keyController;
   late final TextEditingController _promptTextController;
-  late SurveyPromptOutcome _selectedOutcome;
   bool _saving = false;
+  DsFeedbackMessage? _feedback;
 
   @override
   void initState() {
@@ -35,16 +30,10 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
     _isEditing = widget.initialDraft != null;
     final draft =
         widget.initialDraft ??
-        SurveyPromptDraft(
-          promptKey: '',
-          name: '',
-          outcomeType: SurveyPromptOutcome.patientConditionOverview,
-          promptText: '',
-        );
+        SurveyPromptDraft(promptKey: '', name: '', promptText: '');
     _nameController = TextEditingController(text: draft.name);
     _keyController = TextEditingController(text: draft.promptKey);
     _promptTextController = TextEditingController(text: draft.promptText);
-    _selectedOutcome = draft.outcomeType;
   }
 
   @override
@@ -65,10 +54,11 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
     setState(() => _saving = true);
     try {
       final draft = SurveyPromptDraft(
-        promptKey: _keyController.text.trim().toLowerCase(),
-        name: _nameController.text.trim(),
-        outcomeType: _selectedOutcome,
-        promptText: _promptTextController.text.trim(),
+        promptKey: DsKeyFieldSupport.normalizeKeyField(_keyController.text),
+        name: DsKeyFieldSupport.normalizeTextField(_nameController.text),
+        promptText: DsKeyFieldSupport.normalizeTextField(
+          _promptTextController.text,
+        ),
       );
       if (_isEditing) {
         await _repository.updatePrompt(draft);
@@ -83,9 +73,13 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Falha ao salvar prompt: $error')));
+      setState(() {
+        _feedback = DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Falha ao salvar prompt',
+          message: 'Falha ao salvar prompt: $error',
+        );
+      });
     } finally {
       if (mounted) {
         setState(() => _saving = false);
@@ -96,84 +90,55 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(
-        title: Text(_isEditing ? 'Editar prompt' : 'Criar prompt'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
+      title: _isEditing ? 'Editar prompt' : 'Criar prompt',
+      subtitle: 'Mantenha chaves estáveis e reutilize instruções.',
+      breadcrumbs: [
+        DsBreadcrumbItem(
+          label: 'Prompts reutilizáveis',
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        DsBreadcrumbItem(
+          label: _isEditing ? 'Editar prompt' : 'Criar prompt',
+          isCurrent: true,
+        ),
+      ],
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: 'Voltar para prompts',
+      scrollable: false,
+      body: Form(
+        key: _formKey,
+        child: DsAdminFormShell(
+          isSaving: _saving,
+          onCancel: () => Navigator.of(context).pop(),
+          onSave: _save,
+          feedback: _feedback == null
+              ? null
+              : DsMessageBanner(
+                  feedback: DsFeedbackMessage(
+                    severity: _feedback!.severity,
+                    title: _feedback!.title,
+                    message: _feedback!.message,
+                    dismissible: true,
+                    onDismiss: () => setState(() => _feedback = null),
+                  ),
+                  margin: EdgeInsets.zero,
+                ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  const Spacer(),
-                  SizedBox(
-                    width: 140,
-                    child: DsOutlinedButton(
-                      label: 'Cancelar',
-                      onPressed: _saving ? null : () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    width: 140,
-                    child: DsFilledButton(
-                      label: _saving ? 'Salvando...' : 'Salvar',
-                      onPressed: _saving ? null : _save,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nome do prompt *'),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Campo obrigatório'
-                    : null,
+                decoration: const InputDecoration(
+                  labelText: 'Nome do prompt *',
+                ),
+                validator: DsKeyFieldSupport.validateRequired,
               ),
               const SizedBox(height: 12),
-              TextFormField(
+              DsNormalizedKeyField(
                 controller: _keyController,
                 readOnly: _isEditing,
-                decoration: const InputDecoration(
-                  labelText: 'Chave do prompt *',
-                  helperText:
-                      'Use letras minúsculas, números, ":" , "_" ou "-".',
-                ),
-                validator: (value) {
-                  final normalized = value?.trim() ?? '';
-                  if (normalized.isEmpty) {
-                    return 'Campo obrigatório';
-                  }
-                  if (!RegExp(r'^[a-z0-9:_-]+$').hasMatch(normalized)) {
-                    return 'Formato inválido';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<SurveyPromptOutcome>(
-                initialValue: _selectedOutcome,
-                decoration: const InputDecoration(labelText: 'Tipo de resultado *'),
-                items: SurveyPromptOutcome.values
-                    .map(
-                      (outcome) => DropdownMenuItem<SurveyPromptOutcome>(
-                        value: outcome,
-                        child: Text(outcome.label),
-                      ),
-                    )
-                    .toList(growable: false),
-                onChanged: _saving
-                    ? null
-                    : (value) {
-                        if (value == null) {
-                          return;
-                        }
-                        setState(() => _selectedOutcome = value);
-                      },
+                label: 'Chave do prompt *',
+                helperText: 'Use letras minúsculas, números, ":" , "_" ou "-".',
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -184,9 +149,7 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
                   labelText: 'Texto do prompt *',
                   alignLabelWithHint: true,
                 ),
-                validator: (value) => value == null || value.trim().isEmpty
-                    ? 'Campo obrigatório'
-                    : null,
+                validator: DsKeyFieldSupport.validateRequired,
               ),
             ],
           ),

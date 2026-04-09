@@ -1,9 +1,9 @@
-
 import 'package:flutter/material.dart';
 import 'package:patient_app/core/models/survey/question.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/features/demographics/pages/demographics_page.dart';
 import 'package:patient_app/features/instructions/pages/instructions_page.dart';
+import 'package:patient_app/features/legal/pages/patient_entry_page.dart';
 import 'package:patient_app/features/report/pages/report_page.dart';
 import 'package:patient_app/features/survey/pages/survey_page.dart';
 import 'package:patient_app/features/survey/pages/thank_you_page.dart';
@@ -27,20 +27,17 @@ class AppNavigator {
     return push(context, const InstructionsPage());
   }
 
-  static Future<void> replaceWithSurvey(
-    BuildContext context, {
-    required Survey survey,
-  }) {
-    return replace(context, SurveyPage(survey: survey));
+  static Future<void> toSurvey(BuildContext context, {required Survey survey}) {
+    return push(context, SurveyPage(survey: survey));
   }
 
-  static Future<void> replaceWithThankYou(
+  static Future<void> toThankYou(
     BuildContext context, {
     required Survey survey,
     required List<String> surveyAnswers,
     required List<Question> surveyQuestions,
   }) {
-    return replace(
+    return push(
       context,
       ThankYouPage(
         survey: survey,
@@ -66,13 +63,13 @@ class AppNavigator {
     );
   }
 
-  static Future<void> replaceWithReport(
+  static Future<void> toReport(
     BuildContext context, {
     required Survey survey,
     required List<String> surveyAnswers,
     required List<Question> surveyQuestions,
   }) {
-    return replace(
+    return push(
       context,
       ReportPage(
         survey: survey,
@@ -80,5 +77,44 @@ class AppNavigator {
         surveyQuestions: surveyQuestions,
       ),
     );
+  }
+
+  static Future<void> replaceWithSurvey(
+    BuildContext context, {
+    required Survey survey,
+  }) {
+    return toSurvey(context, survey: survey);
+  }
+
+  static Future<void> replaceWithThankYou(
+    BuildContext context, {
+    required Survey survey,
+    required List<String> surveyAnswers,
+    required List<Question> surveyQuestions,
+  }) {
+    return toThankYou(
+      context,
+      survey: survey,
+      surveyAnswers: surveyAnswers,
+      surveyQuestions: surveyQuestions,
+    );
+  }
+
+  static Future<void> replaceWithReport(
+    BuildContext context, {
+    required Survey survey,
+    required List<String> surveyAnswers,
+    required List<Question> surveyQuestions,
+  }) {
+    return toReport(
+      context,
+      survey: survey,
+      surveyAnswers: surveyAnswers,
+      surveyQuestions: surveyQuestions,
+    );
+  }
+
+  static Future<void> replaceWithEntryGate(BuildContext context) {
+    return replace(context, const PatientEntryPage());
   }
 }

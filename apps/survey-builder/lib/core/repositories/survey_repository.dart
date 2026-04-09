@@ -115,22 +115,20 @@ class SurveyRepository {
             (q) => QuestionDraft(
               id: q.id,
               questionText: q.questionText,
+              label: q.label ?? '',
               answers: q.answers.toList(growable: true),
             ),
           )
           .toList(growable: true),
       finalNotes: source.finalNotes,
-      promptAssociations: source.promptAssociations
-          .map(
-            (association) => SurveyPromptAssociationDraft(
-              promptKey: association.promptKey,
-              name: association.name,
-              outcomeType: SurveyPromptOutcome.fromApiValue(
-                association.outcomeType.name,
-              ),
+      prompt: source.prompt == null
+          ? null
+          : SurveyPromptReferenceDraft(
+              promptKey: source.prompt!.promptKey,
+              name: source.prompt!.name,
             ),
-          )
-          .toList(growable: true),
+      personaSkillKey: _normalizeOptionalKey(source.personaSkillKey),
+      outputProfile: _normalizeOptionalKey(source.outputProfile),
     );
   }
 
@@ -169,21 +167,28 @@ class SurveyRepository {
                     .where((answer) => answer.isNotEmpty)
                     .toList(),
               );
+            final trimmedLabel = question.label.trim();
+            if (trimmedLabel.isNotEmpty) {
+              questionBuilder.label = trimmedLabel;
+            } else {
+              questionBuilder.label = null;
+            }
           });
         }).toList(),
       );
-      builder.promptAssociations.replace(
-        draft.promptAssociations.map((association) {
-          return api.SurveyPromptAssociation((promptBuilder) {
+      if (draft.prompt == null) {
+        builder.prompt = null;
+      } else {
+        builder.prompt.replace(
+          api.SurveyPromptReference((promptBuilder) {
             promptBuilder
-              ..promptKey = association.promptKey
-              ..name = association.name
-              ..outcomeType = api.SurveyPromptOutcomeType.valueOf(
-                association.outcomeType.name,
-              );
-          });
-        }).toList(),
-      );
+              ..promptKey = draft.prompt!.promptKey
+              ..name = draft.prompt!.name;
+          }),
+        );
+      }
+      builder.personaSkillKey = _normalizeOptionalKey(draft.personaSkillKey);
+      builder.outputProfile = _normalizeOptionalKey(draft.outputProfile);
     });
   }
 
@@ -207,9 +212,11 @@ class SurveyRepository {
       ),
       questions: _mapQuestions(questions),
       finalNotes: _coerceString(source['finalNotes']),
-      promptAssociations: _mapPromptAssociations(
-        _coerceList(source['promptAssociations']),
+      prompt: _mapPrompt(_coerceMap(source['prompt'])),
+      personaSkillKey: _normalizeOptionalKey(
+        source['personaSkillKey']?.toString(),
       ),
+      outputProfile: _normalizeOptionalKey(source['outputProfile']?.toString()),
     );
   }
 
@@ -226,6 +233,7 @@ class SurveyRepository {
         QuestionDraft(
           id: id is int ? id : int.tryParse(id?.toString() ?? '') ?? (i + 1),
           questionText: _coerceString(question['questionText']),
+          label: _coerceString(question['label']),
           answers: _coerceStringList(question['answers']),
         ),
       );
@@ -233,24 +241,16 @@ class SurveyRepository {
     return result;
   }
 
-  List<SurveyPromptAssociationDraft> _mapPromptAssociations(List<dynamic> source) {
-    final result = <SurveyPromptAssociationDraft>[];
-    for (final entry in source) {
-      if (entry is! Map) {
-        continue;
-      }
-      final association = Map<String, dynamic>.from(entry);
-      result.add(
-        SurveyPromptAssociationDraft(
-          promptKey: _coerceString(association['promptKey']),
-          name: _coerceString(association['name']),
-          outcomeType: SurveyPromptOutcome.fromApiValue(
-            _coerceString(association['outcomeType']),
-          ),
-        ),
-      );
+  SurveyPromptReferenceDraft? _mapPrompt(Map<String, dynamic> source) {
+    if (source.isEmpty) {
+      return null;
     }
-    return result;
+    final promptKey = _coerceString(source['promptKey']);
+    final name = _coerceString(source['name']);
+    if (promptKey.isEmpty || name.isEmpty) {
+      return null;
+    }
+    return SurveyPromptReferenceDraft(promptKey: promptKey, name: name);
   }
 
   Map<String, dynamic> _coerceMap(dynamic value) {
@@ -292,6 +292,14 @@ class SurveyRepository {
       return DateTime.tryParse(value);
     }
     return null;
+  }
+
+  String? _normalizeOptionalKey(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    if (normalized == null || normalized.isEmpty) {
+      return null;
+    }
+    return normalized;
   }
 
   dynamic _coerceJson(dynamic payload) {

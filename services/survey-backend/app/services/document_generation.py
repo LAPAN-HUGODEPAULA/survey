@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from html import escape
 from typing import Dict, Any, List
 
 
@@ -34,11 +35,12 @@ def build_metadata(session: Dict[str, Any], document_type: str) -> Dict[str, Any
 
 
 def render_html(title: str, body: str, metadata: Dict[str, Any]) -> str:
-    phase = metadata.get("phase") or "unknown"
-    session_id = metadata.get("sessionId") or "unknown"
-    patient_id = metadata.get("patientId") or "unknown"
-    created_at = metadata.get("createdAt") or ""
-    escaped_body = body.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    phase = escape(str(metadata.get("phase") or "unknown"))
+    session_id = escape(str(metadata.get("sessionId") or "unknown"))
+    patient_id = escape(str(metadata.get("patientId") or "unknown"))
+    created_at = escape(str(metadata.get("createdAt") or ""))
+    escaped_title = escape(title)
+    escaped_body = escape(body)
     escaped_body = escaped_body.replace("\n", "<br/>")
     return (
         "<html><head><meta charset=\"utf-8\"/>"
@@ -52,7 +54,7 @@ def render_html(title: str, body: str, metadata: Dict[str, Any]) -> str:
         "<div>{body}</div>"
         "</body></html>"
     ).format(
-        title=title,
+        title=escaped_title,
         session_id=session_id,
         phase=phase,
         patient_id=patient_id,

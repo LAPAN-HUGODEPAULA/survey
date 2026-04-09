@@ -1,6 +1,7 @@
 """Service helpers for interacting with the local LangGraph agent."""
 
 import json
+import hashlib
 from datetime import datetime, timezone
 from typing import Any, Dict
 import uuid
@@ -18,10 +19,31 @@ from app.persistence.repositories.clinical_writer_run_log_repo import (
 )
 
 LANGGRAPH_URL = os.getenv("LANGGRAPH_URL")
-DEFAULT_LANGGRAPH_URL = "http://localhost:9566/process"
+DEFAULT_LANGGRAPH_URL = "http://clinical_writer_agent:8000/process"
+DEFAULT_LOCAL_LANGGRAPH_URL = "http://localhost:9566/process"
+DEFAULT_LOOPBACK_LANGGRAPH_URL = "http://127.0.0.1:9566/process"
 DEFAULT_LANGGRAPH_ANALYSIS_URL = "http://localhost:9566/analysis"
 DEFAULT_LANGGRAPH_TRANSCRIPTION_URL = "http://localhost:9566/transcriptions"
 LANGGRAPH_TOKEN = os.getenv("LANGGRAPH_API_TOKEN")
+
+
+def _candidate_process_endpoints() -> list[str]:
+    """Return process endpoints compatible with container and local development."""
+    configured_env_url = os.getenv("CLINICAL_WRITER_URL")
+    configured_endpoint = configured_env_url or LANGGRAPH_URL or settings.clinical_writer_url or DEFAULT_LANGGRAPH_URL
+    endpoints = [configured_endpoint]
+
+    # When the backend runs locally, the Docker service hostname is not resolvable.
+    if not configured_env_url and not LANGGRAPH_URL and configured_endpoint == DEFAULT_LANGGRAPH_URL:
+        endpoints.extend([DEFAULT_LOCAL_LANGGRAPH_URL, DEFAULT_LOOPBACK_LANGGRAPH_URL])
+    elif configured_endpoint == DEFAULT_LOCAL_LANGGRAPH_URL:
+        endpoints.append(DEFAULT_LOOPBACK_LANGGRAPH_URL)
+
+    deduplicated: list[str] = []
+    for endpoint in endpoints:
+        if endpoint and endpoint not in deduplicated:
+            deduplicated.append(endpoint)
+    return deduplicated
 
 
 def _report_to_text(report: Dict[str, Any]) -> str:
@@ -49,6 +71,19 @@ def _report_to_text(report: Dict[str, Any]) -> str:
     return "\n".join(line for line in lines if line)
 
 
+def _to_status_endpoint(process_endpoint: str, request_id: str) -> str:
+    normalized = process_endpoint.rstrip("/")
+    if normalized.endswith("/process"):
+        base = normalized[: -len("/process")]
+    else:
+        base = normalized
+    return f"{base}/status/{request_id}"
+
+
+def _candidate_status_endpoints(request_id: str) -> list[str]:
+    return [_to_status_endpoint(endpoint, request_id) for endpoint in _candidate_process_endpoints()]
+
+
 def _normalize_agent_response(payload: Dict[str, Any]) -> Dict[str, Any]:
     if "report" in payload and "medicalRecord" not in payload:
         report_text = _report_to_text(payload.get("report") or {})
@@ -57,6 +92,14 @@ def _normalize_agent_response(payload: Dict[str, Any]) -> Dict[str, Any]:
         payload["medicalRecord"] = payload["medical_record"]
     if "error_message" in payload and "errorMessage" not in payload:
         payload["errorMessage"] = payload["error_message"]
+    progress = payload.get("ai_progress")
+    if isinstance(progress, dict):
+        if "user_message" in progress and "userMessage" not in progress:
+            progress["userMessage"] = progress["user_message"]
+        if "updated_at" in progress and "updatedAt" not in progress:
+            progress["updatedAt"] = progress["updated_at"]
+        if "stage_label" in progress and "stageLabel" not in progress:
+            progress["stageLabel"] = progress["stage_label"]
     return payload
 
 
@@ -74,7 +117,26 @@ def _infer_patient_ref(payload: Any) -> str | None:
     if not isinstance(payload, dict):
         return None
     patient = payload.get("patient") or {}
-    return patient.get("email") or patient.get("name")
+    candidate = (
+        patient.get("medicalRecordId")
+        or patient.get("medical_record_id")
+        or patient.get("id")
+        or patient.get("_id")
+        or patient.get("email")
+        or patient.get("name")
+    )
+    return _pseudonymize_patient_ref(candidate)
+
+
+def _pseudonymize_patient_ref(patient_ref: str | None) -> str | None:
+    """Convert patient identifiers into stable non-reversible trace ids."""
+    if not patient_ref:
+        return None
+    normalized = patient_ref.strip().lower()
+    if not normalized:
+        return None
+    digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+    return f"pt-{digest[:16]}"
 
 
 async def send_to_langgraph_agent(
@@ -82,6 +144,8 @@ async def send_to_langgraph_agent(
     *,
     input_type: str | None = None,
     prompt_key: str | None = None,
+    persona_skill_key: str | None = None,
+    output_profile: str | None = None,
     source_app: str | None = None,
     patient_ref: str | None = None,
     request_id: str | None = None,
@@ -108,7 +172,7 @@ async def send_to_langgraph_agent(
 
     resolved_input_type = input_type or _infer_input_type(payload)
     resolved_prompt_key = prompt_key or "default"
-    resolved_patient_ref = patient_ref or _infer_patient_ref(payload)
+    resolved_patient_ref = _pseudonymize_patient_ref(patient_ref) or _infer_patient_ref(payload)
     request_id = request_id or str(uuid.uuid4())
     timestamp = datetime.now(timezone.utc)
     start_time = time.monotonic()
@@ -118,6 +182,8 @@ async def send_to_langgraph_agent(
         "content": content,
         "locale": "pt-BR",
         "prompt_key": resolved_prompt_key,
+        "persona_skill_key": persona_skill_key,
+        "output_profile": output_profile,
         "output_format": "report_json",
         "metadata": {
             "source_app": source_app,
@@ -127,51 +193,77 @@ async def send_to_langgraph_agent(
     }
 
     try:
-        endpoint = settings.clinical_writer_url or LANGGRAPH_URL or DEFAULT_LANGGRAPH_URL
-        logger.info(
-            "Sending to clinical writer request_id=%s input_type=%s prompt_key=%s endpoint=%s",
-            request_id,
-            resolved_input_type,
-            resolved_prompt_key,
-            endpoint,
+        endpoints = _candidate_process_endpoints()
+        last_request_error: httpx.RequestError | None = None
+        request_timeout = httpx.Timeout(
+            connect=10.0,
+            read=float(settings.clinical_writer_http_timeout_seconds),
+            write=10.0,
+            pool=10.0,
         )
-        async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.post(
-                endpoint,
-                json=request_body,
-                headers=headers,
-            )
-            response.raise_for_status()
-            raw_result: Dict[str, Any] = response.json()
-            agent_result: Dict[str, Any] = _normalize_agent_response(raw_result)
-            duration = time.monotonic() - start_time
-            logger.info(
-                "Clinical writer responded request_id=%s status=%s duration=%.3fs",
-                request_id,
-                response.status_code,
-                duration,
-            )
-            _persist_run_log(
-                request_id=request_id,
-                timestamp=timestamp,
-                input_type=resolved_input_type,
-                prompt_key=resolved_prompt_key,
-                prompt_version=raw_result.get("prompt_version"),
-                model_version=raw_result.get("model_version"),
-                source_app=source_app,
-                patient_ref=resolved_patient_ref,
-                status="ok" if raw_result.get("ok") else "error",
-            )
-            return agent_result
+
+        async with httpx.AsyncClient(timeout=request_timeout) as client:
+            for endpoint in endpoints:
+                try:
+                    logger.info(
+                        "Sending to clinical writer request_id=%s input_type=%s prompt_key=%s endpoint=%s",
+                        request_id,
+                        resolved_input_type,
+                        resolved_prompt_key,
+                        endpoint,
+                    )
+                    response = await client.post(
+                        endpoint,
+                        json=request_body,
+                        headers=headers,
+                    )
+                    response.raise_for_status()
+                    raw_result: Dict[str, Any] = response.json()
+                    agent_result: Dict[str, Any] = _normalize_agent_response(raw_result)
+                    duration = time.monotonic() - start_time
+                    logger.info(
+                        "Clinical writer responded request_id=%s status=%s duration=%.3fs endpoint=%s",
+                        request_id,
+                        response.status_code,
+                        duration,
+                        endpoint,
+                    )
+                    _persist_run_log(
+                        request_id=request_id,
+                        timestamp=timestamp,
+                        input_type=resolved_input_type,
+                        prompt_key=resolved_prompt_key,
+                        prompt_version=raw_result.get("prompt_version"),
+                        questionnaire_prompt_version=raw_result.get("questionnaire_prompt_version"),
+                        persona_skill_version=raw_result.get("persona_skill_version"),
+                        persona_skill_key=persona_skill_key,
+                        output_profile=output_profile,
+                        model_version=raw_result.get("model_version"),
+                        source_app=source_app,
+                        patient_ref=resolved_patient_ref,
+                        status="ok" if raw_result.get("ok") else "error",
+                    )
+                    return agent_result
+                except httpx.RequestError as exc:
+                    last_request_error = exc
+                    logger.warning(
+                        "Failed to reach clinical writer request_id=%s endpoint=%s error=%s",
+                        request_id,
+                        endpoint,
+                        exc,
+                    )
+
+        if last_request_error is not None:
+            raise last_request_error
     except httpx.HTTPStatusError as exc:
-        text = exc.response.text if exc.response is not None else str(exc)
         duration = time.monotonic() - start_time
+        status_code = exc.response.status_code if exc.response is not None else None
+        retryable = status_code in {408, 429, 500, 502, 503, 504}
         logger.error(
-            "Clinical writer returned error request_id=%s status=%s duration=%.3fs body=%s",
+            "Clinical writer returned error request_id=%s status=%s duration=%.3fs",
             request_id,
-            exc.response.status_code if exc.response is not None else "unknown",
+            status_code if status_code is not None else "unknown",
             duration,
-            text,
         )
         _persist_run_log(
             request_id=request_id,
@@ -179,12 +271,31 @@ async def send_to_langgraph_agent(
             input_type=resolved_input_type,
             prompt_key=resolved_prompt_key,
             prompt_version=None,
+            questionnaire_prompt_version=None,
+            persona_skill_version=None,
+            persona_skill_key=persona_skill_key,
+            output_profile=output_profile,
             model_version=None,
             source_app=source_app,
             patient_ref=resolved_patient_ref,
             status="error",
         )
-        return {"error_message": f"Agent error: {text}"}
+        return {
+            "error_message": "Agent error: upstream clinical writer rejected the request",
+            "ai_progress": {
+                "stage": "reviewing_content",
+                "stageLabel": "Revisando conteúdo",
+                "percent": 100,
+                "status": "failed",
+                "severity": "warning" if retryable else "critical",
+                "retryable": retryable,
+                "userMessage": (
+                    "Não foi possível concluir agora. Tente novamente em alguns instantes."
+                    if retryable
+                    else "Não conseguimos gerar a análise automática para este caso."
+                ),
+            },
+        }
     except httpx.RequestError as exc:
         duration = time.monotonic() - start_time
         logger.error(
@@ -199,12 +310,29 @@ async def send_to_langgraph_agent(
             input_type=resolved_input_type,
             prompt_key=resolved_prompt_key,
             prompt_version=None,
+            questionnaire_prompt_version=None,
+            persona_skill_version=None,
+            persona_skill_key=persona_skill_key,
+            output_profile=output_profile,
             model_version=None,
             source_app=source_app,
             patient_ref=resolved_patient_ref,
             status="error",
         )
-        return {"error_message": "Unable to reach AI agent"}
+        return {
+            "error_message": "Unable to reach AI agent",
+            "ai_progress": {
+                "stage": "reviewing_content",
+                "stageLabel": "Revisando conteúdo",
+                "percent": 100,
+                "status": "failed",
+                "severity": "warning",
+                "retryable": True,
+                "userMessage": (
+                    "Não foi possível concluir agora. Tente novamente em alguns instantes."
+                ),
+            },
+        }
     except Exception as exc:  # pragma: no cover - guard for unexpected failures
         duration = time.monotonic() - start_time
         logger.error(
@@ -219,6 +347,10 @@ async def send_to_langgraph_agent(
             input_type=resolved_input_type,
             prompt_key=resolved_prompt_key,
             prompt_version=None,
+            questionnaire_prompt_version=None,
+            persona_skill_version=None,
+            persona_skill_key=persona_skill_key,
+            output_profile=output_profile,
             model_version=None,
             source_app=source_app,
             patient_ref=resolved_patient_ref,
@@ -242,6 +374,40 @@ async def send_to_langgraph_analysis(payload: Dict[str, Any]) -> Dict[str, Any]:
         response = await client.post(endpoint, json=payload, headers=headers)
         response.raise_for_status()
         return response.json()
+
+
+async def fetch_langgraph_status(request_id: str) -> Dict[str, Any]:
+    """Fetch stage progress from the clinical writer service."""
+    headers: Dict[str, str] = {}
+    token = settings.clinical_writer_token or LANGGRAPH_TOKEN
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    endpoints = _candidate_status_endpoints(request_id)
+    last_request_error: httpx.RequestError | None = None
+
+    async with httpx.AsyncClient(timeout=5) as client:
+        for endpoint in endpoints:
+            try:
+                response = await client.get(endpoint, headers=headers)
+                response.raise_for_status()
+                payload = response.json()
+                if isinstance(payload, dict):
+                    progress = payload.get("ai_progress")
+                    if isinstance(progress, dict):
+                        normalized = _normalize_agent_response({"ai_progress": progress})
+                        return normalized.get("ai_progress", {})
+                    if "stage" in payload:
+                        normalized = _normalize_agent_response({"ai_progress": payload})
+                        return normalized.get("ai_progress", {})
+            except httpx.RequestError as exc:
+                last_request_error = exc
+            except httpx.HTTPStatusError:
+                continue
+
+    if last_request_error is not None:
+        raise last_request_error
+    return {}
 
 
 async def send_to_langgraph_transcription(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -268,6 +434,10 @@ def _persist_run_log(
     input_type: str,
     prompt_key: str,
     prompt_version: str | None,
+    questionnaire_prompt_version: str | None,
+    persona_skill_version: str | None,
+    persona_skill_key: str | None,
+    output_profile: str | None,
     model_version: str | None,
     source_app: str | None,
     patient_ref: str | None,
@@ -282,6 +452,10 @@ def _persist_run_log(
                 "input_type": input_type,
                 "prompt_key": prompt_key,
                 "prompt_version": prompt_version,
+                "questionnaire_prompt_version": questionnaire_prompt_version,
+                "persona_skill_version": persona_skill_version,
+                "persona_skill_key": persona_skill_key,
+                "output_profile": output_profile,
                 "model_version": model_version,
                 "source_app": source_app,
                 "patient_ref": patient_ref,

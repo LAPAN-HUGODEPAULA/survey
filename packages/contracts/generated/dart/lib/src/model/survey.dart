@@ -5,8 +5,8 @@
 // ignore_for_file: unused_element
 import 'package:survey_backend_api/src/model/question.dart';
 import 'package:built_collection/built_collection.dart';
+import 'package:survey_backend_api/src/model/survey_prompt_reference.dart';
 import 'package:survey_backend_api/src/model/instructions.dart';
-import 'package:survey_backend_api/src/model/survey_prompt_association.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -25,7 +25,9 @@ part 'survey.g.dart';
 /// * [instructions] 
 /// * [questions] 
 /// * [finalNotes] 
-/// * [promptAssociations] 
+/// * [prompt] 
+/// * [personaSkillKey] 
+/// * [outputProfile] 
 @BuiltValue()
 abstract class Survey implements Built<Survey, SurveyBuilder> {
   @BuiltValueField(wireName: r'_id')
@@ -58,8 +60,14 @@ abstract class Survey implements Built<Survey, SurveyBuilder> {
   @BuiltValueField(wireName: r'finalNotes')
   String get finalNotes;
 
-  @BuiltValueField(wireName: r'promptAssociations')
-  BuiltList<SurveyPromptAssociation> get promptAssociations;
+  @BuiltValueField(wireName: r'prompt')
+  SurveyPromptReference? get prompt;
+
+  @BuiltValueField(wireName: r'personaSkillKey')
+  String? get personaSkillKey;
+
+  @BuiltValueField(wireName: r'outputProfile')
+  String? get outputProfile;
 
   Survey._();
 
@@ -136,11 +144,27 @@ class _$SurveySerializer implements PrimitiveSerializer<Survey> {
       object.finalNotes,
       specifiedType: const FullType(String),
     );
-    yield r'promptAssociations';
-    yield serializers.serialize(
-      object.promptAssociations,
-      specifiedType: const FullType(BuiltList, [FullType(SurveyPromptAssociation)]),
-    );
+    if (object.prompt != null) {
+      yield r'prompt';
+      yield serializers.serialize(
+        object.prompt,
+        specifiedType: const FullType.nullable(SurveyPromptReference),
+      );
+    }
+    if (object.personaSkillKey != null) {
+      yield r'personaSkillKey';
+      yield serializers.serialize(
+        object.personaSkillKey,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.outputProfile != null) {
+      yield r'outputProfile';
+      yield serializers.serialize(
+        object.outputProfile,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
   }
 
   @override
@@ -234,12 +258,29 @@ class _$SurveySerializer implements PrimitiveSerializer<Survey> {
           ) as String;
           result.finalNotes = valueDes;
           break;
-        case r'promptAssociations':
+        case r'prompt':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(BuiltList, [FullType(SurveyPromptAssociation)]),
-          ) as BuiltList<SurveyPromptAssociation>;
-          result.promptAssociations.replace(valueDes);
+            specifiedType: const FullType.nullable(SurveyPromptReference),
+          ) as SurveyPromptReference?;
+          if (valueDes == null) continue;
+          result.prompt.replace(valueDes);
+          break;
+        case r'personaSkillKey':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.personaSkillKey = valueDes;
+          break;
+        case r'outputProfile':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.outputProfile = valueDes;
           break;
         default:
           unhandled.add(key);

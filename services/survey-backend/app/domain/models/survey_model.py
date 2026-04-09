@@ -1,10 +1,10 @@
-from pydantic import BaseModel, Field, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import List, Optional
 from datetime import datetime
 
 from app.domain.models.instructions_model import Instructions
 from app.domain.models.question_model import Question
-from app.domain.models.survey_prompt_model import SurveyPromptAssociation
+from app.domain.models.survey_prompt_model import SurveyPromptReference
 
 
 class Survey(BaseModel):
@@ -20,19 +20,25 @@ class Survey(BaseModel):
     instructions: Instructions
     questions: List[Question]
     final_notes: str = Field(..., alias="finalNotes")
-    prompt_associations: List[SurveyPromptAssociation] = Field(
-        default_factory=list,
-        alias="promptAssociations",
-    )
+    prompt: Optional[SurveyPromptReference] = None
+    persona_skill_key: Optional[str] = Field(default=None, alias="personaSkillKey")
+    output_profile: Optional[str] = Field(default=None, alias="outputProfile")
 
     model_config = ConfigDict(extra='forbid', populate_by_name=True)
 
-    @model_validator(mode="after")
-    def validate_unique_prompt_outcomes(self) -> "Survey":
-        """Keep only one prompt association per outcome type."""
-        seen: set[str] = set()
-        for association in self.prompt_associations:
-            if association.outcome_type in seen:
-                raise ValueError("promptAssociations must not repeat outcomeType values")
-            seen.add(association.outcome_type)
-        return self
+    @field_validator("persona_skill_key", "output_profile")
+    @classmethod
+    def validate_optional_key_fields(cls, value: str | None) -> str | None:
+        """Normalize optional runtime keys used for persona configuration."""
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not normalized:
+            return None
+        allowed = set("abcdefghijklmnopqrstuvwxyz0123456789:_-")
+        lowered = normalized.lower()
+        if any(char not in allowed for char in lowered):
+            raise ValueError(
+                "value must contain only lowercase letters, digits, colon, underscore, or hyphen"
+            )
+        return lowered

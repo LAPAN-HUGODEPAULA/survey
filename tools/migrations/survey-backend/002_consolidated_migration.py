@@ -3,11 +3,11 @@ import json
 import os
 import logging
 from pymongo import MongoClient
-from dotenv import load_dotenv
 from datetime import datetime, UTC
-from urllib.parse import urlparse
 import bcrypt
 from bson import ObjectId
+
+from _env import load_migration_env, resolve_mongo_db_name, resolve_mongo_uri
 
 # Configure logging for migration script
 logging.basicConfig(
@@ -21,29 +21,10 @@ logging.basicConfig(
 
 logger = logging.getLogger("migration")
 
-load_dotenv()
+load_migration_env()
 
 # --- Configuração da Conexão ---
-MONGO_URI = os.getenv("MONGO_URI")
-if not MONGO_URI:
-    # Fallback to old method for local development if MONGO_URI is not set
-    print("MONGO_URI not found, falling back to local MongoDB connection.")
-    MONGO_USERNAME = os.getenv("MONGO_USERNAME")
-    MONGO_PASSWORD = os.getenv("MONGO_PASSWORD")
-    if MONGO_USERNAME and MONGO_PASSWORD:
-        MONGO_URI = f'mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@localhost:27017/'
-    else:
-        MONGO_URI = 'mongodb://localhost:27017/'
-elif not MONGO_URI.startswith(("mongodb://", "mongodb+srv://")):
-    MONGO_URI = f"mongodb://{MONGO_URI}"
-else:
-    parsed = urlparse(MONGO_URI)
-    if parsed.hostname == "mongodb":
-        host = "localhost"
-        if parsed.port:
-            host = f"{host}:{parsed.port}"
-        auth = f"{parsed.username}:{parsed.password}@" if parsed.username else ""
-        MONGO_URI = f"{parsed.scheme}://{auth}{host}{parsed.path or '/'}"
+MONGO_URI = resolve_mongo_uri()
 
 print("Connecting to MongoDB...")
 client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
@@ -55,7 +36,7 @@ try:
 except Exception as e:
     print(e)
 
-MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "survey_db")
+MONGO_DB_NAME = resolve_mongo_db_name()
 db = client[MONGO_DB_NAME]
 SYSTEM_SCREENER_ID = "000000000000000000000001"
 SYSTEM_SCREENER_EMAIL = "lapan.hugodepaula@gmail.com"

@@ -5,10 +5,15 @@ from pydantic import BaseModel
 
 
 class Settings(BaseModel):
+    """Runtime configuration for polling MongoDB and calling Clinical Writer."""
+
     mongo_uri: str = os.getenv("MONGO_URI", "mongodb://localhost:27017")
     mongo_db_name: str = os.getenv("MONGO_DB_NAME", "survey_db")
     poll_interval_seconds: int = int(os.getenv("POLL_INTERVAL_SECONDS", "10"))
     batch_size: int = int(os.getenv("BATCH_SIZE", "10"))
+    processing_stale_after_seconds: int = int(
+        os.getenv("PROCESSING_STALE_AFTER_SECONDS", "60")
+    )
 
     clinical_writer_url: str = os.getenv("CLINICAL_WRITER_URL", "http://clinical_writer_agent:8000/process")
     clinical_writer_token: str | None = os.getenv("CLINICAL_WRITER_API_TOKEN")
@@ -16,4 +21,3 @@ class Settings(BaseModel):
 
 
 settings = Settings()
-

@@ -1,7 +1,8 @@
 # access-control-security Specification
 
 ## Purpose
-TBD - created by archiving change add-security-data-privacy-platform. Update Purpose after archive.
+Define the platform rules for authentication, authorization, and guarded
+connection establishment across APIs and realtime channels.
 ## Requirements
 ### Requirement: Role-Based Access Control
 The system MUST enforce role-based access rules for screeners, administrators, and patients across APIs and data queries.
@@ -23,4 +24,44 @@ The system MUST manage authenticated sessions with expiration, revocation, and i
 #### Scenario: Session expires after inactivity
 - **WHEN** a session is inactive beyond the configured timeout
 - **THEN** the system MUST invalidate the session and require re-authentication
+
+### Requirement: Production AI API authentication
+The Clinical Writer API MUST fail closed in production unless an operator
+explicitly opts into unauthenticated access for a controlled environment.
+
+#### Scenario: Missing token in production
+- **GIVEN** the Clinical Writer runs with `ENVIRONMENT=production`
+- **AND** no `API_TOKEN` is configured
+- **WHEN** a request reaches a protected endpoint
+- **THEN** the service MUST reject the request instead of silently allowing
+  anonymous access
+
+### Requirement: Realtime connection admission control
+Realtime websocket endpoints MUST validate that the target resource exists and
+that the browser origin is allowed before accepting a connection.
+
+#### Scenario: Browser connects from a disallowed origin
+- **WHEN** a websocket handshake targets a chat session from an origin outside
+  the configured allowlist
+- **THEN** the system MUST reject the connection
+
+#### Scenario: Browser connects to an unknown session
+- **WHEN** a websocket handshake targets a missing chat session
+- **THEN** the system MUST reject the connection
+
+### Requirement: Professional App Authentication Gate
+The professional applications `survey-frontend` and `clinical-narrative` MUST require an authenticated screener session before granting access to protected professional workflows.
+
+#### Scenario: Unauthenticated user opens a protected professional route
+- **WHEN** an unauthenticated user opens a protected route or protected app entry in `survey-frontend` or `clinical-narrative`
+- **THEN** the application MUST block access to the protected workflow
+- **AND** the application MUST route the user to the professional sign-in entry flow
+
+### Requirement: Locked Patient Access Link Remains Public
+The locked screener-distributed access-link flow in `survey-frontend` MUST remain reachable without screener authentication.
+
+#### Scenario: Patient opens a locked survey link while logged out
+- **WHEN** a user opens the locked survey route in `survey-frontend` without an authenticated screener session
+- **THEN** the application MUST allow the access-link resolution flow to continue without forcing professional login first
+- **AND** the route MUST preserve its patient-distribution purpose
 

@@ -1,3 +1,4 @@
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 
 import 'html_rich_text_editor_impl.dart';
@@ -14,6 +15,8 @@ class HtmlRichTextEditor extends StatefulWidget {
     required this.onChanged,
     this.minHeight = 220,
     this.hintText,
+    this.supportingText,
+    this.errorText,
   });
 
   final String label;
@@ -21,6 +24,8 @@ class HtmlRichTextEditor extends StatefulWidget {
   final ValueChanged<String> onChanged;
   final double minHeight;
   final String? hintText;
+  final String? supportingText;
+  final String? errorText;
 
   @override
   State<HtmlRichTextEditor> createState() => HtmlRichTextEditorState();
@@ -78,7 +83,11 @@ class HtmlRichTextEditorState extends State<HtmlRichTextEditor>
           const SizedBox(height: 8),
           TextFormField(
             controller: _testController,
-            decoration: InputDecoration(labelText: widget.label),
+            decoration: InputDecoration(
+              labelText: widget.label,
+              helperText: widget.supportingText,
+              errorText: widget.errorText,
+            ),
             minLines: 6,
             maxLines: null,
             onChanged: _handleChanged,
@@ -90,14 +99,10 @@ class HtmlRichTextEditorState extends State<HtmlRichTextEditor>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(widget.label, style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Theme.of(context).dividerColor),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          padding: const EdgeInsets.all(12),
+        DsFieldChrome(
+          label: widget.label,
+          supportingText: widget.supportingText,
+          errorText: widget.errorText,
           child: PlatformHtmlRichTextEditor(
             initialHtml: widget.initialHtml,
             minHeight: widget.minHeight,

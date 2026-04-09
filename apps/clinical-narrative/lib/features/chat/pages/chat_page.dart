@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:js_interop';
 
@@ -9,6 +8,8 @@ import 'package:clinical_narrative_app/core/providers/chat_provider.dart';
 import 'package:clinical_narrative_app/core/services/platform_view_registry.dart'
     as platform_view_registry;
 import 'package:clinical_narrative_app/core/services/voice_capture_service.dart';
+import 'package:clinical_narrative_app/features/chat/controllers/assistant_status_controller.dart';
+import 'package:clinical_narrative_app/shared/widgets/clinician_navigation_app_bar.dart';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  final _assistantStatusController = const AssistantStatusController();
   final _controller = TextEditingController();
   final _voiceTextController = TextEditingController();
   final _scrollController = ScrollController();
@@ -38,6 +40,7 @@ class _ChatPageState extends State<ChatPage> {
   int _recordingSeconds = 0;
   Timer? _recordingTimer;
   int _lastMessageCount = 0;
+  String? _lastAssistantAnnouncement;
 
   @override
   void initState() {
@@ -142,7 +145,9 @@ class _ChatPageState extends State<ChatPage> {
   DsStatusType _sessionStatusType(ChatSession? session, bool isLoading) {
     if (isLoading) return DsStatusType.info;
     if (session == null) return DsStatusType.neutral;
-    if (session.status.toLowerCase() == 'completed') return DsStatusType.success;
+    if (session.status.toLowerCase() == 'completed') {
+      return DsStatusType.success;
+    }
     return DsStatusType.info;
   }
 
@@ -151,7 +156,9 @@ class _ChatPageState extends State<ChatPage> {
     if (_isRecording) return 'Gravando';
     if (_isTranscribing) return 'Transcrevendo';
     if (_voiceService == null) return 'Voz não suportada';
-    if (!_voiceService!.isPreviewAvailable) return 'Pré-visualização indisponível';
+    if (!_voiceService!.isPreviewAvailable) {
+      return 'Pré-visualização indisponível';
+    }
     return 'Pronto';
   }
 
@@ -164,34 +171,40 @@ class _ChatPageState extends State<ChatPage> {
     return DsStatusType.success;
   }
 
-  Widget _buildSessionHeader(ChatProvider provider, ChatSession? session, String phase) {
+  Widget _buildSessionHeader(
+    ChatProvider provider,
+    ChatSession? session,
+    String phase,
+  ) {
+    final settings = context.read<AppSettings>();
+    final tone = DsEmotionalToneProvider.resolveTokens(context);
     final statusLabel = _sessionStatusLabel(session, provider.isLoading);
     final statusType = _sessionStatusType(session, provider.isLoading);
     final duration = _formatDuration(session?.createdAt, session?.completedAt);
     final statusIcon = statusType == DsStatusType.success
         ? Icons.check_circle
         : statusType == DsStatusType.info
-            ? Icons.pending_actions
-            : Icons.radio_button_unchecked;
+        ? Icons.pending_actions
+        : Icons.radio_button_unchecked;
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
+    return DsSection(
+      eyebrow: 'Sessão',
+      title: 'Conversa ativa',
+      subtitle:
+          '${tone.salutationFor(settings.screenerDisplayName, fallback: 'Olá.')} Acompanhe o estado da consulta e ajuste a fase da entrevista.',
+      tone: DsPanelTone.low,
+      padding: const EdgeInsets.all(16),
+      headerSpacing: 12,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(
-                'Sessão',
-                style: Theme.of(context).textTheme.titleMedium,
+              DsStatusChip(
+                label: statusLabel,
+                type: statusType,
+                icon: statusIcon,
               ),
-              const SizedBox(width: 8),
-              DsStatusChip(label: statusLabel, type: statusType, icon: statusIcon),
               const Spacer(),
               if (provider.isOffline)
                 DsStatusIndicator(
@@ -213,9 +226,15 @@ class _ChatPageState extends State<ChatPage> {
                 value: phase,
                 items: const [
                   DropdownMenuItem(value: 'intake', child: Text('Anamnese')),
-                  DropdownMenuItem(value: 'assessment', child: Text('Avaliação')),
-                  DropdownMenuItem(value: 'plan', child: Text('Plano')),
-                  DropdownMenuItem(value: 'wrap_up', child: Text('Encerramento')),
+                  DropdownMenuItem(
+                    value: 'assessment',
+                    child: Text('Avaliação Clínica'),
+                  ),
+                  DropdownMenuItem(value: 'plan', child: Text('Planejamento')),
+                  DropdownMenuItem(
+                    value: 'wrap_up',
+                    child: Text('Encerramento'),
+                  ),
                 ],
                 onChanged: (value) {
                   if (value != null) {
@@ -238,49 +257,43 @@ class _ChatPageState extends State<ChatPage> {
     final statusIcon = _voiceError != null
         ? Icons.error_outline
         : _isRecording
-            ? Icons.mic
-            : _isTranscribing
-                ? Icons.auto_awesome
-                : _voiceService == null
-                    ? Icons.mic_off
-                    : Icons.check_circle;
+        ? Icons.mic
+        : _isTranscribing
+        ? Icons.auto_awesome
+        : _voiceService == null
+        ? Icons.mic_off
+        : Icons.check_circle;
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
+    return DsSection(
+      eyebrow: 'Captura',
+      title: 'Captura de voz',
+      subtitle:
+          'O áudio é usado apenas para transcrição e é descartado após o processamento.',
+      tone: DsPanelTone.low,
+      padding: const EdgeInsets.all(16),
+      headerSpacing: 12,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(
-                'Captura de voz',
-                style: Theme.of(context).textTheme.titleMedium,
+              DsStatusChip(
+                label: statusLabel,
+                type: statusType,
+                icon: statusIcon,
               ),
-              const SizedBox(width: 8),
-              DsStatusChip(label: statusLabel, type: statusType, icon: statusIcon),
             ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'O áudio é usado apenas para transcrição e é descartado após o processamento.',
-            style: Theme.of(context).textTheme.bodySmall,
           ),
           if (_voiceError != null)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Semantics(
-                liveRegion: true,
-                child: Text(
-                  _voiceError!,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
+              child: DsInlineMessage(
+                feedback: DsFeedbackMessage(
+                  severity: DsStatusType.error,
+                  title: 'Falha na captura de voz',
+                  message: _voiceError!,
                 ),
+                margin: EdgeInsets.zero,
               ),
             ),
           const SizedBox(height: 8),
@@ -289,24 +302,29 @@ class _ChatPageState extends State<ChatPage> {
               DsFilledButton(
                 label: 'Iniciar',
                 icon: Icons.mic,
-                onPressed: (!inputEnabled || _isRecording) ? null : _startRecording,
+                onPressed: (!inputEnabled || _isRecording)
+                    ? null
+                    : _startRecording,
               ),
               const SizedBox(width: 8),
               DsOutlinedButton(
                 label: 'Parar',
                 icon: Icons.stop,
-                onPressed: (!inputEnabled || !_isRecording) ? null : _stopRecording,
+                onPressed: (!inputEnabled || !_isRecording)
+                    ? null
+                    : _stopRecording,
               ),
               const SizedBox(width: 12),
               if (_voiceService != null && !_voiceService!.isPreviewAvailable)
-                const Text('Pré-visualização ao vivo indisponível neste navegador'),
+                const Text(
+                  'Pré-visualização ao vivo indisponível neste navegador',
+                ),
             ],
           ),
           const SizedBox(height: 8),
           if (_isRecording) DsRecordingIndicator(seconds: _recordingSeconds),
           if (_isRecording) const SizedBox(height: 6),
-          if (_isRecording)
-            const LinearProgressIndicator(minHeight: 4),
+          if (_isRecording) const LinearProgressIndicator(minHeight: 4),
           if (_audioViewType != null) ...[
             const SizedBox(height: 8),
             SizedBox(
@@ -330,7 +348,8 @@ class _ChatPageState extends State<ChatPage> {
             children: [
               DsOutlinedButton(
                 label: 'Usar texto de pré-visualização',
-                onPressed: !inputEnabled || _voiceTextController.text.trim().isEmpty
+                onPressed:
+                    !inputEnabled || _voiceTextController.text.trim().isEmpty
                     ? null
                     : () {
                         _controller.text = _voiceTextController.text.trim();
@@ -338,7 +357,9 @@ class _ChatPageState extends State<ChatPage> {
               ),
               const SizedBox(width: 8),
               DsFilledButton(
-                label: _isTranscribing ? 'Transcrevendo...' : 'Enviar para transcrição',
+                label: _isTranscribing
+                    ? 'Transcrevendo...'
+                    : 'Enviar para transcrição',
                 onPressed: !inputEnabled || _isTranscribing
                     ? null
                     : () => _submitVoiceTranscription(provider),
@@ -354,6 +375,7 @@ class _ChatPageState extends State<ChatPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => DsDialog(
+        severity: DsStatusType.warning,
         title: 'Encerrar consulta?',
         content: const Text('Isso concluirá a sessão atual.'),
         actions: [
@@ -362,7 +384,7 @@ class _ChatPageState extends State<ChatPage> {
             onPressed: () => Navigator.pop(context, false),
           ),
           DsFilledButton(
-            label: 'Encerrar',
+            label: 'Encerrar sessão',
             onPressed: () => Navigator.pop(context, true),
           ),
         ],
@@ -383,7 +405,9 @@ class _ChatPageState extends State<ChatPage> {
       {'id': 'clinical_progress', 'label': 'Evolução clínica'},
     ];
     final fetchedTypes = await provider.fetchTemplateDocumentTypes();
-    final documentTypes = fetchedTypes.isNotEmpty ? fetchedTypes : fallbackDocumentTypes;
+    final documentTypes = fetchedTypes.isNotEmpty
+        ? fetchedTypes
+        : fallbackDocumentTypes;
     final defaultType =
         documentTypes.first['id']?.toString() ?? 'consultation_record';
     var selectedDocumentType = defaultType;
@@ -397,7 +421,9 @@ class _ChatPageState extends State<ChatPage> {
     final titleController = TextEditingController(text: preview.title);
     final bodyController = TextEditingController(text: preview.body);
     final searchController = TextEditingController();
-    var selectedTemplateId = provider.templates.isNotEmpty ? provider.templates.first.id : '';
+    var selectedTemplateId = provider.templates.isNotEmpty
+        ? provider.templates.first.id
+        : '';
     var missingFields = preview.missingFields;
 
     await showDialog<void>(
@@ -427,7 +453,9 @@ class _ChatPageState extends State<ChatPage> {
                       DropdownButtonFormField<String>(
                         key: ValueKey('doc-type-$selectedDocumentType'),
                         initialValue: selectedDocumentType,
-                        decoration: const InputDecoration(labelText: 'Tipo de documento'),
+                        decoration: const InputDecoration(
+                          labelText: 'Tipo de documento',
+                        ),
                         items: documentTypes
                             .map(
                               (item) => DropdownMenuItem<String>(
@@ -435,7 +463,10 @@ class _ChatPageState extends State<ChatPage> {
                                 child: Text(item['label']?.toString() ?? ''),
                               ),
                             )
-                            .where((item) => item.value != null && item.value!.isNotEmpty)
+                            .where(
+                              (item) =>
+                                  item.value != null && item.value!.isNotEmpty,
+                            )
                             .toList(),
                         onChanged: (value) async {
                           if (value == null || value.isEmpty) return;
@@ -451,7 +482,9 @@ class _ChatPageState extends State<ChatPage> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: searchController,
-                        decoration: const InputDecoration(labelText: 'Buscar modelos'),
+                        decoration: const InputDecoration(
+                          labelText: 'Buscar modelos',
+                        ),
                         onChanged: (value) async {
                           await provider.fetchTemplates(
                             documentType: selectedDocumentType,
@@ -467,13 +500,17 @@ class _ChatPageState extends State<ChatPage> {
                       const SizedBox(height: 12),
                       DropdownButtonFormField<String>(
                         key: ValueKey('template-$selectedTemplateId'),
-                        initialValue: selectedTemplateId.isNotEmpty ? selectedTemplateId : null,
+                        initialValue: selectedTemplateId.isNotEmpty
+                            ? selectedTemplateId
+                            : null,
                         decoration: const InputDecoration(labelText: 'Modelo'),
                         items: templates
                             .map(
                               (template) => DropdownMenuItem<String>(
                                 value: template.id,
-                                child: Text('${template.name} (v${template.version})'),
+                                child: Text(
+                                  '${template.name} (v${template.version})',
+                                ),
                               ),
                             )
                             .toList(),
@@ -491,7 +528,9 @@ class _ChatPageState extends State<ChatPage> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: bodyController,
-                        decoration: const InputDecoration(labelText: 'Conteúdo'),
+                        decoration: const InputDecoration(
+                          labelText: 'Conteúdo',
+                        ),
                         maxLines: 8,
                       ),
                     ],
@@ -509,7 +548,9 @@ class _ChatPageState extends State<ChatPage> {
                       ? null
                       : () async {
                           final patient = context.read<AppSettings>().patient;
-                          final narrative = context.read<AppSettings>().narrative;
+                          final narrative = context
+                              .read<AppSettings>()
+                              .narrative;
                           final sampleData = {
                             'patient': {
                               'name': patient.name,
@@ -517,10 +558,11 @@ class _ChatPageState extends State<ChatPage> {
                             },
                             'narrative': narrative,
                           };
-                          final templatePreview = await provider.previewTemplate(
-                            templateId: selectedTemplateId,
-                            sampleData: sampleData,
-                          );
+                          final templatePreview = await provider
+                              .previewTemplate(
+                                templateId: selectedTemplateId,
+                                sampleData: sampleData,
+                              );
                           if (templatePreview == null) return;
                           setState(() {
                             titleController.text = templatePreview.title;
@@ -533,11 +575,12 @@ class _ChatPageState extends State<ChatPage> {
                 DsFilledButton(
                   label: 'Pré-visualizar',
                   onPressed: () async {
-                    final updatedPreview = await provider.generateDocumentPreview(
-                      documentType: selectedDocumentType,
-                      title: titleController.text.trim(),
-                      body: bodyController.text.trim(),
-                    );
+                    final updatedPreview = await provider
+                        .generateDocumentPreview(
+                          documentType: selectedDocumentType,
+                          title: titleController.text.trim(),
+                          body: bodyController.text.trim(),
+                        );
                     if (updatedPreview == null) return;
                     _openHtmlPreview(updatedPreview.html);
                   },
@@ -567,7 +610,14 @@ class _ChatPageState extends State<ChatPage> {
     final parts = <web.BlobPart>[htmlContent.toJS as web.BlobPart].toJS;
     final blob = web.Blob(parts, web.BlobPropertyBag(type: 'text/html'));
     final url = web.URL.createObjectURL(blob);
-    web.window.open(url, '_blank');
+    final anchor = web.HTMLAnchorElement()
+      ..href = url
+      ..target = '_blank'
+      ..rel = 'noopener noreferrer';
+    anchor.click();
+    Timer(const Duration(seconds: 30), () {
+      web.URL.revokeObjectURL(url);
+    });
   }
 
   String _mapVoiceError(String code) {
@@ -585,7 +635,8 @@ class _ChatPageState extends State<ChatPage> {
   Future<void> _startRecording() async {
     if (_voiceService == null) {
       setState(() {
-        _voiceError = 'A captura de voz é compatível apenas em navegadores web.';
+        _voiceError =
+            'A captura de voz é compatível apenas em navegadores web.';
       });
       return;
     }
@@ -602,14 +653,17 @@ class _ChatPageState extends State<ChatPage> {
       if (!mounted) return;
       stopwatch.stop();
       if (kDebugMode) {
-        debugPrint('Voice start UI response: ${stopwatch.elapsedMilliseconds}ms');
+        debugPrint(
+          'Voice start UI response: ${stopwatch.elapsedMilliseconds}ms',
+        );
       }
     });
     try {
       await _voiceService?.start();
     } catch (e) {
       setState(() {
-        _voiceError = 'Não foi possível iniciar a gravação. Verifique as permissões do microfone.';
+        _voiceError =
+            'Não foi possível iniciar a gravação. Verifique as permissões do microfone.';
         _isRecording = false;
       });
       _stopRecordingTimer();
@@ -660,9 +714,7 @@ class _ChatPageState extends State<ChatPage> {
         previewText: _voiceTextController.text.trim().isEmpty
             ? result.previewText
             : _voiceTextController.text.trim(),
-        metadata: {
-          'sourceApp': 'clinical-narrative',
-        },
+        metadata: {'sourceApp': 'clinical-narrative'},
       );
       if (response != null && response.text.isNotEmpty) {
         _controller.text = response.text;
@@ -680,20 +732,17 @@ class _ChatPageState extends State<ChatPage> {
     final controller = TextEditingController(text: message.content);
     final updated = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Editar mensagem'),
-        content: TextField(
-          controller: controller,
-          maxLines: 4,
-        ),
+      builder: (context) => DsDialog(
+        title: 'Editar mensagem',
+        content: TextField(controller: controller, maxLines: 4),
         actions: [
-          TextButton(
+          DsTextButton(
+            label: 'Cancelar',
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
           ),
-          FilledButton(
+          DsFilledButton(
+            label: 'Salvar edição',
             onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Salvar'),
           ),
         ],
       ),
@@ -705,7 +754,9 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildMessage(ChatMessage message, ChatProvider provider) {
     final isClinician = message.role == 'clinician';
-    final alignment = isClinician ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+    final alignment = isClinician
+        ? CrossAxisAlignment.end
+        : CrossAxisAlignment.start;
     final role = isClinician ? DsChatRole.clinician : DsChatRole.patient;
     final labelParts = <String>[isClinician ? 'Clínico' : 'Assistente'];
     if (message.messageType.isNotEmpty && message.messageType != 'user') {
@@ -733,7 +784,8 @@ class _ChatPageState extends State<ChatPage> {
             IconButton(
               tooltip: 'Copiar mensagem',
               icon: const Icon(Icons.copy, size: 18),
-              onPressed: () => Clipboard.setData(ClipboardData(text: message.content)),
+              onPressed: () =>
+                  Clipboard.setData(ClipboardData(text: message.content)),
             ),
             if (isClinician && message.deletedAt == null)
               IconButton(
@@ -761,14 +813,22 @@ class _ChatPageState extends State<ChatPage> {
         builder: (context, provider, _) {
           final session = provider.session;
           final phase = session?.phase ?? 'intake';
-          final analysisPhase = provider.analysisPhase;
-          final isSessionCompleted = session?.status.toLowerCase() == 'completed';
+          final isSessionCompleted =
+              session?.status.toLowerCase() == 'completed';
           final inputEnabled = !provider.isOffline && !isSessionCompleted;
           final messageCount = provider.messages.length;
+          final assistantStatus = _assistantStatusController.resolve(
+            provider: provider,
+            isRecording: _isRecording,
+            isTranscribing: _isTranscribing,
+            voiceError: _voiceError,
+          );
 
           if (messageCount > _lastMessageCount) {
             final newest = provider.messages.last;
-            final speaker = newest.role == 'clinician' ? 'Clínico' : 'Assistente';
+            final speaker = newest.role == 'clinician'
+                ? 'Clínico'
+                : 'Assistente';
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
               SemanticsService.sendAnnouncement(
@@ -780,10 +840,23 @@ class _ChatPageState extends State<ChatPage> {
           }
           _lastMessageCount = messageCount;
 
+          if (assistantStatus.announcement != _lastAssistantAnnouncement) {
+            _lastAssistantAnnouncement = assistantStatus.announcement;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              SemanticsService.sendAnnouncement(
+                View.of(context),
+                assistantStatus.announcement,
+                Directionality.of(context),
+              );
+            });
+          }
+
           return DsScaffold(
-            appBar: AppBar(
+            appBar: ClinicianNavigationAppBar(
               title: const Text('Conversa clínica'),
-              actions: [
+              showHomeButton: true,
+              extraActions: [
                 if (provider.isOffline)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -808,164 +881,179 @@ class _ChatPageState extends State<ChatPage> {
                     child: _buildSessionHeader(provider, session, phase),
                   ),
                 ),
+                if (provider.error != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: DsMessageBanner(
+                      feedback: DsFeedbackMessage(
+                        severity: DsStatusType.error,
+                        title: 'Não foi possível carregar a conversa',
+                        message: provider.error!,
+                      ),
+                    ),
+                  ),
                 Expanded(
                   child: FocusTraversalOrder(
                     order: const NumericFocusOrder(2),
                     child: Semantics(
                       label: 'Mensagens da conversa',
-                      child: provider.messages.isEmpty
-                          ? const DsEmpty(message: 'Ainda não há mensagens.')
-                          : ListView.separated(
-                              controller: _scrollController,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              itemCount: provider.messages.length,
-                              itemBuilder: (context, index) {
-                                final message = provider.messages[index];
-                                return _buildMessage(message, provider);
-                              },
-                              separatorBuilder: (context, index) => const SizedBox(height: 4),
-                            ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: DsPanel(
+                          tone: DsPanelTone.base,
+                          child: provider.messages.isEmpty
+                              ? const DsEmpty(
+                                  message: 'Ainda não há mensagens.',
+                                )
+                              : ListView.separated(
+                                  controller: _scrollController,
+                                  itemCount: provider.messages.length,
+                                  itemBuilder: (context, index) {
+                                    final message = provider.messages[index];
+                                    return _buildMessage(message, provider);
+                                  },
+                                  separatorBuilder: (context, index) =>
+                                      const SizedBox(height: 4),
+                                ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-                if (provider.alerts.isNotEmpty)
+                if (provider.alerts.isNotEmpty ||
+                    provider.suggestions.isNotEmpty ||
+                    provider.hypotheses.isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    child: _InsightPanel(
-                      title: 'Alertas',
-                      items: provider.alerts
-                          .map((item) => '${item['severity'] ?? 'info'}: ${item['text'] ?? ''}')
-                          .toList(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
                     ),
-                  ),
-                if (provider.suggestions.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    child: _InsightPanel(
-                      title: 'Sugestões',
-                      items: provider.suggestions
-                          .map((item) => item['text']?.toString() ?? '')
-                          .where((text) => text.isNotEmpty)
-                          .toList(),
-                    ),
-                  ),
-                if (provider.hypotheses.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    child: _InsightPanel(
-                      title: 'Hipóteses',
-                      items: provider.hypotheses
-                          .map((item) => item['label']?.toString() ?? '')
-                          .where((text) => text.isNotEmpty)
-                          .toList(),
-                    ),
-                  ),
-                if (provider.entities.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    child: _InsightPanel(
-                      title: 'Entidades',
-                      items: provider.entities
-                          .map((item) => '${item['type'] ?? ''}: ${item['value'] ?? ''}')
-                          .toList(),
-                    ),
-                  ),
-                if (provider.knowledge.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    child: _InsightPanel(
-                      title: 'Conhecimento',
-                      items: provider.knowledge
-                          .map((item) => item['label']?.toString() ?? '')
-                          .where((text) => text.isNotEmpty)
-                          .toList(),
-                    ),
-                  ),
-                if (provider.isProcessing)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: DsStatusIndicator(
-                      label: 'Processando resposta...',
-                      color: Theme.of(context).colorScheme.primary,
-                      liveRegion: true,
-                    ),
+                    child: _AssistantInsightPanel(provider: provider),
                   ),
                 Padding(
+                  padding: const EdgeInsets.only(
+                    bottom: 4,
+                    left: 12,
+                    right: 12,
+                  ),
+                  child: DsAssistantStatus(
+                    currentPhaseLabel: assistantStatus.phaseLabel,
+                    currentMessage: assistantStatus.currentMessage,
+                    steps: assistantStatus.steps,
+                    severity: assistantStatus.severity,
+                    wayfindingMessage: assistantStatus.wayfindingMessage,
+                    reassuranceMessage: assistantStatus.reassuranceMessage,
+                    processing: assistantStatus.processing,
+                    retryAction: assistantStatus.showRetry
+                        ? DsFeedbackAction(
+                            label: 'Tentar Novamente',
+                            icon: Icons.refresh_rounded,
+                            onPressed: () {
+                              unawaited(provider.retryAssistantProcessing());
+                            },
+                          )
+                        : null,
+                    cancelAction: assistantStatus.showCancel
+                        ? DsFeedbackAction(
+                            label: 'Cancelar',
+                            icon: Icons.close_rounded,
+                            onPressed: provider.cancelAssistantProcessing,
+                          )
+                        : null,
+                  ),
+                ),
+                Padding(
                   padding: const EdgeInsets.all(12),
-                  child: Column(
-                    children: [
-                      FocusTraversalOrder(
-                        order: const NumericFocusOrder(3),
-                        child: Row(
-                          children: [
-                            Semantics(
-                              button: true,
-                              label: _voiceMode ? 'Desativar modo de voz' : 'Ativar modo de voz',
-                              child: IconButton(
-                                icon: Icon(_voiceMode ? Icons.mic : Icons.mic_none),
-                                tooltip: _voiceMode ? 'Desativar modo de voz' : 'Ativar modo de voz',
+                  child: DsPanel(
+                    tone: DsPanelTone.low,
+                    child: Column(
+                      children: [
+                        FocusTraversalOrder(
+                          order: const NumericFocusOrder(3),
+                          child: Row(
+                            children: [
+                              Semantics(
+                                button: true,
+                                label: _voiceMode
+                                    ? 'Desativar modo de voz'
+                                    : 'Ativar modo de voz',
+                                child: IconButton(
+                                  icon: Icon(
+                                    _voiceMode ? Icons.mic : Icons.mic_none,
+                                  ),
+                                  tooltip: _voiceMode
+                                      ? 'Desativar modo de voz'
+                                      : 'Ativar modo de voz',
+                                  onPressed: inputEnabled
+                                      ? () {
+                                          setState(
+                                            () => _voiceMode = !_voiceMode,
+                                          );
+                                        }
+                                      : null,
+                                ),
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  controller: _controller,
+                                  decoration: InputDecoration(
+                                    labelText: 'Mensagem',
+                                    hintText: _voiceMode
+                                        ? 'Modo de voz ativado'
+                                        : 'Digite sua mensagem',
+                                  ),
+                                  minLines: 1,
+                                  maxLines: 4,
+                                  enabled: inputEnabled,
+                                  textInputAction: TextInputAction.send,
+                                  onSubmitted: inputEnabled
+                                      ? (_) => _send(provider)
+                                      : null,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              DsFilledButton(
+                                label: 'Enviar',
                                 onPressed: inputEnabled
-                                    ? () {
-                                        setState(() => _voiceMode = !_voiceMode);
-                                      }
+                                    ? () => _send(provider)
                                     : null,
                               ),
-                            ),
-                            Expanded(
-                              child: TextField(
-                                controller: _controller,
-                                decoration: InputDecoration(
-                                  labelText: 'Mensagem',
-                                  hintText: _voiceMode
-                                      ? 'Modo de voz ativado'
-                                      : 'Digite sua mensagem',
-                                ),
-                                minLines: 1,
-                                maxLines: 4,
-                                enabled: inputEnabled,
-                                textInputAction: TextInputAction.send,
-                                onSubmitted: inputEnabled ? (_) => _send(provider) : null,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            DsFilledButton(
-                              label: 'Enviar',
-                              onPressed: inputEnabled ? () => _send(provider) : null,
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (_voiceMode)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 12),
-                          child: FocusTraversalOrder(
-                            order: const NumericFocusOrder(4),
-                            child: _buildVoicePanel(provider, inputEnabled),
+                            ],
                           ),
                         ),
-                      const SizedBox(height: 8),
-                      FocusTraversalOrder(
-                        order: const NumericFocusOrder(5),
-                        child: Row(
-                          children: [
-                            DsOutlinedButton(
-                              label: 'Gerar documento',
-                              onPressed: provider.isOffline ? null : () => _openDocumentDialog(provider),
+                        if (_voiceMode)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: FocusTraversalOrder(
+                              order: const NumericFocusOrder(4),
+                              child: _buildVoicePanel(provider, inputEnabled),
                             ),
-                            const SizedBox(width: 8),
-                            DsOutlinedButton(
-                              label: 'Encerrar consulta',
-                              onPressed: provider.isOffline || isSessionCompleted
-                                  ? null
-                                  : () => _confirmEndSession(provider),
-                            ),
-                            const Spacer(),
-                            if (analysisPhase != null && analysisPhase.isNotEmpty)
-                              Text('Fase da IA: $analysisPhase'),
-                          ],
+                          ),
+                        const SizedBox(height: 8),
+                        FocusTraversalOrder(
+                          order: const NumericFocusOrder(5),
+                          child: Row(
+                            children: [
+                              DsOutlinedButton(
+                                label: 'Gerar documento',
+                                onPressed: provider.isOffline
+                                    ? null
+                                    : () => _openDocumentDialog(provider),
+                              ),
+                              const SizedBox(width: 8),
+                              DsOutlinedButton(
+                                label: 'Encerrar consulta',
+                                onPressed:
+                                    provider.isOffline || isSessionCompleted
+                                    ? null
+                                    : () => _confirmEndSession(provider),
+                              ),
+                              const Spacer(),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -977,37 +1065,70 @@ class _ChatPageState extends State<ChatPage> {
   }
 }
 
-class _InsightPanel extends StatelessWidget {
-  const _InsightPanel({required this.title, required this.items});
+class _AssistantInsightPanel extends StatelessWidget {
+  const _AssistantInsightPanel({required this.provider});
 
-  final String title;
-  final List<String> items;
+  final ChatProvider provider;
+
+  DsStatusType _severityFromAlert(Map<String, dynamic> alert) {
+    switch ((alert['severity'] ?? '').toString().toLowerCase()) {
+      case 'critical':
+      case 'error':
+        return DsStatusType.error;
+      case 'success':
+        return DsStatusType.success;
+      case 'warning':
+        return DsStatusType.warning;
+      default:
+        return DsStatusType.warning;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
-      ),
+    return DsSection(
+      title: 'Insights do Assistente',
+      subtitle:
+          'Sugestões, alertas e hipóteses atualizados pela análise clínica.',
+      tone: DsPanelTone.high,
+      padding: const EdgeInsets.all(16),
+      headerSpacing: 8,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          const SizedBox(height: 6),
-          for (final item in items)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(item),
-            ),
+          for (final suggestion in provider.suggestions)
+            if ((suggestion['text'] ?? '').toString().trim().isNotEmpty)
+              DsAIInsightCard(
+                type: DsAIInsightType.suggestion,
+                title: 'Sugestão do Assistente',
+                message: (suggestion['text'] ?? '').toString(),
+                supportingText:
+                    (suggestion['category'] ?? '').toString().trim().isEmpty
+                    ? null
+                    : 'Categoria: ${suggestion['category']}',
+                margin: const EdgeInsets.only(bottom: 8),
+              ),
+          for (final alert in provider.alerts)
+            if ((alert['text'] ?? '').toString().trim().isNotEmpty)
+              DsAIInsightCard(
+                type: DsAIInsightType.alert,
+                title: 'Alerta Clínico',
+                message: (alert['text'] ?? '').toString(),
+                supportingText:
+                    (alert['evidence'] ?? '').toString().trim().isEmpty
+                    ? null
+                    : 'Evidência: ${alert['evidence']}',
+                severityOverride: _severityFromAlert(alert),
+                margin: const EdgeInsets.only(bottom: 8),
+              ),
+          for (final hypothesis in provider.hypotheses)
+            if ((hypothesis['label'] ?? '').toString().trim().isNotEmpty)
+              DsAIInsightCard(
+                type: DsAIInsightType.hypothesis,
+                title: 'Hipótese Clínica',
+                message: (hypothesis['label'] ?? '').toString(),
+                margin: const EdgeInsets.only(bottom: 8),
+              ),
         ],
       ),
     );

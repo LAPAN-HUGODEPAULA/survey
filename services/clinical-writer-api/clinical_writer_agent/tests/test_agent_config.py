@@ -18,6 +18,9 @@ class _StubLLM:
             def __init__(self, content: str):
                 self.content = content
 
+        if "clinical analysis engine" in prompt.lower():
+            return Response(json.dumps({"summary": f"{self.name}-facts"}))
+
         report = {
             "title": "Relatorio Clinico",
             "subtitle": f"Stub {self.name}",
@@ -39,16 +42,19 @@ class _StubLLM:
 
 
 class _StubJudge:
-    def __init__(self, score: float = 1.0):
-        self.score = score
+    def __init__(self, payload: dict | None = None, name: str = "judge"):
+        self.payload = payload or {"decision": "pass", "issues": [], "feedback": ""}
+        self.name = name
+        self.invocations: list[str] = []
 
     def invoke(self, prompt: str):
+        self.invocations.append(prompt)
 
         class Response:
             def __init__(self, content: str):
                 self.content = content
 
-        return Response(str(self.score))
+        return Response(json.dumps(self.payload))
 
 
 def test_create_llm_instance_accepts_overrides(monkeypatch):
@@ -90,19 +96,24 @@ def test_create_graph_accepts_injected_llms(monkeypatch):
     """Injected LLMs should be used by graph nodes, enabling fast unit tests."""
     conv_llm = _StubLLM("conversation")
     json_llm = _StubLLM("json")
+    judge_llm = _StubJudge()
 
-    graph = create_graph(conversation_llm=conv_llm, json_llm=json_llm)
+    graph = create_graph(
+        conversation_llm=conv_llm,
+        json_llm=json_llm,
+        critique_llm=judge_llm,
+    )
     state = {
         "input_content": 'Doutor: Como vai? {"patient": "Joao"}',
         "observer": None,
         "input_type": "consult",
         "prompt_key": "default",
-        "prompt_version": "test",
-        "prompt_text": "{content}",
-        "model_version": "test",
+        "prompt_registry": None,
     }
 
     result = graph.invoke(state)
 
-    assert conv_llm.invocations, "Conversation LLM should be invoked"
-    assert result["medical_record"] == "conversation-response"
+    assert len(conv_llm.invocations) == 2, "Conversation LLM should be used by analyzer and writer"
+    assert len(judge_llm.invocations) == 1, "Critique LLM should be used by reflector"
+    assert result["clinical_facts"]["summary"] == "conversation-facts"
+    assert "conversation-response" in result["medical_record"]

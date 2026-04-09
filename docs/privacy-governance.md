@@ -37,9 +37,19 @@ Privacy request creation and updates emit security audit events stored in the
 `security_audit_logs` collection. Each entry includes a hash chain (`prevHash` and
 `hash`) to provide tamper-evidence.
 
+Clinical Writer operational logs and run telemetry should avoid direct patient
+identifiers when correlation is sufficient. The backend now pseudonymizes
+`patient_ref` before storing AI run logs so operators can trace a request
+without persisting raw patient email or name in that log stream.
+
 ## Encryption Configuration
 
 Transport encryption is enforced via HTTPS in production (`ENVIRONMENT=production`).
 At-rest encryption integration points are configured via environment variables:
 - `ENCRYPTION_PROVIDER`
 - `ENCRYPTION_KEY_ID`
+
+Production runtime also requires:
+- explicit `CORS_ALLOWED_ORIGINS` for browser clients
+- a non-default `SECRET_KEY`
+- a non-default `PRIVACY_ADMIN_TOKEN`

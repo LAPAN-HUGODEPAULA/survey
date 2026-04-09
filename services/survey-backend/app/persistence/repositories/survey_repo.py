@@ -1,6 +1,12 @@
+import logging
+
 from pymongo.database import Database
 from bson import ObjectId
 from typing import Any
+
+
+logger = logging.getLogger(__name__)
+
 
 class SurveyRepository:
     def __init__(self, db: Database):
@@ -42,7 +48,73 @@ class SurveyRepository:
     def _normalize(self, doc: dict | None) -> dict:
         if not doc:
             return {}
-        if "_id" in doc and isinstance(doc["_id"], ObjectId):
-            doc["_id"] = str(doc["_id"])
-        doc.pop("id", None)
+        normalized = dict(doc)
+        original_id = normalized.get("_id")
+        if isinstance(original_id, ObjectId):
+            normalized["_id"] = str(original_id)
+        normalized.pop("id", None)
+        return self._normalize_prompt_shape(normalized, original_id)
+
+    def _normalize_prompt_shape(self, doc: dict, original_id: Any) -> dict:
+        prompt = doc.get("prompt")
+        if isinstance(prompt, dict):
+            doc["prompt"] = {
+                "promptKey": prompt.get("promptKey", ""),
+                "name": prompt.get("name", ""),
+            }
+            doc.pop("promptAssociations", None)
+            return doc
+
+        raw_associations = doc.get("promptAssociations")
+        if not isinstance(raw_associations, list):
+            doc["prompt"] = None
+            return doc
+
+        associations = [item for item in raw_associations if isinstance(item, dict)]
+        if len(associations) == 1:
+            association = associations[0]
+            normalized_prompt = {
+                "promptKey": association.get("promptKey", ""),
+                "name": association.get("name", ""),
+            }
+            if normalized_prompt["promptKey"] and normalized_prompt["name"]:
+                doc["prompt"] = normalized_prompt
+                if original_id is not None:
+                    self._col.update_one(
+                        {"_id": original_id},
+                        {
+                            "$set": {"prompt": normalized_prompt},
+                            "$unset": {"promptAssociations": "", "promptMigrationRequired": ""},
+                        },
+                    )
+            else:
+                doc["prompt"] = None
+            doc.pop("promptAssociations", None)
+            return doc
+
+        if len(associations) > 1:
+            doc["prompt"] = None
+            if original_id is not None:
+                self._col.update_one(
+                    {"_id": original_id},
+                    {"$set": {"prompt": None, "promptMigrationRequired": True}},
+                )
+            logger.warning(
+                "Survey %s requires manual prompt migration because it still has %d legacy prompt associations",
+                doc.get("_id"),
+                len(associations),
+            )
+            doc.pop("promptAssociations", None)
+            return doc
+
+        doc["prompt"] = None
+        if original_id is not None:
+            self._col.update_one(
+                {"_id": original_id},
+                {
+                    "$set": {"prompt": None},
+                    "$unset": {"promptAssociations": "", "promptMigrationRequired": ""},
+                },
+            )
+        doc.pop("promptAssociations", None)
         return doc

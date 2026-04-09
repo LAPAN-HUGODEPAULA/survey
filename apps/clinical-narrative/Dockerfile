@@ -14,6 +14,7 @@ RUN flutter pub get
 
 # Build the web application
 RUN flutter build web --release --dart-define=API_BASE_URL=$API_BASE_URL
+RUN sed -i '/sourceMappingURL=flutter.js.map/d' build/web/flutter.js build/web/flutter_bootstrap.js
 
 # Stage 2: Serve the built web app with Nginx as non-root
 FROM nginx:alpine

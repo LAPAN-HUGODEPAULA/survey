@@ -5,128 +5,168 @@ import 'package:provider/provider.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/shared/widgets/screener_navigation_app_bar.dart';
 
-class ScreenerProfilePage extends StatefulWidget {
+class ScreenerProfilePage extends StatelessWidget {
   const ScreenerProfilePage({super.key});
 
-  @override
-  State<ScreenerProfilePage> createState() => _ScreenerProfilePageState();
-}
-
-class _ScreenerProfilePageState extends State<ScreenerProfilePage> {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<AppSettings>();
     final profile = settings.screenerProfile;
+
     return DsScaffold(
       appBar: const ScreenerNavigationAppBar(
         currentRoute: '/profile',
         title: Text('Perfil do Avaliador'),
       ),
+      scrollable: true,
       body: profile == null
-          ? _buildLoggedOutState(context)
+          ? const _LoggedOutState()
           : Center(
-              child: Container(
+              child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 700),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildProfileField('CPF', profile.cpf),
-                      _buildProfileField(
-                        'Nome',
-                        '${profile.firstName} ${profile.surname}',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DsSection(
+                      eyebrow: 'Conta',
+                      title: 'Dados pessoais',
+                      subtitle:
+                          'Confira as informacoes principais da conta profissional.',
+                      child: Column(
+                        children: [
+                          _ProfileField(label: 'CPF', value: profile.cpf),
+                          _ProfileField(
+                            label: 'Nome',
+                            value: '${profile.firstName} ${profile.surname}',
+                          ),
+                          _ProfileField(label: 'E-mail', value: profile.email),
+                          _ProfileField(
+                            label: 'Telefone',
+                            value: profile.phone,
+                          ),
+                        ],
                       ),
-                      _buildProfileField('E-mail', profile.email),
-                      _buildProfileField('Telefone', profile.phone),
-                      const Divider(),
-                      Text(
-                        'Endereço',
-                        style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    DsSection(
+                      title: 'Endereco',
+                      child: Column(
+                        children: [
+                          _ProfileField(
+                            label: 'CEP',
+                            value: profile.address.postalCode,
+                          ),
+                          _ProfileField(
+                            label: 'Rua',
+                            value: profile.address.street,
+                          ),
+                          _ProfileField(
+                            label: 'Numero',
+                            value: profile.address.number,
+                          ),
+                          if ((profile.address.complement ?? '').isNotEmpty)
+                            _ProfileField(
+                              label: 'Complemento',
+                              value: profile.address.complement!,
+                            ),
+                          _ProfileField(
+                            label: 'Bairro',
+                            value: profile.address.neighborhood,
+                          ),
+                          _ProfileField(
+                            label: 'Cidade',
+                            value: profile.address.city,
+                          ),
+                          _ProfileField(
+                            label: 'Estado',
+                            value: profile.address.state,
+                          ),
+                        ],
                       ),
-                      _buildProfileField('CEP', profile.address.postalCode),
-                      _buildProfileField('Rua', profile.address.street),
-                      _buildProfileField('Número', profile.address.number),
-                      if ((profile.address.complement ?? '').isNotEmpty)
-                        _buildProfileField(
-                          'Complemento',
-                          profile.address.complement!,
-                        ),
-                      _buildProfileField(
-                        'Bairro',
-                        profile.address.neighborhood,
+                    ),
+                    const SizedBox(height: 16),
+                    DsSection(
+                      title: 'Informacoes profissionais',
+                      child: Column(
+                        children: [
+                          _ProfileField(
+                            label: 'Conselho',
+                            value: profile.professionalCouncil.type,
+                          ),
+                          _ProfileField(
+                            label: 'Registro',
+                            value:
+                                profile.professionalCouncil.registrationNumber,
+                          ),
+                          _ProfileField(
+                            label: 'Cargo',
+                            value: profile.jobTitle,
+                          ),
+                          _ProfileField(
+                            label: 'Formacao',
+                            value: profile.degree,
+                          ),
+                          if (profile.darvCourseYear != null)
+                            _ProfileField(
+                              label: 'Ano DARV',
+                              value: profile.darvCourseYear.toString(),
+                            ),
+                        ],
                       ),
-                      _buildProfileField('Cidade', profile.address.city),
-                      _buildProfileField('Estado', profile.address.state),
-                      const Divider(),
-                      Text(
-                        'Informações Profissionais',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      _buildProfileField(
-                        'Conselho',
-                        profile.professionalCouncil.type,
-                      ),
-                      _buildProfileField(
-                        'Registro',
-                        profile.professionalCouncil.registrationNumber,
-                      ),
-                      _buildProfileField('Cargo', profile.jobTitle),
-                      _buildProfileField('Formação', profile.degree),
-                      if (profile.darvCourseYear != null)
-                        _buildProfileField(
-                          'Ano DARV',
-                          profile.darvCourseYear.toString(),
-                        ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
     );
   }
+}
 
-  Widget _buildLoggedOutState(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 400),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.lock_outline, size: 48),
-              const SizedBox(height: 12),
-              const Text(
-                'Você precisa fazer login para ver seu perfil.',
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => context.go('/login'),
-                child: const Text('Ir para a tela de login'),
-              ),
-            ],
-          ),
-        ),
-      ),
+class _LoggedOutState extends StatelessWidget {
+  const _LoggedOutState();
+
+  @override
+  Widget build(BuildContext context) {
+    return DsEmptyState(
+      visual: const Icon(Icons.lock_outline, size: 52),
+      title: 'Sessão expirada',
+      description: 'Entre novamente para acessar seus dados profissionais.',
+      actionLabel: 'Ir para login',
+      onAction: () => context.go('/login'),
     );
   }
+}
 
-  Widget _buildProfileField(String label, String value) {
+class _ProfileField extends StatelessWidget {
+  const _ProfileField({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 120, // Adjust width as needed
+            width: 120,
             child: Text(
               '$label:',
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
           ),
-          Expanded(child: Text(value)),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
         ],
       ),
     );

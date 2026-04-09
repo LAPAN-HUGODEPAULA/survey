@@ -1,7 +1,7 @@
 # screener-authentication Specification
 
 ## Purpose
-TBD - created by archiving change add-screener-registration. Update Purpose after archive.
+Define the backend authentication and registration contract for screeners across the LAPAN professional applications.
 ## Requirements
 ### Requirement: Screener Login
 The system MUST provide a mechanism for screeners to log in.
@@ -31,4 +31,37 @@ The system MUST provide a mechanism for screeners to recover their password.
 **Given** a registered screener with email "test@example.com"
 **When** the screener requests a password recovery
 **Then** the system MUST generate a new random password and send it to "test@example.com".
+
+### Requirement: Shared Screener Authentication Across Professional Apps
+The existing screener authentication contract MUST serve both `survey-frontend` and `clinical-narrative` without introducing a second professional identity store.
+
+#### Scenario: Existing screener signs into the clinical narrative app
+- **WHEN** a registered screener signs into `clinical-narrative` with valid platform credentials
+- **THEN** the app MUST authenticate against the existing screener backend contract
+- **AND** the authenticated user MUST be resolved from the existing screener identity model rather than a new clinician-specific collection
+
+### Requirement: Shared Screener Registration Entry Across Professional Apps
+The existing screener registration contract MUST be reachable from both `survey-frontend` and `clinical-narrative`.
+
+#### Scenario: Register from either professional app
+- **WHEN** a user completes screener registration from `survey-frontend` or `clinical-narrative`
+- **THEN** the submitted data MUST target the existing screener registration contract
+- **AND** the new account MUST be created in the existing `screeners` collection
+
+### Requirement: Screener Legal-Notice Acknowledgement Contract
+The authenticated screener contract MUST expose the platform-wide initial-notice acknowledgement state and MUST provide an authenticated write path to record the first acknowledgement.
+
+#### Scenario: Read screener legal-notice acknowledgement state
+- **WHEN** a professional app retrieves the authenticated screener profile
+- **THEN** the screener payload MUST include the nullable `initialNoticeAcceptedAt` field
+- **AND** the value MUST be empty until the screener has acknowledged the platform initial notice
+
+#### Scenario: Record first screener acknowledgement
+- **WHEN** an authenticated screener accepts the initial notice in `survey-frontend` or `clinical-narrative`
+- **THEN** the backend MUST persist the acknowledgement using a server-generated timestamp in `initialNoticeAcceptedAt`
+- **AND** the acknowledgement MUST apply platform-wide to both professional apps
+
+#### Scenario: Re-submit acknowledgement after it is already recorded
+- **WHEN** an authenticated screener submits the acknowledgement write path after `initialNoticeAcceptedAt` is already set
+- **THEN** the backend MUST return the existing acknowledgement state without requiring a second acceptance record
 

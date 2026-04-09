@@ -65,6 +65,27 @@ class SurveyRepository {
     return AgentResponse.fromJson(data);
   }
 
+  Future<Map<String, dynamic>> startClinicalWriterTask(
+    String content, {
+    String? promptKey,
+  }) async {
+    final requestId = _generateRequestId();
+    final body = {
+      'input_type': 'survey7',
+      'content': content,
+      'locale': 'pt-BR',
+      'prompt_key': promptKey ?? 'survey7',
+      'output_format': 'report_json',
+      'asyncMode': true,
+      'metadata': {'source_app': 'survey-patient', 'request_id': requestId},
+    };
+    return _postJson('clinical_writer/process', body);
+  }
+
+  Future<Map<String, dynamic>> getClinicalWriterTaskStatus(String taskId) {
+    return _getJson('clinical_writer/status/$taskId');
+  }
+
   ui.Survey _mapSurvey(api.Survey source) {
     return ui.Survey(
       id: source.id ?? '',
@@ -84,19 +105,17 @@ class SurveyRepository {
             (q) => ui.Question(
               id: q.id,
               questionText: q.questionText,
+              label: q.label,
               answers: q.answers.toList(growable: false),
             ),
           )
           .toList(growable: false),
-      promptAssociations: source.promptAssociations
-          .map(
-            (association) => ui.SurveyPromptAssociation(
-              promptKey: association.promptKey,
-              name: association.name,
-              outcomeType: _mapOutcomeTypeValue(association.outcomeType),
+      prompt: source.prompt == null
+          ? null
+          : ui.SurveyPromptReference(
+              promptKey: source.prompt!.promptKey,
+              name: source.prompt!.name,
             ),
-          )
-          .toList(growable: false),
       finalNotes: source.finalNotes,
     );
   }
@@ -119,6 +138,18 @@ class SurveyRepository {
     throw const FormatException('Unexpected response payload.');
   }
 
+  Future<Map<String, dynamic>> _getJson(String path) async {
+    final response = await _rawClient.get<Object?>(ApiConfig.requestPath(path));
+    final data = response.data;
+    if (data is Map<String, dynamic>) {
+      return Map<String, dynamic>.from(data);
+    }
+    if (data is String) {
+      return jsonDecode(data) as Map<String, dynamic>;
+    }
+    throw const FormatException('Unexpected response payload.');
+  }
+
   String _generateRequestId() {
     final random = Random();
     final timestamp = DateTime.now().microsecondsSinceEpoch;
@@ -127,21 +158,5 @@ class SurveyRepository {
 
   void dispose() {
     // no-op for now
-  }
-
-  String _mapOutcomeTypeValue(api.SurveyPromptOutcomeType outcomeType) {
-    switch (outcomeType) {
-      case api.SurveyPromptOutcomeType.patientConditionOverview:
-        return 'patient_condition_overview';
-      case api.SurveyPromptOutcomeType.clinicalDiagnosticReport:
-        return 'clinical_diagnostic_report';
-      case api.SurveyPromptOutcomeType.clinicalReferralLetter:
-        return 'clinical_referral_letter';
-      case api.SurveyPromptOutcomeType.parentalGuidance:
-        return 'parental_guidance';
-      case api.SurveyPromptOutcomeType.educationalSupportSummary:
-        return 'educational_support_summary';
-    }
-    throw ArgumentError.value(outcomeType, 'outcomeType', 'Unsupported outcome type');
   }
 }

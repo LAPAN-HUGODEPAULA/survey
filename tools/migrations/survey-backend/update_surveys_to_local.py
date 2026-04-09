@@ -1,36 +1,18 @@
 import json
 import os
 from datetime import datetime
-from urllib.parse import urlparse
 
-from dotenv import load_dotenv
 from pymongo import MongoClient
 
-load_dotenv()
+from _env import load_migration_env, resolve_mongo_db_name, resolve_mongo_uri
 
-MONGO_URI = os.getenv("MONGO_URI")
-if not MONGO_URI:
-    print("MONGO_URI not found, falling back to local MongoDB connection.")
-    mongo_username = os.getenv("MONGO_USERNAME")
-    mongo_password = os.getenv("MONGO_PASSWORD")
-    if mongo_username and mongo_password:
-        MONGO_URI = f"mongodb://{mongo_username}:{mongo_password}@localhost:27017/"
-    else:
-        MONGO_URI = "mongodb://localhost:27017/"
-elif not MONGO_URI.startswith(("mongodb://", "mongodb+srv://")):
-    MONGO_URI = f"mongodb://{MONGO_URI}"
-else:
-    parsed = urlparse(MONGO_URI)
-    if parsed.hostname == "mongodb":
-        host = "localhost"
-        if parsed.port:
-            host = f"{host}:{parsed.port}"
-        auth = f"{parsed.username}:{parsed.password}@" if parsed.username else ""
-        MONGO_URI = f"{parsed.scheme}://{auth}{host}{parsed.path or '/'}"
+load_migration_env()
+
+MONGO_URI = resolve_mongo_uri()
 
 client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
 
-db = client[os.getenv("MONGO_DB_NAME", "survey_db")]
+db = client[resolve_mongo_db_name()]
 SYSTEM_SCREENER_ID = "000000000000000000000001"
 
 script_dir = os.path.dirname(os.path.abspath(__file__))

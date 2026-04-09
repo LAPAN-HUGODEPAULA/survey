@@ -73,14 +73,16 @@ A dedicated application for administrators or researchers to create, view, updat
 
 ### 5. Clinical Writer AI Multi-Agent System
 
-A centralized AI processing engine that powers all three applications through specialized agent workflows:
+A centralized AI processing engine built on a **4-stage LangGraph state graph** that separates clinical interpretation from narrative generation and applies reflection-based safety validation. See [multiagent-architecture.md](file:///home/hugo/Documents/LAPAN/dev/survey/docs/multiagent-architecture.md) for the full architectural rationale.
 
-- **InputValidatorAgent**: Performs structural validation, data sanitization, and payload verification
-- **DeterministicRouterAgent**: Routes inputs to appropriate processing agents based on source application type
-- **ConsultWriterNode**: Generates formal consultation reports from clinical-narrative application inputs
-- **Survey7WriterNode**: Creates medical summaries from survey-patient application screening results
-- **FullIntakeWriterNode**: Produces comprehensive medical records from survey-frontend application assessments
-- **OtherInputHandlerAgent**: Manages error handling and unexpected input scenarios
+The 4-stage orchestration graph operates as follows:
+
+1. **ContextLoader**: Retrieves the questionnaire's interpretation prompt from `QuestionnairePrompts` and the target persona skill from `PersonaSkills` in MongoDB.
+2. **ClinicalAnalyzer**: Processes the response JSON applying only clinical rules (e.g., CHYPS scoring); outputs structured clinical facts with no narrative text.
+3. **PersonaWriter**: Transforms clinical facts into audience-appropriate Markdown narrative following the persona's tone and format guidelines.
+4. **ReflectorNode**: The "Judge" — validates grounding against raw questionnaire data, checks for invasive recommendations, and verifies persona consistency. Returns **PASS** (end) or **FAIL** (loop back to Writing, up to 2 retries).
+
+Prompts are composed at runtime from three independent layers: **Domain** (questionnaire-specific clinical rules), **Persona** (tone, vocabulary, output format), and **Contextual Data** (pseudonymized patient response JSON). Agent Skills (Personas) are stored as MongoDB documents and managed through the survey-builder application, allowing clinical specialists to version and update prompt logic without code deployments.
 
 ### 5. MongoDB Document Database
 

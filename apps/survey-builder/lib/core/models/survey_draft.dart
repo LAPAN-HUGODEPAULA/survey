@@ -12,7 +12,9 @@ class SurveyDraft {
     required this.instructions,
     required this.questions,
     required this.finalNotes,
-    required this.promptAssociations,
+    this.prompt,
+    this.personaSkillKey,
+    this.outputProfile,
   });
 
   final String? id;
@@ -25,7 +27,9 @@ class SurveyDraft {
   InstructionsDraft instructions;
   List<QuestionDraft> questions;
   String finalNotes;
-  List<SurveyPromptAssociationDraft> promptAssociations;
+  SurveyPromptReferenceDraft? prompt;
+  String? personaSkillKey;
+  String? outputProfile;
 
   SurveyDraft copy() {
     return SurveyDraft(
@@ -39,7 +43,9 @@ class SurveyDraft {
       instructions: instructions.copy(),
       questions: questions.map((q) => q.copy()).toList(),
       finalNotes: finalNotes,
-      promptAssociations: promptAssociations.map((item) => item.copy()).toList(),
+      prompt: prompt?.copy(),
+      personaSkillKey: personaSkillKey,
+      outputProfile: outputProfile,
     );
   }
 }
@@ -69,16 +75,19 @@ class QuestionDraft {
     required this.id,
     required this.questionText,
     required this.answers,
+    this.label = '',
   });
 
   int id;
   String questionText;
+  String label;
   List<String> answers;
 
   QuestionDraft copy() {
     return QuestionDraft(
       id: id,
       questionText: questionText,
+      label: label,
       answers: List<String>.from(answers),
     );
   }

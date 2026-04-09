@@ -15,6 +15,8 @@ Name | Type | Description | Notes
 **screenerId** | **String** |  | 
 **accessLinkToken** | **String** |  | [optional] 
 **promptKey** | **String** |  | [optional] 
+**personaSkillKey** | **String** |  | [optional] 
+**outputProfile** | **String** |  | [optional] 
 **patient** | [**Patient**](Patient.md) |  | [optional] 
 **answers** | [**BuiltList&lt;Answer&gt;**](Answer.md) |  | 
 

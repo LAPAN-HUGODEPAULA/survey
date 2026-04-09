@@ -1,7 +1,7 @@
 name: survey_builder
 publish_to: 'none'
 description: "Survey Builder App"
-version: 1.0.0+1
+version: 0.1.0+1
 
 environment:
   sdk: ^3.10.0
@@ -20,6 +20,7 @@ dependencies:
     path: ../../packages/runtime_api_url
   survey_backend_api:
     path: ../../packages/contracts/generated/dart
+  shared_preferences: ^2.5.3
 
   cupertino_icons: ^1.0.8
 

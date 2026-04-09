@@ -23,6 +23,8 @@ part 'survey_response_with_agent.g.dart';
 /// * [screenerId] 
 /// * [accessLinkToken] 
 /// * [promptKey] 
+/// * [personaSkillKey] 
+/// * [outputProfile] 
 /// * [patient] 
 /// * [answers] 
 /// * [agentResponse] 
@@ -61,11 +63,25 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
         specifiedType: const FullType.nullable(String),
       );
     }
+    if (object.outputProfile != null) {
+      yield r'outputProfile';
+      yield serializers.serialize(
+        object.outputProfile,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
     yield r'surveyId';
     yield serializers.serialize(
       object.surveyId,
       specifiedType: const FullType(String),
     );
+    if (object.personaSkillKey != null) {
+      yield r'personaSkillKey';
+      yield serializers.serialize(
+        object.personaSkillKey,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
     yield r'screenerId';
     yield serializers.serialize(
       object.screenerId,
@@ -147,12 +163,28 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
           if (valueDes == null) continue;
           result.promptKey = valueDes;
           break;
+        case r'outputProfile':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.outputProfile = valueDes;
+          break;
         case r'surveyId':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
           result.surveyId = valueDes;
+          break;
+        case r'personaSkillKey':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.personaSkillKey = valueDes;
           break;
         case r'screenerId':
           final valueDes = serializers.deserialize(

@@ -2,7 +2,10 @@
 from datetime import datetime
 from typing import Optional, Dict, Any
 import logging
-from starlette_context import context
+try:
+    from starlette_context import context
+except ModuleNotFoundError:  # pragma: no cover - fallback for test environments
+    context = {}
 
 # Project imports
 from .base_monitors import ProcessingMonitor

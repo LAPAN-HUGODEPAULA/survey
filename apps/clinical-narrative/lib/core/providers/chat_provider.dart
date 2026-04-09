@@ -14,8 +14,7 @@ import 'package:web/web.dart' as web;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class ChatProvider extends ChangeNotifier {
-  ChatProvider({Dio? client})
-    : _client = client ?? ApiConfig.createDio();
+  ChatProvider({Dio? client}) : _client = client ?? ApiConfig.createDio();
 
   final Dio _client;
   ChatSession? _session;
@@ -29,6 +28,7 @@ class ChatProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isOffline = false;
   bool _isProcessing = false;
+  bool _isAnalyzing = false;
   String? _error;
   List<Map<String, dynamic>> _suggestions = [];
   List<Map<String, dynamic>> _alerts = [];
@@ -36,6 +36,11 @@ class ChatProvider extends ChangeNotifier {
   List<Map<String, dynamic>> _hypotheses = [];
   List<Map<String, dynamic>> _knowledge = [];
   String? _analysisPhase;
+  bool _assistantFailed = false;
+  bool _assistantRetryable = false;
+  String _assistantFailureSeverity = 'warning';
+  String? _assistantFailureMessage;
+  String? _assistantNoticeMessage;
   DocumentPreview? _documentPreview;
   List<TemplateRecord> _templates = [];
   TemplatePreview? _templatePreview;
@@ -46,6 +51,8 @@ class ChatProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isOffline => _isOffline;
   bool get isProcessing => _isProcessing;
+  bool get isAnalyzing => _isAnalyzing;
+  bool get isAssistantBusy => _isProcessing || _isAnalyzing;
   String? get error => _error;
   List<Map<String, dynamic>> get suggestions => List.unmodifiable(_suggestions);
   List<Map<String, dynamic>> get alerts => List.unmodifiable(_alerts);
@@ -53,10 +60,54 @@ class ChatProvider extends ChangeNotifier {
   List<Map<String, dynamic>> get hypotheses => List.unmodifiable(_hypotheses);
   List<Map<String, dynamic>> get knowledge => List.unmodifiable(_knowledge);
   String? get analysisPhase => _analysisPhase;
+  bool get hasAssistantFailure => _assistantFailed;
+  bool get canRetryAssistant => _assistantRetryable && !_isOffline;
+  String get assistantFailureSeverity => _assistantFailureSeverity;
+  String? get assistantFailureMessage => _assistantFailureMessage;
+  String? get assistantNoticeMessage => _assistantNoticeMessage;
   DocumentPreview? get documentPreview => _documentPreview;
   List<TemplateRecord> get templates => List.unmodifiable(_templates);
   TemplatePreview? get templatePreview => _templatePreview;
   TranscriptionResponse? get transcription => _transcription;
+
+  void setAuthToken(String token) {
+    _client.options.headers['Authorization'] = 'Bearer $token';
+  }
+
+  void clearAuthToken() {
+    _client.options.headers.remove('Authorization');
+  }
+
+  void reset() {
+    _analysisDebounce?.cancel();
+    _channel?.sink.close();
+    _channel = null;
+    _session = null;
+    _messages.clear();
+    _pendingQueue.clear();
+    _suggestions = [];
+    _alerts = [];
+    _entities = [];
+    _hypotheses = [];
+    _knowledge = [];
+    _analysisPhase = null;
+    _assistantFailed = false;
+    _assistantRetryable = false;
+    _assistantFailureSeverity = 'warning';
+    _assistantFailureMessage = null;
+    _assistantNoticeMessage = null;
+    _documentPreview = null;
+    _templates = [];
+    _templatePreview = null;
+    _transcription = null;
+    _isLoading = false;
+    _isProcessing = false;
+    _isAnalyzing = false;
+    _error = null;
+    clearAuthToken();
+    _clearSessionId();
+    notifyListeners();
+  }
 
   Future<List<Map<String, dynamic>>> fetchTemplateDocumentTypes() async {
     final response = await _client.get<List<dynamic>>(
@@ -148,6 +199,11 @@ class ChatProvider extends ChangeNotifier {
   Future<void> initialize({String? patientId}) async {
     _isLoading = true;
     _error = null;
+    _assistantFailed = false;
+    _assistantRetryable = false;
+    _assistantFailureSeverity = 'warning';
+    _assistantFailureMessage = null;
+    _assistantNoticeMessage = null;
     notifyListeners();
 
     _setupConnectivityListeners();
@@ -214,6 +270,11 @@ class ChatProvider extends ChangeNotifier {
     );
     _messages.add(pendingMessage);
     _isProcessing = true;
+    _assistantFailed = false;
+    _assistantRetryable = false;
+    _assistantFailureSeverity = 'warning';
+    _assistantFailureMessage = null;
+    _assistantNoticeMessage = null;
     notifyListeners();
 
     if (_isOffline) {
@@ -223,6 +284,32 @@ class ChatProvider extends ChangeNotifier {
 
     await _sendPending(pending);
     _scheduleAnalysis();
+  }
+
+  Future<void> retryAssistantProcessing() async {
+    if (_session == null || _isOffline) return;
+    _assistantFailed = false;
+    _assistantRetryable = false;
+    _assistantFailureSeverity = 'warning';
+    _assistantFailureMessage = null;
+    _assistantNoticeMessage = null;
+    notifyListeners();
+
+    await _retryPending();
+    _scheduleAnalysis();
+  }
+
+  void cancelAssistantProcessing() {
+    _analysisDebounce?.cancel();
+    _isProcessing = false;
+    _isAnalyzing = false;
+    _assistantFailed = false;
+    _assistantRetryable = false;
+    _assistantFailureSeverity = 'info';
+    _assistantFailureMessage = null;
+    _assistantNoticeMessage =
+        'Processamento interrompido. Você pode continuar manualmente.';
+    notifyListeners();
   }
 
   Future<DocumentPreview?> generateDocumentPreview({
@@ -389,6 +476,11 @@ class ChatProvider extends ChangeNotifier {
       }
       if (message.role != 'clinician') {
         _isProcessing = false;
+        _assistantFailed = false;
+        _assistantRetryable = false;
+        _assistantFailureSeverity = 'warning';
+        _assistantFailureMessage = null;
+        _assistantNoticeMessage = null;
       }
       notifyListeners();
       _scheduleAnalysis();
@@ -448,6 +540,8 @@ class ChatProvider extends ChangeNotifier {
 
   Future<void> _refreshAnalysis() async {
     if (_session == null || _messages.isEmpty) return;
+    _isAnalyzing = true;
+    notifyListeners();
     try {
       final response = await _client.post<Map<String, dynamic>>(
         ApiConfig.requestPath('/clinical_writer/analysis'),
@@ -474,10 +568,23 @@ class ChatProvider extends ChangeNotifier {
         _hypotheses = _castList(data['hypotheses']);
         _knowledge = _castList(data['knowledge']);
         _analysisPhase = data['phase']?.toString();
-        notifyListeners();
+        _assistantFailed = false;
+        _assistantRetryable = false;
+        _assistantFailureSeverity = 'warning';
+        _assistantFailureMessage = null;
+        _assistantNoticeMessage = null;
       }
     } catch (_) {
-      // analysis errors should not block chat flow
+      _assistantFailed = true;
+      _assistantRetryable = true;
+      _assistantFailureSeverity = 'warning';
+      _assistantFailureMessage =
+          'A análise demorou mais que o esperado. Você pode tentar novamente.';
+      _assistantNoticeMessage = null;
+      _isProcessing = false;
+    } finally {
+      _isAnalyzing = false;
+      notifyListeners();
     }
   }
 

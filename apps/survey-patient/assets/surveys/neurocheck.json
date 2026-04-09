@@ -1,0 +1,35 @@
+{
+    "_id": "neurocheck",
+    "surveyDisplayName": "NeuroCheck",
+    "surveyName": "Indicador de Saúde Mental e Sensorial",
+    "surveyDescription": "<p>O NeuroCheck é um indicador de saúde mental e sensorial projetado para avaliar a sobrecarga biológica através de múltiplos eixos de sensibilidade (Fotosensibilidade, Visuomotor, Filtros e Biológico).</p>",
+    "creatorName": "Dr. Ricardo Guimarães",
+    "creatorContact": "lapan.hugodepaula@gmail.com",
+    "creatorId": "lapan.hugodepaula@gmail.com",
+    "createdAt": "2026-04-06",
+    "modifiedAt": "2026-04-06",
+    "instructions": {
+        "preamble": "<p>Avalie sua Sobrecarga Biológica</p>",
+        "questionText": "Por favor, responda a cada pergunta com base no seu nível de desconforto físico.",
+        "answers": []
+    },
+    "questions": [
+        { "id": 1, "questionText": "Conforto com LUZ NATURAL?", "label": "Luz Natural", "answers": ["Confortável", "Razoável", "Desconfortável"] },
+        { "id": 2, "questionText": "Conforto com LUZ ARTIFICIAL?", "label": "Luz Artificial", "answers": ["Confortável", "Razoável", "Desconfortável"] },
+        { "id": 3, "questionText": "Percepção de FARÓIS à noite?", "label": "Faróis", "answers": ["Confortável", "Razoável", "Desconfortável"] },
+        { "id": 4, "questionText": "ENJÔO em movimento?", "label": "Enjôo", "answers": ["Confortável", "Razoável", "Desconfortável"] },
+        { "id": 5, "questionText": "Experiência com LEITURA?", "label": "Leitura", "answers": ["Confortável", "Razoável", "Desconfortável"] },
+        { "id": 6, "questionText": "Sensibilidade TÁTIL?", "label": "Tato", "answers": ["Confortável", "Razoável", "Desconfortável"] },
+        { "id": 7, "questionText": "Seletividade de PALADAR?", "label": "Paladar", "answers": ["Confortável", "Razoável", "Desconfortável"] },
+        { "id": 8, "questionText": "Seletividade de OLFATO?", "label": "Olfato", "answers": ["Confortável", "Razoável", "Desconfortável"] },
+        { "id": 9, "questionText": "Sensibilidade a SONS?", "label": "Audição", "answers": ["Confortável", "Razoável", "Desconfortável"] },
+        { "id": 10, "questionText": "Reação a CORES/PADRÕES?", "label": "Cores", "answers": ["Confortável", "Razoável", "Desconfortável"] },
+        { "id": 11, "questionText": "Frequência de ENXAQUECAS?", "label": "Enxaqueca", "answers": ["Confortável", "Razoável", "Desconfortável"] },
+        { "id": 12, "questionText": "Histórico FAMILIAR?", "label": "Familiar", "answers": ["Confortável", "Razoável", "Desconfortável"] }
+    ],
+    "finalNotes": "<p>Obrigado por completar o NeuroCheck. Seus resultados ajudam a entender melhor seu perfil sensorial.</p>",
+    "prompt": {
+        "promptKey": "neurocheck",
+        "name": "NeuroCheck Clinical Report"
+    }
+}

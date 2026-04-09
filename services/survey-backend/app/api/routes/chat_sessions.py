@@ -5,12 +5,20 @@ from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisco
 from pydantic import BaseModel, Field
 
 from app.api.ws.chat_manager import chat_manager
+from app.config.settings import settings
 from app.domain.models.chat_session_model import ChatSession
 from app.persistence.deps import get_chat_session_repo
 from app.persistence.repositories.chat_session_repo import ChatSessionRepository
 
 
 router = APIRouter()
+
+
+def _is_allowed_websocket_origin(origin: str | None) -> bool:
+    """Match websocket browser origins against the backend CORS allowlist."""
+    if not origin:
+        return False
+    return origin in settings.cors_allowed_origins
 
 
 class ChatSessionCreate(BaseModel):
@@ -106,7 +114,21 @@ async def complete_session(
 
 
 @router.websocket("/chat/sessions/{session_id}/ws")
-async def chat_ws(session_id: str, websocket: WebSocket):
+async def chat_ws(
+    session_id: str,
+    websocket: WebSocket,
+    repo: ChatSessionRepository = Depends(get_chat_session_repo),
+):
+    if repo.get_by_id(session_id) is None:
+        await websocket.close(code=1008, reason="Unknown session")
+        return
+    origin = websocket.headers.get("origin")
+    if origin and not _is_allowed_websocket_origin(origin):
+        await websocket.close(code=1008, reason="Origin not allowed")
+        return
+    if settings.is_production and not origin:
+        await websocket.close(code=1008, reason="Origin required")
+        return
     await chat_manager.connect(session_id, websocket)
     try:
         await websocket.send_json({"type": "connected", "sessionId": session_id})

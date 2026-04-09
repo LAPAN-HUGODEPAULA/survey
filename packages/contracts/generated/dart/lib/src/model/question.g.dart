@@ -12,13 +12,18 @@ class _$Question extends Question {
   @override
   final String questionText;
   @override
+  final String? label;
+  @override
   final BuiltList<String> answers;
 
   factory _$Question([void Function(QuestionBuilder)? updates]) =>
       (QuestionBuilder()..update(updates))._build();
 
   _$Question._(
-      {required this.id, required this.questionText, required this.answers})
+      {required this.id,
+      required this.questionText,
+      this.label,
+      required this.answers})
       : super._();
   @override
   Question rebuild(void Function(QuestionBuilder) updates) =>
@@ -33,6 +38,7 @@ class _$Question extends Question {
     return other is Question &&
         id == other.id &&
         questionText == other.questionText &&
+        label == other.label &&
         answers == other.answers;
   }
 
@@ -41,6 +47,7 @@ class _$Question extends Question {
     var _$hash = 0;
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, questionText.hashCode);
+    _$hash = $jc(_$hash, label.hashCode);
     _$hash = $jc(_$hash, answers.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -51,6 +58,7 @@ class _$Question extends Question {
     return (newBuiltValueToStringHelper(r'Question')
           ..add('id', id)
           ..add('questionText', questionText)
+          ..add('label', label)
           ..add('answers', answers))
         .toString();
   }
@@ -67,6 +75,10 @@ class QuestionBuilder implements Builder<Question, QuestionBuilder> {
   String? get questionText => _$this._questionText;
   set questionText(String? questionText) => _$this._questionText = questionText;
 
+  String? _label;
+  String? get label => _$this._label;
+  set label(String? label) => _$this._label = label;
+
   ListBuilder<String>? _answers;
   ListBuilder<String> get answers => _$this._answers ??= ListBuilder<String>();
   set answers(ListBuilder<String>? answers) => _$this._answers = answers;
@@ -80,6 +92,7 @@ class QuestionBuilder implements Builder<Question, QuestionBuilder> {
     if ($v != null) {
       _id = $v.id;
       _questionText = $v.questionText;
+      _label = $v.label;
       _answers = $v.answers.toBuilder();
       _$v = null;
     }
@@ -107,6 +120,7 @@ class QuestionBuilder implements Builder<Question, QuestionBuilder> {
             id: BuiltValueNullFieldError.checkNotNull(id, r'Question', 'id'),
             questionText: BuiltValueNullFieldError.checkNotNull(
                 questionText, r'Question', 'questionText'),
+            label: label,
             answers: answers.build(),
           );
     } catch (_) {

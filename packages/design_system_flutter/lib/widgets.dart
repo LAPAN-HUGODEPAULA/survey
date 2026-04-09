@@ -1,159 +1,40 @@
+export 'components/admin/ds_admin_catalog_item.dart';
+export 'components/admin/ds_admin_catalog_shell.dart';
+export 'components/admin/ds_admin_form_shell.dart';
+export 'components/admin/ds_inline_conflict_message.dart';
+export 'components/auth/ds_account_menu.dart';
+export 'components/auth/ds_professional_auth.dart';
+export 'components/async/ds_async_page.dart';
+export 'components/async/ds_error_mapper.dart';
+export 'components/forms/ds_form_validators.dart';
+export 'components/forms/ds_form_formatters.dart';
+export 'components/forms/ds_normalized_key_field.dart';
+export 'components/forms/ds_validated_fields.dart';
+export 'components/legal/ds_legal_notice.dart';
+export 'components/legal/ds_legal_viewer.dart';
+export 'components/respondent_flow/ds_demographics_catalog_loader.dart';
+export 'components/respondent_flow/ds_patient_identity_section.dart';
+export 'components/respondent_flow/ds_survey_demographics_section.dart';
+export 'components/respondent_flow/ds_survey_details_panel.dart';
+export 'components/respondent_flow/ds_survey_instruction_gate.dart';
+export 'components/respondent_flow/ds_survey_question_runner.dart';
+export 'components/respondent_flow/respondent_flow_models.dart';
 export 'widgets/survey_option_button.dart';
 export 'widgets/survey_progress_indicator.dart';
+export 'theme/ds_tone_tokens.dart';
+export 'widgets/ds_ambient_delight.dart';
 export 'widgets/ds_buttons.dart';
+export 'widgets/ds_ai_insight_card.dart';
+export 'widgets/ds_ai_progress_indicator.dart';
+export 'widgets/ds_assistant_status.dart';
 export 'widgets/ds_chip.dart';
 export 'widgets/ds_indicator.dart';
 export 'widgets/ds_dialog.dart';
+export 'widgets/ds_emotional_tone_provider.dart';
+export 'widgets/ds_empty_state.dart';
+export 'widgets/ds_feedback.dart';
+export 'widgets/ds_handoff.dart';
 export 'widgets/ds_chat_bubble.dart';
-
-import 'package:flutter/material.dart';
-
-const dsSharedStatusBarText =
-    'COPYRIGHT © 2026. Laboratório de Pesquisa Aplicada às Neurociências da Visão - Todos os direitos reservados.';
-
-class DsStatusBar extends StatelessWidget {
-  const DsStatusBar({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Material(
-      color: colorScheme.surfaceContainerHighest,
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Text(
-            dsSharedStatusBarText,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class DsScaffold extends StatelessWidget {
-  final String? title;
-  final Widget body;
-  final List<Widget>? actions;
-  final PreferredSizeWidget? appBar;
-  final bool isLoading;
-  final String? error;
-  final Widget? loading;
-  final Widget? errorWidget;
-  final bool useSafeArea;
-  final Color? backgroundColor;
-  final Widget? footer;
-
-  const DsScaffold({
-    super.key,
-    required this.body,
-    this.title,
-    this.actions,
-    this.appBar,
-    this.isLoading = false,
-    this.error,
-    this.loading,
-    this.errorWidget,
-    this.useSafeArea = false,
-    this.backgroundColor,
-    this.footer,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    Widget resolvedBody;
-    if (isLoading) {
-      resolvedBody = Center(child: loading ?? const CircularProgressIndicator());
-    } else if (error != null) {
-      resolvedBody = Center(child: errorWidget ?? Text(error!));
-    } else {
-      resolvedBody = body;
-    }
-
-    if (useSafeArea) {
-      resolvedBody = SafeArea(child: resolvedBody);
-    }
-
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      appBar: appBar ?? (title != null ? AppBar(title: Text(title!), actions: actions) : null),
-      body: resolvedBody,
-      bottomNavigationBar: footer ?? const DsStatusBar(),
-    );
-  }
-}
-
-class DsPrimaryButton extends StatelessWidget {
-  final String label;
-  final VoidCallback onPressed;
-  final bool loading;
-
-  const DsPrimaryButton({
-    super.key,
-    required this.label,
-    required this.onPressed,
-    this.loading = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: loading ? null : onPressed,
-      child: loading
-          ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : Text(label),
-    );
-  }
-}
-
-class DsEmpty extends StatelessWidget {
-  final String message;
-  const DsEmpty({super.key, this.message = 'Nothing here yet.'});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text(message));
-  }
-}
-
-class DsError extends StatelessWidget {
-  final String message;
-  final VoidCallback? onRetry;
-  const DsError({super.key, required this.message, this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(message, textAlign: TextAlign.center),
-          if (onRetry != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: DsPrimaryButton(label: 'Retry', onPressed: onRetry!),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class DsLoading extends StatelessWidget {
-  const DsLoading({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: CircularProgressIndicator());
-  }
-}
+export 'widgets/ds_scaffold.dart';
+export 'widgets/ds_surface.dart';
+export 'widgets/ds_wayfinding.dart';

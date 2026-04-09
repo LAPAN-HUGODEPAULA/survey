@@ -56,12 +56,16 @@ class SurveyResponseModelTests(unittest.TestCase):
             "testDate": datetime.now(timezone.utc).isoformat(),
             "screenerId": "screener-1",
             "promptKey": "clinical_referral_letter:lapan7",
+            "personaSkillKey": "school_report",
+            "outputProfile": "school_report",
             "answers": [{"id": 1, "answer": "A"}],
         }
 
         response = SurveyResponse.model_validate(payload)
 
         self.assertEqual(response.prompt_key, "clinical_referral_letter:lapan7")
+        self.assertEqual(response.persona_skill_key, "school_report")
+        self.assertEqual(response.output_profile, "school_report")
 
 
 if __name__ == "__main__":

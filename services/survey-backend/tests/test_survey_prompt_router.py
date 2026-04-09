@@ -18,7 +18,6 @@ def _prompt_doc() -> dict:
     return {
         "promptKey": "clinical_referral_letter:lapan7",
         "name": "Encaminhamento clínico",
-        "outcomeType": "clinical_referral_letter",
         "promptText": "Escreva um encaminhamento clínico.",
         "createdAt": datetime.now(timezone.utc).isoformat(),
         "modifiedAt": datetime.now(timezone.utc).isoformat(),
@@ -47,13 +46,30 @@ def test_create_survey_prompt():
         json={
             "promptKey": "clinical_referral_letter:lapan7",
             "name": "Encaminhamento clínico",
-            "outcomeType": "clinical_referral_letter",
             "promptText": "Escreva um encaminhamento clínico.",
         },
     )
 
     assert response.status_code == 201
-    assert response.json()["outcomeType"] == "clinical_referral_letter"
+    assert response.json()["promptKey"] == "clinical_referral_letter:lapan7"
+    app.dependency_overrides = {}
+
+
+def test_create_survey_prompt_rejects_legacy_outcome_type():
+    mock_repo = MagicMock()
+    _override_prompt_repo(mock_repo)
+
+    response = client.post(
+        "/api/v1/survey_prompts/",
+        json={
+            "promptKey": "clinical_referral_letter:lapan7",
+            "name": "Encaminhamento clínico",
+            "outcomeType": "clinical_referral_letter",
+            "promptText": "Escreva um encaminhamento clínico.",
+        },
+    )
+
+    assert response.status_code == 422
     app.dependency_overrides = {}
 
 

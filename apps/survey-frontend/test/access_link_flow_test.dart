@@ -1,4 +1,3 @@
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -59,12 +58,12 @@ Survey _buildSurvey() {
     questions: <Question>[
       Question(id: 1, questionText: 'Pergunta 1', answers: <String>['A', 'B']),
     ],
-    promptAssociations: const [],
+    prompt: null,
   );
 }
 
 ScreenerProfile _buildScreenerProfile() {
-  return const ScreenerProfile(
+  return ScreenerProfile(
     id: 'screener-1',
     cpf: '52998224725',
     firstName: 'Ana',
@@ -87,6 +86,7 @@ ScreenerProfile _buildScreenerProfile() {
     jobTitle: 'Psicóloga',
     degree: 'Psicologia',
     darvCourseYear: 2020,
+    initialNoticeAcceptedAt: DateTime(2026, 1, 1),
   );
 }
 

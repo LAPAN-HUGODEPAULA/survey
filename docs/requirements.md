@@ -16,8 +16,14 @@ Define the capabilities and constraints of the LAPAN Survey Platform as it exist
 - Capture survey responses and patient responses, persist them in MongoDB.
 - Send email notifications for survey and patient responses via background tasks.
 - Enrich survey and patient responses with AI-generated narratives and classifications through the Clinical Writer service (triggered by backend tasks or the survey-worker).
+- Store and surface optional question-level `label` metadata so the patient summary radar and future agents render human-friendly names instead of numeric IDs.
+- The `survey-patient` thank-you screen must surface an inline “Avaliação preliminar” card with the latest agent output, a colored radar keyed by those labels, and explicit actions to add demographic data or reset the experience for another respondent.
 - Expose REST APIs under `/api/v1` with OpenAPI as the contract source.
 - Provide Flutter web applications for screeners, patients, and clinical narratives, all using the shared design system.
+- Reuse common Flutter respondent-flow and admin CRUD components through `packages/design_system_flutter` instead of maintaining parallel local implementations in each app.
+- Require authenticated screener access before entering protected professional workflows in `survey-frontend` and `clinical-narrative`, while keeping the locked patient-distribution route in `survey-frontend` publicly accessible.
+- Reuse the same screener registration, login, profile, and password-recovery contract in both professional apps without introducing a second professional identity store.
+- Provide the canonical professional sign-in, sign-up, and account-menu UI through `packages/design_system_flutter`.
 - Generate client SDKs from the OpenAPI contract (`tools/scripts/generate_clients.sh`).
 
 ## Non-Functional Requirements
@@ -26,6 +32,8 @@ Define the capabilities and constraints of the LAPAN Survey Platform as it exist
 - Reliability: database writes must confirm success or surface errors; background jobs should log and mark failed attempts.
 - Deployability via Docker Compose with environment-driven configuration.
 - Consistent UX: shared Flutter theme seeded with `Colors.orange`.
+- Reusable Flutter components must expose callback- and data-model-based APIs so route transitions, repositories, and provider state remain app-owned.
+- Professional authentication must fail closed for protected app entry points and require explicit sign-in before session-based clinical or survey-authoring workflows can proceed.
 - Observability: structured logging across backend, worker, and Clinical Writer service.
 
 ## Constraints & Non-Goals

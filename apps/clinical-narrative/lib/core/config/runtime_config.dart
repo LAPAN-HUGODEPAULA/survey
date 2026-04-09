@@ -1,9 +1,10 @@
 import 'package:runtime_app_config/runtime_app_config.dart';
 
 class RuntimeConfig {
-  RuntimeConfig({required this.apiBaseUrl});
+  RuntimeConfig({required this.apiBaseUrl, required this.viaCepBaseUrl});
 
   final String apiBaseUrl;
+  final String viaCepBaseUrl;
 
   static RuntimeConfig? _instance;
 
@@ -19,9 +20,13 @@ class RuntimeConfig {
     final loaded = await RuntimeAppConfig.loadStringConfig(
       fallback: {
         'apiBaseUrl': RuntimeAppConfig.resolveApiBaseUrl(),
+        'viaCepBaseUrl': 'https://viacep.com.br/',
       },
     );
 
-    _instance = RuntimeConfig(apiBaseUrl: loaded['apiBaseUrl']!);
+    _instance = RuntimeConfig(
+      apiBaseUrl: loaded['apiBaseUrl']!,
+      viaCepBaseUrl: loaded['viaCepBaseUrl']!,
+    );
   }
 }

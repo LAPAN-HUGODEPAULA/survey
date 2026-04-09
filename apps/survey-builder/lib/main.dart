@@ -1,4 +1,5 @@
 import 'package:design_system_flutter/theme/app_theme.dart';
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:survey_builder/core/config/runtime_config.dart';
@@ -18,7 +19,7 @@ class SurveyBuilderApp extends StatelessWidget {
     return MaterialApp(
       title: 'LAPAN Construtor de Questionários',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(),
+      theme: AppTheme.dark(),
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -26,6 +27,10 @@ class SurveyBuilderApp extends StatelessWidget {
       ],
       supportedLocales: const [Locale('pt', 'BR')],
       locale: const Locale('pt', 'BR'),
+      builder: (context, child) => DsEmotionalToneProvider(
+        profile: DsToneProfile.admin,
+        child: child ?? const SizedBox.shrink(),
+      ),
       home: const SurveyListPage(),
     );
   }

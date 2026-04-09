@@ -1,9 +1,9 @@
-
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:survey_app/core/navigation/app_navigator.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
+import 'package:survey_app/shared/widgets/assessment_flow_stepper.dart';
 
 /// Collects optional clinical notes before showing the survey instructions.
 class ClinicalPage extends StatefulWidget {
@@ -77,7 +77,6 @@ class _ClinicalPageState extends State<ClinicalPage> {
         labelText: label,
         hintText: 'Opcional — $hint',
         alignLabelWithHint: true,
-        border: const OutlineInputBorder(),
         helperText: hint,
       ),
     );
@@ -85,64 +84,74 @@ class _ClinicalPageState extends State<ClinicalPage> {
 
   @override
   Widget build(BuildContext context) {
+    final settings = context.watch<AppSettings>();
     return DsScaffold(
-      appBar: AppBar(title: const Text('Dados Clínicos (opcional)')),
+      title: 'Dados clínicos',
+      subtitle:
+          'Registre observações complementares com clareza antes de iniciar o questionário.',
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: 'Voltar para os dados do paciente',
+      userName: settings.screenerDisplayName,
+      showAmbientGreeting: true,
+      scrollable: true,
       body: Center(
-        child: Container(
+        child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 700),
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: ListView(
-              children: [
-                _buildMultilineField(
-                  label: 'Histórico médico',
-                  hint:
-                      'Lista de condições e diagnósticos prévios/atuais do paciente.',
-                  controller: _medicalHistoryController,
-                ),
-                const SizedBox(height: 16),
-                _buildMultilineField(
-                  label: 'Histórico familiar',
-                  hint:
-                      'Informações de saúde de parentes biológicos (pais, irmãos, filhos).',
-                  controller: _familyHistoryController,
-                ),
-                const SizedBox(height: 16),
-                _buildMultilineField(
-                  label: 'Dados sociais',
-                  hint:
-                      'Informações não clínicas que impactam a saúde (tabagismo, álcool, ocupação, moradia, etc.).',
-                  controller: _socialDataController,
-                ),
-                const SizedBox(height: 16),
-                _buildMultilineField(
-                  label: 'Histórico de medicação',
-                  hint:
-                      'Lista de medicações atuais ou recentes, incluindo dose, frequência e via.',
-                  controller: _medicationHistoryController,
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _goNext,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.black,
-                        ),
-                        child: const Text(
-                          'Continuar para Instruções',
-                          style: TextStyle(fontSize: 16),
+          child: Column(
+            children: [
+              const AssessmentFlowStepper(
+                currentStep: AssessmentFlowStep.contextoClinico,
+              ),
+              DsSection(
+                eyebrow: 'Opcional',
+                title: 'Contexto complementar',
+                subtitle:
+                    'Essas informações ajudam a contextualizar o atendimento, mas não bloqueiam o fluxo.',
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      _buildMultilineField(
+                        label: 'Histórico médico',
+                        hint:
+                            'Lista de condições e diagnósticos prévios/atuais do paciente.',
+                        controller: _medicalHistoryController,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildMultilineField(
+                        label: 'Histórico familiar',
+                        hint:
+                            'Informações de saúde de parentes biológicos (pais, irmãos, filhos).',
+                        controller: _familyHistoryController,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildMultilineField(
+                        label: 'Dados sociais',
+                        hint:
+                            'Informações não clínicas que impactam a saúde (tabagismo, álcool, ocupação, moradia, etc.).',
+                        controller: _socialDataController,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildMultilineField(
+                        label: 'Histórico de medicação',
+                        hint:
+                            'Lista de medicações atuais ou recentes, incluindo dose, frequência e via.',
+                        controller: _medicationHistoryController,
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: DsFilledButton(
+                          label: 'Continuar para Instruções',
+                          onPressed: _goNext,
+                          size: DsButtonSize.large,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

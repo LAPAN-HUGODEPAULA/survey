@@ -5,6 +5,7 @@
 library;
 
 import 'package:design_system_flutter/theme/app_theme.dart';
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +15,7 @@ import 'package:survey_app/core/providers/api_provider.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/features/access_links/pages/access_link_launch_page.dart';
 import 'package:survey_app/features/demographics/pages/demographics_page.dart';
+import 'package:survey_app/features/screener/pages/screener_initial_notice_page.dart';
 import 'package:survey_app/features/screener/pages/screener_login_page.dart';
 import 'package:survey_app/features/screener/pages/screener_profile_page.dart';
 import 'package:survey_app/features/screener/pages/screener_registration_page.dart';
@@ -21,8 +23,44 @@ import 'package:survey_app/features/settings/pages/settings_page.dart';
 import 'package:survey_app/features/splash/splash_screen.dart';
 import 'package:survey_app/shared/widgets/main_layout.dart';
 
+final AppSettings _appSettings = AppSettings();
+final ApiProvider _apiProvider = ApiProvider();
+
+String? _routeGuard(BuildContext context, GoRouterState state) {
+  final path = state.uri.path;
+  final isPublicPath =
+      path == '/login' || path == '/register' || path.startsWith('/access/');
+  final isInitialNoticePath = path == '/initial-notice';
+  final allowsLockedAssessmentRoute =
+      path == '/demographics' && _appSettings.isLockedAssessmentMode;
+
+  if (!_appSettings.isLoggedIn &&
+      !isPublicPath &&
+      !allowsLockedAssessmentRoute) {
+    return '/login';
+  }
+
+  if (_appSettings.requiresInitialNoticeAgreement &&
+      !isPublicPath &&
+      !isInitialNoticePath) {
+    return '/initial-notice';
+  }
+
+  if (!_appSettings.requiresInitialNoticeAgreement && isInitialNoticePath) {
+    return '/demographics';
+  }
+
+  if (_appSettings.isLoggedIn && (path == '/login' || path == '/register')) {
+    return '/demographics';
+  }
+
+  return null;
+}
+
 /// Shared application router for screener flows and access-link entry points.
 final _router = GoRouter(
+  refreshListenable: _appSettings,
+  redirect: _routeGuard,
   routes: [
     ShellRoute(
       builder: (context, state, child) {
@@ -48,6 +86,10 @@ final _router = GoRouter(
           builder: (context, state) => const ScreenerLoginPage(),
         ),
         GoRoute(
+          path: '/initial-notice',
+          builder: (context, state) => const ScreenerInitialNoticePage(),
+        ),
+        GoRoute(
           path: '/profile',
           builder: (context, state) => const ScreenerProfilePage(),
         ),
@@ -69,8 +111,8 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => AppSettings()),
-        ChangeNotifierProvider(create: (context) => ApiProvider()),
+        ChangeNotifierProvider<AppSettings>.value(value: _appSettings),
+        ChangeNotifierProvider<ApiProvider>.value(value: _apiProvider),
       ],
       child: const MyApp(),
     ),
@@ -95,7 +137,11 @@ class MyApp extends StatelessWidget {
       ],
       supportedLocales: const [Locale('pt', 'BR')],
       locale: const Locale('pt', 'BR'),
-      theme: AppTheme.light(),
+      theme: AppTheme.dark(),
+      builder: (context, child) => DsEmotionalToneProvider(
+        profile: DsToneProfile.professional,
+        child: child ?? const SizedBox.shrink(),
+      ),
       debugShowCheckedModeBanner: false,
       routerConfig: _router,
     );

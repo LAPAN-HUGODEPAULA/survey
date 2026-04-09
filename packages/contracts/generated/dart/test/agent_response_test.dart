@@ -22,6 +22,16 @@ void main() {
       // TODO
     });
 
+    // String questionnairePromptVersion
+    test('to test the property `questionnairePromptVersion`', () async {
+      // TODO
+    });
+
+    // String personaSkillVersion
+    test('to test the property `personaSkillVersion`', () async {
+      // TODO
+    });
+
     // String modelVersion
     test('to test the property `modelVersion`', () async {
       // TODO

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:survey_builder/core/models/survey_draft.dart';
 import 'package:survey_builder/core/repositories/survey_repository.dart';
 import 'package:survey_builder/core/services/file_download.dart';
+import 'package:survey_builder/features/survey/pages/persona_skill_list_page.dart';
 import 'package:survey_builder/features/survey/pages/survey_form_page.dart';
 import 'package:survey_builder/features/survey/pages/survey_prompt_list_page.dart';
 
@@ -20,6 +21,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
   bool _loading = true;
   bool _exporting = false;
   String? _error;
+  DsFeedbackMessage? _feedback;
   List<SurveyDraft> _surveys = [];
 
   @override
@@ -63,24 +65,42 @@ class _SurveyListPageState extends State<SurveyListPage> {
         resolvedDraft = await _repo.fetchSurvey(draft.id!);
       } catch (error) {
         if (!mounted) return;
-        _showSnack('Falha ao carregar detalhes do questionário: $error');
+        setState(() {
+          _feedback = DsFeedbackMessage(
+            severity: DsStatusType.error,
+            title: 'Não foi possível abrir o questionário',
+            message: 'Falha ao carregar detalhes do questionário: $error',
+          );
+        });
         return;
       }
     }
     if (!mounted) return;
-    await Navigator.of(context).push(
-      MaterialPageRoute<void>(
+    final changed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(
         builder: (_) => SurveyFormPage(initialDraft: resolvedDraft),
       ),
     );
     if (!mounted) return;
     await _load();
+    if (!mounted) return;
+    if (changed == true) {
+      showDsToast(
+        context,
+        feedback: const DsFeedbackMessage(
+          severity: DsStatusType.success,
+          title: 'Questionário salvo',
+          message: 'Alterações salvas.',
+        ),
+      );
+    }
   }
 
   Future<void> _confirmDelete(SurveyDraft draft) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => DsDialog(
+        severity: DsStatusType.warning,
         title: 'Excluir questionário?',
         content: Text(
           'Isso excluirá permanentemente "${draft.surveyDisplayName}".',
@@ -91,7 +111,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
             onPressed: () => Navigator.pop(context, false),
           ),
           DsFilledButton(
-            label: 'Excluir',
+            label: 'Excluir questionário',
             onPressed: () => Navigator.pop(context, true),
           ),
         ],
@@ -102,11 +122,24 @@ class _SurveyListPageState extends State<SurveyListPage> {
     try {
       await _repo.deleteSurvey(draft.id!);
       await _load();
+      if (mounted) {
+        setState(() {
+          _feedback = const DsFeedbackMessage(
+            severity: DsStatusType.success,
+            title: 'Questionário excluído',
+            message: 'Questionário removido.',
+          );
+        });
+      }
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Falha ao excluir: $error')));
+      setState(() {
+        _feedback = DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Falha ao excluir questionário',
+          message: 'Falha ao excluir: $error',
+        );
+      });
     }
   }
 
@@ -117,20 +150,28 @@ class _SurveyListPageState extends State<SurveyListPage> {
       final payload = await _repo.exportSurveys();
       final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
       downloadTextFile('exportacao_questionarios_$timestamp.json', payload);
+      if (mounted) {
+        setState(() {
+          _feedback = const DsFeedbackMessage(
+            severity: DsStatusType.success,
+            title: 'Exportação concluída',
+            message: 'Arquivo de exportação pronto.',
+          );
+        });
+      }
     } catch (error) {
-      _showSnack('Falha ao exportar: $error');
+      setState(() {
+        _feedback = DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Falha ao exportar',
+          message: 'Falha ao exportar: $error',
+        );
+      });
     } finally {
       if (mounted) {
         setState(() => _exporting = false);
       }
     }
-  }
-
-  void _showSnack(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   SurveyDraft _emptyDraft() {
@@ -149,7 +190,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
       ),
       questions: [],
       finalNotes: '',
-      promptAssociations: [],
+      prompt: null,
     );
   }
 
@@ -161,10 +202,26 @@ class _SurveyListPageState extends State<SurveyListPage> {
         .trim();
   }
 
+  String _questionLabelPreview(SurveyDraft survey) {
+    if (survey.questions.isEmpty) {
+      return 'sem perguntas';
+    }
+    final labels = survey.questions
+        .map((question) {
+          final trimmed = question.label.trim();
+          return trimmed.isEmpty ? 'Q${question.id}' : trimmed;
+        })
+        .take(3)
+        .toList(growable: false);
+    return labels.join(' • ');
+  }
+
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
       title: 'Construtor de Questionários',
+      subtitle: 'Gerencie questionários, prompts e personas.',
+      showAmbientGreeting: true,
       useSafeArea: true,
       actions: [
         IconButton(
@@ -177,38 +234,62 @@ class _SurveyListPageState extends State<SurveyListPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Row(
+            if (_feedback != null) ...[
+              DsMessageBanner(
+                feedback: DsFeedbackMessage(
+                  severity: _feedback!.severity,
+                  title: _feedback!.title,
+                  message: _feedback!.message,
+                  dismissible: true,
+                  onDismiss: () => setState(() => _feedback = null),
+                ),
+              ),
+            ],
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Flexible(
-                  child: Text(
-                    'Questionários',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
+                Text(
+                  'Questionários',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-                const SizedBox(width: 16),
-                DsFilledButton(
-                  label: 'Criar questionário',
-                  onPressed: () => _openForm(draft: _emptyDraft()),
-                ),
-                const SizedBox(width: 8),
-                DsOutlinedButton(
-                  label: 'Gerenciar prompts',
-                  onPressed: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => const SurveyPromptListPage(),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(width: 8),
-                DsOutlinedButton(
-                  label: _exporting
-                      ? 'Exportando...'
-                      : 'Exportar questionários',
-                  onPressed: _exporting ? null : _exportSurveys,
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    DsFilledButton(
+                      label: 'Criar questionário',
+                      onPressed: () => _openForm(draft: _emptyDraft()),
+                    ),
+                    DsOutlinedButton(
+                      label: 'Gerenciar prompts',
+                      onPressed: () async {
+                        await Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const SurveyPromptListPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    DsOutlinedButton(
+                      label: 'Gerenciar personas',
+                      onPressed: () async {
+                        await Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const PersonaSkillListPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    DsOutlinedButton(
+                      label: _exporting
+                          ? 'Exportando...'
+                          : 'Exportar questionários',
+                      onPressed: _exporting ? null : _exportSurveys,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -226,12 +307,27 @@ class _SurveyListPageState extends State<SurveyListPage> {
                           const SizedBox(height: 8),
                       itemBuilder: (context, index) {
                         final survey = _surveys[index];
-                        return Card(
-                          elevation: 1,
+                        return DsPanel(
+                          tone: DsPanelTone.high,
+                          padding: EdgeInsets.zero,
                           child: ListTile(
                             title: Text(survey.surveyDisplayName),
-                            subtitle: Text(
-                              _plainSummary(survey.surveyDescription),
+                            subtitle: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(_plainSummary(survey.surveyDescription)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Rotulos: ${_questionLabelPreview(survey)}',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                      ),
+                                ),
+                              ],
                             ),
                             trailing: Wrap(
                               spacing: 8,

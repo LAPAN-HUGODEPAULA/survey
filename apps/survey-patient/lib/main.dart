@@ -5,11 +5,12 @@
 library;
 
 import 'package:design_system_flutter/theme/app_theme.dart';
+import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:patient_app/core/config/runtime_config.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
-import 'package:patient_app/features/welcome/pages/welcome_page.dart';
+import 'package:patient_app/features/legal/pages/patient_entry_page.dart';
 import 'package:provider/provider.dart';
 
 /// Boots Flutter bindings, loads runtime config, and starts the app tree.
@@ -28,7 +29,7 @@ Future<void> main() async {
 
 /// Root widget for the patient-facing survey app.
 ///
-/// The widget configures the shared LAPAN theme and starts on [WelcomePage].
+/// The widget configures the shared LAPAN theme and starts on [PatientEntryPage].
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -43,9 +44,13 @@ class MyApp extends StatelessWidget {
       ],
       supportedLocales: const [Locale('pt', 'BR')],
       locale: const Locale('pt', 'BR'),
-      theme: AppTheme.light(),
+      theme: AppTheme.dark(),
+      builder: (context, child) => DsEmotionalToneProvider(
+        profile: DsToneProfile.patient,
+        child: child ?? const SizedBox.shrink(),
+      ),
       debugShowCheckedModeBanner: false,
-      home: const WelcomePage(),
+      home: const PatientEntryPage(),
     );
   }
 }

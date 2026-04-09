@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:io';
 import 'dart:js_interop';
@@ -16,6 +15,7 @@ import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/models/survey_response.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/core/repositories/survey_repository.dart';
+import 'package:patient_app/shared/widgets/patient_journey_stepper.dart';
 import 'package:provider/provider.dart';
 import 'package:web/web.dart' as web;
 
@@ -51,15 +51,10 @@ class _ReportPageState extends State<ReportPage> {
   void initState() {
     super.initState();
     _surveyRepository = widget.surveyRepository ?? SurveyRepository();
-    final promptAssociations = widget.survey.promptAssociations;
-    if (promptAssociations.length <= 1) {
-      _selectedPromptKey = promptAssociations.isEmpty
-          ? null
-          : promptAssociations.first.promptKey;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _submitResponse();
-      });
-    }
+    _selectedPromptKey = widget.survey.prompt?.promptKey;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _submitResponse();
+    });
   }
 
   @override
@@ -85,7 +80,8 @@ class _ReportPageState extends State<ReportPage> {
 
   Patient? _resolvePatient(AppSettings settings) {
     final patient = settings.patient;
-    final hasData = patient.name.isNotEmpty ||
+    final hasData =
+        patient.name.isNotEmpty ||
         patient.email.isNotEmpty ||
         patient.birthDate.isNotEmpty ||
         patient.gender.isNotEmpty ||
@@ -178,11 +174,11 @@ class _ReportPageState extends State<ReportPage> {
         answers: _buildAnswers(),
       );
 
-      final fileName = _generateFileName(
-        widget.survey.id,
-        patient?.name,
+      final fileName = _generateFileName(widget.survey.id, patient?.name);
+      final filePath = await _writeResponseFile(
+        fileName,
+        surveyResponse.toJson(),
       );
-      final filePath = await _writeResponseFile(fileName, surveyResponse.toJson());
 
       setState(() {
         _isSaving = false;
@@ -265,7 +261,10 @@ class _ReportPageState extends State<ReportPage> {
   Future<String> _saveWithFallback(String fileName, String jsonString) async {
     if (kIsWeb) {
       try {
-        web.window.localStorage.setItem('survey_response_$fileName', jsonString);
+        web.window.localStorage.setItem(
+          'survey_response_$fileName',
+          jsonString,
+        );
         return 'Salvo no armazenamento do navegador: $fileName';
       } catch (e) {
         return 'Dados preparados (não foi possível salvar): $fileName';
@@ -316,16 +315,19 @@ class _ReportPageState extends State<ReportPage> {
   }
 
   String _generateReportFileName(String surveyId, String? patientName) {
-    final baseName = _generateFileName(surveyId, patientName).replaceAll('.json', '');
+    final baseName = _generateFileName(
+      surveyId,
+      patientName,
+    ).replaceAll('.json', '');
     return '${baseName}_relatorio.txt';
   }
 
-  Future<void> _exportReport(AppSettings settings, ReportDocument report) async {
+  Future<void> _exportReport(
+    AppSettings settings,
+    ReportDocument report,
+  ) async {
     final patient = _resolvePatient(settings);
-    final fileName = _generateReportFileName(
-      widget.survey.id,
-      patient?.name,
-    );
+    final fileName = _generateReportFileName(widget.survey.id, patient?.name);
     final reportText = _buildReportText(report);
     final result = await _writeReportFile(fileName, reportText);
 
@@ -333,8 +335,13 @@ class _ReportPageState extends State<ReportPage> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(result)),
+    showDsToast(
+      context,
+      feedback: DsFeedbackMessage(
+        severity: DsStatusType.success,
+        title: 'Exportação concluída',
+        message: result,
+      ),
     );
   }
 
@@ -346,8 +353,13 @@ class _ReportPageState extends State<ReportPage> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Exportação em PDF disponível apenas no navegador.')),
+    showDsToast(
+      context,
+      feedback: const DsFeedbackMessage(
+        severity: DsStatusType.info,
+        title: 'Exportação em PDF',
+        message: 'A exportação em PDF está disponível apenas no navegador.',
+      ),
     );
   }
 
@@ -362,7 +374,10 @@ class _ReportPageState extends State<ReportPage> {
     }
   }
 
-  Future<String> _saveReportToWebBrowser(String fileName, String content) async {
+  Future<String> _saveReportToWebBrowser(
+    String fileName,
+    String content,
+  ) async {
     final parts = <web.BlobPart>[content.toJS as web.BlobPart].toJS;
     final blob = web.Blob(parts, web.BlobPropertyBag(type: 'text/plain'));
     final url = web.URL.createObjectURL(blob);
@@ -398,197 +413,108 @@ class _ReportPageState extends State<ReportPage> {
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<AppSettings>(context);
-    final promptAssociations = widget.survey.promptAssociations;
     final reportDocument = _agentResponse == null
         ? null
         : _resolveReportDocument(settings, _agentResponse!);
+    final displayName = widget.survey.surveyDisplayName.isNotEmpty
+        ? widget.survey.surveyDisplayName
+        : widget.survey.surveyName;
 
     return DsScaffold(
-      appBar: AppBar(
-        title: const Text('Relatório'),
-        automaticallyImplyLeading: false,
-      ),
+      title: 'Relatório',
+      subtitle: 'Análise consolidada do questionário $displayName.',
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: 'Voltar para os dados demográficos',
+      scrollable: true,
       body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 860),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (_isSaving) ...[
-                  const Center(child: CircularProgressIndicator()),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Gerando relatório...',
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                ],
-                if (!_isSaving &&
-                    !_saveSuccess &&
-                    promptAssociations.length > 1) ...[
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Escolha o tipo de relatório',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<String>(
-                          initialValue: _selectedPromptKey,
-                          decoration: const InputDecoration(
-                            labelText: 'Resultado desejado',
-                          ),
-                          items: promptAssociations
-                              .map(
-                                (prompt) => DropdownMenuItem<String>(
-                                  value: prompt.promptKey,
-                                  child: Text(prompt.name),
-                                ),
-                              )
-                              .toList(growable: false),
-                          onChanged: (value) {
-                            setState(() => _selectedPromptKey = value);
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        DsFilledButton(
-                          label: 'Gerar relatório',
-                          onPressed: _selectedPromptKey == null
-                              ? null
-                              : _submitResponse,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                if (_saveSuccess && !_isSaving)
-                  _StatusBanner(
-                    icon: Icons.check_circle_outline,
-                    message: _savedResponseId != null
-                        ? 'Respostas enviadas com sucesso!'
-                        : 'Respostas salvas localmente.',
-                    detail: _savedResponseId != null
-                        ? 'Protocolo: $_savedResponseId'
-                        : _savedFilePath,
-                    color: Theme.of(context).colorScheme.tertiary,
-                  ),
-                if (_saveError != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: _StatusBanner(
-                      icon: Icons.warning_amber_outlined,
-                      message: _saveError!,
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-                const SizedBox(height: 16),
-                if (reportDocument != null) ...[
-                  ReportView(
-                    report: reportDocument,
-                    footer:
-                        'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: () => _exportReport(settings, reportDocument),
-                        icon: const Icon(Icons.text_snippet_outlined),
-                        label: const Text('Salvar como texto'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: _exportPdf,
-                        icon: const Icon(Icons.picture_as_pdf_outlined),
-                        label: const Text('Exportar PDF'),
-                      ),
-                    ],
-                  ),
-                ],
-                if (!_isSaving && reportDocument == null && _saveError == null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 24.0),
-                    child: Text(
-                      'Ainda estamos processando o seu relatório. Aguarde alguns instantes.',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _StatusBanner extends StatelessWidget {
-  const _StatusBanner({
-    required this.icon,
-    required this.message,
-    this.detail,
-    required this.color,
-  });
-
-  final IconData icon;
-  final String message;
-  final String? detail;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: scheme.outline),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 860),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Icon(icon, color: color),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  message,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w600),
-                ),
+              const PatientJourneyStepper(
+                currentStep: PatientJourneyStep.relatorio,
               ),
+              if (_isSaving) ...[
+                const Center(child: DsLoading()),
+                const SizedBox(height: 16),
+                const DsInlineMessage(
+                  feedback: DsFeedbackMessage(
+                    severity: DsStatusType.info,
+                    title: 'Preparando relatório',
+                    message: 'Respostas registradas. Relatório em preparo.',
+                  ),
+                  margin: EdgeInsets.zero,
+                ),
+                const SizedBox(height: 24),
+              ],
+              if (_saveSuccess && !_isSaving)
+                DsMessageBanner(
+                  feedback: DsFeedbackMessage(
+                    severity: DsStatusType.success,
+                    title: _savedResponseId != null
+                        ? 'Respostas enviadas'
+                        : 'Respostas salvas localmente',
+                    message: _savedResponseId != null
+                        ? 'Agora você pode visualizar, imprimir ou exportar o relatório.'
+                        : 'Não conseguimos enviar ao servidor, mas os dados foram preservados localmente.',
+                  ),
+                  footer: (_savedResponseId != null || _savedFilePath != null)
+                      ? Text(
+                          _savedResponseId != null
+                              ? 'Protocolo: $_savedResponseId'
+                              : 'Arquivo salvo em: $_savedFilePath',
+                        )
+                      : null,
+                ),
+              if (_saveError != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: DsMessageBanner(
+                    feedback: DsFeedbackMessage(
+                      severity: DsStatusType.warning,
+                      title: 'Envio com ressalvas',
+                      message: _saveError!,
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 16),
+              if (reportDocument != null) ...[
+                ReportView(
+                  report: reportDocument,
+                  footer:
+                      'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    DsFilledButton(
+                      label: 'Salvar como texto',
+                      icon: Icons.text_snippet_outlined,
+                      onPressed: () => _exportReport(settings, reportDocument),
+                    ),
+                    DsOutlinedButton(
+                      label: 'Exportar PDF',
+                      icon: Icons.picture_as_pdf_outlined,
+                      onPressed: _exportPdf,
+                    ),
+                  ],
+                ),
+              ],
+              if (!_isSaving && reportDocument == null && _saveError == null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 24.0),
+                  child: Text(
+                    'Ainda estamos processando o seu relatório. Aguarde alguns instantes.',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
             ],
           ),
-          if (detail != null && detail!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              detail!,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: scheme.onSurfaceVariant),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }

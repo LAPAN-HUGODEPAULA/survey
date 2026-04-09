@@ -41,6 +41,8 @@ class AppSettings extends ChangeNotifier {
   ScreenerProfile? get screenerProfile => _screenerProfile;
   bool get isLoggedIn =>
       (_authToken?.isNotEmpty ?? false) && _screenerProfile != null;
+  bool get requiresInitialNoticeAgreement =>
+      isLoggedIn && _screenerProfile?.initialNoticeAcceptedAt == null;
   bool get isLockedAssessmentMode =>
       _preparedAccessLinkToken != null &&
       _preparedScreenerId != null &&
@@ -135,6 +137,15 @@ class AppSettings extends ChangeNotifier {
   void clearScreenerSession() {
     _authToken = null;
     _screenerProfile = null;
+    notifyListeners();
+  }
+
+  void markInitialNoticeAccepted(DateTime acceptedAt) {
+    final profile = _screenerProfile;
+    if (profile == null) {
+      return;
+    }
+    _screenerProfile = profile.copyWith(initialNoticeAcceptedAt: acceptedAt);
     notifyListeners();
   }
 

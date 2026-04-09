@@ -14,16 +14,21 @@ from app.domain.models.survey_response_with_agent import SurveyResponseWithAgent
 from app.integrations.clinical_writer.client import send_to_langgraph_agent
 from app.integrations.email.service import send_survey_response_email
 from app.persistence.deps import (
+    get_persona_skill_repo,
     get_screener_access_link_repo,
     get_screener_repo,
     get_survey_repo,
     get_survey_response_repo,
 )
+from app.persistence.repositories.persona_skill_repo import PersonaSkillRepository
 from app.persistence.repositories.screener_access_link_repo import ScreenerAccessLinkRepository
 from app.persistence.repositories.screener_repo import ScreenerRepository
 from app.persistence.repositories.survey_repo import SurveyRepository
 from app.persistence.repositories.survey_response_repo import SurveyResponseRepository
-from app.services.survey_prompt_selection import resolve_prompt_key
+from app.services.survey_prompt_selection import (
+    hydrate_survey_persona_defaults,
+    resolve_prompt_selection,
+)
 
 router = APIRouter()
 
@@ -36,6 +41,7 @@ async def create_survey_response(
     access_link_repo: ScreenerAccessLinkRepository = Depends(get_screener_access_link_repo),
     screener_repo: ScreenerRepository = Depends(get_screener_repo),
     survey_repo: SurveyRepository = Depends(get_survey_repo),
+    persona_repo: PersonaSkillRepository = Depends(get_persona_skill_repo),
 ):
     """
     Create a survey response, persist it, trigger an email, and enrich with AI agent output.
@@ -58,6 +64,25 @@ async def create_survey_response(
                 )
             survey_response.screener_id = link.screener_id
             survey_response.survey_id = link.survey_id
+
+        resolved_survey = survey_repo.get_by_id(survey_response.survey_id)
+        resolved_survey = hydrate_survey_persona_defaults(
+            resolved_survey,
+            requested_persona_skill_key=survey_response.persona_skill_key,
+            requested_output_profile=survey_response.output_profile,
+            get_persona_by_key=persona_repo.get_by_key,
+            get_persona_by_output_profile=persona_repo.get_by_output_profile,
+        )
+        selection = resolve_prompt_selection(
+            resolved_survey,
+            survey_response.prompt_key,
+            requested_persona_skill_key=survey_response.persona_skill_key,
+            requested_output_profile=survey_response.output_profile,
+            input_type="survey7",
+        )
+        survey_response.prompt_key = selection.prompt_key
+        survey_response.persona_skill_key = selection.persona_skill_key
+        survey_response.output_profile = selection.output_profile
 
         logger.info("Dumping survey response model to dict...")
         survey_response_dict = survey_response.model_dump(by_alias=True)
@@ -84,15 +109,12 @@ async def create_survey_response(
 
         try:
             logger.info("Sending survey response to LangGraph agent for processing...")
-            resolved_survey = survey_repo.get_by_id(survey_response.survey_id)
-            resolved_prompt_key = resolve_prompt_key(
-                resolved_survey,
-                survey_response.prompt_key,
-            )
             agent_result = await send_to_langgraph_agent(
                 response_payload,
                 input_type="survey7",
-                prompt_key=resolved_prompt_key,
+                prompt_key=selection.prompt_key,
+                persona_skill_key=selection.persona_skill_key,
+                output_profile=selection.output_profile,
                 source_app="survey-frontend",
                 patient_ref=survey_response.patient.email if survey_response.patient else None,
             )
@@ -110,6 +132,13 @@ async def create_survey_response(
         logger.info("--- Returning created survey response with agent output ---")
         return SurveyResponseWithAgent(**response_payload, agent_response=agent_response)
 
+    except ValueError as exc:
+        logger.warning(
+            "Invalid survey configuration for survey %s: %s",
+            survey_response.survey_id,
+            exc,
+        )
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except HTTPException:
         raise
     except Exception as e:

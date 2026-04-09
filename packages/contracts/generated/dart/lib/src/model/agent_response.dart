@@ -16,6 +16,8 @@ part 'agent_response.g.dart';
 /// * [ok] 
 /// * [inputType] 
 /// * [promptVersion] 
+/// * [questionnairePromptVersion] 
+/// * [personaSkillVersion] 
 /// * [modelVersion] 
 /// * [report] 
 /// * [warnings] 
@@ -32,6 +34,12 @@ abstract class AgentResponse implements Built<AgentResponse, AgentResponseBuilde
 
   @BuiltValueField(wireName: r'prompt_version')
   String? get promptVersion;
+
+  @BuiltValueField(wireName: r'questionnaire_prompt_version')
+  String? get questionnairePromptVersion;
+
+  @BuiltValueField(wireName: r'persona_skill_version')
+  String? get personaSkillVersion;
 
   @BuiltValueField(wireName: r'model_version')
   String? get modelVersion;
@@ -92,6 +100,20 @@ class _$AgentResponseSerializer implements PrimitiveSerializer<AgentResponse> {
       yield r'prompt_version';
       yield serializers.serialize(
         object.promptVersion,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.questionnairePromptVersion != null) {
+      yield r'questionnaire_prompt_version';
+      yield serializers.serialize(
+        object.questionnairePromptVersion,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.personaSkillVersion != null) {
+      yield r'persona_skill_version';
+      yield serializers.serialize(
+        object.personaSkillVersion,
         specifiedType: const FullType(String),
       );
     }
@@ -180,6 +202,20 @@ class _$AgentResponseSerializer implements PrimitiveSerializer<AgentResponse> {
             specifiedType: const FullType(String),
           ) as String;
           result.promptVersion = valueDes;
+          break;
+        case r'questionnaire_prompt_version':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.questionnairePromptVersion = valueDes;
+          break;
+        case r'persona_skill_version':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.personaSkillVersion = valueDes;
           break;
         case r'model_version':
           final valueDes = serializers.deserialize(

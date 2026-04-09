@@ -33,9 +33,15 @@ The system MUST provide a schema for `Screener` users in the database.
   },
   "jobTitle": "Psychologist",
   "degree": "Psychology",
-  "darvCourseYear": 2019
+  "darvCourseYear": 2019,
+  "initialNoticeAcceptedAt": null
 }
 ```
+
+#### Scenario: Persist a screener that already accepted the initial notice
+- **WHEN** the system stores or reads a screener record after the platform initial notice was accepted
+- **THEN** the screener document MUST keep `initialNoticeAcceptedAt`
+- **AND** the field MUST store the acknowledgement date and time in a consistent datetime format
 
 ### Requirement: Unique CPF
 The `cpf` field MUST be unique for each screener.

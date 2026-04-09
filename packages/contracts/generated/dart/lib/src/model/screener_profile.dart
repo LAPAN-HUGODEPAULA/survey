@@ -24,6 +24,7 @@ part 'screener_profile.g.dart';
 /// * [jobTitle] - Cargo/profissão do Screener
 /// * [degree] - Formação acadêmica/grau do Screener
 /// * [darvCourseYear] - Ano de conclusão do curso DARV (opcional)
+/// * [initialNoticeAcceptedAt] - Data de aceite do aviso inicial de uso da plataforma
 @BuiltValue()
 abstract class ScreenerProfile implements Built<ScreenerProfile, ScreenerProfileBuilder> {
   @BuiltValueField(wireName: r'_id')
@@ -66,6 +67,10 @@ abstract class ScreenerProfile implements Built<ScreenerProfile, ScreenerProfile
   /// Ano de conclusão do curso DARV (opcional)
   @BuiltValueField(wireName: r'darvCourseYear')
   int? get darvCourseYear;
+
+  /// Data de aceite do aviso inicial de uso da plataforma
+  @BuiltValueField(wireName: r'initialNoticeAcceptedAt')
+  DateTime? get initialNoticeAcceptedAt;
 
   ScreenerProfile._();
 
@@ -145,6 +150,13 @@ class _$ScreenerProfileSerializer implements PrimitiveSerializer<ScreenerProfile
       yield serializers.serialize(
         object.darvCourseYear,
         specifiedType: const FullType(int),
+      );
+    }
+    if (object.initialNoticeAcceptedAt != null) {
+      yield r'initialNoticeAcceptedAt';
+      yield serializers.serialize(
+        object.initialNoticeAcceptedAt,
+        specifiedType: const FullType.nullable(DateTime),
       );
     }
   }
@@ -246,6 +258,14 @@ class _$ScreenerProfileSerializer implements PrimitiveSerializer<ScreenerProfile
             specifiedType: const FullType(int),
           ) as int;
           result.darvCourseYear = valueDes;
+          break;
+        case r'initialNoticeAcceptedAt':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(DateTime),
+          ) as DateTime?;
+          if (valueDes == null) continue;
+          result.initialNoticeAcceptedAt = valueDes;
           break;
         default:
           unhandled.add(key);

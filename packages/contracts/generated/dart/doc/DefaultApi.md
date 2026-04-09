@@ -9,6 +9,7 @@ All URIs are relative to **
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
+[**acceptScreenerInitialNoticeAgreement**](DefaultApi.md#acceptscreenerinitialnoticeagreement) | **POST** /screeners/me/initial-notice-agreement | Record the current screener initial notice agreement
 [**analyzeClinicalWriter**](DefaultApi.md#analyzeclinicalwriter) | **POST** /clinical_writer/analysis | Analyze conversation context with Clinical Writer
 [**approveTemplate**](DefaultApi.md#approvetemplate) | **POST** /templates/{templateId}/approve | Approve template
 [**archiveTemplate**](DefaultApi.md#archivetemplate) | **POST** /templates/{templateId}/archive | Archive template
@@ -16,11 +17,13 @@ Method | HTTP request | Description
 [**createChatMessage**](DefaultApi.md#createchatmessage) | **POST** /chat/sessions/{sessionId}/messages | Create chat message
 [**createChatSession**](DefaultApi.md#createchatsession) | **POST** /chat/sessions | Create chat session
 [**createPatientResponse**](DefaultApi.md#createpatientresponse) | **POST** /patient_responses/ | Create patient response
+[**createPersonaSkill**](DefaultApi.md#createpersonaskill) | **POST** /persona_skills/ | Create persona skill
 [**createScreenerAccessLink**](DefaultApi.md#createscreeneraccesslink) | **POST** /screener_access_links/ | Create a prepared screener access link
 [**createSurvey**](DefaultApi.md#createsurvey) | **POST** /surveys/ | Create survey
 [**createSurveyPrompt**](DefaultApi.md#createsurveyprompt) | **POST** /survey_prompts/ | Create reusable survey prompt
 [**createSurveyResponse**](DefaultApi.md#createsurveyresponse) | **POST** /survey_responses/ | Create survey response
 [**createTemplate**](DefaultApi.md#createtemplate) | **POST** /templates | Create template
+[**deletePersonaSkill**](DefaultApi.md#deletepersonaskill) | **DELETE** /persona_skills/{personaSkillKey} | Delete persona skill
 [**deleteSurvey**](DefaultApi.md#deletesurvey) | **DELETE** /surveys/{surveyId} | Delete survey
 [**deleteSurveyPrompt**](DefaultApi.md#deletesurveyprompt) | **DELETE** /survey_prompts/{promptKey} | Delete reusable survey prompt
 [**exportDocument**](DefaultApi.md#exportdocument) | **POST** /documents/export | Export document
@@ -28,12 +31,14 @@ Method | HTTP request | Description
 [**getChatSession**](DefaultApi.md#getchatsession) | **GET** /chat/sessions/{sessionId} | Get chat session
 [**getCurrentScreener**](DefaultApi.md#getcurrentscreener) | **GET** /screeners/me | Get the current screener profile
 [**getDocument**](DefaultApi.md#getdocument) | **GET** /documents/{documentId} | Get document record
+[**getPersonaSkill**](DefaultApi.md#getpersonaskill) | **GET** /persona_skills/{personaSkillKey} | Get persona skill by key
 [**getSurvey**](DefaultApi.md#getsurvey) | **GET** /surveys/{surveyId} | Get survey by id
 [**getSurveyPrompt**](DefaultApi.md#getsurveyprompt) | **GET** /survey_prompts/{promptKey} | Get reusable survey prompt by key
 [**getSurveyResponse**](DefaultApi.md#getsurveyresponse) | **GET** /survey_responses/{responseId} | Get survey response by id
 [**getTemplate**](DefaultApi.md#gettemplate) | **GET** /templates/{templateId} | Get template
 [**listChatMessages**](DefaultApi.md#listchatmessages) | **GET** /chat/sessions/{sessionId}/messages | List chat messages
 [**listChatSessions**](DefaultApi.md#listchatsessions) | **GET** /chat/sessions | List chat sessions
+[**listPersonaSkills**](DefaultApi.md#listpersonaskills) | **GET** /persona_skills/ | List persona skills
 [**listSurveyPrompts**](DefaultApi.md#listsurveyprompts) | **GET** /survey_prompts/ | List reusable survey prompts
 [**listSurveyResponses**](DefaultApi.md#listsurveyresponses) | **GET** /survey_responses/ | List survey responses
 [**listSurveys**](DefaultApi.md#listsurveys) | **GET** /surveys/ | List surveys
@@ -51,10 +56,52 @@ Method | HTTP request | Description
 [**transcribeVoiceAudio**](DefaultApi.md#transcribevoiceaudio) | **POST** /voice/transcriptions | Transcribe voice audio
 [**updateChatMessage**](DefaultApi.md#updatechatmessage) | **PATCH** /chat/messages/{messageId} | Update chat message
 [**updateChatSession**](DefaultApi.md#updatechatsession) | **PATCH** /chat/sessions/{sessionId} | Update chat session
+[**updatePersonaSkill**](DefaultApi.md#updatepersonaskill) | **PUT** /persona_skills/{personaSkillKey} | Update persona skill
 [**updateSurvey**](DefaultApi.md#updatesurvey) | **PUT** /surveys/{surveyId} | Update survey
 [**updateSurveyPrompt**](DefaultApi.md#updatesurveyprompt) | **PUT** /survey_prompts/{promptKey} | Update reusable survey prompt
 [**updateTemplate**](DefaultApi.md#updatetemplate) | **PUT** /templates/{templateId} | Update template (new version)
 
+
+# **acceptScreenerInitialNoticeAgreement**
+> ScreenerProfile acceptScreenerInitialNoticeAgreement(authorization)
+
+Record the current screener initial notice agreement
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String authorization = authorization_example; // String | Bearer token in the format `Bearer <token>`
+
+try {
+    final response = api.acceptScreenerInitialNoticeAgreement(authorization);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->acceptScreenerInitialNoticeAgreement: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **authorization** | **String**| Bearer token in the format `Bearer <token>` | 
+
+### Return type
+
+[**ScreenerProfile**](ScreenerProfile.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **analyzeClinicalWriter**
 > ClinicalWriterAnalysisResponse analyzeClinicalWriter(clinicalWriterAnalysisRequest)
@@ -71,7 +118,7 @@ final ClinicalWriterAnalysisRequest clinicalWriterAnalysisRequest = ; // Clinica
 try {
     final response = api.analyzeClinicalWriter(clinicalWriterAnalysisRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->analyzeClinicalWriter: $e\n');
 }
 ```
@@ -112,7 +159,7 @@ final String templateId = templateId_example; // String |
 try {
     final response = api.approveTemplate(templateId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->approveTemplate: $e\n');
 }
 ```
@@ -153,7 +200,7 @@ final String templateId = templateId_example; // String |
 try {
     final response = api.archiveTemplate(templateId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->archiveTemplate: $e\n');
 }
 ```
@@ -194,7 +241,7 @@ final String sessionId = sessionId_example; // String |
 try {
     final response = api.completeChatSession(sessionId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->completeChatSession: $e\n');
 }
 ```
@@ -236,7 +283,7 @@ final ChatMessageCreate chatMessageCreate = ; // ChatMessageCreate |
 try {
     final response = api.createChatMessage(sessionId, chatMessageCreate);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createChatMessage: $e\n');
 }
 ```
@@ -278,7 +325,7 @@ final ChatSessionCreate chatSessionCreate = ; // ChatSessionCreate |
 try {
     final response = api.createChatSession(chatSessionCreate);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createChatSession: $e\n');
 }
 ```
@@ -319,7 +366,7 @@ final SurveyResponse surveyResponse = ; // SurveyResponse |
 try {
     final response = api.createPatientResponse(surveyResponse);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createPatientResponse: $e\n');
 }
 ```
@@ -333,6 +380,47 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**SurveyResponseWithAgent**](SurveyResponseWithAgent.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **createPersonaSkill**
+> PersonaSkill createPersonaSkill(personaSkillUpsert)
+
+Create persona skill
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final PersonaSkillUpsert personaSkillUpsert = ; // PersonaSkillUpsert | 
+
+try {
+    final response = api.createPersonaSkill(personaSkillUpsert);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->createPersonaSkill: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **personaSkillUpsert** | [**PersonaSkillUpsert**](PersonaSkillUpsert.md)|  | 
+
+### Return type
+
+[**PersonaSkill**](PersonaSkill.md)
 
 ### Authorization
 
@@ -361,7 +449,7 @@ final CreateScreenerAccessLinkRequest createScreenerAccessLinkRequest = ; // Cre
 try {
     final response = api.createScreenerAccessLink(authorization, createScreenerAccessLinkRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createScreenerAccessLink: $e\n');
 }
 ```
@@ -403,7 +491,7 @@ final Survey survey = ; // Survey |
 try {
     final response = api.createSurvey(survey);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createSurvey: $e\n');
 }
 ```
@@ -444,7 +532,7 @@ final SurveyPromptUpsert surveyPromptUpsert = ; // SurveyPromptUpsert |
 try {
     final response = api.createSurveyPrompt(surveyPromptUpsert);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createSurveyPrompt: $e\n');
 }
 ```
@@ -485,7 +573,7 @@ final SurveyResponse surveyResponse = ; // SurveyResponse |
 try {
     final response = api.createSurveyResponse(surveyResponse);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createSurveyResponse: $e\n');
 }
 ```
@@ -526,7 +614,7 @@ final TemplateCreateRequest templateCreateRequest = ; // TemplateCreateRequest |
 try {
     final response = api.createTemplate(templateCreateRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->createTemplate: $e\n');
 }
 ```
@@ -552,6 +640,46 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **deletePersonaSkill**
+> deletePersonaSkill(personaSkillKey)
+
+Delete persona skill
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String personaSkillKey = personaSkillKey_example; // String | 
+
+try {
+    api.deletePersonaSkill(personaSkillKey);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->deletePersonaSkill: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **personaSkillKey** | **String**|  | 
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **deleteSurvey**
 > deleteSurvey(surveyId)
 
@@ -566,7 +694,7 @@ final String surveyId = surveyId_example; // String |
 
 try {
     api.deleteSurvey(surveyId);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->deleteSurvey: $e\n');
 }
 ```
@@ -606,7 +734,7 @@ final String promptKey = promptKey_example; // String |
 
 try {
     api.deleteSurveyPrompt(promptKey);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->deleteSurveyPrompt: $e\n');
 }
 ```
@@ -647,7 +775,7 @@ final DocumentExportRequest documentExportRequest = ; // DocumentExportRequest |
 try {
     final response = api.exportDocument(documentExportRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->exportDocument: $e\n');
 }
 ```
@@ -687,7 +815,7 @@ final api = SurveyBackendApi().getDefaultApi();
 try {
     final response = api.exportSurveys();
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->exportSurveys: $e\n');
 }
 ```
@@ -725,7 +853,7 @@ final String sessionId = sessionId_example; // String |
 try {
     final response = api.getChatSession(sessionId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->getChatSession: $e\n');
 }
 ```
@@ -766,7 +894,7 @@ final String authorization = authorization_example; // String | Bearer token in 
 try {
     final response = api.getCurrentScreener(authorization);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->getCurrentScreener: $e\n');
 }
 ```
@@ -807,7 +935,7 @@ final String documentId = documentId_example; // String |
 try {
     final response = api.getDocument(documentId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->getDocument: $e\n');
 }
 ```
@@ -821,6 +949,47 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**DocumentRecord**](DocumentRecord.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getPersonaSkill**
+> PersonaSkill getPersonaSkill(personaSkillKey)
+
+Get persona skill by key
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String personaSkillKey = personaSkillKey_example; // String | 
+
+try {
+    final response = api.getPersonaSkill(personaSkillKey);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->getPersonaSkill: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **personaSkillKey** | **String**|  | 
+
+### Return type
+
+[**PersonaSkill**](PersonaSkill.md)
 
 ### Authorization
 
@@ -848,7 +1017,7 @@ final String surveyId = surveyId_example; // String |
 try {
     final response = api.getSurvey(surveyId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->getSurvey: $e\n');
 }
 ```
@@ -889,7 +1058,7 @@ final String promptKey = promptKey_example; // String |
 try {
     final response = api.getSurveyPrompt(promptKey);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->getSurveyPrompt: $e\n');
 }
 ```
@@ -930,7 +1099,7 @@ final String responseId = responseId_example; // String |
 try {
     final response = api.getSurveyResponse(responseId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->getSurveyResponse: $e\n');
 }
 ```
@@ -971,7 +1140,7 @@ final String templateId = templateId_example; // String |
 try {
     final response = api.getTemplate(templateId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->getTemplate: $e\n');
 }
 ```
@@ -1012,7 +1181,7 @@ final String sessionId = sessionId_example; // String |
 try {
     final response = api.listChatMessages(sessionId);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->listChatMessages: $e\n');
 }
 ```
@@ -1053,7 +1222,7 @@ final String status = status_example; // String |
 try {
     final response = api.listChatSessions(status);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->listChatSessions: $e\n');
 }
 ```
@@ -1067,6 +1236,43 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**BuiltList&lt;ChatSession&gt;**](ChatSession.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **listPersonaSkills**
+> BuiltList<PersonaSkill> listPersonaSkills()
+
+List persona skills
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+
+try {
+    final response = api.listPersonaSkills();
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->listPersonaSkills: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**BuiltList&lt;PersonaSkill&gt;**](PersonaSkill.md)
 
 ### Authorization
 
@@ -1093,7 +1299,7 @@ final api = SurveyBackendApi().getDefaultApi();
 try {
     final response = api.listSurveyPrompts();
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->listSurveyPrompts: $e\n');
 }
 ```
@@ -1130,7 +1336,7 @@ final api = SurveyBackendApi().getDefaultApi();
 try {
     final response = api.listSurveyResponses();
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->listSurveyResponses: $e\n');
 }
 ```
@@ -1167,7 +1373,7 @@ final api = SurveyBackendApi().getDefaultApi();
 try {
     final response = api.listSurveys();
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->listSurveys: $e\n');
 }
 ```
@@ -1204,7 +1410,7 @@ final api = SurveyBackendApi().getDefaultApi();
 try {
     final response = api.listTemplateDocumentTypes();
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->listTemplateDocumentTypes: $e\n');
 }
 ```
@@ -1244,7 +1450,7 @@ final bool includeAll = true; // bool |
 try {
     final response = api.listTemplates(documentType, q, includeAll);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->listTemplates: $e\n');
 }
 ```
@@ -1287,7 +1493,7 @@ final ScreenerLogin screenerLogin = ; // ScreenerLogin |
 try {
     final response = api.loginScreener(screenerLogin);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->loginScreener: $e\n');
 }
 ```
@@ -1328,7 +1534,7 @@ final DocumentPreviewRequest documentPreviewRequest = ; // DocumentPreviewReques
 try {
     final response = api.previewDocument(documentPreviewRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->previewDocument: $e\n');
 }
 ```
@@ -1370,7 +1576,7 @@ final TemplatePreviewRequest templatePreviewRequest = ; // TemplatePreviewReques
 try {
     final response = api.previewTemplate(templateId, templatePreviewRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->previewTemplate: $e\n');
 }
 ```
@@ -1412,7 +1618,7 @@ final ClinicalWriterRequest clinicalWriterRequest = ; // ClinicalWriterRequest |
 try {
     final response = api.processClinicalWriter(clinicalWriterRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->processClinicalWriter: $e\n');
 }
 ```
@@ -1453,7 +1659,7 @@ final TemplateDocumentType documentType = ; // TemplateDocumentType |
 try {
     final response = api.recommendTemplates(documentType);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->recommendTemplates: $e\n');
 }
 ```
@@ -1493,7 +1699,7 @@ final ScreenerPasswordRecoveryRequest screenerPasswordRecoveryRequest = ; // Scr
 
 try {
     api.recoverScreenerPassword(screenerPasswordRecoveryRequest);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->recoverScreenerPassword: $e\n');
 }
 ```
@@ -1534,7 +1740,7 @@ final ScreenerRegister screenerRegister = ; // ScreenerRegister |
 try {
     final response = api.registerScreener(screenerRegister);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->registerScreener: $e\n');
 }
 ```
@@ -1574,7 +1780,7 @@ final String responseId = responseId_example; // String |
 
 try {
     api.resendSurveyEmail(responseId);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->resendSurveyEmail: $e\n');
 }
 ```
@@ -1615,7 +1821,7 @@ final String token = token_example; // String |
 try {
     final response = api.resolveScreenerAccessLink(token);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->resolveScreenerAccessLink: $e\n');
 }
 ```
@@ -1656,7 +1862,7 @@ final TranscriptionRequest transcriptionRequest = ; // TranscriptionRequest |
 try {
     final response = api.transcribeVoiceAudio(transcriptionRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->transcribeVoiceAudio: $e\n');
 }
 ```
@@ -1698,7 +1904,7 @@ final ChatMessageUpdate chatMessageUpdate = ; // ChatMessageUpdate |
 try {
     final response = api.updateChatMessage(messageId, chatMessageUpdate);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->updateChatMessage: $e\n');
 }
 ```
@@ -1741,7 +1947,7 @@ final ChatSessionUpdate chatSessionUpdate = ; // ChatSessionUpdate |
 try {
     final response = api.updateChatSession(sessionId, chatSessionUpdate);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->updateChatSession: $e\n');
 }
 ```
@@ -1756,6 +1962,49 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**ChatSession**](ChatSession.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **updatePersonaSkill**
+> PersonaSkill updatePersonaSkill(personaSkillKey, personaSkillUpsert)
+
+Update persona skill
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String personaSkillKey = personaSkillKey_example; // String | 
+final PersonaSkillUpsert personaSkillUpsert = ; // PersonaSkillUpsert | 
+
+try {
+    final response = api.updatePersonaSkill(personaSkillKey, personaSkillUpsert);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->updatePersonaSkill: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **personaSkillKey** | **String**|  | 
+ **personaSkillUpsert** | [**PersonaSkillUpsert**](PersonaSkillUpsert.md)|  | 
+
+### Return type
+
+[**PersonaSkill**](PersonaSkill.md)
 
 ### Authorization
 
@@ -1784,7 +2033,7 @@ final Survey survey = ; // Survey |
 try {
     final response = api.updateSurvey(surveyId, survey);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->updateSurvey: $e\n');
 }
 ```
@@ -1827,7 +2076,7 @@ final SurveyPromptUpsert surveyPromptUpsert = ; // SurveyPromptUpsert |
 try {
     final response = api.updateSurveyPrompt(promptKey, surveyPromptUpsert);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->updateSurveyPrompt: $e\n');
 }
 ```
@@ -1870,7 +2119,7 @@ final TemplateUpdateRequest templateUpdateRequest = ; // TemplateUpdateRequest |
 try {
     final response = api.updateTemplate(templateId, templateUpdateRequest);
     print(response);
-} on DioException catch (e) {
+} catch on DioException (e) {
     print('Exception when calling DefaultApi->updateTemplate: $e\n');
 }
 ```

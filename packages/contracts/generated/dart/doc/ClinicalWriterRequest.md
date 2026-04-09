@@ -12,6 +12,8 @@ Name | Type | Description | Notes
 **content** | **String** |  | 
 **locale** | **String** |  | 
 **promptKey** | **String** |  | 
+**personaSkillKey** | **String** |  | [optional] 
+**outputProfile** | **String** |  | [optional] 
 **outputFormat** | **String** |  | 
 **metadata** | [**ClinicalWriterRequestMetadata**](ClinicalWriterRequestMetadata.md) |  | 
 

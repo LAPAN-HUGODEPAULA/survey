@@ -29,13 +29,13 @@ void main() {
           answers: ['Resposta 1', 'Resposta 2'],
         ),
       ],
-      promptAssociations: const [],
+      prompt: null,
       finalNotes: null,
     );
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: AppTheme.light(),
+        theme: AppTheme.dark(),
         home: SurveyPage(survey: survey),
       ),
     );

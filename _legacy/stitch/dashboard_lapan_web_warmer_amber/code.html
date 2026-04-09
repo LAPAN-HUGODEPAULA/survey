@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>LAPAN | Patient Portal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Newsreader:opsz,wght@6..72,700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-fixed": "#3e1c00",
+                        "on-primary-container": "#ffdcc5",
+                        "surface-variant": "#20262c",
+                        "surface-container": "#161a1e",
+                        "tertiary-container": "#cddfee",
+                        "on-primary-fixed-variant": "#E67E22",
+                        "surface-container-low": "#111416",
+                        "on-tertiary": "#485965",
+                        "on-error-container": "#ff9b82",
+                        "on-secondary": "#052523",
+                        "primary": "#E67E22",
+                        "surface-container-lowest": "#000000",
+                        "primary-fixed-dim": "#ffb68b",
+                        "tertiary-fixed-dim": "#bfd1df",
+                        "tertiary-fixed": "#cddfee",
+                        "secondary": "#85a4a1",
+                        "on-background": "#e0e6ed",
+                        "tertiary": "#dbeefc",
+                        "error-dim": "#ba573f",
+                        "surface": "#0c0e10",
+                        "on-tertiary-fixed": "#2d3e49",
+                        "secondary-fixed": "#c9e9e5",
+                        "on-surface-variant": "#a6acb2",
+                        "outline": "#70767c",
+                        "primary-container": "#753400",
+                        "outline-variant": "#42494e",
+                        "on-tertiary-container": "#3f515c",
+                        "secondary-fixed-dim": "#bbdbd7",
+                        "secondary-dim": "#85a4a1",
+                        "inverse-surface": "#f9f9fc",
+                        "primary-fixed": "#ffdbc9",
+                        "surface-dim": "#0c0e10",
+                        "secondary-container": "#23403e",
+                        "tertiary-dim": "#bfd1df",
+                        "surface-container-highest": "#20262c",
+                        "on-tertiary-fixed-variant": "#495a66",
+                        "on-primary": "#ffffff",
+                        "error": "#ed7f64",
+                        "surface-tint": "#E67E22",
+                        "on-secondary-fixed-variant": "#43615e",
+                        "on-surface": "#e0e6ed",
+                        "surface-bright": "#252d33",
+                        "primary-dim": "#D35400",
+                        "background": "#0c0e10",
+                        "on-secondary-container": "#a6c6c2",
+                        "surface-container-high": "#1b2025",
+                        "on-error": "#450900",
+                        "inverse-primary": "#954a14",
+                        "on-secondary-fixed": "#274442",
+                        "inverse-on-surface": "#535557",
+                        "error-container": "#7e2b17"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Manrope"],
+                        "label": ["Manrope"],
+                        "serif": ["Newsreader"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0c0e10;
+            color: #e0e6ed;
+            font-family: 'Manrope', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .neuro-grid {
+            background-image: radial-gradient(#42494e 1px, transparent 1px);
+            background-size: 24px 24px;
+            opacity: 0.05;
+        }
+        .glass-card {
+            background: rgba(37, 45, 51, 0.6);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="dark overflow-x-hidden">
+<!-- Background Texture -->
+<div class="fixed inset-0 neuro-grid pointer-events-none"></div>
+<!-- Desktop Side Navigation (SideNavBar Component Implementation) -->
+<aside class="hidden md:flex flex-col fixed left-0 top-0 h-screen w-64 bg-[#0C0E10] border-r border-[#564337]/15 z-50">
+<div class="px-6 h-16 flex items-center">
+<span class="text-2xl font-black text-[#E67E22] tracking-tighter uppercase font-['Manrope']">LAPAN</span>
+</div>
+<nav class="flex-1 px-4 py-6 space-y-4">
+<a class="flex items-center gap-3 px-4 py-3 bg-[#282A2C] text-[#FFB783] border-l-4 border-[#E67E22] font-bold transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="science">science</span>
+<span class="font-['Manrope'] uppercase tracking-widest text-[0.75rem]">Research</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#DCC1B1] opacity-70 hover:bg-[#1A1C1E] hover:text-[#FFB783] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-['Manrope'] uppercase tracking-widest text-[0.75rem]">Patients</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#DCC1B1] opacity-70 hover:bg-[#1A1C1E] hover:text-[#FFB783] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-['Manrope'] uppercase tracking-widest text-[0.75rem]">Insights</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#DCC1B1] opacity-70 hover:bg-[#1A1C1E] hover:text-[#FFB783] transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span class="font-['Manrope'] uppercase tracking-widest text-[0.75rem]">Profile</span>
+</a>
+</nav>
+<div class="p-4 border-t border-[#564337]/15">
+<div class="flex items-center gap-3 px-2 py-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant/20">
+<img alt="User clinical profile" class="w-full h-full object-cover opacity-80" data-alt="professional headshot of a woman with short hair in a dark studio setting with soft side lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDcJlRx1tzTk51P-Fe8-vat3g_gb0dLsIWaJnTzqj5nGGiwpUlJz6Vjh7xguNDmRGSdPnYZsFg7B1Rm7C1VIcUQSNNavx3jLdPDlCD92yucczdstAHFUxagG3DFV_PDhR8X1G-tjfkWHAeaXNJ0GL8w4cNqAtNhDBdM8fJp8WbDvazWUJke6oJL4S35FbMFhu0GL4GN2VLQDDoydowlZnB8MtImiEMEjVhX3K8h1jFgnVZ6W2wyLro0RNvyW_MkBbWQHRTYbgxasU"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-on-surface leading-tight">Ana Silva</span>
+<span class="text-[11px] text-[#DCC1B1] uppercase tracking-wider">Patient ID: 8821</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Top Navigation (Mobile) (TopAppBar Component Implementation) -->
+<header class="md:hidden fixed top-0 w-full z-50 bg-[#121416]/80 backdrop-blur-xl flex justify-between items-center px-8 h-16 shadow-[0_20px_40px_rgba(0,0,0,0.25)]">
+<div class="flex items-center gap-2">
+<span class="text-2xl font-bold tracking-tighter text-[#FFB783] font-['Manrope']">LAPAN</span>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#E67E22]" data-icon="biotech">biotech</span>
+<div class="w-8 h-8 rounded-full bg-stone-800 border border-stone-700 overflow-hidden active:scale-95 transition-transform">
+<img alt="User clinical profile" class="w-full h-full object-cover" data-alt="close up avatar of a professional woman with warm neutral lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAO1khICxW-M6_hAa72qdW_GGmFdliaE2-xSD4CtsAtA_K2CuVqYuWiaB0RkhzJ9IHXfhKCJruYcZbTarGP_QjHUeYJFIJu87S92rieiaGwdie_KV2bAJYtLBkiAW-TMw2pV5Q3hLamV0RHV7r09g6Pywm30ozw87Cxsv6RzzHw-xQD5VQNfXvv7fGDQa-61PIG70kGTOAmY4HBmz7cgExnOwh-P1ocO_8nlO_E0T1IkQxe_1DpCbEdgh7hOtgYqcpx4RIOb8bEgRk"/>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="md:ml-64 pt-20 md:pt-12 px-6 pb-32 md:pb-12 max-w-7xl mx-auto">
+<!-- Welcome Section -->
+<section class="mb-12">
+<span class="text-[#E67E22] font-medium text-sm tracking-[0.2em] uppercase mb-2 block">Dashboard Overview</span>
+<h1 class="text-4xl md:text-5xl font-serif font-bold text-on-surface tracking-tight mb-4">Welcome, Ana Silva</h1>
+<p class="text-on-surface-variant max-w-2xl text-lg leading-relaxed">
+                Your neurological health metrics are currently stable. We've updated your laboratory insights based on the recent PET scan results from Friday.
+            </p>
+</section>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Upcoming Appointments (Large) -->
+<div class="md:col-span-8 bg-surface-container-low rounded-xl overflow-hidden relative group">
+<div class="p-8">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="text-2xl font-semibold text-on-surface mb-1">Upcoming Appointments</h2>
+<p class="text-on-surface-variant text-sm">Consultations and follow-ups scheduled for this month.</p>
+</div>
+<button class="text-[#E67E22] text-sm font-medium border-b-2 border-[#E67E22] pb-0.5 hover:text-[#FFB783] transition-colors">
+                            View Calendar
+                        </button>
+</div>
+<div class="space-y-4">
+<!-- Appointment Item 1 -->
+<div class="flex items-center justify-between p-5 bg-surface-container-highest rounded-xl border border-outline-variant/5 hover:border-outline-variant/20 transition-all duration-300">
+<div class="flex items-center gap-6">
+<div class="w-14 h-14 bg-surface-container flex flex-col items-center justify-center rounded-lg">
+<span class="text-[#E67E22] font-bold text-lg leading-none">12</span>
+<span class="text-[10px] uppercase font-bold text-stone-500">Oct</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Dr. Julian Vance</h4>
+<p class="text-sm text-on-surface-variant">Neurological Evaluation • 10:30 AM</p>
+</div>
+</div>
+<div class="hidden sm:flex gap-3">
+<button class="px-4 py-2 bg-surface-variant text-on-surface text-sm rounded-lg hover:bg-stone-700 transition-colors">Reschedule</button>
+<button class="px-4 py-2 bg-gradient-to-r from-[#E67E22] to-[#FFB783] text-white text-sm font-bold rounded-lg shadow-lg shadow-[#E67E22]/10 active:scale-95 transition-transform">Confirm</button>
+</div>
+</div>
+<!-- Appointment Item 2 -->
+<div class="flex items-center justify-between p-5 bg-surface-container-highest/50 rounded-xl border border-outline-variant/5">
+<div class="flex items-center gap-6 opacity-70">
+<div class="w-14 h-14 bg-surface-container flex flex-col items-center justify-center rounded-lg">
+<span class="text-stone-400 font-bold text-lg leading-none">24</span>
+<span class="text-[10px] uppercase font-bold text-stone-500">Oct</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Lab Services</h4>
+<p class="text-sm text-on-surface-variant">Blood Panel &amp; Biomarkers • 08:00 AM</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-stone-600" data-icon="chevron_right">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Scientific Insight (Small Side) -->
+<div class="md:col-span-4 flex flex-col gap-6">
+<div class="bg-surface-container-highest rounded-xl p-8 relative overflow-hidden flex-1 group">
+<div class="relative z-10 h-full flex flex-col">
+<div class="w-10 h-10 bg-[#E67E22]/20 rounded-lg flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-[#E67E22]" data-icon="psychology">psychology</span>
+</div>
+<h3 class="text-xl font-bold text-on-surface mb-3">Scientific Insight</h3>
+<p class="text-sm text-on-surface-variant leading-relaxed mb-6">
+                            Our recent longitudinal study suggests that consistent light therapy at 480nm can reduce neuro-inflammation by up to 14%.
+                        </p>
+<div class="mt-auto">
+<a class="text-[#E67E22] text-xs font-bold uppercase tracking-widest flex items-center gap-2 group-hover:gap-3 transition-all" href="#">
+                                Read Full Research
+                                <span class="material-symbols-outlined text-sm" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Decor element -->
+<div class="absolute -right-12 -bottom-12 w-48 h-48 bg-[#E67E22]/5 rounded-full blur-3xl group-hover:bg-[#E67E22]/10 transition-colors"></div>
+</div>
+</div>
+<!-- Recent Exams (Horizontal Bento) -->
+<div class="md:col-span-12">
+<div class="bg-surface-container-low rounded-xl p-8">
+<div class="flex items-center justify-between mb-8">
+<h2 class="text-2xl font-semibold text-on-surface">Recent Exams</h2>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-surface-container text-[11px] font-bold uppercase tracking-wider text-[#E67E22] rounded-full border border-[#E67E22]/20">All Results</span>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Exam Card 1 -->
+<div class="bg-surface-container rounded-xl p-5 border border-outline-variant/10 hover:bg-surface-container-highest transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-[#E67E22]" data-icon="visibility" style="font-variation-settings: 'FILL' 1;">visibility</span>
+<span class="text-[10px] font-bold text-stone-500 uppercase">Sept 28</span>
+</div>
+<h4 class="font-bold text-on-surface text-sm mb-1">Visual Field Test</h4>
+<p class="text-xs text-on-surface-variant mb-4">Baseline stability confirmed</p>
+<div class="flex items-center gap-2">
+<div class="flex-1 h-1 bg-stone-800 rounded-full overflow-hidden">
+<div class="h-full bg-[#E67E22] w-[92%] transition-all duration-500"></div>
+</div>
+<span class="text-[10px] font-bold text-[#E67E22]">92%</span>
+</div>
+</div>
+<!-- Exam Card 2 -->
+<div class="bg-surface-container rounded-xl p-5 border border-outline-variant/10 hover:bg-surface-container-highest transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-[#E67E22]" data-icon="neurology" style="font-variation-settings: 'FILL' 1;">neurology</span>
+<span class="text-[10px] font-bold text-stone-500 uppercase">Sept 15</span>
+</div>
+<h4 class="font-bold text-on-surface text-sm mb-1">PET Neuro-Scan</h4>
+<p class="text-xs text-on-surface-variant mb-4">Processing comparative data</p>
+<div class="flex items-center gap-2">
+<div class="flex-1 h-1 bg-stone-800 rounded-full overflow-hidden">
+<div class="h-full bg-[#E67E22] opacity-70 w-[65%] transition-all duration-500"></div>
+</div>
+<span class="text-[10px] font-bold text-[#E67E22]">65%</span>
+</div>
+</div>
+<!-- Exam Card 3 -->
+<div class="bg-surface-container rounded-xl p-5 border border-outline-variant/10 hover:bg-surface-container-highest transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-[#E67E22]" data-icon="biotech" style="font-variation-settings: 'FILL' 1;">biotech</span>
+<span class="text-[10px] font-bold text-stone-500 uppercase">Aug 30</span>
+</div>
+<h4 class="font-bold text-on-surface text-sm mb-1">CSF Biomarkers</h4>
+<p class="text-xs text-on-surface-variant mb-4">Optimal inflammatory levels</p>
+<div class="flex items-center gap-2">
+<div class="flex-1 h-1 bg-stone-800 rounded-full overflow-hidden">
+<div class="h-full bg-[#E67E22] w-[98%] transition-all duration-500"></div>
+</div>
+<span class="text-[10px] font-bold text-[#E67E22]">98%</span>
+</div>
+</div>
+<!-- Exam Card 4 -->
+<div class="bg-surface-container rounded-xl p-5 border border-outline-variant/10 hover:bg-surface-container-highest transition-colors cursor-pointer group">
+<div class="flex justify-between items-start mb-4">
+<span class="material-symbols-outlined text-stone-500" data-icon="description">description</span>
+<span class="text-[10px] font-bold text-stone-500 uppercase">Aug 12</span>
+</div>
+<h4 class="font-bold text-on-surface text-sm mb-1">Genetic Profile</h4>
+<p class="text-xs text-on-surface-variant mb-4">Full report available (PDF)</p>
+<div class="flex items-center gap-2">
+<div class="flex-1 h-1 bg-stone-800 rounded-full overflow-hidden">
+<div class="h-full bg-stone-600 w-full transition-all duration-500"></div>
+</div>
+<span class="text-[10px] font-bold text-stone-500">100%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Health Snapshot Card (Amber Chart) -->
+<div class="md:col-span-12 lg:col-span-5 bg-gradient-to-br from-surface-container-highest to-surface-container rounded-xl p-8 overflow-hidden relative">
+<div class="flex flex-col h-full">
+<h3 class="text-2xl font-serif font-bold text-on-surface mb-6">Patient Adherence</h3>
+<div class="flex items-end gap-4 mb-8 h-48">
+<div class="w-12 bg-[#E67E22]/20 rounded-t-lg h-24"></div>
+<div class="w-12 bg-[#E67E22]/40 rounded-t-lg h-32"></div>
+<div class="w-12 bg-[#E67E22]/60 rounded-t-lg h-28"></div>
+<div class="w-12 bg-[#E67E22]/80 rounded-t-lg h-40"></div>
+<div class="w-12 bg-[#E67E22] rounded-t-lg h-48"></div>
+</div>
+<div class="flex justify-between text-xs text-stone-500 font-bold uppercase tracking-tighter">
+<span>Mon</span>
+<span>Tue</span>
+<span>Wed</span>
+<span>Thu</span>
+<span>Fri</span>
+</div>
+</div>
+</div>
+<!-- Resilience Index (Amber Gauge) -->
+<div class="md:col-span-12 lg:col-span-7 bg-surface-container-low rounded-xl p-8 flex flex-col md:flex-row gap-8 items-center">
+<div class="w-full md:w-1/3 aspect-square rounded-full border-8 border-surface-container-highest flex items-center justify-center relative">
+<div class="text-center">
+<span class="text-4xl font-serif font-bold text-[#E67E22]">84</span>
+<span class="text-xs block text-stone-500 font-bold">STABILITY INDEX</span>
+</div>
+<svg class="absolute inset-0 w-full h-full -rotate-90">
+<circle cx="50%" cy="50%" fill="transparent" r="48%" stroke="#E67E22" stroke-dasharray="300" stroke-dashoffset="50" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+</div>
+<div class="flex-1">
+<h3 class="text-xl font-bold text-on-surface mb-2">Neurological Resilience</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6">
+                        Your resilience score has increased by 4.2 points since last quarter. This correlates with your consistent adherence to the neuro-sensory protocol and resting cycles.
+                    </p>
+<button class="bg-[#1A1C1E] text-[#FFB783] px-6 py-3 rounded-xl text-sm font-bold border border-[#564337]/15 hover:bg-[#282A2C] transition-colors active:scale-95 transition-transform">
+                        Compare Peer Data
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation (Mobile Only) (Matching TopAppBar styles) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-[#121416]/95 backdrop-blur-xl flex justify-around items-center px-4 pb-6 pt-3 shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-50">
+<a class="flex flex-col items-center justify-center bg-[#282A2C] text-[#FFB783] rounded-xl px-4 py-1.5 transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="science">science</span>
+<span class="text-[11px] font-['Manrope'] font-medium uppercase tracking-wider mt-1">Research</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#DCC1B1] opacity-70 px-4 py-1.5 transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="text-[11px] font-['Manrope'] font-medium uppercase tracking-wider mt-1">Patients</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#DCC1B1] opacity-70 px-4 py-1.5 transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="text-[11px] font-['Manrope'] font-medium uppercase tracking-wider mt-1">Insights</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#DCC1B1] opacity-70 px-4 py-1.5 transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+<span class="text-[11px] font-['Manrope'] font-medium uppercase tracking-wider mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

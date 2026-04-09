@@ -2,6 +2,10 @@
 
 Monorepo for the LAPAN healthcare survey and clinical narrative platform. It includes a FastAPI backend, background worker, Flutter web applications, an AI-powered Clinical Writer service, and shared contracts/design system packages.
 
+## Versioning
+- The repository follows Semantic Versioning.
+- Current release: `0.1.0` (tracked in the root `VERSION` file).
+
 ## Repository Layout
 - `services/survey-backend` – FastAPI API for surveys, survey responses, and patient responses (MongoDB persistence via repositories).
 - `services/survey-worker` – background processor that enriches responses via the Clinical Writer API.

@@ -16,8 +16,6 @@ class _$SurveyPrompt extends SurveyPrompt {
   @override
   final String name;
   @override
-  final SurveyPromptOutcomeType outcomeType;
-  @override
   final String promptText;
 
   factory _$SurveyPrompt([void Function(SurveyPromptBuilder)? updates]) =>
@@ -28,7 +26,6 @@ class _$SurveyPrompt extends SurveyPrompt {
       required this.modifiedAt,
       required this.promptKey,
       required this.name,
-      required this.outcomeType,
       required this.promptText})
       : super._();
   @override
@@ -46,7 +43,6 @@ class _$SurveyPrompt extends SurveyPrompt {
         modifiedAt == other.modifiedAt &&
         promptKey == other.promptKey &&
         name == other.name &&
-        outcomeType == other.outcomeType &&
         promptText == other.promptText;
   }
 
@@ -57,7 +53,6 @@ class _$SurveyPrompt extends SurveyPrompt {
     _$hash = $jc(_$hash, modifiedAt.hashCode);
     _$hash = $jc(_$hash, promptKey.hashCode);
     _$hash = $jc(_$hash, name.hashCode);
-    _$hash = $jc(_$hash, outcomeType.hashCode);
     _$hash = $jc(_$hash, promptText.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -70,7 +65,6 @@ class _$SurveyPrompt extends SurveyPrompt {
           ..add('modifiedAt', modifiedAt)
           ..add('promptKey', promptKey)
           ..add('name', name)
-          ..add('outcomeType', outcomeType)
           ..add('promptText', promptText))
         .toString();
   }
@@ -99,11 +93,6 @@ class SurveyPromptBuilder
   String? get name => _$this._name;
   set name(covariant String? name) => _$this._name = name;
 
-  SurveyPromptOutcomeType? _outcomeType;
-  SurveyPromptOutcomeType? get outcomeType => _$this._outcomeType;
-  set outcomeType(covariant SurveyPromptOutcomeType? outcomeType) =>
-      _$this._outcomeType = outcomeType;
-
   String? _promptText;
   String? get promptText => _$this._promptText;
   set promptText(covariant String? promptText) =>
@@ -120,7 +109,6 @@ class SurveyPromptBuilder
       _modifiedAt = $v.modifiedAt;
       _promptKey = $v.promptKey;
       _name = $v.name;
-      _outcomeType = $v.outcomeType;
       _promptText = $v.promptText;
       _$v = null;
     }
@@ -151,8 +139,6 @@ class SurveyPromptBuilder
               promptKey, r'SurveyPrompt', 'promptKey'),
           name: BuiltValueNullFieldError.checkNotNull(
               name, r'SurveyPrompt', 'name'),
-          outcomeType: BuiltValueNullFieldError.checkNotNull(
-              outcomeType, r'SurveyPrompt', 'outcomeType'),
           promptText: BuiltValueNullFieldError.checkNotNull(
               promptText, r'SurveyPrompt', 'promptText'),
         );

@@ -1,44 +1,48 @@
-
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 
 class AccessLinkUnavailablePage extends StatelessWidget {
-  const AccessLinkUnavailablePage({super.key});
+  const AccessLinkUnavailablePage({super.key, this.errorMessage, this.onRetry});
+
+  final String? errorMessage;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      appBar: AppBar(title: const Text('Link indisponível')),
+      title: 'Link indisponível',
+      subtitle: 'O link preparado não pode mais ser usado nesta sessão.',
+      scrollable: true,
       body: Center(
-        child: Container(
+        child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),
-          padding: const EdgeInsets.all(24),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Icon(Icons.info_outline, size: 40),
-                  SizedBox(height: 16),
-                  Text(
-                    'Este questionário preparado não está mais disponível.',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    'Entre em contato com o(a) seu(sua) screener atual para receber um novo link de acesso.',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    'Se precisar de ajuda, envie uma mensagem para lapan.hugodepaula@gmail.com.',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DsEmptyState(
+                visual: Icon(
+                  Icons.link_off_rounded,
+                  size: 56,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                title: 'Este questionário preparado não está mais disponível.',
+                description:
+                    errorMessage ??
+                    'Entre em contato com a pessoa responsável pela triagem para solicitar um novo link.',
+                actionLabel: onRetry == null ? null : 'Tentar Novamente',
+                onAction: onRetry,
               ),
-            ),
+              const SizedBox(height: 16),
+              const DsMessageBanner(
+                feedback: DsFeedbackMessage(
+                  severity: DsStatusType.info,
+                  title: 'Precisa de ajuda?',
+                  message:
+                      'Se precisar de ajuda, envie uma mensagem para lapan.hugodepaula@gmail.com.',
+                ),
+                margin: EdgeInsets.zero,
+              ),
+            ],
           ),
         ),
       ),

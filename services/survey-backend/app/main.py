@@ -12,8 +12,9 @@ from app.config.logging_config import logger
 from app.config.settings import settings
 from app.api.routes.survey import router as surveys_router
 from app.api.routes.survey_prompts import router as survey_prompts_router
-from app.api.routes.survey_responses import router as survey_results_router
-from app.api.routes.patient_responses import router as patient_results_router
+from app.api.routes.persona_skills import router as persona_skills_router
+from app.api.routes.survey_responses import router as survey_responses_router
+from app.api.routes.patient_responses import router as patient_responses_router
 from app.api.routes.clinical_writer import router as clinical_writer_router
 from app.api.routes.screener_routes import router as screeners_router
 from app.api.routes.screener_access_links import router as screener_access_links_router
@@ -31,9 +32,22 @@ from app.persistence.repositories.screener_repo import (
     ScreenerRepository,
 )
 
+
+def _build_security_headers() -> dict[str, str]:
+    """Return baseline response headers that reduce common browser attack surface."""
+    headers = {
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+    }
+    if settings.is_production:
+        headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return headers
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize service-level dependencies when the API starts."""
+    settings.validate_runtime_security()
     logger.info("Survey Application API started successfully")
 
     # Ensure the reserved system screener exists before handling requests.
@@ -53,12 +67,11 @@ async def lifespan(app: FastAPI):
         hashed_password = bcrypt.hashpw(system_screener_password.encode("utf-8"), bcrypt.gensalt())
         try:
             screener_repo.ensure_system_screener(hashed_password.decode("utf-8"))
-            if settings.is_production:
-                logger.info("System Screener created.")
-            else:
+            logger.info("System Screener created.")
+            if not settings.is_production:
                 logger.warning(
-                    "System Screener temporary password: %s",
-                    system_screener_password,
+                    "System Screener created with a generated development credential. "
+                    "Reset it through the database before sharing the environment."
                 )
         except Exception as e:
             logger.error("Failed to create System Screener: %s", e)
@@ -69,7 +82,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Survey Application API",
     description="API for managing surveys and processing survey/patient results",
-    version="1.0.0",
+    version="0.1.0",
     lifespan=lifespan,
 )
 
@@ -91,20 +104,29 @@ async def enforce_https_in_production(request: Request, call_next):
                 status_code=403,
                 content={"detail": "HTTPS required."},
             )
-    return await call_next(request)
+    response = await call_next(request)
+    for header_name, header_value in _build_security_headers().items():
+        response.headers.setdefault(header_name, header_value)
+    return response
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.cors_allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "X-Privacy-Admin-Token",
+        "X-Request-ID",
+    ],
 )
 
 app.include_router(surveys_router, prefix="/api/v1", tags=["surveys"])
 app.include_router(survey_prompts_router, prefix="/api/v1", tags=["survey_prompts"])
-app.include_router(survey_results_router, prefix="/api/v1", tags=["survey_results"])
-app.include_router(patient_results_router, prefix="/api/v1", tags=["patient_results"])
+app.include_router(persona_skills_router, prefix="/api/v1", tags=["persona_skills"])
+app.include_router(survey_responses_router, prefix="/api/v1", tags=["survey_responses"])
+app.include_router(patient_responses_router, prefix="/api/v1", tags=["patient_responses"])
 app.include_router(clinical_writer_router, prefix="/api/v1", tags=["clinical_writer"])
 app.include_router(screeners_router, prefix="/api/v1", tags=["screeners"])
 app.include_router(screener_access_links_router, prefix="/api/v1", tags=["screener_access_links"])

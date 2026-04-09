@@ -16,29 +16,33 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 
 ### Survey Backend (`services/survey-backend`)
 
-- FastAPI application exposing `/api/v1` routes for surveys, survey responses, and patient responses.
+- FastAPI application exposing `/api/v1` routes for reusable survey prompts, persona skills, surveys, survey responses, and patient responses.
 - Domain models in `app/domain/models`; adapters/integrations (e.g., email, Clinical Writer client) under `app/integrations`.
 - Persistence via repository pattern in `app/persistence`, injected through `app.persistence.deps`.
 - Background tasks for outbound email and optional AI enrichment per request.
 
 ### Survey Worker (`services/survey-worker`)
 
-- Python worker that polls MongoDB for pending survey results and submits them to the Clinical Writer service.
-- Updates documents with `agentResponse`, `agentResponseStatus`, and timestamps; configurable polling cadence and batch size.
+- Python worker that polls MongoDB `survey_responses` documents and submits pending items to the Clinical Writer service.
+- Retries responses with missing agent output, failed status, pending status, or stale `processing` status after a configurable timeout.
+- Updates documents with `agentResponse`, `agentResponseStatus`, and `agentResponseUpdatedAt`; configurable polling cadence, batch size, timeout, and stale-processing threshold.
 
 ### Clinical Writer API (`services/clinical-writer-api`)
 
-- Independent FastAPI + LangGraph service for generating medical narratives.
-- Uses a **classification Strategy Pattern** (ported from previous docs): prioritizes inappropriate-content detection, JSON payload detection, conversation recognition, and a fallback “other” strategy to route input to the right agent before invoking the LLM. Central configuration lives in `AgentConfig` and strategies are orchestrated through `ClassificationContext`.
-- Exposes an `/invoke` style endpoint (default port `9566` when run via its compose file) consumed by the worker/backend.
+- Independent FastAPI + LangGraph service implementing a **4-stage state graph** for generating clinical reports. See [multiagent-architecture.md](file:///home/hugo/Documents/LAPAN/dev/survey/docs/multiagent-architecture.md) for the full architectural design.
+- **4-stage graph**: ContextLoader → ClinicalAnalyzer → PersonaWriter → ReflectorNode. Separates clinical interpretation from narrative formatting and applies reflection-based safety validation with up to 2 retry loops.
+- **Composable prompts**: Assembled at runtime from three layers — Domain (`QuestionnairePrompts`), Persona (`PersonaSkills`), and Contextual Data (pseudonymized response JSON).
+- Uses `PromptRegistry` to compose questionnaire clinical logic from `QuestionnairePrompts` and output persona rules from `PersonaSkills`.
+- Preserves Google Drive or local fallback providers only for non-migrated flows.
+- Exposes a `/process` endpoint (default port `9566` when run via root `docker-compose.yml`) consumed by the worker/backend.
 
 ### Flutter Applications (`apps/`)
 
-- `survey-frontend`: screener-focused survey UI.
+- `survey-frontend`: screener-focused survey UI. Protected professional routes now require screener login, while the locked patient-distribution route stays public.
 - `survey-patient`: patient-facing response flow (build args allow screener identity defaults).
-- `clinical-narrative`: A conversational platform for clinical documentation. It supports session management, voice input with transcription, AI-driven clinical assistance, and document generation.
-- `survey-builder`: An application for administrators and researchers to create and manage surveys. It provides a user-friendly interface for editing all aspects of a survey, including questions and instructions.
-- All apps use the shared design system and generated Dart SDK from the OpenAPI contract.
+- `clinical-narrative`: A conversational platform for clinical documentation. It supports session management, voice input with transcription, AI-driven clinical assistance, and document generation, and now requires the same screener authentication contract used by `survey-frontend`.
+- `survey-builder`: An application for administrators and researchers to create and manage surveys. It provides a user-friendly interface for editing survey structure, reusable questionnaire prompts, persona skills, and survey-level default persona/output-profile settings used by the Clinical Writer prompt stack.
+- All apps use the shared design system. The professional sign-in, sign-up, and account-menu surfaces are owned by `packages/design_system_flutter` and consumed through callback-based APIs so app-level navigation and auth state stay local. Generated Dart SDKs are available from the OpenAPI contract, while `survey-builder` also uses lightweight repository wrappers for some admin catalog flows.
 
 ### Shared Packages (`packages/`)
 
@@ -53,9 +57,12 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 
 ## Data Model & Persistence
 
-- **Survey**: definition of questions and metadata, stored in `surveys` collection.
-- **SurveyResponse** and **PatientResponse**: captured answers plus patient info, stored in respective collections; enriched with `agentResponse` payloads from the Clinical Writer.
-- **Agent response fields**: classification, generated medical record, optional error, and status metadata maintained by backend/worker.
+- **SurveyPrompt**: questionnaire prompt definition stored canonically in the `QuestionnairePrompts` collection and exposed through the `/survey_prompts` API.
+- **PersonaSkill**: output-profile persona definition stored in the `PersonaSkills` collection and exposed through the `/persona_skills` API.
+- **Survey**: definition of questions and metadata, stored in the `surveys` collection with an embedded `prompt` reference (`promptKey`, `name`) plus nullable default `personaSkillKey` and `outputProfile` fields.
+- **SurveyResponse**: captured answers plus patient info, stored in `survey_responses`; survey-derived responses may also carry optional `personaSkillKey` and `outputProfile` so prompt logic and persona are propagated independently.
+- **PatientResponse**: patient-facing captured answers plus patient info, stored in `patient_responses`.
+- **Agent response fields**: `agentResponse`, `agentResponseStatus`, and `agentResponseUpdatedAt` are maintained by backend/worker for enrichment flow; `agentResponse` itself carries `ok`, `input_type`, `prompt_version`, `questionnaire_prompt_version`, `persona_skill_version`, `model_version`, `report`, `warnings`, `classification`, `medicalRecord`, and `errorMessage`.
 
 ## Integrations
 
@@ -65,7 +72,7 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 ## Interfaces & Contracts
 
 - RESTful JSON APIs under `/api/v1`; OpenAPI contract is authoritative.
-- Generated SDKs are the supported consumption method for Flutter clients; manual HTTP clients are discouraged.
+- Generated SDKs remain the preferred integration path for stable contract-backed Flutter flows. `survey-builder` may also use small repository wrappers around the same `/api/v1` endpoints for admin-only catalog screens when that keeps the UI simpler.
 
 ### API Client Generation
 
@@ -90,5 +97,5 @@ It's important to run this script whenever the `survey-backend.openapi.yaml` con
 
 ## Non-Goals
 
-- Authentication/authorization and multi-tenancy are not implemented.
+- Multi-tenant authorization and tenant isolation are not implemented.
 - Direct database or LLM access from client applications is prohibited.
