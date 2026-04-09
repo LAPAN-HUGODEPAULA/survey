@@ -1,6 +1,10 @@
+import 'package:design_system_flutter/theme/ds_tone_tokens.dart';
+import 'package:design_system_flutter/widgets/ds_ambient_delight.dart';
 import 'package:design_system_flutter/widgets/ds_chip.dart';
+import 'package:design_system_flutter/widgets/ds_emotional_tone_provider.dart';
 import 'package:design_system_flutter/widgets/ds_surface.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 
 class DsFeedbackAction {
   const DsFeedbackAction({
@@ -41,11 +45,14 @@ class DsFeedbackMessage {
     this.title,
     this.icon,
     this.primaryAction,
+    this.onRetry,
     this.secondaryAction,
     this.dismissible = false,
     this.onDismiss,
     this.liveRegion = true,
     this.semanticsLabel,
+    this.userName,
+    this.includeGreeting = false,
   });
 
   final DsStatusType severity;
@@ -53,11 +60,14 @@ class DsFeedbackMessage {
   final String message;
   final IconData? icon;
   final DsFeedbackAction? primaryAction;
+  final VoidCallback? onRetry;
   final DsFeedbackAction? secondaryAction;
   final bool dismissible;
   final VoidCallback? onDismiss;
   final bool liveRegion;
   final String? semanticsLabel;
+  final String? userName;
+  final bool includeGreeting;
 }
 
 IconData dsFeedbackIcon(DsStatusType severity) {
@@ -75,19 +85,39 @@ IconData dsFeedbackIcon(DsStatusType severity) {
   }
 }
 
-String dsFeedbackDefaultTitle(DsStatusType severity) {
+String dsFeedbackDefaultTitle(BuildContext context, DsStatusType severity) {
+  final profile = DsEmotionalToneProvider.resolveProfile(context);
   switch (severity) {
     case DsStatusType.success:
-      return 'Sucesso';
+      switch (profile) {
+        case DsToneProfile.patient:
+          return 'Tudo certo';
+        case DsToneProfile.professional:
+          return 'Concluído';
+        case DsToneProfile.admin:
+          return 'Ok';
+      }
     case DsStatusType.warning:
-      return 'Atenção';
+      return profile == DsToneProfile.admin ? 'Ajuste necessário' : 'Atenção';
     case DsStatusType.error:
-      return 'Erro';
+      return profile == DsToneProfile.admin ? 'Falha' : 'Erro';
     case DsStatusType.info:
-      return 'Informação';
+      return profile == DsToneProfile.admin ? 'Status' : 'Informação';
     case DsStatusType.neutral:
-      return 'Atualização';
+      return profile == DsToneProfile.admin ? 'Atualização' : 'Atualização';
   }
+}
+
+String dsFeedbackResolvedMessage(
+  BuildContext context,
+  DsFeedbackMessage feedback,
+) {
+  if (!feedback.includeGreeting) {
+    return feedback.message;
+  }
+  final tone = DsEmotionalToneProvider.resolveTokens(context);
+  final greeting = tone.greetingFor(feedback.userName);
+  return '$greeting ${feedback.message}';
 }
 
 String dsFeedbackSemanticLabel(DsStatusType severity) {
@@ -137,8 +167,8 @@ Color dsFeedbackForegroundColor(BuildContext context, DsStatusType severity) {
   }
 }
 
-class DsFeedbackBanner extends StatelessWidget {
-  const DsFeedbackBanner({
+class DsMessageBanner extends StatelessWidget {
+  const DsMessageBanner({
     super.key,
     required this.feedback,
     this.margin = const EdgeInsets.only(bottom: 16),
@@ -161,8 +191,18 @@ class DsFeedbackBanner extends StatelessWidget {
   }
 }
 
-class DsInlineFeedback extends StatelessWidget {
-  const DsInlineFeedback({
+@Deprecated('Use DsMessageBanner instead.')
+class DsFeedbackBanner extends DsMessageBanner {
+  const DsFeedbackBanner({
+    super.key,
+    required super.feedback,
+    super.margin = const EdgeInsets.only(bottom: 16),
+    super.footer,
+  });
+}
+
+class DsInlineMessage extends StatelessWidget {
+  const DsInlineMessage({
     super.key,
     required this.feedback,
     this.margin,
@@ -183,6 +223,16 @@ class DsInlineFeedback extends StatelessWidget {
       footer: footer,
     );
   }
+}
+
+@Deprecated('Use DsInlineMessage instead.')
+class DsInlineFeedback extends DsInlineMessage {
+  const DsInlineFeedback({
+    super.key,
+    required super.feedback,
+    super.margin,
+    super.footer,
+  });
 }
 
 class DsValidationSummary extends StatelessWidget {
@@ -215,7 +265,7 @@ class DsValidationSummary extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return DsFeedbackBanner(
+    return DsMessageBanner(
       feedback: DsFeedbackMessage(
         severity: DsStatusType.error,
         title: title,
@@ -251,8 +301,69 @@ class DsValidationSummary extends StatelessWidget {
   }
 }
 
+@Deprecated('Use DsToast instead.')
 class DsSnackBarFeedbackContent extends StatelessWidget {
   const DsSnackBarFeedbackContent({
+    super.key,
+    required this.feedback,
+  });
+
+  final DsFeedbackMessage feedback;
+
+  @override
+  Widget build(BuildContext context) {
+    return DsToast(feedback: feedback);
+  }
+}
+
+ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showDsToast(
+  BuildContext context, {
+  required DsFeedbackMessage feedback,
+  Duration duration = const Duration(seconds: 3),
+}) {
+  final messenger = ScaffoldMessenger.of(context);
+  messenger.hideCurrentSnackBar();
+  final title = feedback.title?.trim().isNotEmpty == true
+      ? feedback.title!.trim()
+      : dsFeedbackDefaultTitle(context, feedback.severity);
+  final resolvedMessage = dsFeedbackResolvedMessage(context, feedback);
+  final semanticsAnnouncement =
+      feedback.semanticsLabel ?? '$title. $resolvedMessage';
+  final controller = messenger.showSnackBar(
+    SnackBar(
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      duration: duration,
+      content: DsToast(feedback: feedback),
+    ),
+  );
+  if (feedback.liveRegion) {
+    SemanticsService.sendAnnouncement(
+      View.of(context),
+      semanticsAnnouncement,
+      Directionality.of(context),
+    );
+  }
+  return controller;
+}
+
+@Deprecated('Use showDsToast instead.')
+ScaffoldFeatureController<SnackBar, SnackBarClosedReason>
+    showDsFeedbackSnackBar(
+  BuildContext context, {
+  required DsFeedbackMessage feedback,
+  Duration duration = const Duration(seconds: 3),
+}) {
+  return showDsToast(
+    context,
+    feedback: feedback,
+    duration: duration,
+  );
+}
+
+class DsToast extends StatelessWidget {
+  const DsToast({
     super.key,
     required this.feedback,
   });
@@ -271,25 +382,6 @@ class DsSnackBarFeedbackContent extends StatelessWidget {
       ),
     );
   }
-}
-
-ScaffoldFeatureController<SnackBar, SnackBarClosedReason>
-    showDsFeedbackSnackBar(
-  BuildContext context, {
-  required DsFeedbackMessage feedback,
-  Duration duration = const Duration(seconds: 3),
-}) {
-  final messenger = ScaffoldMessenger.of(context);
-  messenger.hideCurrentSnackBar();
-  return messenger.showSnackBar(
-    SnackBar(
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      duration: duration,
-      content: DsSnackBarFeedbackContent(feedback: feedback),
-    ),
-  );
 }
 
 class _DsFeedbackCard extends StatelessWidget {
@@ -313,88 +405,103 @@ class _DsFeedbackCard extends StatelessWidget {
     final foreground = dsFeedbackForegroundColor(context, feedback.severity);
     final title = feedback.title?.trim().isNotEmpty == true
         ? feedback.title!.trim()
-        : dsFeedbackDefaultTitle(feedback.severity);
+        : dsFeedbackDefaultTitle(context, feedback.severity);
+    final message = dsFeedbackResolvedMessage(context, feedback);
     final icon = feedback.icon ?? dsFeedbackIcon(feedback.severity);
+    final primaryAction = feedback.primaryAction ??
+        (feedback.onRetry == null
+            ? null
+            : DsFeedbackAction(
+                label: 'Tentar Novamente',
+                onPressed: feedback.onRetry!,
+                icon: Icons.refresh,
+              ));
+
+    final content = DsPanel(
+      tone: tone,
+      margin: margin,
+      padding: padding,
+      backgroundColor: background,
+      child: DefaultTextStyle.merge(
+        style: TextStyle(color: foreground),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(icon, color: foreground),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              color: foreground,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        message,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: foreground),
+                      ),
+                    ],
+                  ),
+                ),
+                if (feedback.dismissible && feedback.onDismiss != null)
+                  IconButton(
+                    tooltip: 'Fechar mensagem',
+                    onPressed: feedback.onDismiss,
+                    icon: Icon(Icons.close, color: foreground),
+                  ),
+              ],
+            ),
+            if (footer != null) ...[
+              const SizedBox(height: 8),
+              footer!,
+            ],
+            if (primaryAction != null || feedback.secondaryAction != null) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (primaryAction != null)
+                    _DsFeedbackActionButton(
+                      action: primaryAction,
+                      foreground: foreground,
+                    ),
+                  if (feedback.secondaryAction != null)
+                    _DsFeedbackActionButton(
+                      action: feedback.secondaryAction!,
+                      foreground: foreground,
+                    ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+
+    final enhancedContent = feedback.severity == DsStatusType.success
+        ? DsAmbientDelight(
+            highlightColor: foreground.withValues(alpha: 0.1),
+            child: content,
+          )
+        : content;
 
     return Semantics(
       container: true,
       liveRegion: feedback.liveRegion,
       label: feedback.semanticsLabel ??
-          '${dsFeedbackSemanticLabel(feedback.severity)}: $title. ${feedback.message}',
-      child: DsPanel(
-        tone: tone,
-        margin: margin,
-        padding: padding,
-        backgroundColor: background,
-        child: DefaultTextStyle.merge(
-          style: TextStyle(color: foreground),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(icon, color: foreground),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    color: foreground,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          feedback.message,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(color: foreground),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (feedback.dismissible && feedback.onDismiss != null)
-                    IconButton(
-                      tooltip: 'Fechar mensagem',
-                      onPressed: feedback.onDismiss,
-                      icon: Icon(Icons.close, color: foreground),
-                    ),
-                ],
-              ),
-              if (footer != null) ...[
-                const SizedBox(height: 8),
-                footer!,
-              ],
-              if (feedback.primaryAction != null ||
-                  feedback.secondaryAction != null) ...[
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    if (feedback.primaryAction != null)
-                      _DsFeedbackActionButton(
-                        action: feedback.primaryAction!,
-                        foreground: foreground,
-                      ),
-                    if (feedback.secondaryAction != null)
-                      _DsFeedbackActionButton(
-                        action: feedback.secondaryAction!,
-                        foreground: foreground,
-                      ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
+          '${dsFeedbackSemanticLabel(feedback.severity)}: $title. $message',
+      child: enhancedContent,
     );
   }
 }

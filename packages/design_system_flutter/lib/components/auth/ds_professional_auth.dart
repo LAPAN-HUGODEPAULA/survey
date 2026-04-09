@@ -348,7 +348,7 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (visibleFeedback != null)
-                DsFeedbackBanner(feedback: visibleFeedback),
+                DsInlineMessage(feedback: visibleFeedback),
               DsValidatedTextFormField(
                 controller: _emailController,
                 submitted: _hasSubmitted,
@@ -411,7 +411,7 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
   DsFeedbackMessage _feedbackFromResult(DsAuthOperationResult result) {
     return DsFeedbackMessage(
       severity: result.severity,
-      title: dsFeedbackDefaultTitle(result.severity),
+      title: dsFeedbackDefaultTitle(context, result.severity),
       message: result.message!,
     );
   }
@@ -570,7 +570,7 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
       setState(() {
         _feedback = DsFeedbackMessage(
           severity: result.severity,
-          title: dsFeedbackDefaultTitle(result.severity),
+          title: dsFeedbackDefaultTitle(context, result.severity),
           message: result.message!,
         );
       });
@@ -637,7 +637,7 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (visibleFeedback != null)
-                DsFeedbackBanner(feedback: visibleFeedback),
+                DsInlineMessage(feedback: visibleFeedback),
               _buildTextField(
                 controller: _cpfController,
                 wrapperKey: const ValueKey('screener-registration-cpf'),

@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:design_system_flutter/theme/color_palette.dart';
+import 'package:design_system_flutter/theme/ds_tone_tokens.dart';
 import 'package:flutter/material.dart';
 
 @immutable
@@ -564,6 +565,7 @@ class AppTheme {
             colors: [Color(0x33FFB783), Color(0x00121416)],
           ),
         ),
+        DsToneTokens.fromProfile(DsToneProfile.professional),
       ],
     );
   }

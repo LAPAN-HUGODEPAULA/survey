@@ -1,10 +1,17 @@
+import 'dart:async';
+
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:design_system_flutter/components/legal/ds_legal_viewer.dart';
 import 'package:design_system_flutter/components/legal/legal_content.dart';
 import 'package:design_system_flutter/theme/app_theme.dart';
+import 'package:design_system_flutter/widgets/ds_buttons.dart';
+import 'package:design_system_flutter/widgets/ds_empty_state.dart';
 import 'package:design_system_flutter/widgets/ds_chip.dart';
+import 'package:design_system_flutter/widgets/ds_emotional_tone_provider.dart';
 import 'package:design_system_flutter/widgets/ds_feedback.dart';
 import 'package:design_system_flutter/widgets/ds_surface.dart';
+import 'package:design_system_flutter/widgets/ds_wayfinding.dart';
 
 const dsSharedStatusBarText =
     'COPYRIGHT © 2026. Laboratório de Pesquisa Aplicada às Neurociências da Visão - Todos os direitos reservados.';
@@ -71,6 +78,9 @@ class DsPageHeader extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.eyebrow,
+    this.breadcrumbs,
+    this.onBack,
+    this.backLabel = 'Voltar',
     this.leading,
     this.trailing,
     this.actions,
@@ -79,6 +89,9 @@ class DsPageHeader extends StatelessWidget {
   final String title;
   final String? subtitle;
   final String? eyebrow;
+  final List<DsBreadcrumbItem>? breadcrumbs;
+  final VoidCallback? onBack;
+  final String backLabel;
   final Widget? leading;
   final Widget? trailing;
   final List<Widget>? actions;
@@ -102,6 +115,19 @@ class DsPageHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (breadcrumbs != null && breadcrumbs!.isNotEmpty) ...[
+                  DsBreadcrumbs(items: breadcrumbs!),
+                  SizedBox(height: spacing?.sm ?? 8),
+                ],
+                if (onBack != null) ...[
+                  DsTextButton(
+                    label: backLabel,
+                    icon: Icons.arrow_back_rounded,
+                    size: DsButtonSize.small,
+                    onPressed: onBack!,
+                  ),
+                  SizedBox(height: spacing?.sm ?? 8),
+                ],
                 if (eyebrow != null)
                   Text(
                     eyebrow!,
@@ -178,12 +204,15 @@ class DsPageFrame extends StatelessWidget {
   }
 }
 
-class DsScaffold extends StatelessWidget {
+class DsScaffold extends StatefulWidget {
   const DsScaffold({
     super.key,
     required this.body,
     this.title,
     this.subtitle,
+    this.breadcrumbs,
+    this.onBack,
+    this.backLabel = 'Voltar',
     this.actions,
     this.appBar,
     this.header,
@@ -197,10 +226,16 @@ class DsScaffold extends StatelessWidget {
     this.bodyPadding = const EdgeInsets.all(24),
     this.maxBodyWidth = 1120,
     this.scrollable = false,
+    this.userName,
+    this.showAmbientGreeting = false,
+    this.ambientGreeting,
   });
 
   final String? title;
   final String? subtitle;
+  final List<DsBreadcrumbItem>? breadcrumbs;
+  final VoidCallback? onBack;
+  final String backLabel;
   final Widget body;
   final List<Widget>? actions;
   final PreferredSizeWidget? appBar;
@@ -215,44 +250,143 @@ class DsScaffold extends StatelessWidget {
   final EdgeInsetsGeometry bodyPadding;
   final double maxBodyWidth;
   final bool scrollable;
+  final String? userName;
+  final bool showAmbientGreeting;
+  final String? ambientGreeting;
+
+  @override
+  State<DsScaffold> createState() => _DsScaffoldState();
+}
+
+class _DsScaffoldState extends State<DsScaffold> {
+  StreamSubscription<dynamic>? _connectivitySubscription;
+  bool _isOffline = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _primeConnectivityStatus();
+    _listenConnectivity();
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription?.cancel();
+    super.dispose();
+  }
+
+  bool _isConnectivityOffline(dynamic result) {
+    if (result is ConnectivityResult) {
+      return result == ConnectivityResult.none;
+    }
+    if (result is List<ConnectivityResult>) {
+      return result.isEmpty ||
+          result.every((entry) => entry == ConnectivityResult.none);
+    }
+    return false;
+  }
+
+  void _updateOfflineFlag(dynamic result) {
+    final isOffline = _isConnectivityOffline(result);
+    if (mounted && isOffline != _isOffline) {
+      setState(() {
+        _isOffline = isOffline;
+      });
+    }
+  }
+
+  Future<void> _primeConnectivityStatus() async {
+    try {
+      final result = await Connectivity().checkConnectivity();
+      _updateOfflineFlag(result);
+    } catch (_) {
+      // Ignore missing-plugin/platform failures in environments without
+      // connectivity support (e.g., widget tests).
+    }
+  }
+
+  void _listenConnectivity() {
+    try {
+      _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
+        _updateOfflineFlag,
+        onError: (_) {
+          // Keep current UI state when stream events fail.
+        },
+      );
+    } catch (_) {
+      // Ignore missing-plugin/platform failures in environments without
+      // connectivity support (e.g., widget tests).
+    }
+  }
+
+  String? _resolvedAmbientGreeting(BuildContext context) {
+    if (!widget.showAmbientGreeting) {
+      return null;
+    }
+    final customGreeting = widget.ambientGreeting?.trim();
+    if (customGreeting != null && customGreeting.isNotEmpty) {
+      return customGreeting;
+    }
+    final tone = DsEmotionalToneProvider.resolveTokens(context);
+    return tone.greetingFor(widget.userName);
+  }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final gradients = Theme.of(context).extension<LapanGradientTokens>();
+    final ambientGreeting = _resolvedAmbientGreeting(context);
 
     Widget resolvedBody;
-    if (isLoading) {
-      resolvedBody = Center(child: loading ?? const DsLoading());
-    } else if (error != null) {
+    if (widget.isLoading) {
+      resolvedBody = Center(child: widget.loading ?? const DsLoading());
+    } else if (widget.error != null) {
       resolvedBody = Center(
-        child: errorWidget ?? DsError(message: error!),
+        child: widget.errorWidget ?? DsError(message: widget.error!),
       );
     } else {
-      resolvedBody = body;
+      resolvedBody = widget.body;
     }
 
     resolvedBody = DsPageFrame(
-      maxWidth: maxBodyWidth,
-      padding: bodyPadding,
+      maxWidth: widget.maxBodyWidth,
+      padding: widget.bodyPadding,
       child: resolvedBody,
     );
 
-    if (scrollable) {
+    if (widget.scrollable) {
       resolvedBody = SingleChildScrollView(child: resolvedBody);
     }
 
     final bodyContent = Column(
       children: [
-        if (header != null || title != null)
+        if (_isOffline)
           DsPageFrame(
-            maxWidth: maxBodyWidth,
+            maxWidth: widget.maxBodyWidth,
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-            child: header ??
+            child: const DsMessageBanner(
+              feedback: DsFeedbackMessage(
+                severity: DsStatusType.warning,
+                title: 'Você está offline',
+                message:
+                    'Você está offline. Suas alterações serão salvas localmente até a conexão voltar.',
+              ),
+              margin: EdgeInsets.zero,
+            ),
+          ),
+        if (widget.header != null || widget.title != null)
+          DsPageFrame(
+            maxWidth: widget.maxBodyWidth,
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+            child: widget.header ??
                 DsPageHeader(
-                  title: title!,
-                  subtitle: subtitle,
-                  actions: actions,
+                  title: widget.title!,
+                  eyebrow: ambientGreeting,
+                  subtitle: widget.subtitle,
+                  breadcrumbs: widget.breadcrumbs,
+                  onBack: widget.onBack,
+                  backLabel: widget.backLabel,
+                  actions: widget.actions,
                 ),
           ),
         Expanded(child: resolvedBody),
@@ -261,7 +395,7 @@ class DsScaffold extends StatelessWidget {
 
     final frame = DecoratedBox(
       decoration: BoxDecoration(
-        color: backgroundColor ?? colorScheme.surfaceContainerLowest,
+        color: widget.backgroundColor ?? colorScheme.surfaceContainerLowest,
         gradient: gradients?.heroGlow,
       ),
       child: Stack(
@@ -285,16 +419,16 @@ class DsScaffold extends StatelessWidget {
               ),
             ),
           ),
-          if (useSafeArea) SafeArea(child: bodyContent) else bodyContent,
+          if (widget.useSafeArea) SafeArea(child: bodyContent) else bodyContent,
         ],
       ),
     );
 
     return Scaffold(
-      backgroundColor: backgroundColor,
-      appBar: appBar,
+      backgroundColor: widget.backgroundColor,
+      appBar: widget.appBar,
       body: frame,
-      bottomNavigationBar: footer ?? const DsStatusBar(),
+      bottomNavigationBar: widget.footer ?? const DsStatusBar(),
     );
   }
 }
@@ -327,19 +461,15 @@ class DsPrimaryButton extends StatelessWidget {
 }
 
 class DsEmpty extends StatelessWidget {
-  const DsEmpty({super.key, this.message = 'Nothing here yet.'});
+  const DsEmpty({super.key, this.message = 'Nenhum conteúdo disponível.'});
 
   final String message;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: DsSection(
-        title: 'Nenhum dado disponível',
-        subtitle: message,
-        tone: DsPanelTone.low,
-        child: const SizedBox.shrink(),
-      ),
+    return DsEmptyState(
+      title: 'Nenhum dado disponível',
+      description: message,
     );
   }
 }
@@ -355,7 +485,7 @@ class DsError extends StatelessWidget {
     return Center(
       child: SizedBox(
         width: 480,
-        child: DsFeedbackBanner(
+        child: DsMessageBanner(
           feedback: DsFeedbackMessage(
             severity: DsStatusType.error,
             title: 'Não foi possível carregar este conteúdo',
@@ -363,7 +493,7 @@ class DsError extends StatelessWidget {
             primaryAction: onRetry == null
                 ? null
                 : DsFeedbackAction(
-                    label: 'Tentar novamente',
+                    label: 'Tentar Novamente',
                     onPressed: onRetry!,
                     icon: Icons.refresh,
                   ),
