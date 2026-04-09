@@ -8,6 +8,8 @@ from pydantic import BaseModel, Field
 
 from app.config.logging_config import logger
 from app.domain.models.agent_response_model import AgentResponse
+from app.domain.models.ai_stages import AIProcessingStage, STAGE_MESSAGES_PTBR
+from app.api.task_manager import task_manager
 from app.integrations.clinical_writer.client import (
     fetch_langgraph_status,
     send_to_langgraph_agent,
@@ -17,12 +19,9 @@ from app.integrations.clinical_writer.client import (
 
 router = APIRouter()
 
-_TASKS: dict[str, dict[str, Any]] = {}
-_TASKS_LOCK = asyncio.Lock()
-
 
 class AIProgressPayload(BaseModel):
-    stage: str = "organizing_data"
+    stage: str = AIProcessingStage.QUEUED.value
     stage_label: str | None = Field(default=None, alias="stageLabel")
     percent: int = 0
     status: str = "processing"
@@ -51,7 +50,7 @@ class ClinicalWriterRequest(BaseModel):
     output_profile: str | None = Field(default=None)
     output_format: str = Field(default="report_json")
     metadata: dict = Field(default_factory=dict)
-    async_mode: bool = Field(default=False, alias="asyncMode")
+    async_mode: bool = Field(default=True, alias="asyncMode")
 
     model_config = {"populate_by_name": True}
 
@@ -93,31 +92,14 @@ class ClinicalWriterAnalysisResponse(BaseModel):
 
 def _initial_progress() -> AIProgressPayload:
     return AIProgressPayload(
-        stage="organizing_data",
-        stageLabel="Organizando dados",
+        stage=AIProcessingStage.QUEUED.value,
+        stageLabel="Na fila",
         percent=2,
         status="processing",
         severity="info",
         retryable=False,
-        userMessage=(
-            "Estamos preparando seu laudo. Você pode aguardar aqui ou revisar as respostas abaixo."
-        ),
+        userMessage=STAGE_MESSAGES_PTBR[AIProcessingStage.QUEUED],
     )
-
-
-async def _set_task(task_id: str, payload: dict[str, Any]) -> None:
-    async with _TASKS_LOCK:
-        current = _TASKS.get(task_id, {})
-        current.update(payload)
-        _TASKS[task_id] = current
-
-
-async def _get_task(task_id: str) -> dict[str, Any] | None:
-    async with _TASKS_LOCK:
-        task = _TASKS.get(task_id)
-        if task is None:
-            return None
-        return dict(task)
 
 
 async def _poll_upstream_progress(task_id: str, request_id: str, stop_event: asyncio.Event) -> None:
@@ -125,7 +107,7 @@ async def _poll_upstream_progress(task_id: str, request_id: str, stop_event: asy
         try:
             progress = await fetch_langgraph_status(request_id)
             if progress:
-                await _set_task(task_id, {"ai_progress": progress})
+                await task_manager.set_task(task_id, {"ai_progress": progress})
         except Exception as exc:  # pragma: no cover - polling failures should not fail tasks
             logger.debug("Unable to poll clinical writer status for task %s: %s", task_id, exc)
         await asyncio.sleep(1.0)
@@ -150,7 +132,7 @@ def _error_payload(agent_result: dict[str, Any]) -> ClinicalWriterTaskError:
 
 
 async def _run_background_task(task_id: str, request: ClinicalWriterRequest, request_id: str) -> None:
-    await _set_task(task_id, {"status": "processing"})
+    await task_manager.set_task(task_id, {"status": "processing"})
     stop_event = asyncio.Event()
     poller = asyncio.create_task(_poll_upstream_progress(task_id, request_id, stop_event))
 
@@ -169,15 +151,15 @@ async def _run_background_task(task_id: str, request: ClinicalWriterRequest, req
         has_error = bool(parsed_result.error_message)
         if has_error:
             error = _error_payload(agent_result)
-            await _set_task(
+            await task_manager.set_task(
                 task_id,
                 {
                     "status": "failed",
                     "result": None,
                     "error": error.model_dump(by_alias=True),
                     "ai_progress": {
-                        "stage": "reviewing_content",
-                        "stageLabel": "Revisando conteúdo",
+                        "stage": AIProcessingStage.FAILED.value,
+                        "stageLabel": "Falha",
                         "percent": 100,
                         "status": "failed",
                         "severity": "warning" if error.retryable else "critical",
@@ -187,14 +169,14 @@ async def _run_background_task(task_id: str, request: ClinicalWriterRequest, req
                 },
             )
             return
-        await _set_task(
+        await task_manager.set_task(
             task_id,
             {
                 "status": "completed",
                 "result": parsed_result.model_dump(by_alias=True),
                 "error": None,
                 "ai_progress": {
-                    "stage": "completed",
+                    "stage": AIProcessingStage.COMPLETED.value,
                     "stageLabel": "Concluído",
                     "percent": 100,
                     "status": "success",
@@ -205,7 +187,7 @@ async def _run_background_task(task_id: str, request: ClinicalWriterRequest, req
             },
         )
     except Exception as exc:  # pragma: no cover - defensive fallback
-        await _set_task(
+        await task_manager.set_task(
             task_id,
             {
                 "status": "failed",
@@ -216,8 +198,8 @@ async def _run_background_task(task_id: str, request: ClinicalWriterRequest, req
                     detail=str(exc),
                 ).model_dump(by_alias=True),
                 "ai_progress": {
-                    "stage": "reviewing_content",
-                    "stageLabel": "Revisando conteúdo",
+                    "stage": AIProcessingStage.FAILED.value,
+                    "stageLabel": "Falha",
                     "percent": 100,
                     "status": "failed",
                     "severity": "warning",
@@ -241,7 +223,7 @@ async def process_clinical_writer(request: ClinicalWriterRequest) -> AgentRespon
     if request.async_mode:
         request_id = request.metadata.get("request_id") or str(uuid.uuid4())
         task_id = request_id
-        await _set_task(
+        await task_manager.set_task(
             task_id,
             {
                 "task_id": task_id,
@@ -252,7 +234,7 @@ async def process_clinical_writer(request: ClinicalWriterRequest) -> AgentRespon
             },
         )
         asyncio.create_task(_run_background_task(task_id, request, request_id))
-        task = await _get_task(task_id)
+        task = await task_manager.get_task(task_id)
         return ClinicalWriterTaskResponse(
             taskId=task_id,
             status=task["status"],
@@ -281,7 +263,7 @@ async def process_clinical_writer(request: ClinicalWriterRequest) -> AgentRespon
 @router.get("/clinical_writer/status/{task_id}", response_model=ClinicalWriterTaskResponse)
 async def get_clinical_writer_status(task_id: str) -> ClinicalWriterTaskResponse:
     """Get the current asynchronous processing status for a clinical writer task."""
-    task = await _get_task(task_id)
+    task = await task_manager.get_task(task_id)
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
     return ClinicalWriterTaskResponse(

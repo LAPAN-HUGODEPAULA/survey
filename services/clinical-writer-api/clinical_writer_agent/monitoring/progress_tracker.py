@@ -9,18 +9,18 @@ from typing import Any
 
 
 _STAGE_MESSAGES: dict[str, str] = {
-    "organizing_data": "Estamos reunindo as respostas do questionário e as instruções clínicas para o caso.",
-    "analyzing_signals": "Estamos analisando os sinais principais do caso para uma leitura inicial mais cuidadosa.",
-    "writing_draft": "Estamos escrevendo a primeira versão do documento com o tom adequado ao público-alvo.",
-    "reviewing_content": "Estamos revisando o conteúdo para garantir que as informações sejam claras e confiáveis.",
+    "loading_context": "Estamos reunindo as respostas do questionário e as instruções clínicas para o caso.",
+    "analyzing": "Estamos analisando os sinais principais do caso para uma leitura inicial mais cuidadosa.",
+    "drafting": "Estamos escrevendo a primeira versão do documento com o tom adequado ao público-alvo.",
+    "reviewing": "Estamos revisando o conteúdo para garantir que as informações sejam claras e confiáveis.",
     "completed": "A geração foi concluída com sucesso.",
 }
 
 _AGENT_STAGE_MAP: dict[str, tuple[str, int]] = {
-    "ContextLoader": ("organizing_data", 15),
-    "ClinicalAnalyzer": ("analyzing_signals", 45),
-    "PersonaWriter": ("writing_draft", 75),
-    "ReflectorNode": ("reviewing_content", 90),
+    "ContextLoader": ("loading_context", 15),
+    "ClinicalAnalyzer": ("analyzing", 45),
+    "PersonaWriter": ("drafting", 75),
+    "ReflectorNode": ("reviewing", 90),
 }
 
 
@@ -57,13 +57,13 @@ class ProgressTracker:
         with self._lock:
             self._data[request_id] = AIProgressSnapshot(
                 request_id=request_id,
-                stage="organizing_data",
-                stage_label="Organizando dados",
+                stage="queued",
+                stage_label="Na fila",
                 percent=5,
                 status="processing",
                 severity="info",
                 retryable=False,
-                user_message=_STAGE_MESSAGES["organizing_data"],
+                user_message="Seu pedido foi recebido e está na fila.",
                 updated_at=_now_iso(),
             )
 
@@ -120,10 +120,11 @@ class ProgressTracker:
 
 def _human_stage_label(stage: str) -> str:
     labels = {
-        "organizing_data": "Organizando dados",
-        "analyzing_signals": "Analisando sinais",
-        "writing_draft": "Escrevendo rascunho",
-        "reviewing_content": "Revisando conteúdo",
+        "queued": "Na fila",
+        "loading_context": "Carregando contexto",
+        "analyzing": "Analisando sinais",
+        "drafting": "Escrevendo rascunho",
+        "reviewing": "Revisando conteúdo",
         "completed": "Concluído",
     }
     return labels.get(stage, stage)
