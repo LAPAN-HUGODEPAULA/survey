@@ -62,5 +62,10 @@ void main() {
       // TODO
     });
 
+    // AIProgress aiProgress
+    test('to test the property `aiProgress`', () async {
+      // TODO
+    });
+
   });
 }

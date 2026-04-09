@@ -20,6 +20,7 @@ part 'clinical_writer_request.g.dart';
 /// * [personaSkillKey] 
 /// * [outputProfile] 
 /// * [outputFormat] 
+/// * [asyncMode] 
 /// * [metadata] 
 @BuiltValue()
 abstract class ClinicalWriterRequest implements Built<ClinicalWriterRequest, ClinicalWriterRequestBuilder> {
@@ -45,6 +46,9 @@ abstract class ClinicalWriterRequest implements Built<ClinicalWriterRequest, Cli
   @BuiltValueField(wireName: r'output_format')
   ClinicalWriterRequestOutputFormatEnum get outputFormat;
   // enum outputFormatEnum {  report_json,  };
+
+  @BuiltValueField(wireName: r'asyncMode')
+  bool? get asyncMode;
 
   @BuiltValueField(wireName: r'metadata')
   ClinicalWriterRequestMetadata get metadata;
@@ -111,6 +115,13 @@ class _$ClinicalWriterRequestSerializer implements PrimitiveSerializer<ClinicalW
       object.outputFormat,
       specifiedType: const FullType(ClinicalWriterRequestOutputFormatEnum),
     );
+    if (object.asyncMode != null) {
+      yield r'asyncMode';
+      yield serializers.serialize(
+        object.asyncMode,
+        specifiedType: const FullType(bool),
+      );
+    }
     yield r'metadata';
     yield serializers.serialize(
       object.metadata,
@@ -189,6 +200,13 @@ class _$ClinicalWriterRequestSerializer implements PrimitiveSerializer<ClinicalW
             specifiedType: const FullType(ClinicalWriterRequestOutputFormatEnum),
           ) as ClinicalWriterRequestOutputFormatEnum;
           result.outputFormat = valueDes;
+          break;
+        case r'asyncMode':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.asyncMode = valueDes;
           break;
         case r'metadata':
           final valueDes = serializers.deserialize(

@@ -37,3 +37,10 @@ The `clinical-narrative` conversation UI MUST distinguish informational, warning
 - **THEN** the update MUST support an accessible status announcement mechanism
 - **AND** it MUST remain visually consistent with the shared feedback model
 
+### Requirement: Unified Assistant Status Area
+The system SHALL display a unified status area above the input area, informing the current AI phase (e.g., "Analisando sinais clínicos") and offering cancellation or retry controls.
+
+#### Scenario: Interrupt AI analysis
+- **WHEN** an analysis is in progress and the user clicks on "Cancelar"
+- **THEN** the system interrupts processing and returns the input area to the ready state
+

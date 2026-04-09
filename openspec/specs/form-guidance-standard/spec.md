@@ -2,48 +2,39 @@
 
 ## Purpose
 TBD - created by archiving change cr-ux-003-form-standardization. Update Purpose after archive.
+
 ## Requirements
-### Requirement: Formulários MUST reutilizar os resumos e agrupamentos canônicos já existentes
-Formulários longos ou distribuídos por seções DEVEM (MUST) reutilizar os componentes compartilhados já padronizados para agrupamento e resumo, em vez de criar uma segunda família paralela de widgets.
+### Requirement: Shared Grouping and Summary Components
+Long forms or those distributed across sections MUST reuse standardized shared components for grouping and summary, rather than creating a second parallel family of widgets.
 
-#### Scenario: Submissão with multiple errors
-- **WHEN** o usuário clica no botão "Enviar" com 3 campos obrigatórios vazios
-- **THEN** o sistema exibe o resumo canônico de formulário no topo da página ou seção
-- **AND** lista os campos que precisam de atenção.
+#### Scenario: Render validation summary
+- **WHEN** the user attempts to submit a form with multiple errors
+- **THEN** the system SHALL display the canonical form summary at the top of the page or section
 
-### Requirement: Campos estruturados MUST usar formatadores e normalização compartilhados
-Campos com formatos estruturados (CPF, Telefone, CEP, Data) DEVEM (MUST) usar formatadores, restrições e normalização compartilhados no design system.
+### Requirement: Shared Input Formatters and Constraints
+Fields with structured formats (ID, Phone, ZIP, Date) MUST use shared formatters, constraints, and normalization in the design system.
 
-#### Scenario: Filling in a date
-- **WHEN** o usuário preenche um campo de data suportado pelo padrão compartilhado
-- **THEN** o sistema orienta e formata a entrada segundo o padrão `DD/MM/AAAA`
-- **AND** valida o valor normalizado antes do envio
+#### Scenario: Date field input
+- **WHEN** a user types in a date field
+- **THEN** the system SHALL guide and format the input according to the `DD/MM/YYYY` pattern
 
-#### Scenario: Filling in CPF or CEP
-- **WHEN** o usuário preenche um campo estruturado como CPF ou CEP
-- **THEN** o sistema restringe e normaliza a entrada segundo o helper compartilhado definido para esse tipo
-- **AND** o valor enviado ao backend permanece no formato esperado pela API
+#### Scenario: ZIP code normalization
+- **WHEN** a user enters a ZIP code
+- **THEN** the system SHALL restrict and normalize the input according to the shared helper defined for this type
 
-### Requirement: Localização em Português Brasileiro (pt-BR)
-Todo o conteúdo textual apresentado ao usuário, incluindo rótulos de campos (labels), mensagens de erro, textos de ajuda e avisos, DEVE (MUST) estar em Português Brasileiro seguindo rigorosamente as normas gramaticais, incluindo o uso correto de acentuação (ex: "atenção", não "atencao").
+### Requirement: Brazilian Portuguese Language and Grammar
+All textual content presented to the user, including field labels, error messages, help texts, and warnings, MUST be in Brazilian Portuguese following grammatical norms strictly, including the correct use of accentuation (e.g., "atenção", not "atencao").
 
-#### Scenario: Checking accentuation in error messages
-- **WHEN** uma mensagem de erro ou aviso é exibida ao usuário
-- **THEN** o texto DEVE conter todos os acentos e caracteres especiais (cedilha, til) conforme a norma culta do pt-BR.
+#### Scenario: Display success message
+- **WHEN** the system shows a confirmation message in pt-BR
+- **THEN** the text MUST contain all accents and special characters (cedilla, tilde) according to pt-BR formal standards.
 
-### Requirement: Orientação de Campos Obrigatórios
-Campos obrigatórios DEVEM (MUST) ser claramente marcados com um asterisco (*) e os grupos de campos relacionados DEVEM (MUST) ter cabeçalhos descritivos.
+### Requirement: Clear Mandatory Marking and Group Headers
+Mandatory fields MUST be clearly marked with an asterisk (*) and related field groups MUST have descriptive headers.
 
-#### Scenario: Viewing a long form
-- **WHEN** o usuário acessa uma seção do Builder
-- **THEN** todos os campos obrigatórios exibem o símbolo '*' ao lado do rótulo
-- **AND** campos relacionados (como endereço) estão agrupados sob o título "Endereço".
+### Requirement: Draft State and Progress Restoration
+Long administrative forms MUST expose visible draft states and restore progress when it avoids relevant rework.
 
-### Requirement: Formulários administrativos longos MUST preservar progresso
-Formulários administrativos longos incluídos neste change DEVEM (MUST) expor estados visíveis de rascunho e restaurar progresso quando isso evitar retrabalho relevante.
-
-#### Scenario: Long editing interrupted in Builder
-- **WHEN** o usuário altera um formulário administrativo longo e sai da tela antes da publicação final
-- **THEN** o sistema preserva o rascunho conforme a estratégia definida para aquele fluxo
-- **AND** exibe um estado claro como "alterações não salvas" ou "rascunho salvo"
-
+#### Scenario: Restore draft in Builder
+- **WHEN** a user returns to a partially completed questionnaire edit
+- **THEN** the system SHALL preserve the draft according to the defined strategy for that flow

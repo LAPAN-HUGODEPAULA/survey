@@ -10,7 +10,6 @@ import 'package:dio/dio.dart';
 
 import 'package:built_collection/built_collection.dart';
 import 'package:survey_backend_api/src/api_util.dart';
-import 'package:survey_backend_api/src/model/agent_response.dart';
 import 'package:survey_backend_api/src/model/chat_message.dart';
 import 'package:survey_backend_api/src/model/chat_message_create.dart';
 import 'package:survey_backend_api/src/model/chat_message_update.dart';
@@ -20,6 +19,7 @@ import 'package:survey_backend_api/src/model/chat_session_update.dart';
 import 'package:survey_backend_api/src/model/clinical_writer_analysis_request.dart';
 import 'package:survey_backend_api/src/model/clinical_writer_analysis_response.dart';
 import 'package:survey_backend_api/src/model/clinical_writer_request.dart';
+import 'package:survey_backend_api/src/model/clinical_writer_task_response.dart';
 import 'package:survey_backend_api/src/model/create_screener_access_link_request.dart';
 import 'package:survey_backend_api/src/model/document_export_request.dart';
 import 'package:survey_backend_api/src/model/document_preview.dart';
@@ -28,6 +28,7 @@ import 'package:survey_backend_api/src/model/document_record.dart';
 import 'package:survey_backend_api/src/model/list_template_document_types200_response_inner.dart';
 import 'package:survey_backend_api/src/model/persona_skill.dart';
 import 'package:survey_backend_api/src/model/persona_skill_upsert.dart';
+import 'package:survey_backend_api/src/model/process_clinical_writer200_response.dart';
 import 'package:survey_backend_api/src/model/screener_access_link.dart';
 import 'package:survey_backend_api/src/model/screener_login.dart';
 import 'package:survey_backend_api/src/model/screener_password_recovery_request.dart';
@@ -1696,6 +1697,81 @@ class DefaultApi {
     );
   }
 
+  /// Get asynchronous Clinical Writer task status
+  /// 
+  ///
+  /// Parameters:
+  /// * [taskId] 
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [ClinicalWriterTaskResponse] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<ClinicalWriterTaskResponse>> getClinicalWriterStatus({ 
+    required String taskId,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/clinical_writer/status/{task_id}'.replaceAll('{' r'task_id' '}', encodeQueryParameter(_serializers, taskId, const FullType(String)).toString());
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    ClinicalWriterTaskResponse? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(ClinicalWriterTaskResponse),
+      ) as ClinicalWriterTaskResponse;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<ClinicalWriterTaskResponse>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Get the current screener profile
   /// 
   ///
@@ -3127,9 +3203,9 @@ class DefaultApi {
   /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
   /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
   ///
-  /// Returns a [Future] containing a [Response] with a [AgentResponse] as data
+  /// Returns a [Future] containing a [Response] with a [ProcessClinicalWriter200Response] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<AgentResponse>> processClinicalWriter({ 
+  Future<Response<ProcessClinicalWriter200Response>> processClinicalWriter({ 
     required ClinicalWriterRequest clinicalWriterRequest,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -3179,14 +3255,14 @@ class DefaultApi {
       onReceiveProgress: onReceiveProgress,
     );
 
-    AgentResponse? _responseData;
+    ProcessClinicalWriter200Response? _responseData;
 
     try {
       final rawResponse = _response.data;
       _responseData = rawResponse == null ? null : _serializers.deserialize(
         rawResponse,
-        specifiedType: const FullType(AgentResponse),
-      ) as AgentResponse;
+        specifiedType: const FullType(ProcessClinicalWriter200Response),
+      ) as ProcessClinicalWriter200Response;
 
     } catch (error, stackTrace) {
       throw DioException(
@@ -3198,7 +3274,7 @@ class DefaultApi {
       );
     }
 
-    return Response<AgentResponse>(
+    return Response<ProcessClinicalWriter200Response>(
       data: _responseData,
       headers: _response.headers,
       isRedirect: _response.isRedirect,

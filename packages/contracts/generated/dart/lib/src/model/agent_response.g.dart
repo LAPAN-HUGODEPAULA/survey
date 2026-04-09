@@ -29,6 +29,8 @@ class _$AgentResponse extends AgentResponse {
   final String? medicalRecord;
   @override
   final String? errorMessage;
+  @override
+  final AIProgress? aiProgress;
 
   factory _$AgentResponse([void Function(AgentResponseBuilder)? updates]) =>
       (AgentResponseBuilder()..update(updates))._build();
@@ -44,7 +46,8 @@ class _$AgentResponse extends AgentResponse {
       this.warnings,
       this.classification,
       this.medicalRecord,
-      this.errorMessage})
+      this.errorMessage,
+      this.aiProgress})
       : super._();
   @override
   AgentResponse rebuild(void Function(AgentResponseBuilder) updates) =>
@@ -67,7 +70,8 @@ class _$AgentResponse extends AgentResponse {
         warnings == other.warnings &&
         classification == other.classification &&
         medicalRecord == other.medicalRecord &&
-        errorMessage == other.errorMessage;
+        errorMessage == other.errorMessage &&
+        aiProgress == other.aiProgress;
   }
 
   @override
@@ -84,6 +88,7 @@ class _$AgentResponse extends AgentResponse {
     _$hash = $jc(_$hash, classification.hashCode);
     _$hash = $jc(_$hash, medicalRecord.hashCode);
     _$hash = $jc(_$hash, errorMessage.hashCode);
+    _$hash = $jc(_$hash, aiProgress.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -101,7 +106,8 @@ class _$AgentResponse extends AgentResponse {
           ..add('warnings', warnings)
           ..add('classification', classification)
           ..add('medicalRecord', medicalRecord)
-          ..add('errorMessage', errorMessage))
+          ..add('errorMessage', errorMessage)
+          ..add('aiProgress', aiProgress))
         .toString();
   }
 }
@@ -160,6 +166,12 @@ class AgentResponseBuilder
   String? get errorMessage => _$this._errorMessage;
   set errorMessage(String? errorMessage) => _$this._errorMessage = errorMessage;
 
+  AIProgressBuilder? _aiProgress;
+  AIProgressBuilder get aiProgress =>
+      _$this._aiProgress ??= AIProgressBuilder();
+  set aiProgress(AIProgressBuilder? aiProgress) =>
+      _$this._aiProgress = aiProgress;
+
   AgentResponseBuilder() {
     AgentResponse._defaults(this);
   }
@@ -178,6 +190,7 @@ class AgentResponseBuilder
       _classification = $v.classification;
       _medicalRecord = $v.medicalRecord;
       _errorMessage = $v.errorMessage;
+      _aiProgress = $v.aiProgress?.toBuilder();
       _$v = null;
     }
     return this;
@@ -212,12 +225,16 @@ class AgentResponseBuilder
             classification: classification,
             medicalRecord: medicalRecord,
             errorMessage: errorMessage,
+            aiProgress: _aiProgress?.build(),
           );
     } catch (_) {
       late String _$failedField;
       try {
         _$failedField = 'warnings';
         _warnings?.build();
+
+        _$failedField = 'aiProgress';
+        _aiProgress?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
             r'AgentResponse', _$failedField, e.toString());

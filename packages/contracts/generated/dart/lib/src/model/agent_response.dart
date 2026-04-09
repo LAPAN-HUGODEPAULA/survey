@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:built_collection/built_collection.dart';
+import 'package:survey_backend_api/src/model/ai_progress.dart';
 import 'package:built_value/json_object.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
@@ -24,6 +25,7 @@ part 'agent_response.g.dart';
 /// * [classification] 
 /// * [medicalRecord] 
 /// * [errorMessage] 
+/// * [aiProgress] 
 @BuiltValue()
 abstract class AgentResponse implements Built<AgentResponse, AgentResponseBuilder> {
   @BuiltValueField(wireName: r'ok')
@@ -58,6 +60,9 @@ abstract class AgentResponse implements Built<AgentResponse, AgentResponseBuilde
 
   @BuiltValueField(wireName: r'errorMessage')
   String? get errorMessage;
+
+  @BuiltValueField(wireName: r'aiProgress')
+  AIProgress? get aiProgress;
 
   AgentResponse._();
 
@@ -159,6 +164,13 @@ class _$AgentResponseSerializer implements PrimitiveSerializer<AgentResponse> {
         specifiedType: const FullType(String),
       );
     }
+    if (object.aiProgress != null) {
+      yield r'aiProgress';
+      yield serializers.serialize(
+        object.aiProgress,
+        specifiedType: const FullType(AIProgress),
+      );
+    }
   }
 
   @override
@@ -258,6 +270,13 @@ class _$AgentResponseSerializer implements PrimitiveSerializer<AgentResponse> {
             specifiedType: const FullType(String),
           ) as String;
           result.errorMessage = valueDes;
+          break;
+        case r'aiProgress':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(AIProgress),
+          ) as AIProgress;
+          result.aiProgress.replace(valueDes);
           break;
         default:
           unhandled.add(key);

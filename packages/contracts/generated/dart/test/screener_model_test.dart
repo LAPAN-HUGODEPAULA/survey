@@ -76,5 +76,11 @@ void main() {
       // TODO
     });
 
+    // Data de aceite do aviso inicial de uso da plataforma
+    // DateTime initialNoticeAcceptedAt
+    test('to test the property `initialNoticeAcceptedAt`', () async {
+      // TODO
+    });
+
   });
 }

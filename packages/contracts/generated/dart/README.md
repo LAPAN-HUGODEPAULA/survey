@@ -85,6 +85,7 @@ Class | Method | HTTP request | Description
 [*DefaultApi*](doc/DefaultApi.md) | [**exportDocument**](doc/DefaultApi.md#exportdocument) | **POST** /documents/export | Export document
 [*DefaultApi*](doc/DefaultApi.md) | [**exportSurveys**](doc/DefaultApi.md#exportsurveys) | **GET** /surveys/export | Export surveys
 [*DefaultApi*](doc/DefaultApi.md) | [**getChatSession**](doc/DefaultApi.md#getchatsession) | **GET** /chat/sessions/{sessionId} | Get chat session
+[*DefaultApi*](doc/DefaultApi.md) | [**getClinicalWriterStatus**](doc/DefaultApi.md#getclinicalwriterstatus) | **GET** /clinical_writer/status/{task_id} | Get asynchronous Clinical Writer task status
 [*DefaultApi*](doc/DefaultApi.md) | [**getCurrentScreener**](doc/DefaultApi.md#getcurrentscreener) | **GET** /screeners/me | Get the current screener profile
 [*DefaultApi*](doc/DefaultApi.md) | [**getDocument**](doc/DefaultApi.md#getdocument) | **GET** /documents/{documentId} | Get document record
 [*DefaultApi*](doc/DefaultApi.md) | [**getPersonaSkill**](doc/DefaultApi.md#getpersonaskill) | **GET** /persona_skills/{personaSkillKey} | Get persona skill by key
@@ -120,6 +121,7 @@ Class | Method | HTTP request | Description
 
 ## Documentation For Models
 
+ - [AIProgress](doc/AIProgress.md)
  - [Address](doc/Address.md)
  - [AgentResponse](doc/AgentResponse.md)
  - [Answer](doc/Answer.md)
@@ -139,6 +141,8 @@ Class | Method | HTTP request | Description
  - [ClinicalWriterRequest](doc/ClinicalWriterRequest.md)
  - [ClinicalWriterRequestMetadata](doc/ClinicalWriterRequestMetadata.md)
  - [ClinicalWriterSuggestion](doc/ClinicalWriterSuggestion.md)
+ - [ClinicalWriterTaskError](doc/ClinicalWriterTaskError.md)
+ - [ClinicalWriterTaskResponse](doc/ClinicalWriterTaskResponse.md)
  - [CreateScreenerAccessLinkRequest](doc/CreateScreenerAccessLinkRequest.md)
  - [DocumentExportRequest](doc/DocumentExportRequest.md)
  - [DocumentPreview](doc/DocumentPreview.md)
@@ -149,6 +153,7 @@ Class | Method | HTTP request | Description
  - [Patient](doc/Patient.md)
  - [PersonaSkill](doc/PersonaSkill.md)
  - [PersonaSkillUpsert](doc/PersonaSkillUpsert.md)
+ - [ProcessClinicalWriter200Response](doc/ProcessClinicalWriter200Response.md)
  - [ProfessionalCouncil](doc/ProfessionalCouncil.md)
  - [Question](doc/Question.md)
  - [ScreenerAccessLink](doc/ScreenerAccessLink.md)

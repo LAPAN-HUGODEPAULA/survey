@@ -2,41 +2,38 @@
 
 ## Purpose
 TBD - created by archiving change cr-ux-003-form-standardization. Update Purpose after archive.
+
 ## Requirements
-### Requirement: A plataforma MUST usar um único ciclo de validação para formulários estruturados
-Todos os formulários estruturados migrados DEVEM (MUST) seguir o mesmo ciclo de validação para reduzir inconsistência entre apps e evitar erros hostis prematuros.
+### Requirement: Consistent Validation Lifecycle
+All migrated structured forms MUST follow the same validation cycle to reduce inconsistency between apps and avoid premature hostile errors.
 
-#### Scenario: Campo pristine durante a primeira digitação
-- **WHEN** o usuário começa a digitar em um campo ainda não validado
-- **THEN** o sistema NÃO DEVE exibir erro de "campo obrigatório" nem de formato incompleto durante essa primeira digitação
+#### Scenario: First typing in a field
+- **WHEN** a user starts typing in a field for the first time
+- **THEN** the system MUST NOT display a "required field" or incomplete format error during this initial typing
 
-#### Scenario: Campo touched ao perder o foco
-- **WHEN** o usuário sai de um campo obrigatório ou estruturado
-- **THEN** o sistema DEVE validar esse campo no `blur`
-- **AND** exibir a mensagem inline se houver erro
+#### Scenario: Field loses focus (blur)
+- **WHEN** the field loses focus (blur)
+- **THEN** the system MUST validate this field
 
-#### Scenario: Submissão de formulário com falhas
-- **WHEN** o usuário tenta continuar ou enviar um formulário com campos inválidos
-- **THEN** o sistema DEVE validar todos os campos relevantes naquele momento
-- **AND** exibir mensagens inline
-- **AND** exibir um resumo de formulário quando houver múltiplas falhas ou erros distribuídos por mais de uma seção
+#### Scenario: Form submission attempt
+- **WHEN** the user clicks "Submit" or "Next"
+- **THEN** the system MUST validate all relevant fields at that moment
 
-#### Scenario: Revalidação eficiente após erro visível
-- **WHEN** um campo já foi marcado como inválido e o usuário volta a editá-lo
-- **THEN** o sistema PODE revalidar esse campo durante as edições seguintes
-- **AND** NÃO DEVE revalidar continuamente campos ainda pristine ou nunca expostos como inválidos
+#### Scenario: Re-editing an invalid field
+- **WHEN** the user edits a field that has already been marked as invalid
+- **THEN** the system MAY revalidate this field during subsequent edits
+- **AND** MUST NOT continuously revalidate fields that are still pristine or have never been exposed as invalid
 
-### Requirement: Mensagens de Erro Informativas
-As mensagens de erro em nível de campo DEVEM (MUST) ser claras, objetivas e indicar a ação corretiva necessária.
+### Requirement: Clear Field-Level Error Messages
+Field-level error messages MUST be clear, objective, and indicate the necessary corrective action.
 
-#### Scenario: Data format error
-- **WHEN** o usuário insere uma data no formato inválido
-- **THEN** o sistema exibe "Use o formato DD/MM/AAAA." em vez de "Valor inválido."
+#### Scenario: Date format error
+- **WHEN** the user enters an invalid date
+- **THEN** the system SHALL display "Use the format DD/MM/YYYY." instead of "Invalid value."
 
-### Requirement: O padrão de validação MUST viver no design system
-Os comportamentos de `pristine`, `touched`, `submitted` e revalidação DEVEM (MUST) ser centralizados no `packages/design_system_flutter` para evitar implementação divergente por aplicativo.
+### Requirement: Centralized Validation Logic
+The behaviors for `pristine`, `touched`, `submitted`, and revalidation MUST be centralized in `packages/design_system_flutter` to avoid divergent implementations per application.
 
-#### Scenario: Two apps use the same shared field
-- **WHEN** `survey-patient` e `survey-frontend` usam a mesma superfície de campo compartilhada
-- **THEN** ambos DEVEM herdar o mesmo momento de validação e o mesmo comportamento de apresentação de erro
-
+#### Scenario: Use standard validator in different apps
+- **WHEN** a developer implements a form in `survey-builder` and another in `survey-frontend`
+- **THEN** both MUST inherit the same validation timing and error presentation behavior
