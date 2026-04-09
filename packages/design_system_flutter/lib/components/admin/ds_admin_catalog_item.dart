@@ -1,4 +1,5 @@
 import 'package:design_system_flutter/widgets/ds_buttons.dart';
+import 'package:design_system_flutter/widgets/ds_chip.dart';
 import 'package:design_system_flutter/widgets/ds_dialog.dart';
 import 'package:design_system_flutter/widgets/ds_surface.dart';
 import 'package:flutter/material.dart';
@@ -56,6 +57,7 @@ Future<bool> showDsDeleteConfirmationDialog({
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (BuildContext context) => DsDialog(
+      severity: DsStatusType.warning,
       title: title,
       content: Text(content),
       actions: [

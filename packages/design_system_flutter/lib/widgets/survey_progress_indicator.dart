@@ -19,7 +19,8 @@ class DsSurveyProgressIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final safeTotal = max(0, total);
-    final safeIndex = max(0, min(currentIndex, safeTotal > 0 ? safeTotal - 1 : 0));
+    final safeIndex =
+        max(0, min(currentIndex, safeTotal > 0 ? safeTotal - 1 : 0));
     final value = safeTotal == 0 ? 0.0 : (safeIndex + 1) / safeTotal;
 
     return Padding(
@@ -31,7 +32,7 @@ class DsSurveyProgressIndicator extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: 8.0),
               child: Text(
-                '${safeIndex + 1}/$safeTotal',
+                'Pergunta ${safeIndex + 1} de $safeTotal',
                 style: Theme.of(context).textTheme.bodySmall,
                 textAlign: TextAlign.center,
               ),
@@ -39,7 +40,8 @@ class DsSurveyProgressIndicator extends StatelessWidget {
           LinearProgressIndicator(
             value: value,
             minHeight: 8,
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            backgroundColor:
+                Theme.of(context).colorScheme.surfaceContainerHighest,
           ),
         ],
       ),

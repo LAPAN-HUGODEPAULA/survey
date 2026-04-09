@@ -8,16 +8,19 @@ class SurveyOptionButton extends StatelessWidget {
     required this.onPressed,
     required this.optionIndex,
     required this.optionCount,
+    this.selected = false,
   });
 
   final String text;
   final VoidCallback onPressed;
   final int optionIndex;
   final int optionCount;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
-    final surveyOptionColors = Theme.of(context).extension<SurveyOptionColors>();
+    final surveyOptionColors =
+        Theme.of(context).extension<SurveyOptionColors>();
     if (surveyOptionColors == null) {
       // Fallback or error handling
       return ElevatedButton(onPressed: onPressed, child: Text(text));
@@ -36,10 +39,13 @@ class SurveyOptionButton extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          backgroundColor: color.withValues(alpha: 0.8),
+          backgroundColor: color.withValues(alpha: selected ? 1 : 0.8),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
+            side: selected
+                ? const BorderSide(color: Colors.white, width: 2)
+                : BorderSide.none,
           ),
         ),
         child: Text(text, style: const TextStyle(fontSize: 16)),

@@ -135,7 +135,7 @@ class _DsLegalNoticeGateState extends State<DsLegalNoticeGate> {
                     ),
                     if (widget.feedback != null) ...[
                       const SizedBox(height: 12),
-                      DsFeedbackBanner(
+                      DsMessageBanner(
                         feedback: widget.feedback!,
                         margin: EdgeInsets.zero,
                       ),

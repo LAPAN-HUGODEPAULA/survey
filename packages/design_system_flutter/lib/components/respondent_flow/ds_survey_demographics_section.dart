@@ -179,7 +179,7 @@ class DsSurveyDemographicsSection extends StatelessWidget {
         const Text('Faz uso de medicamento psiquiátrico? *'),
         if (usesMedicationErrorText != null) ...[
           const SizedBox(height: 8),
-          DsInlineFeedback(
+          DsInlineMessage(
             feedback: DsFeedbackMessage(
               severity: DsStatusType.error,
               title: 'Revise este campo',

@@ -22,10 +22,13 @@ class DsSurveyQuestionRunner extends StatefulWidget {
 
 class _DsSurveyQuestionRunnerState extends State<DsSurveyQuestionRunner> {
   int _currentQuestionIndex = 0;
-  final List<String> _answers = <String>[];
+  late final List<String> _answers = List<String>.filled(
+    widget.questions.length,
+    '',
+  );
 
   void _answerQuestion(String answer) {
-    _answers.add(answer);
+    _answers[_currentQuestionIndex] = answer;
 
     if (_currentQuestionIndex < widget.questions.length - 1) {
       setState(() => _currentQuestionIndex++);
@@ -35,6 +38,13 @@ class _DsSurveyQuestionRunnerState extends State<DsSurveyQuestionRunner> {
     widget.onCompleted(List<String>.unmodifiable(_answers));
   }
 
+  void _goBack() {
+    if (_currentQuestionIndex == 0) {
+      return;
+    }
+    setState(() => _currentQuestionIndex -= 1);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.questions.isEmpty) {
@@ -42,6 +52,7 @@ class _DsSurveyQuestionRunnerState extends State<DsSurveyQuestionRunner> {
     }
 
     final currentQuestion = widget.questions[_currentQuestionIndex];
+    final currentAnswer = _answers[_currentQuestionIndex];
     return Center(
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -60,6 +71,14 @@ class _DsSurveyQuestionRunnerState extends State<DsSurveyQuestionRunner> {
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
+            if (currentAnswer.trim().isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Resposta atual: $currentAnswer',
+                style: Theme.of(context).textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ],
             const SizedBox(height: 40),
             ...currentQuestion.answers.asMap().entries.map((entry) {
               return SurveyOptionButton(
@@ -67,8 +86,18 @@ class _DsSurveyQuestionRunnerState extends State<DsSurveyQuestionRunner> {
                 onPressed: () => _answerQuestion(entry.value),
                 optionIndex: entry.key,
                 optionCount: currentQuestion.answers.length,
+                selected: currentAnswer == entry.value,
               );
             }),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: _currentQuestionIndex == 0 ? null : _goBack,
+                icon: const Icon(Icons.arrow_back_rounded),
+                label: const Text('Voltar para a pergunta anterior'),
+              ),
+            ),
           ],
         ),
       ),
