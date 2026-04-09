@@ -1,8 +1,5 @@
-# generate-clinical-documents Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change add-clinical-narrative-overview. Update Purpose after archive.
-## Requirements
 ### Requirement: Document Generation
 The system SHALL generate clinical documents from the conversation context and approved templates using an **asynchronous processing pattern**. The request SHALL return a job identifier immediately, allowing the user to monitor progress through standardized stages. Completion occurs only after the output passes the reflection-based safety review.
 
@@ -20,11 +17,3 @@ The system SHALL generate clinical documents from the conversation context and a
 - **AND** the draft includes a medical prescription or invasive recommendation
 - **WHEN** the reflection stage evaluates the draft
 - **THEN** the system SHALL return the job to the `drafting` stage for correction rather than moving to `completed`.
-
-### Requirement: Export and Print
-The system SHALL allow PDF export and direct print option.
-
-#### Scenario: Export PDF
-- **WHEN** the clinician chooses export
-- **THEN** the system generates a PDF of the document
-

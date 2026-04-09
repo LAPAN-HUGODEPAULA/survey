@@ -56,10 +56,16 @@
 - `Survey`: survey metadata and questions, stored in the `surveys` collection with an embedded `prompt` reference (`promptKey`, `name`).
 - `SurveyResponse`: answers plus patient details, stored in the `survey_responses` collection, with optional `personaSkillKey` and `outputProfile`.
 - `PatientResponse`: answers plus patient details, stored in the `patient_responses` collection.
-- `AgentResponse`: AI payload with `ok`, `input_type`, `prompt_version`, `questionnaire_prompt_version`, `persona_skill_version`, `model_version`, `report`, `warnings`.
+## Models (abridged)
+
+- `ApiError`: standardized frontend-safe error object with `code`, `userMessage`, `severity`, `retryable`, `requestId`, and optional `details`.
+- `SurveyPrompt`: questionnaire prompt definition stored canonically in `QuestionnairePrompts`.
+...
 - `SurveyResponseWithAgent`: response payload plus optional `agent_response`.
 
 ## Clinical Writer Contract (/clinical_writer/process)
+
+The Clinical Writer API supports both synchronous and asynchronous processing. For long-running report generation, **asynchronous mode is preferred** and enabled by default in backend proxies.
 
 Request body (JSON):
 
@@ -70,33 +76,38 @@ Request body (JSON):
 - `persona_skill_key`: optional persona key for output tone/restrictions
 - `output_profile`: optional output profile used to derive a default persona skill
 - `output_format`: must be `report_json`
+- `async_mode`: boolean, defaults to `true` in proxies. When true, returns `202 Accepted` or a task status object immediately.
 - `metadata`: `source_app`, `request_id`, `patient_ref` (optional)
-  - `patient_ref` should be treated as an opaque correlation identifier.
-    Backend integrations may pseudonymize it before persistence.
 
-Response body (JSON):
+Response body (Synchronous or Polling Result):
 
 - `ok`: boolean
-- `input_type`: echoes request input type
-- `prompt_version`: composite runtime prompt version
-- `questionnaire_prompt_version`: questionnaire prompt document version used for the request
-- `persona_skill_version`: persona skill document version used for the request
-- `model_version`: model used for generation
-- `report`: structured JSON ReportDocument (no markdown)
-- `warnings`: list of warnings (empty when successful)
+- `report`: structured JSON ReportDocument
+- `ai_progress`: object containing `stage`, `stageLabel`, `userMessage`, and `status`.
 
-Samples:
+Asynchronous Status (/clinical_writer/status/{task_id}):
 
-- Inputs: `samples/clinical-writer/inputs/*.json`
-- Outputs: `samples/clinical-writer/outputs/*.json`
+- `taskId`: unique job identifier.
+- `status`: `submitted` | `processing` | `completed` | `failed`.
+- `aiProgress`: current stage information for wayfinding.
+- `result`: the generated report (only when status is `completed`).
+- `error`: structured error details (only when status is `failed`).
 
 ## Error Semantics
 
-- `400` for validation errors (e.g., malformed ObjectId).
-- `404` for missing resources.
-- `500` for unexpected server errors.
+All non-2xx responses from the platform APIs return a standardized `ApiError` object.
 
-## Security Notes
+- **Standard Status Codes:**
+  - `400 Bad Request`: Validation errors or malformed identifiers (`code: VALIDATION_FAILED`).
+  - `401 Unauthorized`: Missing or invalid credentials (`code: UNAUTHORIZED`).
+  - `403 Forbidden`: Insufficient permissions or expired links (`code: FORBIDDEN` or `code: LINK_EXPIRED`).
+  - `404 Not Found`: Resource not found (`code: NOT_FOUND`).
+  - `500 Internal Server Error`: Unexpected backend failure (`code: INTERNAL_SERVER_ERROR`).
+
+- **Recovery Fields:**
+  - `userMessage`: human-readable guidance in Brazilian Portuguese.
+  - `retryable`: boolean indicating if the client should attempt the request again.
+  - `requestId`: correlation ID for log investigation.
 
 - `survey-backend` enforces HTTPS in production and emits browser hardening
   headers on responses.

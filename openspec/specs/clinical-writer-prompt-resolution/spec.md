@@ -3,16 +3,21 @@
 ## Purpose
 TBD - created by archiving change add-survey-ai-prompts. Update Purpose after archive.
 ## Requirements
-### Requirement: Clinical Writer MUST resolve questionnaire prompts and persona skills from MongoDB for migrated survey flows.
+### Requirement: Clinical Writer MUST resolve questionnaire prompts and persona skills from MongoDB for migrated survey flows and **MUST expose internal processing stages**.
 
-The prompt resolution mechanism MUST fetch both the `QuestionnairePrompts` document and the `PersonaSkills` document from MongoDB and MUST inject them into the strictly typed `AgentState` as distinct context variables (`interpretation_prompt` and `persona_prompt`) before downstream nodes execute. The `ContextLoader` MUST also persist the resolved version metadata required by the FastAPI service so the analyzer and writer consume only hydrated state, not direct database lookups.
+The prompt resolution mechanism MUST fetch both the `QuestionnairePrompts` document and the `PersonaSkills` document from MongoDB and MUST inject them into the strictly typed `AgentState`. The `clinical-writer-api` SHALL expose its progress through standardized job stages (e.g., `loading_context`, `analyzing`, `writing`, `reflecting`) to allow callers to provide granular progress feedback to users.
 
-#### Scenario: Route prompts to specialized nodes
+#### Scenario: Route prompts to specialized nodes and report stage
 - **Given** a survey-derived request that specifies a questionnaire and an output profile
 - **When** the `ContextLoader` phase of the graph executes
-- **Then** the state MUST be hydrated with `interpretation_prompt` for the Clinical Analyzer
-- **And** the state MUST be hydrated with `persona_prompt` for the Persona Writer
-- **And** the resolved version fields needed by the service response MUST be written into the agent state before downstream execution
+- **Then** the state MUST be hydrated with `interpretation_prompt` and `persona_prompt`
+- **AND** the API SHALL report the current stage as `loading_context`.
+
+#### Scenario: Report transition to drafting stage
+- **Given** the Clinical Analyzer has finished producing structured facts
+- **WHEN** the `PersonaWriter` node begins execution
+- **THEN** the job status SHALL update the `currentStage` to `writing`
+- **AND** the `stageMessage` MUST update to a pt-BR string explaining that the narrative is being written.
 
 #### Scenario: Preventing downstream database coupling
 - **Given** the `ContextLoader` has already resolved questionnaire and persona data from MongoDB

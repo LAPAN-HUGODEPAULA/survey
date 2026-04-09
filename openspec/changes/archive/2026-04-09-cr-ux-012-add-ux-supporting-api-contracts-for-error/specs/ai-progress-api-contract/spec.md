@@ -1,8 +1,5 @@
-# ai-progress-api-contract Specification
+## ADDED Requirements
 
-## Purpose
-TBD - created by archiving change cr-ux-005-ai-waiting-states. Update Purpose after archive.
-## Requirements
 ### Requirement: Asynchronous Job Lifecycle for AI Tasks
 Long-running AI operations (e.g., report generation, complex analysis) SHALL use an asynchronous pattern. The initial request MUST return a `202 Accepted` status with a `jobId` and a `statusUrl`.
 
@@ -30,12 +27,3 @@ All AI-facing APIs SHALL use a standardized set of stages to ensure cross-app co
 - **WHEN** the clinical writer agent moves from the Analyzer to the Writer node
 - **THEN** the job status MUST transition from `analyzing` to `drafting`
 - **AND** the `stageMessage` MUST update to "Escrevendo a primeira versão do documento."
-
-### Requirement: Structured AI Error Contract
-AI processing failures SHALL return an error object that classifies the recoverability of the problem.
-
-#### Scenario: Transient AI Error
-- **WHEN** the AI service fails due to timeout or overload
-- **THEN** the API SHALL return a 503 error code with a `retryable: true` field
-- **AND** SHALL provide a `userMessage` in pt-BR focused on retrying shortly.
-

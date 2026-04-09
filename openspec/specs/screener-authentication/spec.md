@@ -4,17 +4,19 @@
 Define the backend authentication and registration contract for screeners across the LAPAN professional applications.
 ## Requirements
 ### Requirement: Screener Login
-The system MUST provide a mechanism for screeners to log in.
+The system MUST provide a mechanism for screeners to log in. Failed login attempts MUST return a structured error object that allows the frontend to distinguish between invalid credentials, locked accounts, and unverified emails.
 
 #### Scenario: Successful login
 **Given** a registered screener with email "test@example.com" and password "password123"
 **When** the screener logs in with the correct credentials
 **Then** the system MUST return a JWT (JSON Web Token) for authentication.
 
-#### Scenario: Unsuccessful login
-**Given** a registered screener with email "test@example.com" and password "password123"
+#### Scenario: Unsuccessful login due to invalid credentials
+**Given** a registered screener
 **When** the screener attempts to log in with an incorrect password
-**Then** the system MUST return an authentication error.
+**Then** the system MUST return a `401 Unauthorized` status
+**AND** the error object `code` MUST be `INVALID_CREDENTIALS`
+**AND** the `retryable` field MUST be `true`.
 
 ### Requirement: Password Encryption
 The system MUST encrypt screener passwords before storing them in the database.
@@ -24,13 +26,14 @@ The system MUST encrypt screener passwords before storing them in the database.
 **When** the screener's data is saved
 **Then** the `password` field in the database MUST contain a hashed version of the original password.
 
-### Requirement: Password Recovery
-The system MUST provide a mechanism for screeners to recover their password.
+### Requirement: Password Recovery (Contract Transition)
+The system SHALL provide a mechanism for screeners to recover their password. The API contract SHALL prioritize a **tokenized reset-link flow** over generating a replacement password.
 
-#### Scenario: Request password recovery
-**Given** a registered screener with email "test@example.com"
-**When** the screener requests a password recovery
-**Then** the system MUST generate a new random password and send it to "test@example.com".
+#### Scenario: Request password recovery link
+- **WHEN** a screener requests password recovery
+- **THEN** the system MUST return a `200 OK` or `202 Accepted` response
+- **AND** the backend SHALL generate a temporary secure token and initiate the email delivery of a reset link
+- **AND** the API response MUST NOT confirm if the email exists for security reasons, returning a generic success `userMessage` in pt-BR.
 
 ### Requirement: Shared Screener Authentication Across Professional Apps
 The existing screener authentication contract MUST serve both `survey-frontend` and `clinical-narrative` without introducing a second professional identity store.
