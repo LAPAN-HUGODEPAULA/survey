@@ -23,6 +23,7 @@ import 'package:survey_app/core/models/survey/survey.dart';
 import 'package:survey_app/core/models/survey_response.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/core/repositories/survey_repository.dart';
+import 'package:survey_app/shared/widgets/assessment_flow_stepper.dart';
 import 'package:web/web.dart' as web;
 
 /// Confirms submission state and handles post-survey exports.
@@ -46,17 +47,38 @@ class ThankYouPage extends StatefulWidget {
   State<ThankYouPage> createState() => _ThankYouPageState();
 }
 
+enum AssessmentHandoffState { registering, registered, analyzing, ready }
+
 class _ThankYouPageState extends State<ThankYouPage> {
-  bool _isSaving = false;
+  AssessmentHandoffState _handoffState = AssessmentHandoffState.registering;
   bool _saveSuccess = false;
   String? _saveError;
   String? _savedFilePath;
   String? _savedResponseId;
   AgentResponse? _agentResponse;
+  bool _isAgentLoading = false;
+  bool _agentRetryable = false;
+  AIProgress? _aiProgress;
   String? _selectedPromptKey;
   ReportDocument? _demoReport;
   String? _demoReportError;
   final SurveyRepository _surveyRepository = SurveyRepository();
+
+  Future<void> _showRegisteredStep() async {
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _handoffState = AssessmentHandoffState.registered;
+    });
+    await Future<void>.delayed(const Duration(milliseconds: 350));
+    if (!mounted || _agentResponse != null) {
+      return;
+    }
+    setState(() {
+      _handoffState = AssessmentHandoffState.analyzing;
+    });
+  }
 
   @override
   void initState() {
@@ -92,8 +114,8 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
   Future<void> _submitResponse() async {
     setState(() {
-      _isSaving = true;
       _saveError = null;
+      _handoffState = AssessmentHandoffState.registering;
     });
 
     try {
@@ -119,11 +141,18 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
       final saved = await _surveyRepository.submitResponse(surveyResponse);
       setState(() {
-        _isSaving = false;
         _saveSuccess = true;
         _savedResponseId = saved.id;
         _agentResponse = saved.agentResponse;
+        _isAgentLoading = saved.agentResponse == null;
+        _aiProgress = saved.agentResponse?.aiProgress;
+        if (saved.agentResponse != null) {
+          _handoffState = AssessmentHandoffState.ready;
+        }
       });
+      if (saved.agentResponse == null) {
+        await _showRegisteredStep();
+      }
       await _maybeFetchAgentResponse(surveyResponse, saved.agentResponse);
     } catch (e) {
       await _fallbackToLocalSave(e);
@@ -141,27 +170,104 @@ class _ThankYouPageState extends State<ThankYouPage> {
     if (agentResponse != null) {
       setState(() {
         _agentResponse = agentResponse;
+        _isAgentLoading = false;
+        _aiProgress = agentResponse.aiProgress;
+        _handoffState = AssessmentHandoffState.ready;
       });
       return;
     }
 
     try {
-      final content = jsonEncode(surveyResponse.toJson());
-      final response = await _surveyRepository.processClinicalWriter(
-        content,
-        promptKey: surveyResponse.promptKey,
-      );
+      final response = await _startAndPollAgentResponse(surveyResponse);
       if (!mounted) {
         return;
       }
       setState(() {
         _agentResponse = response;
+        _isAgentLoading = false;
+        _aiProgress = response?.aiProgress;
+        if (response != null) {
+          _handoffState = AssessmentHandoffState.ready;
+        }
       });
     } catch (e) {
       if (kDebugMode) {
         debugPrint('Clinical writer fallback failed: $e');
       }
+      if (mounted) {
+        setState(() {
+          _isAgentLoading = false;
+          _agentRetryable = true;
+          _saveError = 'Não foi possível concluir a análise automática agora.';
+          _handoffState = AssessmentHandoffState.analyzing;
+        });
+      }
     }
+  }
+
+  Future<AgentResponse?> _startAndPollAgentResponse(
+    SurveyResponse surveyResponse,
+  ) async {
+    final content = jsonEncode(surveyResponse.toJson());
+    final taskStart = await _surveyRepository.startClinicalWriterTask(
+      content,
+      promptKey: surveyResponse.promptKey,
+    );
+    final taskId =
+        taskStart['taskId']?.toString() ?? taskStart['task_id']?.toString();
+    if (taskId == null || taskId.isEmpty) {
+      return _surveyRepository.processClinicalWriter(
+        content,
+        promptKey: surveyResponse.promptKey,
+      );
+    }
+
+    final startProgress = taskStart['aiProgress'] ?? taskStart['ai_progress'];
+    if (startProgress is Map<String, dynamic> && mounted) {
+      setState(() {
+        _aiProgress = AIProgress.fromJson(startProgress);
+      });
+    }
+
+    for (var attempt = 0; attempt < 120; attempt++) {
+      await Future<void>.delayed(const Duration(seconds: 1));
+      final statusPayload = await _surveyRepository.getClinicalWriterTaskStatus(
+        taskId,
+      );
+      final progressPayload =
+          statusPayload['aiProgress'] ?? statusPayload['ai_progress'];
+      if (progressPayload is Map<String, dynamic> && mounted) {
+        setState(() {
+          _aiProgress = AIProgress.fromJson(progressPayload);
+        });
+      }
+      final status = statusPayload['status']?.toString() ?? '';
+      if (status == 'completed' &&
+          statusPayload['result'] is Map<String, dynamic>) {
+        return AgentResponse.fromJson(
+          statusPayload['result'] as Map<String, dynamic>,
+        );
+      }
+      if (status == 'failed') {
+        final errorPayload = statusPayload['error'];
+        _agentRetryable = false;
+        if (errorPayload is Map<String, dynamic>) {
+          _agentRetryable = errorPayload['retryable'] as bool? ?? false;
+          _saveError =
+              errorPayload['userMessage']?.toString() ??
+              'Não conseguimos gerar a análise automática para este caso.';
+        } else {
+          _saveError =
+              'Não conseguimos gerar a análise automática para este caso.';
+        }
+        return null;
+      }
+    }
+
+    _agentRetryable = true;
+    _saveError =
+        'A análise está demorando mais que o esperado. Tente novamente em instantes.';
+    return null;
   }
 
   Future<void> _fallbackToLocalSave(Object originalError) async {
@@ -193,16 +299,15 @@ class _ThankYouPageState extends State<ThankYouPage> {
       );
 
       setState(() {
-        _isSaving = false;
         _saveSuccess = true;
         _savedFilePath = filePath;
         _saveError =
             'Não foi possível enviar para o servidor (${originalError.toString()}). '
             'As respostas foram salvas localmente.';
+        _handoffState = AssessmentHandoffState.registered;
       });
     } catch (fallbackError) {
       setState(() {
-        _isSaving = false;
         _saveError =
             'Erro ao enviar para o servidor: $originalError\n'
             'Falha ao salvar localmente: $fallbackError';
@@ -399,7 +504,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
       return;
     }
 
-    showDsFeedbackSnackBar(
+    showDsToast(
       context,
       feedback: DsFeedbackMessage(
         severity: DsStatusType.success,
@@ -465,6 +570,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
   @override
   Widget build(BuildContext context) {
     final settings = Provider.of<AppSettings>(context);
+    final tone = DsEmotionalToneProvider.resolveTokens(context);
     final reportDocument = _agentResponse == null
         ? null
         : _resolveReportDocument(settings, _agentResponse!);
@@ -472,10 +578,15 @@ class _ThankYouPageState extends State<ThankYouPage> {
     final displayName = widget.survey.surveyDisplayName.isNotEmpty
         ? widget.survey.surveyDisplayName
         : widget.survey.surveyName;
+    final handoffState = _handoffState;
 
     return DsScaffold(
       title: 'Avaliação finalizada',
-      subtitle: 'Revise o envio e os próximos passos da triagem.',
+      subtitle: 'Revise o envio e os próximos passos clínicos com segurança.',
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: 'Voltar para o questionário',
+      userName: settings.screenerDisplayName,
+      showAmbientGreeting: true,
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
@@ -484,106 +595,17 @@ class _ThankYouPageState extends State<ThankYouPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Surface submission progress before the final confirmation UI.
-                if (_isSaving) ...[
-                  const DsInlineFeedback(
-                    feedback: DsFeedbackMessage(
-                      severity: DsStatusType.info,
-                      title: 'Enviando respostas',
-                      message:
-                          'Estamos registrando as respostas e preparando os próximos passos da triagem.',
-                    ),
-                    margin: EdgeInsets.zero,
-                  ),
-                  const SizedBox(height: 24),
-                ] else if (_saveSuccess) ...[
-                  Icon(
-                    Icons.check_circle_outline,
-                    color: Theme.of(context).colorScheme.tertiary,
-                    size: 100,
-                  ),
-                  const SizedBox(height: 16),
-                  DsFeedbackBanner(
-                    feedback: DsFeedbackMessage(
-                      severity: DsStatusType.success,
-                      title: _savedResponseId != null
-                          ? 'Respostas enviadas'
-                          : 'Respostas salvas localmente',
-                      message: _savedResponseId != null
-                          ? 'As respostas foram enviadas para o servidor com sucesso.'
-                          : 'Não foi possível enviar ao servidor, mas os dados foram preservados localmente.',
-                    ),
-                    footer: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Questionário: $displayName'),
-                        if (_savedResponseId != null) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            'Protocolo da submissão: $_savedResponseId',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontFamily: 'monospace',
-                            ),
-                          ),
-                        ] else if (_savedFilePath != null) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            'Arquivo salvo em: $_savedFilePath',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontFamily: 'monospace',
-                            ),
-                          ),
-                        ],
-                        if (_saveError != null) ...[
-                          const SizedBox(height: 12),
-                          Text(_saveError!),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  if (reportDocument != null) ...[
-                    ReportView(
-                      report: reportDocument,
-                      footer:
-                          'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
-                      onPrint: kIsWeb ? _printReport : null,
-                      onExport: () => _exportReport(settings, reportDocument),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                  if (reportDocument == null && kDebugMode) ...[
-                    DsOutlinedButton(
-                      onPressed: _loadDemoReport,
-                      icon: Icons.visibility_outlined,
-                      label: 'Carregar relatório de exemplo',
-                    ),
-                    if (_demoReportError != null) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        _demoReportError!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ],
-                    if (_demoReport != null) ...[
-                      const SizedBox(height: 16),
-                      ReportView(
-                        report: _demoReport!,
-                        footer: 'Exemplo local - não representa dados reais.',
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-                  ],
-                ] else if (_saveError != null) ...[
+                const AssessmentFlowStepper(
+                  currentStep: AssessmentFlowStep.relatorio,
+                ),
+                if (_saveError != null && !_saveSuccess) ...[
                   Icon(
                     Icons.error_outline,
                     color: Theme.of(context).colorScheme.error,
                     size: 100,
                   ),
                   const SizedBox(height: 16),
-                  DsFeedbackBanner(
+                  DsMessageBanner(
                     feedback: DsFeedbackMessage(
                       severity: DsStatusType.error,
                       title: 'Falha ao registrar respostas',
@@ -592,40 +614,150 @@ class _ThankYouPageState extends State<ThankYouPage> {
                   ),
                   const SizedBox(height: 24),
                 ],
-
-                // Keep the success icon visible unless a richer success panel already shows it.
-                if (!_isSaving && _saveSuccess)
-                  const SizedBox.shrink()
-                else if (!_isSaving)
-                  Column(
-                    children: [
-                      Icon(
-                        Icons.check_circle_outline,
-                        color: theme.colorScheme.primary,
-                        size: 100,
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
-
-                // Primary confirmation message shown for every completion state.
-                Text(
-                  'Obrigado por responder!',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                  textAlign: TextAlign.center,
+                DsHandoffStatusRow(
+                  stage: switch (handoffState) {
+                    AssessmentHandoffState.registering =>
+                      DsHandoffStage.registered,
+                    AssessmentHandoffState.registered =>
+                      DsHandoffStage.registered,
+                    AssessmentHandoffState.analyzing =>
+                      DsHandoffStage.analyzing,
+                    AssessmentHandoffState.ready => DsHandoffStage.ready,
+                  },
+                  liveRegion: true,
                 ),
                 const SizedBox(height: 16),
-
-                // Include the survey name when it helps disambiguate the completed form.
-                Text(
-                  widget.survey.surveyDisplayName.isNotEmpty
-                      ? 'Suas respostas para o questionário "${widget.survey.surveyDisplayName}" foram registradas.'
-                      : 'Suas respostas foram registradas com sucesso.',
-                  style: theme.textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
-                ),
+                if (_saveSuccess) ...[
+                  DsMessageBanner(
+                    feedback: DsFeedbackMessage(
+                      severity: DsStatusType.success,
+                      title: DsHandoffCopy.registeredLabel,
+                      message: tone.completionAcknowledgement,
+                    ),
+                    footer: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Questionário: $displayName'),
+                        if (_savedResponseId != null) ...[
+                          const SizedBox(height: 8),
+                          Text(DsHandoffCopy.referenceIdContext),
+                          const SizedBox(height: 8),
+                          SelectableText(
+                            _savedResponseId!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ] else if (_savedFilePath != null) ...[
+                          const SizedBox(height: 8),
+                          Text('Arquivo salvo em: $_savedFilePath'),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+                if (handoffState == AssessmentHandoffState.analyzing) ...[
+                  DsSection(
+                    tone: DsPanelTone.high,
+                    padding: const EdgeInsets.all(16),
+                    title: DsHandoffCopy.analyzingLabel,
+                    subtitle:
+                        'As respostas já foram registradas. Agora estamos finalizando a leitura clínica inicial.',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (_isAgentLoading)
+                          Row(
+                            children: [
+                              const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.4,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _aiProgress?.stageLabel ??
+                                      DsHandoffCopy.analyzingLabel,
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ),
+                            ],
+                          ),
+                        if (!_isAgentLoading && _saveError != null)
+                          DsInlineMessage(
+                            feedback: DsFeedbackMessage(
+                              severity: _agentRetryable
+                                  ? DsStatusType.warning
+                                  : DsStatusType.error,
+                              title:
+                                  'Não foi possível concluir a análise automática agora.',
+                              message: _saveError!,
+                              primaryAction: _agentRetryable
+                                  ? DsFeedbackAction(
+                                      label: 'Tentar novamente',
+                                      onPressed: _submitResponse,
+                                      icon: Icons.refresh,
+                                    )
+                                  : null,
+                            ),
+                            margin: EdgeInsets.zero,
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+                if (handoffState == AssessmentHandoffState.ready &&
+                    reportDocument != null) ...[
+                  DsClinicalContentCard(
+                    title: DsHandoffCopy.readyLabel,
+                    subtitle:
+                        'O conteúdo clínico abaixo está disponível para revisão, impressão ou exportação.',
+                    child: Text(
+                      reportDocument.toPlainText(),
+                      maxLines: 8,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  ReportView(
+                    report: reportDocument,
+                    footer:
+                        'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
+                    onPrint: kIsWeb ? _printReport : null,
+                    onExport: () => _exportReport(settings, reportDocument),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+                if (reportDocument == null && kDebugMode) ...[
+                  DsOutlinedButton(
+                    onPressed: _loadDemoReport,
+                    icon: Icons.visibility_outlined,
+                    label: 'Carregar relatório de exemplo',
+                  ),
+                  if (_demoReportError != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      _demoReportError!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ],
+                  if (_demoReport != null) ...[
+                    const SizedBox(height: 16),
+                    ReportView(
+                      report: _demoReport!,
+                      footer: 'Exemplo local - não representa dados reais.',
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ],
 
                 // Render optional survey-specific closing guidance supplied by the backend.
                 if (widget.survey.finalNotes != null &&

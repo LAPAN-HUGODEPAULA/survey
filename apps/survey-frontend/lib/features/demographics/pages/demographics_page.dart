@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:survey_app/core/navigation/app_navigator.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
+import 'package:survey_app/shared/widgets/assessment_flow_stepper.dart';
 import 'package:survey_app/shared/widgets/screener_navigation_app_bar.dart';
 
 class DemographicsPage extends StatefulWidget {
@@ -242,6 +243,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<AppSettings>();
+    final tone = DsEmotionalToneProvider.resolveTokens(context);
 
     return DsAsyncPage(
       isLoading: _isLoadingCatalogs,
@@ -260,6 +262,20 @@ class _DemographicsPageState extends State<DemographicsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const AssessmentFlowStepper(
+                    currentStep: AssessmentFlowStep.dadosPaciente,
+                  ),
+                  DsInlineMessage(
+                    feedback: DsFeedbackMessage(
+                      severity: DsStatusType.info,
+                      title: 'Sessão profissional ativa',
+                      message:
+                          'Você pode revisar os dados do paciente e seguir quando estiver pronto. ${tone.waitingSupportMessage}',
+                      userName: settings.screenerDisplayName,
+                      includeGreeting: true,
+                    ),
+                    margin: const EdgeInsets.only(bottom: 16),
+                  ),
                   if (_validationItems.isNotEmpty) ...[
                     DsValidationSummary(
                       items: _validationItems,
@@ -269,7 +285,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                     const SizedBox(height: 16),
                   ],
                   if (settings.isLockedAssessmentMode)
-                    DsFeedbackBanner(
+                    DsMessageBanner(
                       feedback: DsFeedbackMessage(
                         severity: DsStatusType.info,
                         title: 'Sessão preparada',
