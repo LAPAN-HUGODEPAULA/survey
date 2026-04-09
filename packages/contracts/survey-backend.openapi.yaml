@@ -381,7 +381,28 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AgentResponse'
+                oneOf:
+                  - $ref: '#/components/schemas/AgentResponse'
+                  - $ref: '#/components/schemas/ClinicalWriterTaskResponse'
+  /clinical_writer/status/{task_id}:
+    get:
+      summary: Get asynchronous Clinical Writer task status
+      operationId: getClinicalWriterStatus
+      parameters:
+        - in: path
+          name: task_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Current task status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicalWriterTaskResponse'
+        '404':
+          description: Task not found
   /clinical_writer/analysis:
     post:
       summary: Analyze conversation context with Clinical Writer
@@ -1455,6 +1476,61 @@ components:
           type: string
         errorMessage:
           type: string
+        aiProgress:
+          $ref: '#/components/schemas/AIProgress'
+    AIProgress:
+      type: object
+      properties:
+        stage:
+          type: string
+        stageLabel:
+          type: string
+        percent:
+          type: integer
+        status:
+          type: string
+        severity:
+          type: string
+          enum:
+            - info
+            - success
+            - warning
+            - critical
+        retryable:
+          type: boolean
+        userMessage:
+          type: string
+        updatedAt:
+          type: string
+    ClinicalWriterTaskError:
+      type: object
+      required:
+        - retryable
+        - userMessage
+      properties:
+        retryable:
+          type: boolean
+        userMessage:
+          type: string
+        detail:
+          type: string
+    ClinicalWriterTaskResponse:
+      type: object
+      required:
+        - taskId
+        - status
+        - aiProgress
+      properties:
+        taskId:
+          type: string
+        status:
+          type: string
+        aiProgress:
+          $ref: '#/components/schemas/AIProgress'
+        result:
+          $ref: '#/components/schemas/AgentResponse'
+        error:
+          $ref: '#/components/schemas/ClinicalWriterTaskError'
     ClinicalWriterRequest:
       type: object
       required:
@@ -1487,6 +1563,8 @@ components:
           type: string
           enum:
             - report_json
+        asyncMode:
+          type: boolean
         metadata:
           type: object
           properties:

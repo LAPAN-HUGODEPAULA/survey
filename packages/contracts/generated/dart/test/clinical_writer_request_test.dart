@@ -42,6 +42,11 @@ void main() {
       // TODO
     });
 
+    // bool asyncMode
+    test('to test the property `asyncMode`', () async {
+      // TODO
+    });
+
     // ClinicalWriterRequestMetadata metadata
     test('to test the property `metadata`', () async {
       // TODO

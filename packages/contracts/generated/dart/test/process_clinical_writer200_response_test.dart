@@ -1,12 +1,12 @@
 import 'package:test/test.dart';
 import 'package:survey_backend_api/survey_backend_api.dart';
 
-// tests for AgentResponse
+// tests for ProcessClinicalWriter200Response
 void main() {
-  final instance = AgentResponseBuilder();
+  final instance = ProcessClinicalWriter200ResponseBuilder();
   // TODO add properties to the builder and call build()
 
-  group(AgentResponse, () {
+  group(ProcessClinicalWriter200Response, () {
     // bool ok
     test('to test the property `ok`', () async {
       // TODO
@@ -64,6 +64,26 @@ void main() {
 
     // AIProgress aiProgress
     test('to test the property `aiProgress`', () async {
+      // TODO
+    });
+
+    // String taskId
+    test('to test the property `taskId`', () async {
+      // TODO
+    });
+
+    // String status
+    test('to test the property `status`', () async {
+      // TODO
+    });
+
+    // AgentResponse result
+    test('to test the property `result`', () async {
+      // TODO
+    });
+
+    // ClinicalWriterTaskError error
+    test('to test the property `error`', () async {
       // TODO
     });
 

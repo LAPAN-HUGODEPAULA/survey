@@ -14,6 +14,7 @@ import 'package:built_value/iso_8601_date_time_serializer.dart';
 import 'package:survey_backend_api/src/date_serializer.dart';
 import 'package:survey_backend_api/src/model/date.dart';
 
+import 'package:survey_backend_api/src/model/ai_progress.dart';
 import 'package:survey_backend_api/src/model/address.dart';
 import 'package:survey_backend_api/src/model/agent_response.dart';
 import 'package:survey_backend_api/src/model/answer.dart';
@@ -33,6 +34,8 @@ import 'package:survey_backend_api/src/model/clinical_writer_knowledge_item.dart
 import 'package:survey_backend_api/src/model/clinical_writer_request.dart';
 import 'package:survey_backend_api/src/model/clinical_writer_request_metadata.dart';
 import 'package:survey_backend_api/src/model/clinical_writer_suggestion.dart';
+import 'package:survey_backend_api/src/model/clinical_writer_task_error.dart';
+import 'package:survey_backend_api/src/model/clinical_writer_task_response.dart';
 import 'package:survey_backend_api/src/model/create_screener_access_link_request.dart';
 import 'package:survey_backend_api/src/model/document_export_request.dart';
 import 'package:survey_backend_api/src/model/document_preview.dart';
@@ -43,6 +46,7 @@ import 'package:survey_backend_api/src/model/list_template_document_types200_res
 import 'package:survey_backend_api/src/model/patient.dart';
 import 'package:survey_backend_api/src/model/persona_skill.dart';
 import 'package:survey_backend_api/src/model/persona_skill_upsert.dart';
+import 'package:survey_backend_api/src/model/process_clinical_writer200_response.dart';
 import 'package:survey_backend_api/src/model/professional_council.dart';
 import 'package:survey_backend_api/src/model/question.dart';
 import 'package:survey_backend_api/src/model/screener_access_link.dart';
@@ -71,6 +75,7 @@ import 'package:survey_backend_api/src/model/transcription_segment.dart';
 part 'serializers.g.dart';
 
 @SerializersFor([
+  AIProgress,
   Address,
   AgentResponse,
   Answer,
@@ -90,6 +95,8 @@ part 'serializers.g.dart';
   ClinicalWriterRequest,
   ClinicalWriterRequestMetadata,
   ClinicalWriterSuggestion,
+  ClinicalWriterTaskError,
+  ClinicalWriterTaskResponse,
   CreateScreenerAccessLinkRequest,
   DocumentExportRequest,
   DocumentPreview,
@@ -100,6 +107,7 @@ part 'serializers.g.dart';
   Patient,
   PersonaSkill,
   PersonaSkillUpsert,$PersonaSkillUpsert,
+  ProcessClinicalWriter200Response,
   ProfessionalCouncil,
   Question,
   ScreenerAccessLink,

@@ -143,6 +143,8 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
   @override
   final ClinicalWriterRequestOutputFormatEnum outputFormat;
   @override
+  final bool? asyncMode;
+  @override
   final ClinicalWriterRequestMetadata metadata;
 
   factory _$ClinicalWriterRequest(
@@ -157,6 +159,7 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
       this.personaSkillKey,
       this.outputProfile,
       required this.outputFormat,
+      this.asyncMode,
       required this.metadata})
       : super._();
   @override
@@ -179,6 +182,7 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
         personaSkillKey == other.personaSkillKey &&
         outputProfile == other.outputProfile &&
         outputFormat == other.outputFormat &&
+        asyncMode == other.asyncMode &&
         metadata == other.metadata;
   }
 
@@ -192,6 +196,7 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
     _$hash = $jc(_$hash, personaSkillKey.hashCode);
     _$hash = $jc(_$hash, outputProfile.hashCode);
     _$hash = $jc(_$hash, outputFormat.hashCode);
+    _$hash = $jc(_$hash, asyncMode.hashCode);
     _$hash = $jc(_$hash, metadata.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
@@ -207,6 +212,7 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
           ..add('personaSkillKey', personaSkillKey)
           ..add('outputProfile', outputProfile)
           ..add('outputFormat', outputFormat)
+          ..add('asyncMode', asyncMode)
           ..add('metadata', metadata))
         .toString();
   }
@@ -249,6 +255,10 @@ class ClinicalWriterRequestBuilder
   set outputFormat(ClinicalWriterRequestOutputFormatEnum? outputFormat) =>
       _$this._outputFormat = outputFormat;
 
+  bool? _asyncMode;
+  bool? get asyncMode => _$this._asyncMode;
+  set asyncMode(bool? asyncMode) => _$this._asyncMode = asyncMode;
+
   ClinicalWriterRequestMetadataBuilder? _metadata;
   ClinicalWriterRequestMetadataBuilder get metadata =>
       _$this._metadata ??= ClinicalWriterRequestMetadataBuilder();
@@ -269,6 +279,7 @@ class ClinicalWriterRequestBuilder
       _personaSkillKey = $v.personaSkillKey;
       _outputProfile = $v.outputProfile;
       _outputFormat = $v.outputFormat;
+      _asyncMode = $v.asyncMode;
       _metadata = $v.metadata.toBuilder();
       _$v = null;
     }
@@ -305,6 +316,7 @@ class ClinicalWriterRequestBuilder
             outputProfile: outputProfile,
             outputFormat: BuiltValueNullFieldError.checkNotNull(
                 outputFormat, r'ClinicalWriterRequest', 'outputFormat'),
+            asyncMode: asyncMode,
             metadata: metadata.build(),
           );
     } catch (_) {

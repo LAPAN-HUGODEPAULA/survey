@@ -29,6 +29,7 @@ Method | HTTP request | Description
 [**exportDocument**](DefaultApi.md#exportdocument) | **POST** /documents/export | Export document
 [**exportSurveys**](DefaultApi.md#exportsurveys) | **GET** /surveys/export | Export surveys
 [**getChatSession**](DefaultApi.md#getchatsession) | **GET** /chat/sessions/{sessionId} | Get chat session
+[**getClinicalWriterStatus**](DefaultApi.md#getclinicalwriterstatus) | **GET** /clinical_writer/status/{task_id} | Get asynchronous Clinical Writer task status
 [**getCurrentScreener**](DefaultApi.md#getcurrentscreener) | **GET** /screeners/me | Get the current screener profile
 [**getDocument**](DefaultApi.md#getdocument) | **GET** /documents/{documentId} | Get document record
 [**getPersonaSkill**](DefaultApi.md#getpersonaskill) | **GET** /persona_skills/{personaSkillKey} | Get persona skill by key
@@ -879,6 +880,47 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getClinicalWriterStatus**
+> ClinicalWriterTaskResponse getClinicalWriterStatus(taskId)
+
+Get asynchronous Clinical Writer task status
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String taskId = taskId_example; // String | 
+
+try {
+    final response = api.getClinicalWriterStatus(taskId);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->getClinicalWriterStatus: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **taskId** | **String**|  | 
+
+### Return type
+
+[**ClinicalWriterTaskResponse**](ClinicalWriterTaskResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getCurrentScreener**
 > ScreenerProfile getCurrentScreener(authorization)
 
@@ -1604,7 +1646,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **processClinicalWriter**
-> AgentResponse processClinicalWriter(clinicalWriterRequest)
+> ProcessClinicalWriter200Response processClinicalWriter(clinicalWriterRequest)
 
 Forward content to Clinical Writer
 
@@ -1631,7 +1673,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**AgentResponse**](AgentResponse.md)
+[**ProcessClinicalWriter200Response**](ProcessClinicalWriter200Response.md)
 
 ### Authorization
 

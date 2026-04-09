@@ -7,6 +7,13 @@ void main() {
   final instance = SurveyBackendApi().getDefaultApi();
 
   group(DefaultApi, () {
+    // Record the current screener initial notice agreement
+    //
+    //Future<ScreenerProfile> acceptScreenerInitialNoticeAgreement(String authorization) async
+    test('test acceptScreenerInitialNoticeAgreement', () async {
+      // TODO
+    });
+
     // Analyze conversation context with Clinical Writer
     //
     //Future<ClinicalWriterAnalysisResponse> analyzeClinicalWriter(ClinicalWriterAnalysisRequest clinicalWriterAnalysisRequest) async
@@ -140,6 +147,13 @@ void main() {
       // TODO
     });
 
+    // Get asynchronous Clinical Writer task status
+    //
+    //Future<ClinicalWriterTaskResponse> getClinicalWriterStatus(String taskId) async
+    test('test getClinicalWriterStatus', () async {
+      // TODO
+    });
+
     // Get the current screener profile
     //
     //Future<ScreenerProfile> getCurrentScreener(String authorization) async
@@ -268,7 +282,7 @@ void main() {
 
     // Forward content to Clinical Writer
     //
-    //Future<AgentResponse> processClinicalWriter(ClinicalWriterRequest clinicalWriterRequest) async
+    //Future<ProcessClinicalWriter200Response> processClinicalWriter(ClinicalWriterRequest clinicalWriterRequest) async
     test('test processClinicalWriter', () async {
       // TODO
     });
