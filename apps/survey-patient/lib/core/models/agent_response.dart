@@ -1,5 +1,43 @@
 import 'package:design_system_flutter/report/report_models.dart';
 
+class AIProgress {
+  const AIProgress({
+    required this.stage,
+    this.stageLabel,
+    this.percent = 0,
+    this.status = 'processing',
+    this.severity = 'info',
+    this.retryable = false,
+    this.userMessage,
+    this.updatedAt,
+  });
+
+  factory AIProgress.fromJson(Map<String, dynamic> json) {
+    return AIProgress(
+      stage: json['stage']?.toString() ?? 'organizing_data',
+      stageLabel:
+          json['stageLabel']?.toString() ?? json['stage_label']?.toString(),
+      percent: (json['percent'] as num?)?.toInt() ?? 0,
+      status: json['status']?.toString() ?? 'processing',
+      severity: json['severity']?.toString() ?? 'info',
+      retryable: json['retryable'] as bool? ?? false,
+      userMessage:
+          json['userMessage']?.toString() ?? json['user_message']?.toString(),
+      updatedAt:
+          json['updatedAt']?.toString() ?? json['updated_at']?.toString(),
+    );
+  }
+
+  final String stage;
+  final String? stageLabel;
+  final int percent;
+  final String status;
+  final String severity;
+  final bool retryable;
+  final String? userMessage;
+  final String? updatedAt;
+}
+
 class AgentResponse {
   const AgentResponse({
     this.ok,
@@ -11,6 +49,7 @@ class AgentResponse {
     this.classification,
     this.medicalRecord,
     this.errorMessage,
+    this.aiProgress,
   });
 
   factory AgentResponse.fromJson(Map<String, dynamic> json) {
@@ -32,6 +71,11 @@ class AgentResponse {
       medicalRecord: medicalRecord,
       errorMessage:
           json['errorMessage']?.toString() ?? json['error_message']?.toString(),
+      aiProgress: json['aiProgress'] is Map<String, dynamic>
+          ? AIProgress.fromJson(json['aiProgress'] as Map<String, dynamic>)
+          : json['ai_progress'] is Map<String, dynamic>
+          ? AIProgress.fromJson(json['ai_progress'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -44,4 +88,5 @@ class AgentResponse {
   final String? classification;
   final String? medicalRecord;
   final String? errorMessage;
+  final AIProgress? aiProgress;
 }
