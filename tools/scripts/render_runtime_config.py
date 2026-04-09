@@ -95,6 +95,9 @@ def main() -> None:
             "CLINICAL_WRITER_TRANSCRIPTION_URL": str(
                 backend.get("clinicalWriterTranscriptionUrl", "")
             ),
+            "CLINICAL_WRITER_HTTP_TIMEOUT_SECONDS": str(
+                backend.get("clinicalWriterHttpTimeoutSeconds", 120)
+            ),
             "SECRET_KEY": str(backend.get("secretKey", "")),
             "ALGORITHM": str(backend.get("algorithm", "HS256")),
             "ACCESS_TOKEN_EXPIRE_MINUTES": str(
