@@ -114,7 +114,12 @@ async def resolve_screener_access_link(
     if not link:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Prepared assessment is no longer available",
+            detail={
+                "code": "LINK_NOT_FOUND",
+                "userMessage": "Este link de avaliação não é mais válido ou nunca existiu.",
+                "retryable": False,
+                "operation": "resolve_access_link"
+            }
         )
 
     screener = screener_repo.find_by_id(link.screener_id)
@@ -122,7 +127,12 @@ async def resolve_screener_access_link(
     if not screener or not survey:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Prepared assessment is no longer available",
+            detail={
+                "code": "LINK_RESOURCE_MISSING",
+                "userMessage": "A avaliação preparada não está mais disponível pois o profissional ou o questionário foram removidos.",
+                "retryable": False,
+                "operation": "resolve_access_link"
+            }
         )
 
     survey_display_name = survey.get("surveyDisplayName") or survey.get("surveyName") or link.survey_id

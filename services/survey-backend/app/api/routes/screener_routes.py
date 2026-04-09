@@ -183,7 +183,12 @@ async def login_for_access_token(
         logger.warning("Authentication failed: Screener with email %s not found.", screener_data.email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenciais inválidas."
+            detail={
+                "code": "INVALID_CREDENTIALS",
+                "userMessage": "E-mail ou senha incorretos.",
+                "retryable": True,
+                "operation": "login"
+            }
         )
 
     # Compare the submitted password against the stored bcrypt hash.
@@ -191,7 +196,12 @@ async def login_for_access_token(
         logger.warning("Authentication failed: Incorrect password for screener %s.", screener_data.email)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenciais inválidas."
+            detail={
+                "code": "INVALID_CREDENTIALS",
+                "userMessage": "E-mail ou senha incorretos.",
+                "retryable": True,
+                "operation": "login"
+            }
         )
 
     # Use the screener email as the JWT subject for downstream identity checks.
@@ -230,7 +240,7 @@ async def recover_password(
     if not screener:
         # Return the same message for unknown emails to avoid account enumeration.
         logger.warning("Password recovery requested for unknown email: %s", recovery_request.email)
-        return {"message": "Se o e-mail estiver registrado, uma nova senha será enviada."}
+        return {"message": "Se o e-mail estiver registrado, as instruções de recuperação serão enviadas."}
 
     # Use a temporary random password so the user can regain access quickly.
     new_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(12))
@@ -244,10 +254,7 @@ async def recover_password(
 
     if not updated_screener:
         logger.error("Failed to update password for screener %s after recovery.", recovery_request.email)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erro ao redefinir a senha."
-        )
+        return {"message": "Se o e-mail estiver registrado, as instruções de recuperação serão enviadas."}
 
     # Email delivery is optional in local setups, so fail soft when unavailable.
     mail_client = get_mail_client()
@@ -256,7 +263,7 @@ async def recover_password(
             "Email client unavailable; skipping password recovery email for %s",
             recovery_request.email
         )
-        return {"message": "Se o e-mail estiver registrado, uma nova senha será enviada. No entanto, o serviço de e-mail não está configurado."}
+        return {"message": "Se o e-mail estiver registrado, as instruções de recuperação serão enviadas."}
 
     message = MessageSchema(
         subject="Recuperação de Senha - LAPAN Survey",
@@ -275,7 +282,7 @@ Equipe LAPAN
     await mail_client.send_message(message)
 
     logger.info("New password generated and sent to %s", recovery_request.email)
-    return {"message": "Se o e-mail estiver registrado, uma nova senha será enviada."}
+    return {"message": "Se o e-mail estiver registrado, as instruções de recuperação serão enviadas."}
 
 
 @router.get("/screeners/me", response_model=ScreenerProfile)
