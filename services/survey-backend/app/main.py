@@ -1,6 +1,6 @@
 """FastAPI application entrypoint for the survey backend."""
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import bcrypt
@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 
 from app.config.logging_config import logger
 from app.config.settings import settings
+from app.api.errors import global_http_exception_handler
 from app.api.routes.survey import router as surveys_router
 from app.api.routes.survey_prompts import router as survey_prompts_router
 from app.api.routes.persona_skills import router as persona_skills_router
@@ -85,6 +86,8 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+app.add_exception_handler(HTTPException, global_http_exception_handler)
 
 @app.middleware("http")
 async def enforce_https_in_production(request: Request, call_next):
