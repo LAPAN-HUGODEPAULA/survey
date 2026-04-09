@@ -1,17 +1,4 @@
-# full-survey-editing Specification
-
-## Purpose
-TBD - created by archiving change add-question-edit-to-builder. Update Purpose after archive.
-## Requirements
-### Requirement: The system MUST provide an interface for editing survey instructions.
-
-This interface MUST allow users to edit all fields of the `instructions` object.
-
-#### Scenario: User edits the survey instructions
--   **Given** a user is on the `SurveyFormScreen`
--   **When** they modify the text in the `preamble`, `questionText`, or `answers` fields for the instructions
--   **And** they save the survey
--   **Then** the updated instructions MUST be persisted to the database.
+## MODIFIED Requirements
 
 ### Requirement: The system MUST provide an interface for managing survey questions.
 
@@ -43,20 +30,3 @@ This interface MUST allow users to add, edit, and remove questions and their ans
 - **WHEN** the user uses the sectional navigation component
 - **THEN** the question list MUST scroll to the corresponding group or question index
 - **AND** the question editor's sticky actions MUST remain accessible for immediate save.
-
-### Requirement: The system MUST enforce survey validation rules.
-
-The system MUST ensure that a survey meets minimum content requirements before it can be saved.
-
-#### Scenario: User tries to save a survey with no questions
--   **Given** a user is editing a survey and removes all questions
--   **When** they attempt to save the survey
--   **Then** a validation error MUST be displayed, indicating that at least one question is required.
--   **And** the survey MUST NOT be saved.
-
-#### Scenario: User tries to save a question with no answers
--   **Given** a user is editing a question and removes all of its answers
--   **When** they attempt to save the survey
--   **Then** a validation error MUST be displayed for that question, indicating that at least one answer is required.
--   **And** the survey MUST NOT be saved.
-

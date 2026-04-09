@@ -17,7 +17,7 @@ This interface MUST serve as the main entry point of the application, presenting
 
 ### Requirement: The system MUST provide a user interface for creating and editing surveys.
 
-This interface MUST provide the core functionality of the application: a form-based view to define the structure and content of a survey.
+This interface MUST provide the core functionality of the application: a form-based view to define the structure and content of a survey. The editor MUST include sectional wayfinding and persistent action areas to support long editing sessions.
 
 #### Scenario: User creates a new survey
 -   **Given** the user is on the survey list screen
@@ -34,6 +34,12 @@ This interface MUST provide the core functionality of the application: a form-ba
 -   **When** the user modifies the data and clicks "Save"
 -   **Then** the app MUST make a `PUT` request to `/surveys/{survey_id}` with the updated data.
 -   **And** upon success, it SHOULD navigate back to the survey list screen, showing the updated survey.
+
+#### Scenario: User navigates a long survey form
+- **GIVEN** the user is editing a complex survey with multiple sections (Preamble, Instructions, Questions, Prompts, Personas)
+- **WHEN** the user scrolls the page
+- **THEN** a sectional navigation menu MUST remain visible to allow jumping between parts
+- **AND** the "Save" and "Cancel" buttons MUST remain sticky and persistently accessible.
 
 ### Requirement: The system MUST allow users to delete surveys.
 
@@ -215,11 +221,12 @@ The `survey-builder` questionnaire editor SHALL present a label input for each q
 - **AND** the label MUST appear in the question list or preview immediately after saving
 
 ### Requirement: Survey-builder MUST present administrative feedback in context
-The `survey-builder` application MUST present administrative save, validation, conflict, delete, loading, and empty-state feedback through structured in-context feedback surfaces instead of relying only on raw snackbars.
+The `survey-builder` application MUST present administrative save, validation, conflict, delete, loading, and empty-state feedback through structured in-context feedback surfaces instead of relying only on raw snackbars. This MUST include form-level error summaries and inline field validation.
 
 #### Scenario: An administrator encounters a save or validation issue
 - **WHEN** the user saves a catalog item or survey form and the operation returns a validation problem or a failed write
-- **THEN** the application MUST show the problem in context with a defined severity and readable guidance
+- **THEN** the application MUST show a form-level error summary at the top of the editor
+- **AND** it MUST show the problem in context with a defined severity and readable guidance (inline field errors)
 - **AND** the message MUST explain whether the user should correct input, retry, or review a conflict
 
 #### Scenario: An administrative action succeeds
