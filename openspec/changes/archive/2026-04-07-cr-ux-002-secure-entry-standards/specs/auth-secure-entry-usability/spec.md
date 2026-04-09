@@ -1,25 +1,25 @@
 ## ADDED Requirements
 
-### Requirement: Controle de visibilidade em campos de entrada segura
-Todo campo de senha (entrada segura) DEVE (MUST) oferecer um controle opcional de revelação utilizando ícones de visibilidade padrão.
+### Requirement: Visibility control in secure entry fields
+Every password field (secure entry) SHALL offer an optional reveal control using standard visibility icons.
 
-#### Scenario: Alternar visibilidade da senha
-- **WHEN** o usuário clica no ícone de olho em um campo de senha
-- **THEN** o texto da senha alterna entre caracteres ocultos e texto plano
-- **AND** o ícone alterna entre `visibility_off` e `visibility`
-- **AND** o foco e a posição do cursor no campo são preservados
+#### Scenario: Toggle password visibility
+- **WHEN** the user clicks on the eye icon in a password field
+- **THEN** the password text toggles between masked characters and plain text
+- **AND** the icon toggles between `visibility_off` and `visibility`
+- **AND** focus and cursor position in the field are preserved
 
-### Requirement: Suporte a mecanismos de entrada assistiva
-Os formulários de autenticação NÃO DEVEM (MUST NOT) bloquear mecanismos de entrada assistiva, como colagem de texto (paste) ou preenchimento automático por gerenciadores de senha.
+### Requirement: Support for assistive entry mechanisms
+Authentication forms SHALL NOT block assistive entry mechanisms, such as text pasting or autofill by password managers.
 
-#### Scenario: Colar senha no campo
-- **WHEN** o usuário tenta colar uma senha copiada anteriormente no campo de senha
-- **THEN** o sistema permite a colagem e o valor é refletido corretamente no campo
+#### Scenario: Paste password into field
+- **WHEN** the user attempts to paste a previously copied password into the password field
+- **THEN** the system allows pasting and the value is correctly reflected in the field
 
-### Requirement: Visibilidade prévia de requisitos de senha
-Os requisitos de complexidade da senha DEVEM (MUST) estar visíveis para o usuário antes que ele submeta o formulário de registro ou alteração de senha.
+### Requirement: Prior visibility of password requirements
+Password complexity requirements SHALL be visible to the user before they submit the registration or password change form.
 
-#### Scenario: Visualizar regras de senha no registro
-- **WHEN** o usuário acessa a tela de registro de profissional
-- **THEN** as regras de complexidade (ex: "mínimo 8 caracteres") são exibidas como texto de ajuda abaixo do campo de senha
-- **AND** o estado visual das regras é atualizado conforme o usuário digita (opcional, mas recomendado)
+#### Scenario: View password rules during registration
+- **WHEN** the user accesses the professional registration screen
+- **THEN** complexity rules (e.g., "mínimo 8 caracteres") are displayed as help text below the password field
+- **AND** the visual state of the rules is updated as the user types (optional, but recommended)

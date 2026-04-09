@@ -127,33 +127,12 @@ class _LoggedOutState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480),
-        child: DsSection(
-          eyebrow: 'Sessao expirada',
-          title: 'Voce precisa fazer login para ver seu perfil.',
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.lock_outline, size: 48),
-              const SizedBox(height: 12),
-              Text(
-                'Entre novamente para acessar seus dados profissionais.',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 16),
-              DsFilledButton(
-                label: 'Ir para login',
-                onPressed: () => context.go('/login'),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return DsEmptyState(
+      visual: const Icon(Icons.lock_outline, size: 52),
+      title: 'Sessão expirada',
+      description: 'Entre novamente para acessar seus dados profissionais.',
+      actionLabel: 'Ir para login',
+      onAction: () => context.go('/login'),
     );
   }
 }

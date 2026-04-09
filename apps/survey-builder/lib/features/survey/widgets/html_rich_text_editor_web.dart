@@ -178,9 +178,12 @@ class _PlatformHtmlRichTextEditorState
     if (!mounted || link == null || link.isEmpty) return;
     final sanitizedLink = _sanitizeLink(link);
     if (sanitizedLink == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Use uma URL segura com http, https, mailto ou tel.'),
+      showDsToast(
+        context,
+        feedback: const DsFeedbackMessage(
+          severity: DsStatusType.warning,
+          title: 'Link inválido',
+          message: 'Use uma URL segura com http, https, mailto ou tel.',
         ),
       );
       return;

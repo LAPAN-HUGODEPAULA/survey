@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:survey_app/core/models/survey/question.dart';
 import 'package:survey_app/core/models/survey/survey.dart';
@@ -30,11 +29,31 @@ class AppNavigator {
     return push(context, const ClinicalPage());
   }
 
+  static Future<void> toSurvey(BuildContext context, {required Survey survey}) {
+    return push(context, SurveyPage(survey: survey));
+  }
+
+  static Future<void> toThankYou(
+    BuildContext context, {
+    required Survey survey,
+    required List<String> surveyAnswers,
+    required List<Question> surveyQuestions,
+  }) {
+    return push(
+      context,
+      ThankYouPage(
+        survey: survey,
+        surveyAnswers: surveyAnswers,
+        surveyQuestions: surveyQuestions,
+      ),
+    );
+  }
+
   static Future<void> replaceWithSurvey(
     BuildContext context, {
     required Survey survey,
   }) {
-    return replace(context, SurveyPage(survey: survey));
+    return toSurvey(context, survey: survey);
   }
 
   static Future<void> replaceWithThankYou(
@@ -43,13 +62,11 @@ class AppNavigator {
     required List<String> surveyAnswers,
     required List<Question> surveyQuestions,
   }) {
-    return replace(
+    return toThankYou(
       context,
-      ThankYouPage(
-        survey: survey,
-        surveyAnswers: surveyAnswers,
-        surveyQuestions: surveyQuestions,
-      ),
+      survey: survey,
+      surveyAnswers: surveyAnswers,
+      surveyQuestions: surveyQuestions,
     );
   }
 }

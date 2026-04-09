@@ -21,9 +21,10 @@ Every important user-facing feedback message should include:
 ## Approved Containers
 
 - `DsValidationSummary`: for form-level validation that aggregates multiple problems
-- `DsInlineFeedback`: for section-level and conversational feedback inside the current context
-- `DsFeedbackBanner`: for persistent page-level or panel-level status messages
-- `showDsFeedbackSnackBar(...)`: only for lightweight confirmations and transient non-blocking updates
+- `DsInlineMessage`: for section-level and conversational feedback inside the current context
+- `DsMessageBanner`: for persistent page-level or panel-level status messages
+- `showDsToast(...)`: only for lightweight confirmations and transient non-blocking updates (max 4 seconds)
+- `DsDialog(severity: ...)`: for blocking decisions and destructive confirmations that require explicit user action
 
 ## Placement Rules
 
@@ -31,6 +32,8 @@ Every important user-facing feedback message should include:
 - Keep validation feedback close to the affected fields and add a summary when multiple errors exist.
 - Use banners for save, load, warning, fallback, and server-response states that the user may need to read carefully.
 - Use inline feedback for clinical assistant status, voice capture feedback, and other in-context status changes.
+- Use warning or error severity dialogs for destructive and irreversible actions.
+- Prefer explicit action verbs in dialogs (`Excluir`, `Descartar rascunho`, `Encerrar sessão`) instead of generic labels.
 
 ## Accessibility
 

@@ -27,20 +27,17 @@ class AppNavigator {
     return push(context, const InstructionsPage());
   }
 
-  static Future<void> replaceWithSurvey(
-    BuildContext context, {
-    required Survey survey,
-  }) {
-    return replace(context, SurveyPage(survey: survey));
+  static Future<void> toSurvey(BuildContext context, {required Survey survey}) {
+    return push(context, SurveyPage(survey: survey));
   }
 
-  static Future<void> replaceWithThankYou(
+  static Future<void> toThankYou(
     BuildContext context, {
     required Survey survey,
     required List<String> surveyAnswers,
     required List<Question> surveyQuestions,
   }) {
-    return replace(
+    return push(
       context,
       ThankYouPage(
         survey: survey,
@@ -66,19 +63,54 @@ class AppNavigator {
     );
   }
 
-  static Future<void> replaceWithReport(
+  static Future<void> toReport(
     BuildContext context, {
     required Survey survey,
     required List<String> surveyAnswers,
     required List<Question> surveyQuestions,
   }) {
-    return replace(
+    return push(
       context,
       ReportPage(
         survey: survey,
         surveyAnswers: surveyAnswers,
         surveyQuestions: surveyQuestions,
       ),
+    );
+  }
+
+  static Future<void> replaceWithSurvey(
+    BuildContext context, {
+    required Survey survey,
+  }) {
+    return toSurvey(context, survey: survey);
+  }
+
+  static Future<void> replaceWithThankYou(
+    BuildContext context, {
+    required Survey survey,
+    required List<String> surveyAnswers,
+    required List<Question> surveyQuestions,
+  }) {
+    return toThankYou(
+      context,
+      survey: survey,
+      surveyAnswers: surveyAnswers,
+      surveyQuestions: surveyQuestions,
+    );
+  }
+
+  static Future<void> replaceWithReport(
+    BuildContext context, {
+    required Survey survey,
+    required List<String> surveyAnswers,
+    required List<Question> surveyQuestions,
+  }) {
+    return toReport(
+      context,
+      survey: survey,
+      surveyAnswers: surveyAnswers,
+      surveyQuestions: surveyQuestions,
     );
   }
 

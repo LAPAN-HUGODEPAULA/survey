@@ -15,6 +15,7 @@ import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/models/survey_response.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/core/repositories/survey_repository.dart';
+import 'package:patient_app/shared/widgets/patient_journey_stepper.dart';
 import 'package:provider/provider.dart';
 import 'package:web/web.dart' as web;
 
@@ -334,7 +335,7 @@ class _ReportPageState extends State<ReportPage> {
       return;
     }
 
-    showDsFeedbackSnackBar(
+    showDsToast(
       context,
       feedback: DsFeedbackMessage(
         severity: DsStatusType.success,
@@ -352,7 +353,7 @@ class _ReportPageState extends State<ReportPage> {
     if (!mounted) {
       return;
     }
-    showDsFeedbackSnackBar(
+    showDsToast(
       context,
       feedback: const DsFeedbackMessage(
         severity: DsStatusType.info,
@@ -422,6 +423,8 @@ class _ReportPageState extends State<ReportPage> {
     return DsScaffold(
       title: 'Relatório',
       subtitle: 'Análise consolidada do questionário $displayName.',
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: 'Voltar para os dados demográficos',
       scrollable: true,
       body: Center(
         child: ConstrainedBox(
@@ -429,29 +432,31 @@ class _ReportPageState extends State<ReportPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const PatientJourneyStepper(
+                currentStep: PatientJourneyStep.relatorio,
+              ),
               if (_isSaving) ...[
                 const Center(child: DsLoading()),
                 const SizedBox(height: 16),
-                const DsInlineFeedback(
+                const DsInlineMessage(
                   feedback: DsFeedbackMessage(
                     severity: DsStatusType.info,
                     title: 'Preparando relatório',
-                    message:
-                        'Estamos organizando suas respostas para gerar uma versão clara e útil.',
+                    message: 'Respostas registradas. Relatório em preparo.',
                   ),
                   margin: EdgeInsets.zero,
                 ),
                 const SizedBox(height: 24),
               ],
               if (_saveSuccess && !_isSaving)
-                DsFeedbackBanner(
+                DsMessageBanner(
                   feedback: DsFeedbackMessage(
                     severity: DsStatusType.success,
                     title: _savedResponseId != null
                         ? 'Respostas enviadas'
                         : 'Respostas salvas localmente',
                     message: _savedResponseId != null
-                        ? 'Suas respostas foram enviadas com sucesso.'
+                        ? 'Agora você pode visualizar, imprimir ou exportar o relatório.'
                         : 'Não conseguimos enviar ao servidor, mas os dados foram preservados localmente.',
                   ),
                   footer: (_savedResponseId != null || _savedFilePath != null)
@@ -465,7 +470,7 @@ class _ReportPageState extends State<ReportPage> {
               if (_saveError != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0),
-                  child: DsFeedbackBanner(
+                  child: DsMessageBanner(
                     feedback: DsFeedbackMessage(
                       severity: DsStatusType.warning,
                       title: 'Envio com ressalvas',

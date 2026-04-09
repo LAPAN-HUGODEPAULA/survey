@@ -166,7 +166,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showMessage(DsFeedbackMessage feedback) {
-    showDsFeedbackSnackBar(
+    showDsToast(
       context,
       feedback: feedback,
       duration: const Duration(seconds: 2),
@@ -239,7 +239,7 @@ class _SettingsPageState extends State<SettingsPage> {
       return const SizedBox.shrink();
     }
 
-    return DsFeedbackBanner(
+    return DsMessageBanner(
       feedback: DsFeedbackMessage(
         severity: _pageFeedback!.severity,
         title: _pageFeedback!.title,
@@ -265,14 +265,30 @@ class _SettingsPageState extends State<SettingsPage> {
           surveySelectionChild = const Center(
             child: CircularProgressIndicator(),
           );
-        } else if (settings.availableSurveys.isEmpty) {
-          surveySelectionChild = DsFocusFrame(
-            child: Text(
-              'Nenhum questionário foi encontrado no servidor. Verifique se o backend está em execução.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+        } else if (settings.surveyLoadError != null) {
+          surveySelectionChild = DsEmptyState(
+            visual: Icon(
+              Icons.cloud_off_rounded,
+              size: 56,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
+            title: 'Não foi possível carregar o catálogo de questionários.',
+            description: DsErrorMapper.toUserMessage(settings.surveyLoadError),
+            actionLabel: 'Tentar Novamente',
+            onAction: settings.loadAvailableSurveys,
+          );
+        } else if (settings.availableSurveys.isEmpty) {
+          surveySelectionChild = DsEmptyState(
+            visual: Icon(
+              Icons.library_books_outlined,
+              size: 56,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            title: 'Nenhum questionário encontrado.',
+            description:
+                'Nenhum questionário encontrado. Crie o primeiro questionário para começar.',
+            actionLabel: 'Tentar Novamente',
+            onAction: settings.loadAvailableSurveys,
           );
         } else {
           surveySelectionChild = Column(

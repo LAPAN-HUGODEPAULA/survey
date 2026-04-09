@@ -8,6 +8,7 @@ import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:survey_app/core/models/survey/survey.dart';
 import 'package:survey_app/core/navigation/app_navigator.dart';
+import 'package:survey_app/shared/widgets/assessment_flow_stepper.dart';
 
 /// Renders the selected survey in a linear, button-based questionnaire flow.
 class SurveyPage extends StatefulWidget {
@@ -31,25 +32,36 @@ class _SurveyPageState extends State<SurveyPage> {
     return DsScaffold(
       title: displayName,
       subtitle: 'Responda uma pergunta por vez para concluir a triagem.',
-      body: DsSurveyQuestionRunner(
-        surveyTitle: displayName,
-        questions: _survey.questions
-            .map(
-              (question) => DsSurveyQuestionData(
-                id: question.id,
-                questionText: question.questionText,
-                answers: question.answers,
-              ),
-            )
-            .toList(growable: false),
-        onCompleted: (answers) {
-          AppNavigator.replaceWithThankYou(
-            context,
-            survey: _survey,
-            surveyAnswers: answers,
-            surveyQuestions: _survey.questions,
-          );
-        },
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: 'Voltar para Instruções',
+      body: Column(
+        children: [
+          const AssessmentFlowStepper(
+            currentStep: AssessmentFlowStep.questionario,
+          ),
+          Expanded(
+            child: DsSurveyQuestionRunner(
+              surveyTitle: displayName,
+              questions: _survey.questions
+                  .map(
+                    (question) => DsSurveyQuestionData(
+                      id: question.id,
+                      questionText: question.questionText,
+                      answers: question.answers,
+                    ),
+                  )
+                  .toList(growable: false),
+              onCompleted: (answers) {
+                AppNavigator.toThankYou(
+                  context,
+                  survey: _survey,
+                  surveyAnswers: answers,
+                  surveyQuestions: _survey.questions,
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

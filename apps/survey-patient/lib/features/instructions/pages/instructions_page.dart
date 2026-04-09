@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/navigation/app_navigator.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
+import 'package:patient_app/shared/widgets/patient_journey_stepper.dart';
 import 'package:provider/provider.dart';
 
 class InstructionsPage extends StatefulWidget {
@@ -20,7 +21,7 @@ class InstructionsPage extends StatefulWidget {
 
 class _InstructionsPageState extends State<InstructionsPage> {
   void _startSurvey(Survey survey) {
-    AppNavigator.replaceWithSurvey(context, survey: survey);
+    AppNavigator.toSurvey(context, survey: survey);
   }
 
   @override
@@ -41,19 +42,30 @@ class _InstructionsPageState extends State<InstructionsPage> {
           title: 'Instruções',
           subtitle:
               'Leia as orientações e confirme o entendimento antes de iniciar.',
+          onBack: () => Navigator.of(context).pop(),
+          backLabel: 'Voltar para Boas-vindas',
           body: survey == null
               ? const SizedBox.shrink()
               : Builder(
                   builder: (context) {
                     final activeInstructions = survey.instructions;
-                    return DsSurveyInstructionGate(
-                      instructions: DsSurveyInstructionData(
-                        preambleHtml: activeInstructions.preamble,
-                        questionText: activeInstructions.questionText,
-                        answers: activeInstructions.answers,
-                        correctAnswer: activeInstructions.correctAnswer,
-                      ),
-                      onContinue: () => _startSurvey(survey),
+                    return Column(
+                      children: [
+                        const PatientJourneyStepper(
+                          currentStep: PatientJourneyStep.instrucoes,
+                        ),
+                        Expanded(
+                          child: DsSurveyInstructionGate(
+                            instructions: DsSurveyInstructionData(
+                              preambleHtml: activeInstructions.preamble,
+                              questionText: activeInstructions.questionText,
+                              answers: activeInstructions.answers,
+                              correctAnswer: activeInstructions.correctAnswer,
+                            ),
+                            onContinue: () => _startSurvey(survey),
+                          ),
+                        ),
+                      ],
                     );
                   },
                 ),

@@ -4,6 +4,8 @@
 /// survey synchronized for the report-generation flow.
 library;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:patient_app/core/models/patient.dart';
 import 'package:patient_app/core/models/screener.dart';
@@ -110,12 +112,17 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final surveys = await _surveyRepository.fetchAll();
+      final surveys = await _surveyRepository.fetchAll().timeout(
+        const Duration(seconds: 15),
+      );
       _surveys = surveys;
       if (_selectedSurveyId == null ||
           !_surveys.any((survey) => survey.id == _selectedSurveyId)) {
         _selectedSurveyId = _resolveDefaultSurveyId(surveys);
       }
+    } on TimeoutException {
+      _loadError =
+          'Tempo limite ao buscar questionários. Verifique a conexão e tente novamente.';
     } catch (error) {
       _loadError = error.toString();
     } finally {

@@ -1,38 +1,38 @@
 ## ADDED Requirements
 
-### Requirement: A plataforma MUST usar um único ciclo de validação para formulários estruturados
-Todos os formulários estruturados migrados DEVEM (MUST) seguir o mesmo ciclo de validação para reduzir inconsistência entre apps e evitar erros hostis prematuros.
+### Requirement: The platform SHALL use a single validation cycle for structured forms
+All migrated structured forms SHALL follow the same validation cycle to reduce inconsistency between apps and avoid premature hostile errors.
 
-#### Scenario: Campo pristine durante a primeira digitação
-- **WHEN** o usuário começa a digitar em um campo ainda não validado
-- **THEN** o sistema NÃO DEVE exibir erro de "campo obrigatório" nem de formato incompleto durante essa primeira digitação
+#### Scenario: Pristine field during first typing
+- **WHEN** the user starts typing in a field not yet validated
+- **THEN** the system SHALL NOT display a "campo obrigatório" error nor an incomplete format error during this first typing
 
-#### Scenario: Campo touched ao perder o foco
-- **WHEN** o usuário sai de um campo obrigatório ou estruturado
-- **THEN** o sistema DEVE validar esse campo no `blur`
-- **AND** exibir a mensagem inline se houver erro
+#### Scenario: Touched field upon losing focus
+- **WHEN** the user leaves a mandatory or structured field
+- **THEN** the system SHALL validate this field on `blur`
+- **AND** display the inline message if there is an error
 
-#### Scenario: Submissão de formulário com falhas
-- **WHEN** o usuário tenta continuar ou enviar um formulário com campos inválidos
-- **THEN** o sistema DEVE validar todos os campos relevantes naquele momento
-- **AND** exibir mensagens inline
-- **AND** exibir um resumo de formulário quando houver múltiplas falhas ou erros distribuídos por mais de uma seção
+#### Scenario: Form submission with failures
+- **WHEN** the user attempts to continue or submit a form with invalid fields
+- **THEN** the system SHALL validate all relevant fields at that moment
+- **AND** display inline messages
+- **AND** display a form summary when there are multiple failures or errors distributed across more than one section
 
-#### Scenario: Revalidação eficiente após erro visível
-- **WHEN** um campo já foi marcado como inválido e o usuário volta a editá-lo
-- **THEN** o sistema PODE revalidar esse campo durante as edições seguintes
-- **AND** NÃO DEVE revalidar continuamente campos ainda pristine ou nunca expostos como inválidos
+#### Scenario: Efficient revalidation after visible error
+- **WHEN** a field has already been marked as invalid and the user returns to edit it
+- **THEN** the system MAY revalidate this field during subsequent edits
+- **AND** SHALL NOT continuously revalidate fields that are still pristine or have never been exposed as invalid
 
-### Requirement: Mensagens de Erro Informativas
-As mensagens de erro em nível de campo DEVEM (MUST) ser claras, objetivas e indicar a ação corretiva necessária.
+### Requirement: Informative Error Messages
+Field-level error messages SHALL be clear, objective, and indicate the necessary corrective action.
 
 #### Scenario: Data format error
-- **WHEN** o usuário insere uma data no formato inválido
-- **THEN** o sistema exibe "Use o formato DD/MM/AAAA." em vez de "Valor inválido."
+- **WHEN** the user inserts a date in an invalid format
+- **THEN** the system displays "Use o formato DD/MM/AAAA." instead of "Valor inválido."
 
-### Requirement: O padrão de validação MUST viver no design system
-Os comportamentos de `pristine`, `touched`, `submitted` e revalidação DEVEM (MUST) ser centralizados no `packages/design_system_flutter` para evitar implementação divergente por aplicativo.
+### Requirement: The validation standard SHALL live in the design system
+The `pristine`, `touched`, `submitted`, and revalidation behaviors SHALL be centralized in `packages/design_system_flutter` to avoid divergent implementation per application.
 
 #### Scenario: Two apps use the same shared field
-- **WHEN** `survey-patient` e `survey-frontend` usam a mesma superfície de campo compartilhada
-- **THEN** ambos DEVEM herdar o mesmo momento de validação e o mesmo comportamento de apresentação de erro
+- **WHEN** `survey-patient` and `survey-frontend` use the same shared field surface
+- **THEN** both SHALL inherit the same validation timing and error presentation behavior

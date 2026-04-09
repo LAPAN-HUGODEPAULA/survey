@@ -155,15 +155,34 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    final formScrollView = find.byType(CustomScrollView);
+
+    await tester.dragUntilVisible(
+      find.text('Nome de exibição do questionário *'),
+      formScrollView,
+      const Offset(0, -300),
+    );
     expect(find.text('Nome de exibição do questionário *'), findsOneWidget);
     expect(find.byType(DsScaffold), findsOneWidget);
     expect(find.text('Nome do questionário *'), findsOneWidget);
     expect(find.text('Descrição do questionário *'), findsWidgets);
     expect(find.text('ID do criador *'), findsOneWidget);
     expect(find.text('Notas finais *'), findsWidgets);
+
+    await tester.dragUntilVisible(
+      find.text('Prompt de IA (opcional)'),
+      formScrollView,
+      const Offset(0, -300),
+    );
     expect(find.text('Prompt de IA (opcional)'), findsOneWidget);
     expect(find.text('Persona padrão (opcional)'), findsOneWidget);
     expect(find.text('Perfil de saída padrão (opcional)'), findsOneWidget);
+
+    await tester.dragUntilVisible(
+      find.text('Rótulo exibido no radar'),
+      formScrollView,
+      const Offset(0, -300),
+    );
     expect(find.text('Rótulo exibido no radar'), findsOneWidget);
     expect(find.text('Adicionar pergunta'), findsOneWidget);
     expect(find.text(dsSharedStatusBarText), findsOneWidget);
@@ -180,7 +199,18 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.dragUntilVisible(
+      find.text('Nome de exibição do questionário *'),
+      find.byType(CustomScrollView),
+      const Offset(0, -300),
+    );
     await tester.enterText(find.byType(TextFormField).first, 'Changed');
+    await tester.dragUntilVisible(
+      find.text('Cancelar'),
+      find.byType(CustomScrollView),
+      const Offset(0, 300),
+    );
+    await tester.ensureVisible(find.text('Cancelar'));
     await tester.tap(find.text('Cancelar'));
     await tester.pumpAndSettle();
 
@@ -209,6 +239,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.dragUntilVisible(
+      find.text('Prompt One'),
+      find.byType(CustomScrollView),
+      const Offset(0, -300),
+    );
     expect(find.text('Prompt One'), findsOneWidget);
     expect(find.text('School Report Persona'), findsOneWidget);
     expect(find.text('school_report'), findsOneWidget);
@@ -236,22 +271,33 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('Prompt').last);
+    await tester.pumpAndSettle();
     final selector = find.byKey(const ValueKey('survey-prompt-selector'));
     await tester.ensureVisible(selector);
+    await tester.pumpAndSettle();
     await tester.tap(selector);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Nenhum prompt').last, warnIfMissed: false);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Persona').last);
     await tester.pumpAndSettle();
     final personaSelector = find.byKey(
       const ValueKey('survey-persona-selector'),
     );
     await tester.ensureVisible(personaSelector);
+    await tester.pumpAndSettle();
     await tester.tap(personaSelector);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Nenhuma persona').last, warnIfMissed: false);
     await tester.pumpAndSettle();
     final saveButton = find.text('Salvar');
-    await tester.ensureVisible(saveButton);
+    await tester.dragUntilVisible(
+      saveButton,
+      find.byType(CustomScrollView),
+      const Offset(0, 300),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(saveButton);
     await tester.pumpAndSettle();
 
@@ -276,10 +322,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('Persona').last);
+    await tester.pumpAndSettle();
     final outputSelector = find.byKey(
       const ValueKey('survey-output-profile-selector'),
     );
     await tester.ensureVisible(outputSelector);
+    await tester.pumpAndSettle();
     await tester.tap(outputSelector);
     await tester.pumpAndSettle();
     await tester.tap(
@@ -289,7 +338,12 @@ void main() {
     await tester.pumpAndSettle();
 
     final saveButton = find.text('Salvar');
-    await tester.ensureVisible(saveButton);
+    await tester.dragUntilVisible(
+      saveButton,
+      find.byType(CustomScrollView),
+      const Offset(0, 300),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(saveButton);
     await tester.pumpAndSettle();
 
