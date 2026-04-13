@@ -223,6 +223,7 @@ class DsScaffold extends StatefulWidget {
     this.useSafeArea = false,
     this.backgroundColor,
     this.footer,
+    this.floatingActionButton,
     this.bodyPadding = const EdgeInsets.all(24),
     this.maxBodyWidth = 1120,
     this.scrollable = false,
@@ -247,6 +248,7 @@ class DsScaffold extends StatefulWidget {
   final bool useSafeArea;
   final Color? backgroundColor;
   final Widget? footer;
+  final Widget? floatingActionButton;
   final EdgeInsetsGeometry bodyPadding;
   final double maxBodyWidth;
   final bool scrollable;
@@ -428,6 +430,7 @@ class _DsScaffoldState extends State<DsScaffold> {
       backgroundColor: widget.backgroundColor,
       appBar: widget.appBar,
       body: frame,
+      floatingActionButton: widget.floatingActionButton,
       bottomNavigationBar: widget.footer ?? const DsStatusBar(),
     );
   }

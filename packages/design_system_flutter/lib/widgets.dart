@@ -1,6 +1,7 @@
 export 'components/admin/ds_admin_catalog_item.dart';
 export 'components/admin/ds_admin_catalog_shell.dart';
 export 'components/admin/ds_admin_form_shell.dart';
+export 'components/admin/ds_sectional_nav.dart';
 export 'components/admin/ds_inline_conflict_message.dart';
 export 'components/auth/ds_account_menu.dart';
 export 'components/auth/ds_professional_auth.dart';
