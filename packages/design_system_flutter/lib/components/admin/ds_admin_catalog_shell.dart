@@ -81,8 +81,6 @@ class DsAdminCatalogShell<T> extends StatelessWidget {
           Expanded(
             child: isLoading
                 ? const DsLoading()
-...
-
                 : error != null
                     ? DsError(message: error!, onRetry: onRetry ?? onRefresh)
                     : items.isEmpty

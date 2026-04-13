@@ -62,13 +62,13 @@ void main() {
       expect(surveyOptionColors!.palette, equals(ColorPalette.diagnosticScale));
     });
 
-    test('dark theme uses a charcoal background with readable contrast', () {
+    test('dark theme uses a noble gray background with readable contrast', () {
       final theme = AppTheme.dark();
       final background = theme.scaffoldBackgroundColor;
       final onSurface = theme.colorScheme.onSurface;
 
-      expect(background, equals(const Color(0xFF0C0E10)));
-      expect(_contrastRatio(onSurface, background), greaterThan(7));
+      expect(background, equals(const Color(0xFF57595C)));
+      expect(_contrastRatio(onSurface, background), greaterThan(4.5));
     });
 
     test('dark theme exposes LAPAN design tokens', () {

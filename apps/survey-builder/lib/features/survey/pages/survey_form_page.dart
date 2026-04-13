@@ -551,7 +551,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
   }) {
     final items = <DsValidationSummaryItem>[];
 
-    void addItem(String label, String? message, GlobalKey? targetKey) {
+    void addItem(String label, String? message, [GlobalKey? targetKey]) {
       if (message == null || message.trim().isEmpty) {
         return;
       }
