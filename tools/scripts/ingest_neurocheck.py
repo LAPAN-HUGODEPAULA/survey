@@ -20,6 +20,27 @@ except ImportError:
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("ingest_neurocheck")
 
+DEFAULT_NEUROCHECK_INSTRUCTION_ANSWERS = [
+    "Com base no quanto a situação acontece no seu dia a dia.",
+    "Com base no quanto a situação é emocionalmente desagradável.",
+    "Com base no seu nível de desconforto físico.",
+]
+
+
+def _normalize_neurocheck_instructions(survey_data: dict) -> None:
+    instructions = survey_data.get("instructions")
+    if not isinstance(instructions, dict):
+        survey_data["instructions"] = {
+            "preamble": "",
+            "questionText": "",
+            "answers": list(DEFAULT_NEUROCHECK_INSTRUCTION_ANSWERS),
+        }
+        return
+
+    answers = instructions.get("answers")
+    if not isinstance(answers, list) or not answers:
+        instructions["answers"] = list(DEFAULT_NEUROCHECK_INSTRUCTION_ANSWERS)
+
 def main():
     load_migration_env()
     mongo_uri = resolve_mongo_uri()
@@ -37,6 +58,8 @@ def main():
         
     with open(json_path, "r", encoding="utf-8") as f:
         survey_data = json.load(f)
+
+    _normalize_neurocheck_instructions(survey_data)
         
     # 1. Ingest Questionnaire
     logger.info(f"Ingesting questionnaire: {survey_data['_id']}")

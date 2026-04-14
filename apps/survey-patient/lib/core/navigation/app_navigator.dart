@@ -7,6 +7,7 @@ import 'package:patient_app/features/legal/pages/patient_entry_page.dart';
 import 'package:patient_app/features/report/pages/report_page.dart';
 import 'package:patient_app/features/survey/pages/survey_page.dart';
 import 'package:patient_app/features/survey/pages/thank_you_page.dart';
+import 'package:patient_app/features/welcome/pages/welcome_page.dart';
 
 class AppNavigator {
   static Future<T?> push<T>(BuildContext context, Widget page) {
@@ -83,7 +84,7 @@ class AppNavigator {
     BuildContext context, {
     required Survey survey,
   }) {
-    return toSurvey(context, survey: survey);
+    return replace(context, SurveyPage(survey: survey));
   }
 
   static Future<void> replaceWithThankYou(
@@ -92,11 +93,13 @@ class AppNavigator {
     required List<String> surveyAnswers,
     required List<Question> surveyQuestions,
   }) {
-    return toThankYou(
+    return replace(
       context,
-      survey: survey,
-      surveyAnswers: surveyAnswers,
-      surveyQuestions: surveyQuestions,
+      ThankYouPage(
+        survey: survey,
+        surveyAnswers: surveyAnswers,
+        surveyQuestions: surveyQuestions,
+      ),
     );
   }
 
@@ -106,12 +109,18 @@ class AppNavigator {
     required List<String> surveyAnswers,
     required List<Question> surveyQuestions,
   }) {
-    return toReport(
+    return replace(
       context,
-      survey: survey,
-      surveyAnswers: surveyAnswers,
-      surveyQuestions: surveyQuestions,
+      ReportPage(
+        survey: survey,
+        surveyAnswers: surveyAnswers,
+        surveyQuestions: surveyQuestions,
+      ),
     );
+  }
+
+  static Future<void> replaceWithWelcome(BuildContext context) {
+    return replace(context, const WelcomePage());
   }
 
   static Future<void> replaceWithEntryGate(BuildContext context) {

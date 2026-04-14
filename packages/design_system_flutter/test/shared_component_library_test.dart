@@ -122,7 +122,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Passo 2 de 3'), findsOneWidget);
+    expect(find.text('Progresso (2 de 3)'), findsOneWidget);
     expect(find.text('Aviso'), findsOneWidget);
     expect(find.text('Instruções'), findsWidgets);
     expect(find.text('Questionário'), findsOneWidget);

@@ -357,7 +357,8 @@ class _DsScaffoldState extends State<DsScaffold> {
     );
 
     if (widget.scrollable) {
-      resolvedBody = SingleChildScrollView(child: resolvedBody);
+      resolvedBody =
+          Scrollbar(child: SingleChildScrollView(child: resolvedBody));
     }
 
     final bodyContent = Column(

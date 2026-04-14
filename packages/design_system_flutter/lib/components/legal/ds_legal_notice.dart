@@ -80,94 +80,85 @@ class _DsLegalNoticeGateState extends State<DsLegalNoticeGate> {
         final checkboxLabel = document.checkboxLabel ??
             'Li e concordo com o Termo de Uso e Política de Privacidade.';
 
-        return Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 880),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: DsPanel(
-                tone: DsPanelTone.base,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (widget.header != null) ...[
-                      Center(child: widget.header!),
-                      const SizedBox(height: 20),
-                    ],
-                    Text(
-                      widget.title,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.subtitle,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxHeight: 420),
-                      child: DsFocusFrame(
-                        child: Scrollbar(
-                          thumbVisibility: true,
-                          child: SingleChildScrollView(
-                            child: Html(
-                              data: md.markdownToHtml(document.markdown),
-                              style: dsLegalHtmlStyles(context),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton.icon(
-                      onPressed: () => showDsLegalDocumentDialog(
-                        context,
-                        documentType: DsLegalDocumentType.termsOfUse,
-                      ),
-                      icon: const Icon(Icons.open_in_new),
-                      label: const Text(
-                        'Abrir Termo de Uso e Política de Privacidade',
-                      ),
-                    ),
-                    if (widget.feedback != null) ...[
-                      const SizedBox(height: 12),
-                      DsMessageBanner(
-                        feedback: widget.feedback!,
-                        margin: EdgeInsets.zero,
-                      ),
-                    ],
-                    const SizedBox(height: 8),
-                    CheckboxListTile(
-                      value: _accepted,
-                      onChanged: (value) =>
-                          setState(() => _accepted = value ?? false),
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      title: Text(
-                        checkboxLabel,
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: DsFilledButton(
-                        label: widget.proceedLabel,
-                        onPressed:
-                            _accepted && !_isSubmitting && !widget.isSubmitting
-                                ? _submit
-                                : null,
-                        loading: _isSubmitting || widget.isSubmitting,
-                      ),
-                    ),
-                  ],
+        return DsPanel(
+          tone: DsPanelTone.base,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (widget.header != null) ...[
+                Center(child: widget.header!),
+                const SizedBox(height: 20),
+              ],
+              Text(
+                widget.title,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
                 ),
               ),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                widget.subtitle,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 420),
+                child: DsFocusFrame(
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
+                      child: Html(
+                        data: md.markdownToHtml(document.markdown),
+                        style: dsLegalHtmlStyles(context),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextButton.icon(
+                onPressed: () => showDsLegalDocumentDialog(
+                  context,
+                  documentType: DsLegalDocumentType.termsOfUse,
+                ),
+                icon: const Icon(Icons.open_in_new),
+                label: const Text(
+                  'Abrir Termo de Uso e Política de Privacidade',
+                ),
+              ),
+              if (widget.feedback != null) ...[
+                const SizedBox(height: 12),
+                DsMessageBanner(
+                  feedback: widget.feedback!,
+                  margin: EdgeInsets.zero,
+                ),
+              ],
+              const SizedBox(height: 8),
+              CheckboxListTile(
+                value: _accepted,
+                onChanged: (value) =>
+                    setState(() => _accepted = value ?? false),
+                contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+                title: Text(
+                  checkboxLabel,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Align(
+                alignment: Alignment.centerRight,
+                child: DsFilledButton(
+                  label: widget.proceedLabel,
+                  onPressed: _accepted && !_isSubmitting && !widget.isSubmitting
+                      ? _submit
+                      : null,
+                  loading: _isSubmitting || widget.isSubmitting,
+                ),
+              ),
+            ],
           ),
         );
       },

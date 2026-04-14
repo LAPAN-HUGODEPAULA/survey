@@ -45,7 +45,6 @@ docker exec "$MONGO_CONTAINER" mongosh \
 
 echo "==> 7/8 Rebuild schema and seed data"
 uv run python tools/migrations/survey-backend/003_populate_new_schema.py
-uv run python tools/migrations/survey-backend/006_populate_question_labels.py
 uv run python tools/migrations/survey-backend/007_add_screener_initial_notice_agreement.py
 
 echo "==> 8/8 Restart backend services"

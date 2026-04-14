@@ -305,30 +305,35 @@ class GoogleDrivePromptProvider(PromptRegistry):
         if cached and cached.expires_at > now:
             return cached.prompt_text, cached.version
 
-        file_id = self._prompt_doc_map.get(prompt_key)
-        if not file_id and self._folder_id:
-            file_id = self._find_doc_id_by_name(prompt_key)
+        try:
+            file_id = self._prompt_doc_map.get(prompt_key)
+            if not file_id and self._folder_id:
+                file_id = self._find_doc_id_by_name(prompt_key)
 
-        if not file_id:
-            raise PromptNotFoundError(f"Prompt '{prompt_key}' not found in Google Drive.")
+            if not file_id:
+                raise PromptNotFoundError(f"Prompt '{prompt_key}' not found in Google Drive.")
 
-        meta = self._drive.files().get(
-            fileId=file_id,
-            fields="id, name, modifiedTime",
-        ).execute()
-        modified_time = meta.get("modifiedTime")
-        version = (
-            f"gdrive_modifiedTime:{modified_time}"
-            if modified_time
-            else "gdrive_modifiedTime:unknown"
-        )
-        content_bytes = self._drive.files().export_media(
-            fileId=file_id,
-            mimeType="text/plain",
-        ).execute()
-        prompt_text = content_bytes.decode("utf-8").strip()
-        if not prompt_text:
-            raise PromptNotFoundError(f"Prompt '{prompt_key}' is empty in Google Drive.")
+            meta = self._drive.files().get(
+                fileId=file_id,
+                fields="id, name, modifiedTime",
+            ).execute()
+            modified_time = meta.get("modifiedTime")
+            version = (
+                f"gdrive_modifiedTime:{modified_time}"
+                if modified_time
+                else "gdrive_modifiedTime:unknown"
+            )
+            content_bytes = self._drive.files().export_media(
+                fileId=file_id,
+                mimeType="text/plain",
+            ).execute()
+            prompt_text = content_bytes.decode("utf-8").strip()
+            if not prompt_text:
+                raise PromptNotFoundError(f"Prompt '{prompt_key}' is empty in Google Drive.")
+        except PromptNotFoundError:
+            raise
+        except Exception as exc:
+            raise RuntimeError("Google Drive prompt lookup unavailable.") from exc
 
         self._cache[prompt_key] = _CachedPrompt(
             prompt_text=prompt_text,
@@ -526,7 +531,7 @@ def create_prompt_registry() -> PromptRegistry:
                 "Google Drive prompt provider unavailable, falling back to configured non-Google providers: %s",
                 exc,
             )
-            configured_providers.append(LocalPromptProvider())
+        configured_providers.append(LocalPromptProvider())
     else:
         configured_providers.append(LocalPromptProvider())
 

@@ -13,15 +13,21 @@ import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/repositories/survey_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+enum PostNoticeNavigationTarget { welcome, survey }
+
 /// Coordinates cross-screen state for the patient workflow.
 ///
 /// Widgets subscribe to this class to react to available survey changes and
 /// updates to the patient demographic payload.
 class AppSettings extends ChangeNotifier {
-  AppSettings({SurveyRepository? surveyRepository})
-    : _surveyRepository = surveyRepository ?? SurveyRepository();
+  AppSettings({
+    SurveyRepository? surveyRepository,
+    Duration surveyLoadTimeout = const Duration(seconds: 12),
+  }) : _surveyRepository = surveyRepository ?? SurveyRepository(),
+       _surveyLoadTimeout = surveyLoadTimeout;
 
   final SurveyRepository _surveyRepository;
+  final Duration _surveyLoadTimeout;
   static const String _preferredSurveyId = 'lapan_q7';
   static const String _initialNoticePreferenceKey =
       'survey_patient_initial_notice_accepted';
@@ -37,6 +43,8 @@ class AppSettings extends ChangeNotifier {
   String? _selectedSurveyId;
   bool _isLoadingSurveys = false;
   String? _loadError;
+  PostNoticeNavigationTarget _postNoticeNavigationTarget =
+      PostNoticeNavigationTarget.welcome;
 
   Screener get screener => _screener;
   Patient get patient => _patient;
@@ -48,15 +56,21 @@ class AppSettings extends ChangeNotifier {
   List<Survey> get availableSurveys => List.unmodifiable(_surveys);
 
   Survey? get selectedSurvey {
-    if (_selectedSurveyId == null) return null;
+    if (_surveys.isEmpty) return null;
+    final selectedSurveyId = _selectedSurveyId;
+    if (selectedSurveyId == null || selectedSurveyId.isEmpty) {
+      return _surveys.first;
+    }
     try {
-      return _surveys.firstWhere((survey) => survey.id == _selectedSurveyId);
+      return _surveys.firstWhere((survey) => survey.id == selectedSurveyId);
     } catch (_) {
-      return null;
+      return _surveys.first;
     }
   }
 
   String? get selectedSurveyId => _selectedSurveyId;
+  PostNoticeNavigationTarget get postNoticeNavigationTarget =>
+      _postNoticeNavigationTarget;
 
   String get selectedSurveyName {
     final survey = selectedSurvey;
@@ -73,16 +87,16 @@ class AppSettings extends ChangeNotifier {
       return;
     }
 
-    _isLoadingInitialNotice = true;
-    notifyListeners();
     try {
+      _isLoadingInitialNotice = true;
+      _notifyListenersSafely();
       final preferences = await SharedPreferences.getInstance();
       _hasAcceptedInitialNotice =
           preferences.getBool(_initialNoticePreferenceKey) ?? false;
       _hasLoadedInitialNotice = true;
     } finally {
       _isLoadingInitialNotice = false;
-      notifyListeners();
+      _notifyListenersSafely();
     }
   }
 
@@ -104,16 +118,30 @@ class AppSettings extends ChangeNotifier {
     await preferences.remove(_initialNoticePreferenceKey);
   }
 
+  Future<void> restartAssessmentFlow() async {
+    _patient = Patient.initial();
+    _hasAcceptedInitialNotice = false;
+    _hasLoadedInitialNotice = true;
+    _postNoticeNavigationTarget = PostNoticeNavigationTarget.survey;
+    notifyListeners();
+
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.remove(_initialNoticePreferenceKey);
+  }
+
   Future<void> loadAvailableSurveys() async {
     if (_isLoadingSurveys) return;
 
-    _isLoadingSurveys = true;
-    _loadError = null;
-    notifyListeners();
-
     try {
+      _isLoadingSurveys = true;
+      _loadError = null;
+      debugPrint('AppSettings.loadAvailableSurveys: start');
+      _notifyListenersSafely();
       final surveys = await _surveyRepository.fetchAll().timeout(
-        const Duration(seconds: 15),
+        _surveyLoadTimeout,
+      );
+      debugPrint(
+        'AppSettings.loadAvailableSurveys: fetched ${surveys.length} surveys',
       );
       _surveys = surveys;
       if (_selectedSurveyId == null ||
@@ -123,11 +151,16 @@ class AppSettings extends ChangeNotifier {
     } on TimeoutException {
       _loadError =
           'Tempo limite ao buscar questionários. Verifique a conexão e tente novamente.';
+      debugPrint('AppSettings.loadAvailableSurveys: timeout');
     } catch (error) {
       _loadError = error.toString();
+      debugPrint('AppSettings.loadAvailableSurveys: error $_loadError');
     } finally {
       _isLoadingSurveys = false;
-      notifyListeners();
+      debugPrint(
+        'AppSettings.loadAvailableSurveys: done selected=$_selectedSurveyId error=$_loadError loading=$_isLoadingSurveys total=${_surveys.length}',
+      );
+      _notifyListenersSafely();
     }
   }
 
@@ -182,6 +215,12 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
   }
 
+  PostNoticeNavigationTarget consumePostNoticeNavigationTarget() {
+    final target = _postNoticeNavigationTarget;
+    _postNoticeNavigationTarget = PostNoticeNavigationTarget.welcome;
+    return target;
+  }
+
   @override
   void dispose() {
     _surveyRepository.dispose();
@@ -198,5 +237,20 @@ class AppSettings extends ChangeNotifier {
         .map((entry) => entry.trim())
         .where((entry) => entry.isNotEmpty)
         .toList();
+  }
+
+  void _notifyListenersSafely() {
+    try {
+      notifyListeners();
+    } catch (error, stackTrace) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stackTrace,
+          library: 'survey-patient',
+          context: ErrorDescription('while notifying AppSettings listeners'),
+        ),
+      );
+    }
   }
 }

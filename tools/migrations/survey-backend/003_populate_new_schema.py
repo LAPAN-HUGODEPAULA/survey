@@ -141,12 +141,19 @@ project_root = script_dir.parent.parent.parent
 
 def resolve_assets_dir() -> Path:
     candidates = [
-        project_root / "apps" / "survey-frontend" / "assets",
         project_root / "apps" / "survey-patient" / "assets",
+        project_root / "apps" / "survey-frontend" / "assets",
     ]
+    resolved_candidates: list[tuple[int, Path]] = []
     for candidate in candidates:
-        if (candidate / "surveys").is_dir() and (candidate / "survey_responses").is_dir():
-            return candidate
+        surveys_dir = candidate / "surveys"
+        responses_dir = candidate / "survey_responses"
+        if surveys_dir.is_dir() and responses_dir.is_dir():
+            survey_count = len(list(surveys_dir.glob("*.json")))
+            resolved_candidates.append((survey_count, candidate))
+    if resolved_candidates:
+        resolved_candidates.sort(key=lambda item: item[0], reverse=True)
+        return resolved_candidates[0][1]
     raise FileNotFoundError(
         "Assets directory not found. Expected surveys and survey_responses under "
         "apps/survey-frontend/assets or apps/survey-patient/assets."
@@ -229,6 +236,19 @@ def _default_prompt_reference() -> dict[str, str]:
     }
 
 
+def _normalize_instructions(raw: dict, survey_id: str) -> dict:
+    instructions = raw.get("instructions")
+    normalized = dict(instructions) if isinstance(instructions, dict) else {}
+    answers = normalized.get("answers")
+    if survey_id == "neurocheck" and (not isinstance(answers, list) or not answers):
+        normalized["answers"] = [
+            "Com base no quanto a situação acontece no seu dia a dia.",
+            "Com base no quanto a situação é emocionalmente desagradável.",
+            "Com base no seu nível de desconforto físico.",
+        ]
+    return normalized
+
+
 def _normalize_survey_doc(raw: dict) -> dict:
     survey_id = raw.get("_id") or raw.get("id")
     if not survey_id:
@@ -277,7 +297,7 @@ def _normalize_survey_doc(raw: dict) -> dict:
         "creatorContact": raw.get("creatorContact"),
         "createdAt": _parse_datetime(raw.get("createdAt")) or datetime.now(timezone.utc),
         "modifiedAt": _parse_datetime(raw.get("modifiedAt")) or datetime.now(timezone.utc),
-        "instructions": raw.get("instructions") or {},
+        "instructions": _normalize_instructions(raw, str(survey_id)),
         "questions": raw.get("questions") or [],
         "finalNotes": raw.get("finalNotes") or "",
         "prompt": normalized_prompt,

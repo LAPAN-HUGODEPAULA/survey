@@ -16,6 +16,11 @@ class _WorkingProvider:
         return (f"prompt for {prompt_key}", "version-1")
 
 
+class _UnavailableProvider:
+    def get_prompt(self, prompt_key: str):
+        raise RuntimeError("upstream unavailable")
+
+
 class _QuestionnaireProvider:
     def __init__(self, prompt_text: str, version: str):
         self.prompt_text = prompt_text
@@ -40,6 +45,15 @@ def test_composite_prompt_provider_falls_through_missing_provider():
     prompt_text, version = registry.get_prompt("clinical_referral_letter:lapan7")
 
     assert prompt_text == "prompt for clinical_referral_letter:lapan7"
+    assert version == "version-1"
+
+
+def test_composite_prompt_provider_falls_through_unavailable_provider():
+    registry = CompositePromptProvider([_UnavailableProvider(), _WorkingProvider()])
+
+    prompt_text, version = registry.get_prompt("survey7")
+
+    assert prompt_text == "prompt for survey7"
     assert version == "version-1"
 
 

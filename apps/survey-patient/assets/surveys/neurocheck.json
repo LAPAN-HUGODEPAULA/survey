@@ -11,7 +11,11 @@
     "instructions": {
         "preamble": "<p>Avalie sua Sobrecarga Biológica</p>",
         "questionText": "Por favor, responda a cada pergunta com base no seu nível de desconforto físico.",
-        "answers": []
+        "answers": [
+            "Com base no quanto a situação acontece no seu dia a dia.",
+            "Com base no quanto a situação é emocionalmente desagradável.",
+            "Com base no seu nível de desconforto físico."
+        ]
     },
     "questions": [
         { "id": 1, "questionText": "Conforto com LUZ NATURAL?", "label": "Luz Natural", "answers": ["Confortável", "Razoável", "Desconfortável"] },

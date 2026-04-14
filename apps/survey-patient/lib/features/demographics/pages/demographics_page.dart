@@ -274,124 +274,119 @@ class _DemographicsPageState extends State<DemographicsPage> {
       onBack: () => Navigator.of(context).pop(),
       backLabel: 'Voltar para o resumo',
       scrollable: true,
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 700),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const PatientJourneyStepper(
-                  currentStep: PatientJourneyStep.relatorio,
-                ),
-                DsHandoffFork(
-                  title: 'Adicionar informações é opcional',
-                  subtitle: DsHandoffCopy.optionalEnrichmentGuidance,
-                  actions: [
-                    DsHandoffForkAction(
-                      title: 'Se preferir, siga direto para o relatório',
-                      description:
-                          'Você pode preencher os campos abaixo agora ou pular esta etapa sem perder o andamento da avaliação.',
-                      primaryLabel: 'Pular por agora',
-                      onPrimaryPressed: _skipEnrichment,
-                      icon: Icons.analytics_outlined,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                if (_validationItems.isNotEmpty) ...[
-                  DsValidationSummary(
-                    items: _validationItems,
-                    description:
-                        'Corrija os itens abaixo e os campos destacados antes de continuar.',
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                DsSection(
-                  eyebrow: 'Paciente',
-                  title: 'Identificação',
-                  subtitle:
-                      'Informe os dados essenciais para contextualizar a avaliação.',
-                  child: DsPatientIdentitySection(
-                    nameController: _nameController,
-                    emailController: _emailController,
-                    birthDateController: _dobController,
-                    showEmail: true,
-                    showBirthDate: true,
-                    emailLabel: 'E-mail *',
-                    submitted: _hasSubmitted,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                DsSection(
-                  eyebrow: 'Contexto clínico',
-                  title: 'Dados complementares',
-                  subtitle:
-                      'Essas informações ajudam a montar um relatório mais completo.',
-                  child: DsSurveyDemographicsSection(
-                    catalogs:
-                        _catalogs ??
-                        const DsDemographicsCatalogs(
-                          diagnoses: <String>[],
-                          educationLevels: <String>[],
-                          professions: <String>[],
-                        ),
-                    professionController: _professionController,
-                    medicationNameController: _medicationNameController,
-                    selectedDiagnoses: _selectedDiagnoses,
-                    selectedSex: _selectedSex,
-                    selectedRace: _selectedRace,
-                    selectedEducationLevel: _selectedEducationLevel,
-                    usesMedication: _usesMedication,
-                    onSexChanged: (String? value) {
-                      setState(() {
-                        _selectedSex = value;
-                        if (_hasSubmitted) {
-                          _validationItems = _buildValidationItems();
-                        }
-                      });
-                    },
-                    onRaceChanged: (String? value) {
-                      setState(() {
-                        _selectedRace = value;
-                        if (_hasSubmitted) {
-                          _validationItems = _buildValidationItems();
-                        }
-                      });
-                    },
-                    onEducationChanged: (String? value) {
-                      setState(() {
-                        _selectedEducationLevel = value;
-                        if (_hasSubmitted) {
-                          _validationItems = _buildValidationItems();
-                        }
-                      });
-                    },
-                    onUsesMedicationChanged: (String? value) {
-                      setState(() {
-                        _usesMedication = value;
-                        if (_hasSubmitted) {
-                          _validationItems = _buildValidationItems();
-                        }
-                      });
-                    },
-                    onDiagnosisChanged: (String diagnosis, bool isSelected) {
-                      setState(() {
-                        _selectedDiagnoses[diagnosis] = isSelected;
-                      });
-                    },
-                    submitted: _hasSubmitted,
-                    usesMedicationErrorText: _hasSubmitted
-                        ? _validateUsesMedication()
-                        : null,
-                    continueLabel: 'Gerar relatório detalhado',
-                    onContinue: _submitForm,
-                  ),
+      body: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const PatientJourneyStepper(
+              currentStep: PatientJourneyStep.relatorio,
+            ),
+            DsHandoffFork(
+              title: 'Adicionar informações é opcional',
+              subtitle: DsHandoffCopy.optionalEnrichmentGuidance,
+              actions: [
+                DsHandoffForkAction(
+                  title: 'Se preferir, siga direto para o relatório',
+                  description:
+                      'Você pode preencher os campos abaixo agora ou pular esta etapa sem perder o andamento da avaliação.',
+                  primaryLabel: 'Pular por agora',
+                  onPrimaryPressed: _skipEnrichment,
+                  icon: Icons.analytics_outlined,
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 16),
+            if (_validationItems.isNotEmpty) ...[
+              DsValidationSummary(
+                items: _validationItems,
+                description:
+                    'Corrija os itens abaixo e os campos destacados antes de continuar.',
+              ),
+              const SizedBox(height: 16),
+            ],
+            DsSection(
+              eyebrow: 'Paciente',
+              title: 'Identificação',
+              subtitle:
+                  'Informe os dados essenciais para contextualizar a avaliação.',
+              child: DsPatientIdentitySection(
+                nameController: _nameController,
+                emailController: _emailController,
+                birthDateController: _dobController,
+                showEmail: true,
+                showBirthDate: true,
+                emailLabel: 'E-mail *',
+                submitted: _hasSubmitted,
+              ),
+            ),
+            const SizedBox(height: 16),
+            DsSection(
+              eyebrow: 'Contexto clínico',
+              title: 'Dados complementares',
+              subtitle:
+                  'Essas informações ajudam a montar um relatório mais completo.',
+              child: DsSurveyDemographicsSection(
+                catalogs:
+                    _catalogs ??
+                    const DsDemographicsCatalogs(
+                      diagnoses: <String>[],
+                      educationLevels: <String>[],
+                      professions: <String>[],
+                    ),
+                professionController: _professionController,
+                medicationNameController: _medicationNameController,
+                selectedDiagnoses: _selectedDiagnoses,
+                selectedSex: _selectedSex,
+                selectedRace: _selectedRace,
+                selectedEducationLevel: _selectedEducationLevel,
+                usesMedication: _usesMedication,
+                onSexChanged: (String? value) {
+                  setState(() {
+                    _selectedSex = value;
+                    if (_hasSubmitted) {
+                      _validationItems = _buildValidationItems();
+                    }
+                  });
+                },
+                onRaceChanged: (String? value) {
+                  setState(() {
+                    _selectedRace = value;
+                    if (_hasSubmitted) {
+                      _validationItems = _buildValidationItems();
+                    }
+                  });
+                },
+                onEducationChanged: (String? value) {
+                  setState(() {
+                    _selectedEducationLevel = value;
+                    if (_hasSubmitted) {
+                      _validationItems = _buildValidationItems();
+                    }
+                  });
+                },
+                onUsesMedicationChanged: (String? value) {
+                  setState(() {
+                    _usesMedication = value;
+                    if (_hasSubmitted) {
+                      _validationItems = _buildValidationItems();
+                    }
+                  });
+                },
+                onDiagnosisChanged: (String diagnosis, bool isSelected) {
+                  setState(() {
+                    _selectedDiagnoses[diagnosis] = isSelected;
+                  });
+                },
+                submitted: _hasSubmitted,
+                usesMedicationErrorText: _hasSubmitted
+                    ? _validateUsesMedication()
+                    : null,
+                continueLabel: 'Gerar relatório detalhado',
+                onContinue: _submitForm,
+              ),
+            ),
+          ],
         ),
       ),
     );

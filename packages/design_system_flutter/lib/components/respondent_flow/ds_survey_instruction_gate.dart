@@ -56,87 +56,86 @@ class _DsSurveyInstructionGateState extends State<DsSurveyInstructionGate> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 700),
-        child: DsPanel(
-          tone: DsPanelTone.base,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
+    return DsSection(
+      eyebrow: 'Antes de começar',
+      title: 'Confirme as instruções',
+      subtitle:
+          'Selecione a resposta correta para prosseguir com o questionário.',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DsFocusFrame(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 360),
+              child: Scrollbar(
+                thumbVisibility: true,
                 child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Html(
-                        data: widget.instructions.preambleHtml,
-                        style: {
-                          'body': Style(
-                            fontSize: FontSize(16),
-                            lineHeight: const LineHeight(1.4),
-                          ),
-                          'p': Style(margin: Margins.only(bottom: 12)),
-                          'ul': Style(
-                            margin: Margins.symmetric(vertical: 8),
-                            padding: HtmlPaddings.only(left: 20),
-                          ),
-                          'li': Style(margin: Margins.only(bottom: 4)),
-                        },
+                  child: Html(
+                    data: widget.instructions.preambleHtml,
+                    style: {
+                      'body': Style(
+                        fontSize: FontSize(16),
+                        lineHeight: const LineHeight(1.4),
                       ),
-                      const SizedBox(height: 24),
-                      Text(
-                        widget.instructions.questionText,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                      'p': Style(margin: Margins.only(bottom: 12)),
+                      'ul': Style(
+                        margin: Margins.symmetric(vertical: 8),
+                        padding: HtmlPaddings.only(left: 20),
                       ),
-                      const SizedBox(height: 16),
-                      ...widget.instructions.answers.map(_buildAnswerTile),
-                      if (_showError)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: DsPanel(
-                            tone: DsPanelTone.high,
-                            backgroundColor: colorScheme.errorContainer,
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  color: colorScheme.onErrorContainer,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Por favor, selecione a resposta correta para continuar.',
-                                    style: TextStyle(
-                                      color: colorScheme.onErrorContainer,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
+                      'li': Style(margin: Margins.only(bottom: 4)),
+                    },
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: DsFilledButton(
-                  label: widget.buttonLabel,
-                  onPressed: _tryContinue,
-                  size: DsButtonSize.large,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            widget.instructions.questionText,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+          const SizedBox(height: 16),
+          ...widget.instructions.answers.map(_buildAnswerTile),
+          if (_showError)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: DsPanel(
+                tone: DsPanelTone.high,
+                backgroundColor: colorScheme.errorContainer,
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: colorScheme.onErrorContainer,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Por favor, selecione a resposta correta para continuar.',
+                        style: TextStyle(
+                          color: colorScheme.onErrorContainer,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: DsFilledButton(
+              label: widget.buttonLabel,
+              onPressed: _tryContinue,
+              size: DsButtonSize.large,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

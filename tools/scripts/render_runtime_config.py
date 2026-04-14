@@ -133,6 +133,8 @@ def main() -> None:
         {
             "ENVIRONMENT": str(backend.get("environment", "development")),
             "API_TOKEN": str(backend.get("clinicalWriterApiToken", "")),
+            "MONGO_URI": str(mongo.get("uri", "")),
+            "MONGO_DB_NAME": str(mongo.get("dbName", "survey_db")),
             "ALLOW_UNAUTHENTICATED_ACCESS": str(
                 backend.get("allowUnauthenticatedClinicalWriterAccess", False)
             ).lower(),

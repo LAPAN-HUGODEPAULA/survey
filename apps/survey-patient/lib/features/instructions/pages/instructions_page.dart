@@ -29,7 +29,8 @@ class _InstructionsPageState extends State<InstructionsPage> {
     return Consumer<AppSettings>(
       builder: (context, settings, _) {
         final survey = settings.selectedSurvey;
-        final isLoading = settings.isLoadingSurveys;
+        final isLoading =
+            settings.isLoadingSurveys && settings.availableSurveys.isEmpty;
         final error = settings.surveyLoadError;
 
         return DsScaffold(
@@ -44,26 +45,26 @@ class _InstructionsPageState extends State<InstructionsPage> {
               'Leia as orientações e confirme o entendimento antes de iniciar.',
           onBack: () => Navigator.of(context).pop(),
           backLabel: 'Voltar para Boas-vindas',
+          scrollable: true,
           body: survey == null
               ? const SizedBox.shrink()
               : Builder(
                   builder: (context) {
                     final activeInstructions = survey.instructions;
                     return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const PatientJourneyStepper(
                           currentStep: PatientJourneyStep.instrucoes,
                         ),
-                        Expanded(
-                          child: DsSurveyInstructionGate(
-                            instructions: DsSurveyInstructionData(
-                              preambleHtml: activeInstructions.preamble,
-                              questionText: activeInstructions.questionText,
-                              answers: activeInstructions.answers,
-                              correctAnswer: activeInstructions.correctAnswer,
-                            ),
-                            onContinue: () => _startSurvey(survey),
+                        DsSurveyInstructionGate(
+                          instructions: DsSurveyInstructionData(
+                            preambleHtml: activeInstructions.preamble,
+                            questionText: activeInstructions.questionText,
+                            answers: activeInstructions.answers,
+                            correctAnswer: activeInstructions.correctAnswer,
                           ),
+                          onContinue: () => _startSurvey(survey),
                         ),
                       ],
                     );

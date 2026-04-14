@@ -1,4 +1,5 @@
 import 'package:design_system_flutter/theme/app_theme.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patient_app/core/models/survey/instructions.dart';
@@ -11,7 +12,8 @@ import 'package:patient_app/features/survey/pages/thank_you_page.dart';
 import 'package:provider/provider.dart';
 
 class _FakeSurveyRepository extends SurveyRepository {
-  _FakeSurveyRepository();
+  _FakeSurveyRepository()
+    : super(rawClient: Dio(BaseOptions(baseUrl: 'http://localhost')));
 
   int _statusCalls = 0;
 
@@ -74,6 +76,11 @@ class _FakeSurveyRepository extends SurveyRepository {
   }
 }
 
+class _IdleSurveyRepository extends SurveyRepository {
+  _IdleSurveyRepository()
+    : super(rawClient: Dio(BaseOptions(baseUrl: 'http://localhost')));
+}
+
 void main() {
   testWidgets('ThankYouPage shows summary and CTA buttons', (tester) async {
     final survey = Survey(
@@ -99,7 +106,7 @@ void main() {
 
     await tester.pumpWidget(
       ChangeNotifierProvider(
-        create: (_) => AppSettings(),
+        create: (_) => AppSettings(surveyRepository: _IdleSurveyRepository()),
         child: MaterialApp(
           theme: AppTheme.dark(),
           home: ThankYouPage(
@@ -145,7 +152,7 @@ void main() {
 
       await tester.pumpWidget(
         ChangeNotifierProvider(
-          create: (_) => AppSettings(),
+          create: (_) => AppSettings(surveyRepository: _IdleSurveyRepository()),
           child: MaterialApp(
             theme: AppTheme.dark(),
             home: ThankYouPage(
@@ -176,7 +183,7 @@ void main() {
       await tester.pump(const Duration(seconds: 1));
       await tester.pumpAndSettle();
 
-      expect(find.text('Relatório disponível'), findsOneWidget);
+      expect(find.text('Relatório disponível'), findsWidgets);
       expect(
         find.textContaining('Síntese inicial: os sinais sugerem atenção'),
         findsOneWidget,

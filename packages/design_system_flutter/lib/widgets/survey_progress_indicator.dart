@@ -7,6 +7,7 @@ class DsSurveyProgressIndicator extends StatelessWidget {
   final int total;
   final bool showLabel;
   final EdgeInsetsGeometry padding;
+  final double minHeight;
 
   const DsSurveyProgressIndicator({
     super.key,
@@ -14,6 +15,7 @@ class DsSurveyProgressIndicator extends StatelessWidget {
     required this.total,
     this.showLabel = false,
     this.padding = const EdgeInsets.only(bottom: 24.0),
+    this.minHeight = 4,
   });
 
   @override
@@ -39,7 +41,7 @@ class DsSurveyProgressIndicator extends StatelessWidget {
             ),
           LinearProgressIndicator(
             value: value,
-            minHeight: 8,
+            minHeight: minHeight,
             backgroundColor:
                 Theme.of(context).colorScheme.surfaceContainerHighest,
           ),

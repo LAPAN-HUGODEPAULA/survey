@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:js_interop';
 
 import 'package:design_system_flutter/report/report_models.dart';
 import 'package:design_system_flutter/report/report_view.dart';
@@ -15,9 +14,11 @@ import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/models/survey_response.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/core/repositories/survey_repository.dart';
+import 'package:patient_app/features/report/pages/report_download_stub.dart'
+    if (dart.library.html) 'package:patient_app/features/report/pages/report_download_web.dart'
+    as report_download;
 import 'package:patient_app/shared/widgets/patient_journey_stepper.dart';
 import 'package:provider/provider.dart';
-import 'package:web/web.dart' as web;
 
 class ReportPage extends StatefulWidget {
   const ReportPage({
@@ -225,20 +226,11 @@ class _ReportPageState extends State<ReportPage> {
   }
 
   Future<String> _saveToWebBrowser(String fileName, String jsonString) async {
-    final parts = <web.BlobPart>[jsonString.toJS as web.BlobPart].toJS;
-    final blob = web.Blob(parts, web.BlobPropertyBag(type: 'application/json'));
-    final url = web.URL.createObjectURL(blob);
-    final anchor = web.HTMLAnchorElement()
-      ..href = url
-      ..download = fileName
-      ..style.display = 'none';
-
-    web.document.body?.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    web.URL.revokeObjectURL(url);
-
-    return 'Download iniciado: $fileName';
+    return report_download.saveBrowserFile(
+      fileName: fileName,
+      content: jsonString,
+      mimeType: 'application/json',
+    );
   }
 
   Future<String> _saveToNativeDirectory(
@@ -261,9 +253,9 @@ class _ReportPageState extends State<ReportPage> {
   Future<String> _saveWithFallback(String fileName, String jsonString) async {
     if (kIsWeb) {
       try {
-        web.window.localStorage.setItem(
-          'survey_response_$fileName',
-          jsonString,
+        await report_download.saveBrowserLocalStorage(
+          key: 'survey_response_$fileName',
+          value: jsonString,
         );
         return 'Salvo no armazenamento do navegador: $fileName';
       } catch (e) {
@@ -347,7 +339,7 @@ class _ReportPageState extends State<ReportPage> {
 
   Future<void> _exportPdf() async {
     if (kIsWeb) {
-      web.window.print();
+      await report_download.printBrowserPage();
       return;
     }
     if (!mounted) {
@@ -378,20 +370,11 @@ class _ReportPageState extends State<ReportPage> {
     String fileName,
     String content,
   ) async {
-    final parts = <web.BlobPart>[content.toJS as web.BlobPart].toJS;
-    final blob = web.Blob(parts, web.BlobPropertyBag(type: 'text/plain'));
-    final url = web.URL.createObjectURL(blob);
-    final anchor = web.HTMLAnchorElement()
-      ..href = url
-      ..download = fileName
-      ..style.display = 'none';
-
-    web.document.body?.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    web.URL.revokeObjectURL(url);
-
-    return 'Download iniciado: $fileName';
+    return report_download.saveBrowserFile(
+      fileName: fileName,
+      content: content,
+      mimeType: 'text/plain',
+    );
   }
 
   Future<String> _saveReportToNativeDirectory(
@@ -426,95 +409,90 @@ class _ReportPageState extends State<ReportPage> {
       onBack: () => Navigator.of(context).pop(),
       backLabel: 'Voltar para os dados demográficos',
       scrollable: true,
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 860),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const PatientJourneyStepper(
-                currentStep: PatientJourneyStep.relatorio,
-              ),
-              if (_isSaving) ...[
-                const Center(child: DsLoading()),
-                const SizedBox(height: 16),
-                const DsInlineMessage(
-                  feedback: DsFeedbackMessage(
-                    severity: DsStatusType.info,
-                    title: 'Preparando relatório',
-                    message: 'Respostas registradas. Relatório em preparo.',
-                  ),
-                  margin: EdgeInsets.zero,
-                ),
-                const SizedBox(height: 24),
-              ],
-              if (_saveSuccess && !_isSaving)
-                DsMessageBanner(
-                  feedback: DsFeedbackMessage(
-                    severity: DsStatusType.success,
-                    title: _savedResponseId != null
-                        ? 'Respostas enviadas'
-                        : 'Respostas salvas localmente',
-                    message: _savedResponseId != null
-                        ? 'Agora você pode visualizar, imprimir ou exportar o relatório.'
-                        : 'Não conseguimos enviar ao servidor, mas os dados foram preservados localmente.',
-                  ),
-                  footer: (_savedResponseId != null || _savedFilePath != null)
-                      ? Text(
-                          _savedResponseId != null
-                              ? 'Protocolo: $_savedResponseId'
-                              : 'Arquivo salvo em: $_savedFilePath',
-                        )
-                      : null,
-                ),
-              if (_saveError != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: DsMessageBanner(
-                    feedback: DsFeedbackMessage(
-                      severity: DsStatusType.warning,
-                      title: 'Envio com ressalvas',
-                      message: _saveError!,
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 16),
-              if (reportDocument != null) ...[
-                ReportView(
-                  report: reportDocument,
-                  footer:
-                      'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
-                ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    DsFilledButton(
-                      label: 'Salvar como texto',
-                      icon: Icons.text_snippet_outlined,
-                      onPressed: () => _exportReport(settings, reportDocument),
-                    ),
-                    DsOutlinedButton(
-                      label: 'Exportar PDF',
-                      icon: Icons.picture_as_pdf_outlined,
-                      onPressed: _exportPdf,
-                    ),
-                  ],
-                ),
-              ],
-              if (!_isSaving && reportDocument == null && _saveError == null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 24.0),
-                  child: Text(
-                    'Ainda estamos processando o seu relatório. Aguarde alguns instantes.',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ),
-            ],
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const PatientJourneyStepper(
+            currentStep: PatientJourneyStep.relatorio,
           ),
-        ),
+          if (_isSaving) ...[
+            const Center(child: DsLoading()),
+            const SizedBox(height: 16),
+            const DsInlineMessage(
+              feedback: DsFeedbackMessage(
+                severity: DsStatusType.info,
+                title: 'Preparando relatório',
+                message: 'Respostas registradas. Relatório em preparo.',
+              ),
+              margin: EdgeInsets.zero,
+            ),
+            const SizedBox(height: 24),
+          ],
+          if (_saveSuccess && !_isSaving)
+            DsMessageBanner(
+              feedback: DsFeedbackMessage(
+                severity: DsStatusType.success,
+                title: _savedResponseId != null
+                    ? 'Respostas enviadas'
+                    : 'Respostas salvas localmente',
+                message: _savedResponseId != null
+                    ? 'Agora você pode visualizar, imprimir ou exportar o relatório.'
+                    : 'Não conseguimos enviar ao servidor, mas os dados foram preservados localmente.',
+              ),
+              footer: (_savedResponseId != null || _savedFilePath != null)
+                  ? Text(
+                      _savedResponseId != null
+                          ? 'Protocolo: $_savedResponseId'
+                          : 'Arquivo salvo em: $_savedFilePath',
+                    )
+                  : null,
+            ),
+          if (_saveError != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: DsMessageBanner(
+                feedback: DsFeedbackMessage(
+                  severity: DsStatusType.warning,
+                  title: 'Envio com ressalvas',
+                  message: _saveError!,
+                ),
+              ),
+            ),
+          const SizedBox(height: 16),
+          if (reportDocument != null) ...[
+            ReportView(
+              report: reportDocument,
+              footer:
+                  'Gerado por LAPAN - Laboratório de Pesquisa Aplicada à Neurociência da Visão',
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                DsFilledButton(
+                  label: 'Salvar como texto',
+                  icon: Icons.text_snippet_outlined,
+                  onPressed: () => _exportReport(settings, reportDocument),
+                ),
+                DsOutlinedButton(
+                  label: 'Exportar PDF',
+                  icon: Icons.picture_as_pdf_outlined,
+                  onPressed: _exportPdf,
+                ),
+              ],
+            ),
+          ],
+          if (!_isSaving && reportDocument == null && _saveError == null)
+            Padding(
+              padding: const EdgeInsets.only(top: 24.0),
+              child: Text(
+                'Ainda estamos processando o seu relatório. Aguarde alguns instantes.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+        ],
       ),
     );
   }

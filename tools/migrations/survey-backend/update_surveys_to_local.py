@@ -21,13 +21,20 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(script_dir)))
 
 def resolve_assets_dir() -> str:
     candidates = [
-        os.path.join(project_root, "apps", "survey-frontend", "assets"),
         os.path.join(project_root, "apps", "survey-patient", "assets"),
+        os.path.join(project_root, "apps", "survey-frontend", "assets"),
     ]
+    resolved_candidates: list[tuple[int, str]] = []
     for candidate in candidates:
         surveys_dir = os.path.join(candidate, "surveys")
         if os.path.isdir(surveys_dir):
-            return candidate
+            survey_count = len(
+                [name for name in os.listdir(surveys_dir) if name.endswith(".json")]
+            )
+            resolved_candidates.append((survey_count, candidate))
+    if resolved_candidates:
+        resolved_candidates.sort(key=lambda item: item[0], reverse=True)
+        return resolved_candidates[0][1]
     raise FileNotFoundError(
         "Assets directory not found. Expected surveys under apps/survey-frontend/assets or apps/survey-patient/assets."
     )

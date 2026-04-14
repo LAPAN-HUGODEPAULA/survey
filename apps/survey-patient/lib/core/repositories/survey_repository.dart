@@ -1,12 +1,9 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:built_collection/built_collection.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:patient_app/core/models/agent_response.dart';
-import 'package:patient_app/core/models/survey/instructions.dart' as ui;
-import 'package:patient_app/core/models/survey/prompt_association.dart' as ui;
-import 'package:patient_app/core/models/survey/question.dart' as ui;
 import 'package:patient_app/core/models/survey/survey.dart' as ui;
 import 'package:patient_app/core/models/survey_response.dart' as ui;
 import 'package:patient_app/core/services/api_config.dart';
@@ -15,29 +12,49 @@ import 'package:survey_backend_api/survey_backend_api.dart' as api;
 /// Repository responsible for fetching surveys and submitting responses via API.
 class SurveyRepository {
   SurveyRepository({api.DefaultApi? apiClient, Dio? rawClient})
-    : _api =
-          apiClient ??
-          api.DefaultApi(ApiConfig.createDio(), api.standardSerializers),
-      _rawClient = rawClient ?? ApiConfig.createDio();
+    : _rawClient = rawClient ?? ApiConfig.createDio();
 
-  final api.DefaultApi _api;
   final Dio _rawClient;
 
   /// Retrieves every survey available on the backend.
   Future<List<ui.Survey>> fetchAll() async {
-    final response = await _api.listSurveys();
-    final BuiltList<api.Survey> data = response.data ?? BuiltList<api.Survey>();
-    return data.map(_mapSurvey).toList(growable: false);
+    debugPrint('SurveyRepository.fetchAll: request start');
+    final response = await _rawClient.get<Object?>(
+      ApiConfig.requestPath('surveys/'),
+      options: Options(responseType: ResponseType.plain),
+    );
+    final data = _decodeJsonBody(response.data);
+    if (data is! List) {
+      debugPrint(
+        'SurveyRepository.fetchAll: unexpected payload ${data.runtimeType}',
+      );
+      throw const FormatException('Unexpected surveys payload.');
+    }
+
+    final surveys = data
+        .map(
+          (entry) => ui.Survey.fromJson(
+            Map<String, dynamic>.from(entry as Map<Object?, Object?>),
+          ),
+        )
+        .toList(growable: false);
+    debugPrint(
+      'SurveyRepository.fetchAll: parsed ${surveys.length} surveys',
+    );
+    return surveys;
   }
 
   /// Fetches a single survey by its identifier.
   Future<ui.Survey> fetchById(String surveyId) async {
-    final response = await _api.getSurvey(surveyId: surveyId);
-    final api.Survey? data = response.data;
-    if (data == null) {
+    final response = await _rawClient.get<Object?>(
+      ApiConfig.requestPath('surveys/$surveyId'),
+      options: Options(responseType: ResponseType.plain),
+    );
+    final data = _decodeJsonBody(response.data);
+    if (data is! Map) {
       throw const FormatException('Questionário não encontrado');
     }
-    return _mapSurvey(data);
+    return ui.Survey.fromJson(Map<String, dynamic>.from(data));
   }
 
   /// Submits a survey response to the backend and returns the saved record.
@@ -86,40 +103,6 @@ class SurveyRepository {
     return _getJson('clinical_writer/status/$taskId');
   }
 
-  ui.Survey _mapSurvey(api.Survey source) {
-    return ui.Survey(
-      id: source.id ?? '',
-      surveyDisplayName: source.surveyDisplayName,
-      surveyName: source.surveyName,
-      surveyDescription: source.surveyDescription,
-      creatorId: source.creatorId,
-      createdAt: source.createdAt.toLocal(),
-      modifiedAt: source.modifiedAt.toLocal(),
-      instructions: ui.Instructions(
-        preamble: source.instructions.preamble,
-        questionText: source.instructions.questionText,
-        answers: source.instructions.answers.toList(growable: false),
-      ),
-      questions: source.questions
-          .map(
-            (q) => ui.Question(
-              id: q.id,
-              questionText: q.questionText,
-              label: q.label,
-              answers: q.answers.toList(growable: false),
-            ),
-          )
-          .toList(growable: false),
-      prompt: source.prompt == null
-          ? null
-          : ui.SurveyPromptReference(
-              promptKey: source.prompt!.promptKey,
-              name: source.prompt!.name,
-            ),
-      finalNotes: source.finalNotes,
-    );
-  }
-
   Future<Map<String, dynamic>> _postJson(
     String path,
     Map<String, dynamic> payload,
@@ -140,14 +123,18 @@ class SurveyRepository {
 
   Future<Map<String, dynamic>> _getJson(String path) async {
     final response = await _rawClient.get<Object?>(ApiConfig.requestPath(path));
-    final data = response.data;
+    final data = _decodeJsonBody(response.data);
     if (data is Map<String, dynamic>) {
       return Map<String, dynamic>.from(data);
     }
-    if (data is String) {
-      return jsonDecode(data) as Map<String, dynamic>;
-    }
     throw const FormatException('Unexpected response payload.');
+  }
+
+  Object? _decodeJsonBody(Object? data) {
+    if (data is String) {
+      return jsonDecode(data);
+    }
+    return data;
   }
 
   String _generateRequestId() {

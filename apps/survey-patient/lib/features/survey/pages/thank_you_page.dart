@@ -320,322 +320,319 @@ class _ThankYouPageState extends State<ThankYouPage> {
       userName: settings.patient.name,
       showAmbientGreeting: true,
       scrollable: true,
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 900),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const PatientJourneyStepper(
-                currentStep: PatientJourneyStep.relatorio,
-              ),
-              const DsInlineMessage(
-                feedback: DsFeedbackMessage(
-                  severity: DsStatusType.success,
-                  title: DsHandoffCopy.registeredLabel,
-                  message: DsHandoffCopy.effortAcknowledgement,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const PatientJourneyStepper(
+            currentStep: PatientJourneyStep.relatorio,
+          ),
+          const DsInlineMessage(
+            feedback: DsFeedbackMessage(
+              severity: DsStatusType.success,
+              title: DsHandoffCopy.registeredLabel,
+              message: DsHandoffCopy.effortAcknowledgement,
+            ),
+            margin: EdgeInsets.zero,
+          ),
+          const SizedBox(height: 16),
+          DsSection(
+            eyebrow: 'Resumo visual',
+            title: 'Radar das respostas',
+            subtitle:
+                'Compare as respostas e revise o que foi registrado em cada pergunta.',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: 280,
+                  child: values.isEmpty
+                      ? const Center(child: Text('Sem respostas para exibir.'))
+                      : values.length < 3
+                      ? const Center(
+                          child: Text(
+                            'O radar será exibido quando houver pelo menos 3 respostas.',
+                          ),
+                        )
+                      : _SurveyRadarChart(
+                          values: values,
+                          maxValue: maxValue,
+                          labels: labels,
+                        ),
                 ),
-                margin: EdgeInsets.zero,
-              ),
-              const SizedBox(height: 16),
-              DsSection(
-                eyebrow: 'Resumo visual',
-                title: 'Radar das respostas',
-                subtitle:
-                    'Compare as respostas e revise o que foi registrado em cada pergunta.',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 280,
-                      child: values.isEmpty
-                          ? const Center(
-                              child: Text('Sem respostas para exibir.'),
-                            )
-                          : _SurveyRadarChart(
-                              values: values,
-                              maxValue: maxValue,
-                              labels: labels,
+                if (labels.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: List.generate(labels.length, (index) {
+                      final color = _radarPalette[index % _radarPalette.length];
+                      return _RadarLegendChip(
+                        label: labels[index],
+                        color: color,
+                      );
+                    }),
+                  ),
+                ],
+                const SizedBox(height: 24),
+                Text(
+                  'Resumo das respostas',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final summary in summaries)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: DsFocusFrame(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            summary.label,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.primary,
                             ),
-                    ),
-                    if (labels.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: List.generate(labels.length, (index) {
-                          final color =
-                              _radarPalette[index % _radarPalette.length];
-                          return _RadarLegendChip(
-                            label: labels[index],
-                            color: color,
-                          );
-                        }),
-                      ),
-                    ],
-                    const SizedBox(height: 24),
-                    Text(
-                      'Resumo das respostas',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            summary.questionText,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            summary.answerText,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    for (final summary in summaries)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: DsFocusFrame(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          DsSection(
+            eyebrow: 'Leitura clínica',
+            title: 'Avaliação preliminar',
+            subtitle:
+                'A síntese abaixo acompanha o andamento entre o envio das respostas e a disponibilidade do relatório.',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DsHandoffStatusRow(
+                  stage: switch (_handoffState) {
+                    HandoffState.registering => DsHandoffStage.registered,
+                    HandoffState.registered => DsHandoffStage.registered,
+                    HandoffState.analyzing => DsHandoffStage.analyzing,
+                    HandoffState.ready => DsHandoffStage.ready,
+                  },
+                  liveRegion: true,
+                ),
+                const SizedBox(height: 12),
+                if (_handoffState == HandoffState.registered ||
+                    _handoffState == HandoffState.analyzing ||
+                    _handoffState == HandoffState.ready)
+                  DsMessageBanner(
+                    feedback: DsFeedbackMessage(
+                      severity: DsStatusType.info,
+                      title: DsHandoffCopy.registeredLabel,
+                      message: DsHandoffCopy.effortAcknowledgement,
+                    ),
+                    margin: EdgeInsets.zero,
+                    footer: _savedResponseId == null
+                        ? null
+                        : Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                summary.label,
+                                DsHandoffCopy.referenceIdContext,
+                                style: theme.textTheme.bodyMedium,
+                              ),
+                              const SizedBox(height: 8),
+                              SelectableText(
+                                _savedResponseId!,
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.colorScheme.primary,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                summary.questionText,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                summary.answerText,
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontFamily: 'monospace',
+                                  color: theme.colorScheme.onSurface,
                                 ),
                               ),
                             ],
                           ),
+                  ),
+                if (_handoffState == HandoffState.analyzing) ...[
+                  const SizedBox(height: 16),
+                  DsSection(
+                    padding: const EdgeInsets.all(16),
+                    tone: DsPanelTone.high,
+                    title: DsHandoffCopy.analyzingLabel,
+                    subtitle:
+                        'Sua avaliação foi salva. Agora estamos organizando os dados para apresentar a síntese inicial.',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DsHandoffStatusRow(
+                          stage: DsHandoffStage.analyzing,
+                          liveRegion: true,
                         ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              DsSection(
-                eyebrow: 'Leitura clínica',
-                title: 'Avaliação preliminar',
-                subtitle:
-                    'A síntese abaixo acompanha o andamento entre o envio das respostas e a disponibilidade do relatório.',
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DsHandoffStatusRow(
-                      stage: switch (_handoffState) {
-                        HandoffState.registering => DsHandoffStage.registered,
-                        HandoffState.registered => DsHandoffStage.registered,
-                        HandoffState.analyzing => DsHandoffStage.analyzing,
-                        HandoffState.ready => DsHandoffStage.ready,
-                      },
-                      liveRegion: true,
-                    ),
-                    const SizedBox(height: 12),
-                    if (_handoffState == HandoffState.registered ||
-                        _handoffState == HandoffState.analyzing ||
-                        _handoffState == HandoffState.ready)
-                      DsMessageBanner(
-                        feedback: DsFeedbackMessage(
-                          severity: DsStatusType.info,
-                          title: DsHandoffCopy.registeredLabel,
-                          message: DsHandoffCopy.effortAcknowledgement,
-                        ),
-                        margin: EdgeInsets.zero,
-                        footer: _savedResponseId == null
-                            ? null
-                            : Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    DsHandoffCopy.referenceIdContext,
-                                    style: theme.textTheme.bodyMedium,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  SelectableText(
-                                    _savedResponseId!,
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      fontFamily: 'monospace',
-                                      color: theme.colorScheme.onSurface,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                      ),
-                    if (_handoffState == HandoffState.analyzing) ...[
-                      const SizedBox(height: 16),
-                      DsSection(
-                        padding: const EdgeInsets.all(16),
-                        tone: DsPanelTone.high,
-                        title: DsHandoffCopy.analyzingLabel,
-                        subtitle:
-                            'Sua avaliação foi salva. Agora estamos organizando os dados para apresentar a síntese inicial.',
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            DsHandoffStatusRow(
-                              stage: DsHandoffStage.analyzing,
-                              liveRegion: true,
+                        const SizedBox(height: 12),
+                        if (_agentError != null)
+                          DsInlineMessage(
+                            feedback: DsFeedbackMessage(
+                              severity: _agentRetryable
+                                  ? DsStatusType.warning
+                                  : DsStatusType.error,
+                              title:
+                                  'Não foi possível obter a avaliação preliminar.',
+                              message: _agentError!,
+                              primaryAction: _agentRetryable
+                                  ? DsFeedbackAction(
+                                      label: 'Tentar novamente',
+                                      onPressed: _loadAgentResponse,
+                                      icon: Icons.refresh,
+                                    )
+                                  : null,
                             ),
-                            const SizedBox(height: 12),
-                            if (_agentError != null)
-                              DsInlineMessage(
-                                feedback: DsFeedbackMessage(
-                                  severity: _agentRetryable
-                                      ? DsStatusType.warning
-                                      : DsStatusType.error,
-                                  title:
-                                      'Não foi possível obter a avaliação preliminar.',
-                                  message: _agentError!,
-                                  primaryAction: _agentRetryable
-                                      ? DsFeedbackAction(
-                                          label: 'Tentar novamente',
-                                          onPressed: _loadAgentResponse,
-                                          icon: Icons.refresh,
-                                        )
-                                      : null,
+                            margin: EdgeInsets.zero,
+                          )
+                        else
+                          Row(
+                            children: [
+                              const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.4,
                                 ),
-                                margin: EdgeInsets.zero,
-                              )
-                            else
-                              Row(
-                                children: [
-                                  const SizedBox(
-                                    width: 18,
-                                    height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.4,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      _aiProgress?.stageLabel ??
-                                          DsHandoffCopy.analyzingLabel,
-                                      style: theme.textTheme.bodyMedium,
-                                    ),
-                                  ),
-                                ],
                               ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    if (_handoffState == HandoffState.ready &&
-                        _agentResponse != null) ...[
-                      const SizedBox(height: 16),
-                      DsClinicalContentCard(
-                        title: DsHandoffCopy.readyLabel,
-                        subtitle:
-                            'A síntese clínica abaixo foi gerada com base nas respostas registradas.',
-                        child: LimitedBox(
-                          maxHeight: 220,
-                          child: SingleChildScrollView(
-                            child: Text(
-                              _agentSummaryText(_agentResponse!),
-                              style: theme.textTheme.bodyMedium,
-                            ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _aiProgress?.stageLabel ??
+                                      DsHandoffCopy.analyzingLabel,
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                    ],
-                    if (_handoffState == HandoffState.registered &&
-                        _savedResponseId == null)
-                      Text(
-                        'Estamos concluindo o registro da avaliação.',
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                    if (widget.survey.finalNotes != null &&
-                        widget.survey.finalNotes!.isNotEmpty) ...[
-                      const SizedBox(height: 16),
-                      DsFocusFrame(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.info_outline,
-                                  color: theme.colorScheme.primary,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Notas finais',
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Html(
-                              data: widget.survey.finalNotes!,
-                              style: {
-                                'body': Style(
-                                  fontSize: FontSize(15.0),
-                                  lineHeight: const LineHeight(1.5),
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                                'p': Style(margin: Margins.only(bottom: 12.0)),
-                                'a': Style(
-                                  textDecoration: TextDecoration.underline,
-                                ),
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              DsHandoffFork(
-                title: 'O que você deseja fazer agora?',
-                subtitle:
-                    'Você pode continuar para complementar a avaliação ou iniciar uma nova triagem.',
-                actions: [
-                  DsHandoffForkAction(
-                    title: 'Adicionar informações para melhores insights',
-                    description:
-                        'Estas informações opcionais ajudam em pesquisas estatísticas, mas você pode pular esta etapa se preferir.',
-                    primaryLabel: 'Adicionar informações',
-                    onPrimaryPressed: () => AppNavigator.toDemographics(
-                      context,
-                      survey: widget.survey,
-                      surveyAnswers: widget.surveyAnswers,
-                      surveyQuestions: widget.surveyQuestions,
+                      ],
                     ),
-                    icon: Icons.person_add_alt_1_outlined,
                   ),
                 ],
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: DsOutlinedButton(
-                  label: 'Iniciar nova avaliação',
-                  onPressed: () async {
-                    final appSettings = Provider.of<AppSettings>(
-                      context,
-                      listen: false,
-                    );
-                    appSettings.clearPatientData();
-                    await appSettings.clearInitialNoticeAgreement();
-                    if (!context.mounted) {
-                      return;
-                    }
-                    AppNavigator.replaceWithEntryGate(context);
-                  },
+                if (_handoffState == HandoffState.ready &&
+                    _agentResponse != null) ...[
+                  const SizedBox(height: 16),
+                  DsClinicalContentCard(
+                    title: DsHandoffCopy.readyLabel,
+                    subtitle:
+                        'A síntese clínica abaixo foi gerada com base nas respostas registradas.',
+                    child: LimitedBox(
+                      maxHeight: 220,
+                      child: SingleChildScrollView(
+                        child: Text(
+                          _agentSummaryText(_agentResponse!),
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+                if (_handoffState == HandoffState.registered &&
+                    _savedResponseId == null)
+                  Text(
+                    'Estamos concluindo o registro da avaliação.',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                if (widget.survey.finalNotes != null &&
+                    widget.survey.finalNotes!.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  DsFocusFrame(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: theme.colorScheme.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Notas finais',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Html(
+                          data: widget.survey.finalNotes!,
+                          style: {
+                            'body': Style(
+                              fontSize: FontSize(15.0),
+                              lineHeight: const LineHeight(1.5),
+                              color: theme.colorScheme.onSurface,
+                            ),
+                            'p': Style(margin: Margins.only(bottom: 12.0)),
+                            'a': Style(
+                              textDecoration: TextDecoration.underline,
+                            ),
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          DsHandoffFork(
+            title: 'O que você deseja fazer agora?',
+            subtitle:
+                'Você pode continuar para complementar a avaliação ou iniciar uma nova triagem.',
+            actions: [
+              DsHandoffForkAction(
+                title: 'Adicionar informações para melhores insights',
+                description:
+                    'Estas informações opcionais ajudam em pesquisas estatísticas, mas você pode pular esta etapa se preferir.',
+                primaryLabel: 'Adicionar informações',
+                onPrimaryPressed: () => AppNavigator.toDemographics(
+                  context,
+                  survey: widget.survey,
+                  surveyAnswers: widget.surveyAnswers,
+                  surveyQuestions: widget.surveyQuestions,
                 ),
+                icon: Icons.person_add_alt_1_outlined,
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: DsOutlinedButton(
+              label: 'Iniciar nova avaliação',
+              onPressed: () async {
+                final appSettings = Provider.of<AppSettings>(
+                  context,
+                  listen: false,
+                );
+                await appSettings.restartAssessmentFlow();
+                if (!context.mounted) {
+                  return;
+                }
+                AppNavigator.replaceWithEntryGate(context);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

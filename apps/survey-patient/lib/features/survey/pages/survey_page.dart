@@ -32,34 +32,34 @@ class _SurveyPageState extends State<SurveyPage> {
       subtitle: 'Responda cada pergunta em sequência para concluir a triagem.',
       onBack: () => Navigator.of(context).pop(),
       backLabel: 'Voltar para Instruções',
+      scrollable: true,
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const PatientJourneyStepper(
             currentStep: PatientJourneyStep.questionario,
           ),
-          Expanded(
-            child: DsSurveyQuestionRunner(
-              surveyTitle: _survey.surveyDisplayName.isNotEmpty
-                  ? _survey.surveyDisplayName
-                  : _survey.surveyName,
-              questions: _survey.questions
-                  .map(
-                    (question) => DsSurveyQuestionData(
-                      id: question.id,
-                      questionText: question.questionText,
-                      answers: question.answers,
-                    ),
-                  )
-                  .toList(growable: false),
-              onCompleted: (answers) {
-                AppNavigator.toThankYou(
-                  context,
-                  survey: _survey,
-                  surveyAnswers: answers,
-                  surveyQuestions: _survey.questions,
-                );
-              },
-            ),
+          DsSurveyQuestionRunner(
+            surveyTitle: _survey.surveyDisplayName.isNotEmpty
+                ? _survey.surveyDisplayName
+                : _survey.surveyName,
+            questions: _survey.questions
+                .map(
+                  (question) => DsSurveyQuestionData(
+                    id: question.id,
+                    questionText: question.questionText,
+                    answers: question.answers,
+                  ),
+                )
+                .toList(growable: false),
+            onCompleted: (answers) {
+              AppNavigator.toThankYou(
+                context,
+                survey: _survey,
+                surveyAnswers: answers,
+                surveyQuestions: _survey.questions,
+              );
+            },
           ),
         ],
       ),

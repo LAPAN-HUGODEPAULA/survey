@@ -71,6 +71,7 @@ class DsStepper extends StatelessWidget {
     }
 
     final currentIndex = _activeIndex.clamp(0, steps.length - 1);
+    final progressLabel = 'Progresso (${currentIndex + 1} de ${steps.length})';
 
     return Padding(
       padding: padding,
@@ -78,14 +79,12 @@ class DsStepper extends StatelessWidget {
         builder: (BuildContext context, BoxConstraints constraints) {
           if (constraints.maxWidth < compactBreakpoint) {
             return DsSection(
-              eyebrow: 'Progresso',
-              title: 'Passo ${currentIndex + 1} de ${steps.length}',
-              subtitle: steps[currentIndex].label,
-              padding: const EdgeInsets.all(16),
-              headerSpacing: 12,
+              eyebrow: progressLabel,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              headerSpacing: 10,
               child: LinearProgressIndicator(
                 value: (currentIndex + 1) / steps.length,
-                minHeight: 8,
+                minHeight: 4,
                 backgroundColor: Theme.of(
                   context,
                 ).colorScheme.surfaceContainerHighest,
@@ -94,11 +93,9 @@ class DsStepper extends StatelessWidget {
           }
 
           return DsSection(
-            eyebrow: 'Progresso',
-            title: 'Passo ${currentIndex + 1} de ${steps.length}',
-            subtitle: steps[currentIndex].label,
-            padding: const EdgeInsets.all(16),
-            headerSpacing: 16,
+            eyebrow: progressLabel,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            headerSpacing: 12,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
