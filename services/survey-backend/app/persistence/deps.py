@@ -19,6 +19,7 @@ from app.persistence.repositories.document_repo import DocumentRepository
 from app.persistence.repositories.privacy_request_repo import PrivacyRequestRepository
 from app.persistence.repositories.security_audit_repo import SecurityAuditRepository
 from app.persistence.repositories.data_lifecycle_repo import DataLifecycleRepository
+from app.persistence.repositories.agent_access_point_repo import AgentAccessPointRepository
 
 def get_database() -> Database:
     """Return the shared MongoDB database handle."""
@@ -35,6 +36,10 @@ def get_survey_prompt_repo(db: Database = Depends(get_database)) -> SurveyPrompt
 def get_persona_skill_repo(db: Database = Depends(get_database)) -> PersonaSkillRepository:
     """Build a persona skill repository for the current request."""
     return PersonaSkillRepository(db)
+
+def get_agent_access_point_repo(db: Database = Depends(get_database)) -> AgentAccessPointRepository:
+    """Build an agent access-point repository for the current request."""
+    return AgentAccessPointRepository(db)
 
 def get_survey_response_repo(db: Database = Depends(get_database)) -> SurveyResponseRepository:
     """Build a survey response repository for the current request."""
