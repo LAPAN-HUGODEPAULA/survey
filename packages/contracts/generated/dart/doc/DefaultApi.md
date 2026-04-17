@@ -14,6 +14,7 @@ Method | HTTP request | Description
 [**approveTemplate**](DefaultApi.md#approvetemplate) | **POST** /templates/{templateId}/approve | Approve template
 [**archiveTemplate**](DefaultApi.md#archivetemplate) | **POST** /templates/{templateId}/archive | Archive template
 [**completeChatSession**](DefaultApi.md#completechatsession) | **POST** /chat/sessions/{sessionId}/complete | Complete chat session
+[**createAgentAccessPoint**](DefaultApi.md#createagentaccesspoint) | **POST** /agent_access_points/ | Create agent access point
 [**createChatMessage**](DefaultApi.md#createchatmessage) | **POST** /chat/sessions/{sessionId}/messages | Create chat message
 [**createChatSession**](DefaultApi.md#createchatsession) | **POST** /chat/sessions | Create chat session
 [**createPatientResponse**](DefaultApi.md#createpatientresponse) | **POST** /patient_responses/ | Create patient response
@@ -23,11 +24,14 @@ Method | HTTP request | Description
 [**createSurveyPrompt**](DefaultApi.md#createsurveyprompt) | **POST** /survey_prompts/ | Create reusable survey prompt
 [**createSurveyResponse**](DefaultApi.md#createsurveyresponse) | **POST** /survey_responses/ | Create survey response
 [**createTemplate**](DefaultApi.md#createtemplate) | **POST** /templates | Create template
+[**deleteAgentAccessPoint**](DefaultApi.md#deleteagentaccesspoint) | **DELETE** /agent_access_points/{accessPointKey} | Delete agent access point
 [**deletePersonaSkill**](DefaultApi.md#deletepersonaskill) | **DELETE** /persona_skills/{personaSkillKey} | Delete persona skill
 [**deleteSurvey**](DefaultApi.md#deletesurvey) | **DELETE** /surveys/{surveyId} | Delete survey
 [**deleteSurveyPrompt**](DefaultApi.md#deletesurveyprompt) | **DELETE** /survey_prompts/{promptKey} | Delete reusable survey prompt
 [**exportDocument**](DefaultApi.md#exportdocument) | **POST** /documents/export | Export document
 [**exportSurveys**](DefaultApi.md#exportsurveys) | **GET** /surveys/export | Export surveys
+[**getAgentAccessPoint**](DefaultApi.md#getagentaccesspoint) | **GET** /agent_access_points/{accessPointKey} | Get agent access point by key
+[**getBuilderSession**](DefaultApi.md#getbuildersession) | **GET** /builder/session | Resolve the current builder administrator session
 [**getChatSession**](DefaultApi.md#getchatsession) | **GET** /chat/sessions/{sessionId} | Get chat session
 [**getClinicalWriterStatus**](DefaultApi.md#getclinicalwriterstatus) | **GET** /clinical_writer/status/{task_id} | Get asynchronous Clinical Writer task status
 [**getCurrentScreener**](DefaultApi.md#getcurrentscreener) | **GET** /screeners/me | Get the current screener profile
@@ -37,6 +41,7 @@ Method | HTTP request | Description
 [**getSurveyPrompt**](DefaultApi.md#getsurveyprompt) | **GET** /survey_prompts/{promptKey} | Get reusable survey prompt by key
 [**getSurveyResponse**](DefaultApi.md#getsurveyresponse) | **GET** /survey_responses/{responseId} | Get survey response by id
 [**getTemplate**](DefaultApi.md#gettemplate) | **GET** /templates/{templateId} | Get template
+[**listAgentAccessPoints**](DefaultApi.md#listagentaccesspoints) | **GET** /agent_access_points/ | List agent access points
 [**listChatMessages**](DefaultApi.md#listchatmessages) | **GET** /chat/sessions/{sessionId}/messages | List chat messages
 [**listChatSessions**](DefaultApi.md#listchatsessions) | **GET** /chat/sessions | List chat sessions
 [**listPersonaSkills**](DefaultApi.md#listpersonaskills) | **GET** /persona_skills/ | List persona skills
@@ -45,7 +50,9 @@ Method | HTTP request | Description
 [**listSurveys**](DefaultApi.md#listsurveys) | **GET** /surveys/ | List surveys
 [**listTemplateDocumentTypes**](DefaultApi.md#listtemplatedocumenttypes) | **GET** /templates/document-types | List supported template document types
 [**listTemplates**](DefaultApi.md#listtemplates) | **GET** /templates | List templates
+[**loginBuilder**](DefaultApi.md#loginbuilder) | **POST** /builder/login | Authenticate a builder administrator and issue a cookie-backed session
 [**loginScreener**](DefaultApi.md#loginscreener) | **POST** /screeners/login | Authenticate a screener and get an access token
+[**logoutBuilder**](DefaultApi.md#logoutbuilder) | **POST** /builder/logout | Clear the current builder administrator session
 [**previewDocument**](DefaultApi.md#previewdocument) | **POST** /documents/preview | Generate document preview
 [**previewTemplate**](DefaultApi.md#previewtemplate) | **POST** /templates/{templateId}/preview | Preview template
 [**processClinicalWriter**](DefaultApi.md#processclinicalwriter) | **POST** /clinical_writer/process | Forward content to Clinical Writer
@@ -55,6 +62,7 @@ Method | HTTP request | Description
 [**resendSurveyEmail**](DefaultApi.md#resendsurveyemail) | **POST** /survey_responses/{responseId}/send_email | Resend survey response email
 [**resolveScreenerAccessLink**](DefaultApi.md#resolvescreeneraccesslink) | **GET** /screener_access_links/{token} | Resolve a prepared screener access link
 [**transcribeVoiceAudio**](DefaultApi.md#transcribevoiceaudio) | **POST** /voice/transcriptions | Transcribe voice audio
+[**updateAgentAccessPoint**](DefaultApi.md#updateagentaccesspoint) | **PUT** /agent_access_points/{accessPointKey} | Update agent access point
 [**updateChatMessage**](DefaultApi.md#updatechatmessage) | **PATCH** /chat/messages/{messageId} | Update chat message
 [**updateChatSession**](DefaultApi.md#updatechatsession) | **PATCH** /chat/sessions/{sessionId} | Update chat session
 [**updatePersonaSkill**](DefaultApi.md#updatepersonaskill) | **PUT** /persona_skills/{personaSkillKey} | Update persona skill
@@ -264,6 +272,47 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **createAgentAccessPoint**
+> AgentAccessPoint createAgentAccessPoint(agentAccessPointUpsert)
+
+Create agent access point
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final AgentAccessPointUpsert agentAccessPointUpsert = ; // AgentAccessPointUpsert | 
+
+try {
+    final response = api.createAgentAccessPoint(agentAccessPointUpsert);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->createAgentAccessPoint: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **agentAccessPointUpsert** | [**AgentAccessPointUpsert**](AgentAccessPointUpsert.md)|  | 
+
+### Return type
+
+[**AgentAccessPoint**](AgentAccessPoint.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: application/json
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
@@ -641,6 +690,46 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **deleteAgentAccessPoint**
+> deleteAgentAccessPoint(accessPointKey)
+
+Delete agent access point
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String accessPointKey = accessPointKey_example; // String | 
+
+try {
+    api.deleteAgentAccessPoint(accessPointKey);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->deleteAgentAccessPoint: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **accessPointKey** | **String**|  | 
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **deletePersonaSkill**
 > deletePersonaSkill(personaSkillKey)
 
@@ -827,6 +916,84 @@ This endpoint does not need any parameter.
 ### Return type
 
 [**BuiltList&lt;Survey&gt;**](Survey.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getAgentAccessPoint**
+> AgentAccessPoint getAgentAccessPoint(accessPointKey)
+
+Get agent access point by key
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String accessPointKey = accessPointKey_example; // String | 
+
+try {
+    final response = api.getAgentAccessPoint(accessPointKey);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->getAgentAccessPoint: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **accessPointKey** | **String**|  | 
+
+### Return type
+
+[**AgentAccessPoint**](AgentAccessPoint.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getBuilderSession**
+> BuilderSessionResponse getBuilderSession()
+
+Resolve the current builder administrator session
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+
+try {
+    final response = api.getBuilderSession();
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->getBuilderSession: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**BuilderSessionResponse**](BuilderSessionResponse.md)
 
 ### Authorization
 
@@ -1208,6 +1375,43 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **listAgentAccessPoints**
+> BuiltList<AgentAccessPoint> listAgentAccessPoints()
+
+List agent access points
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+
+try {
+    final response = api.listAgentAccessPoints();
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->listAgentAccessPoints: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**BuiltList&lt;AgentAccessPoint&gt;**](AgentAccessPoint.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **listChatMessages**
 > BuiltList<ChatMessage> listChatMessages(sessionId)
 
@@ -1520,6 +1724,47 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **loginBuilder**
+> BuilderSessionResponse loginBuilder(screenerLogin)
+
+Authenticate a builder administrator and issue a cookie-backed session
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final ScreenerLogin screenerLogin = ; // ScreenerLogin | 
+
+try {
+    final response = api.loginBuilder(screenerLogin);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->loginBuilder: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **screenerLogin** | [**ScreenerLogin**](ScreenerLogin.md)|  | 
+
+### Return type
+
+[**BuilderSessionResponse**](BuilderSessionResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **loginScreener**
 > Token loginScreener(screenerLogin)
 
@@ -1558,6 +1803,42 @@ No authorization required
 
  - **Content-Type**: application/json
  - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **logoutBuilder**
+> logoutBuilder()
+
+Clear the current builder administrator session
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+
+try {
+    api.logoutBuilder();
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->logoutBuilder: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -1918,6 +2199,49 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**TranscriptionResponse**](TranscriptionResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **updateAgentAccessPoint**
+> AgentAccessPoint updateAgentAccessPoint(accessPointKey, agentAccessPointUpsert)
+
+Update agent access point
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String accessPointKey = accessPointKey_example; // String | 
+final AgentAccessPointUpsert agentAccessPointUpsert = ; // AgentAccessPointUpsert | 
+
+try {
+    final response = api.updateAgentAccessPoint(accessPointKey, agentAccessPointUpsert);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->updateAgentAccessPoint: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **accessPointKey** | **String**|  | 
+ **agentAccessPointUpsert** | [**AgentAccessPointUpsert**](AgentAccessPointUpsert.md)|  | 
+
+### Return type
+
+[**AgentAccessPoint**](AgentAccessPoint.md)
 
 ### Authorization
 

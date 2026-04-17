@@ -64,6 +64,12 @@ void main() {
       // TODO
     });
 
+    // Indica se o screener pode acessar o construtor administrativo
+    // bool isBuilderAdmin (default value: false)
+    test('to test the property `isBuilderAdmin`', () async {
+      // TODO
+    });
+
     // Ano de conclusão do curso DARV (opcional)
     // int darvCourseYear
     test('to test the property `darvCourseYear`', () async {

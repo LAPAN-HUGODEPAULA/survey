@@ -13,6 +13,8 @@ class PersonaSkillRepository:
 
     def __init__(self, db: Database):
         self._col = db[self.COLLECTION_NAME]
+        self._surveys = db["surveys"]
+        self._access_points = db["AgentAccessPoints"]
         self._col.create_index("personaSkillKey", unique=True)
         self._col.create_index("outputProfile", unique=True)
 
@@ -57,6 +59,28 @@ class PersonaSkillRepository:
         """Delete a persona skill by key."""
         result = self._col.delete_one({"personaSkillKey": persona_skill_key})
         return result.deleted_count > 0
+
+    def is_in_use(self, persona_skill_key: str, output_profile: str | None = None) -> bool:
+        """Check whether any survey or access point still references the persona skill."""
+        survey_query = {
+            "$or": [
+                {"personaSkillKey": persona_skill_key},
+                *([{"outputProfile": output_profile}] if output_profile else []),
+            ]
+        }
+        return (
+            self._surveys.count_documents(survey_query, limit=1) > 0
+            or self._access_points.count_documents({"personaSkillKey": persona_skill_key}, limit=1)
+            > 0
+            or (
+                bool(output_profile)
+                and self._access_points.count_documents(
+                    {"outputProfile": output_profile},
+                    limit=1,
+                )
+                > 0
+            )
+        )
 
     def _normalize(self, doc: dict | None) -> dict:
         """Convert Mongo-specific values into JSON-safe primitives."""

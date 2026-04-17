@@ -36,6 +36,22 @@ class Settings(BaseModel):
     SECRET_KEY: str = os.getenv("SECRET_KEY", "super-secret-key")  # Replace in production.
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+    builder_session_expire_minutes: int = int(
+        os.getenv("BUILDER_SESSION_EXPIRE_MINUTES", "480")
+    )
+    builder_session_cookie_name: str = os.getenv(
+        "BUILDER_SESSION_COOKIE_NAME",
+        "survey_builder_session",
+    )
+    builder_csrf_cookie_name: str = os.getenv(
+        "BUILDER_CSRF_COOKIE_NAME",
+        "survey_builder_csrf",
+    )
+    builder_csrf_header_name: str = os.getenv(
+        "BUILDER_CSRF_HEADER_NAME",
+        "X-Builder-CSRF",
+    )
+    builder_cookie_domain: str | None = os.getenv("BUILDER_COOKIE_DOMAIN")
 
     # Environment and administrative controls.
     environment: str = os.getenv("ENVIRONMENT", "development")
@@ -91,5 +107,6 @@ class Settings(BaseModel):
             raise RuntimeError("PRIVACY_ADMIN_TOKEN must be configured in production.")
         if not self.cors_allowed_origins:
             raise RuntimeError("CORS_ALLOWED_ORIGINS must be configured in production.")
+
 
 settings = Settings()

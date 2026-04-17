@@ -137,7 +137,7 @@ class _$ClinicalWriterTaskResponseSerializer implements PrimitiveSerializer<Clin
             value,
             specifiedType: const FullType(AgentResponse),
           ) as AgentResponse;
-          result.result.replace(valueDes);
+          result.result = valueDes;
           break;
         case r'error':
           final valueDes = serializers.deserialize(

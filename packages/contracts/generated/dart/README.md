@@ -70,6 +70,7 @@ Class | Method | HTTP request | Description
 [*DefaultApi*](doc/DefaultApi.md) | [**approveTemplate**](doc/DefaultApi.md#approvetemplate) | **POST** /templates/{templateId}/approve | Approve template
 [*DefaultApi*](doc/DefaultApi.md) | [**archiveTemplate**](doc/DefaultApi.md#archivetemplate) | **POST** /templates/{templateId}/archive | Archive template
 [*DefaultApi*](doc/DefaultApi.md) | [**completeChatSession**](doc/DefaultApi.md#completechatsession) | **POST** /chat/sessions/{sessionId}/complete | Complete chat session
+[*DefaultApi*](doc/DefaultApi.md) | [**createAgentAccessPoint**](doc/DefaultApi.md#createagentaccesspoint) | **POST** /agent_access_points/ | Create agent access point
 [*DefaultApi*](doc/DefaultApi.md) | [**createChatMessage**](doc/DefaultApi.md#createchatmessage) | **POST** /chat/sessions/{sessionId}/messages | Create chat message
 [*DefaultApi*](doc/DefaultApi.md) | [**createChatSession**](doc/DefaultApi.md#createchatsession) | **POST** /chat/sessions | Create chat session
 [*DefaultApi*](doc/DefaultApi.md) | [**createPatientResponse**](doc/DefaultApi.md#createpatientresponse) | **POST** /patient_responses/ | Create patient response
@@ -79,11 +80,14 @@ Class | Method | HTTP request | Description
 [*DefaultApi*](doc/DefaultApi.md) | [**createSurveyPrompt**](doc/DefaultApi.md#createsurveyprompt) | **POST** /survey_prompts/ | Create reusable survey prompt
 [*DefaultApi*](doc/DefaultApi.md) | [**createSurveyResponse**](doc/DefaultApi.md#createsurveyresponse) | **POST** /survey_responses/ | Create survey response
 [*DefaultApi*](doc/DefaultApi.md) | [**createTemplate**](doc/DefaultApi.md#createtemplate) | **POST** /templates | Create template
+[*DefaultApi*](doc/DefaultApi.md) | [**deleteAgentAccessPoint**](doc/DefaultApi.md#deleteagentaccesspoint) | **DELETE** /agent_access_points/{accessPointKey} | Delete agent access point
 [*DefaultApi*](doc/DefaultApi.md) | [**deletePersonaSkill**](doc/DefaultApi.md#deletepersonaskill) | **DELETE** /persona_skills/{personaSkillKey} | Delete persona skill
 [*DefaultApi*](doc/DefaultApi.md) | [**deleteSurvey**](doc/DefaultApi.md#deletesurvey) | **DELETE** /surveys/{surveyId} | Delete survey
 [*DefaultApi*](doc/DefaultApi.md) | [**deleteSurveyPrompt**](doc/DefaultApi.md#deletesurveyprompt) | **DELETE** /survey_prompts/{promptKey} | Delete reusable survey prompt
 [*DefaultApi*](doc/DefaultApi.md) | [**exportDocument**](doc/DefaultApi.md#exportdocument) | **POST** /documents/export | Export document
 [*DefaultApi*](doc/DefaultApi.md) | [**exportSurveys**](doc/DefaultApi.md#exportsurveys) | **GET** /surveys/export | Export surveys
+[*DefaultApi*](doc/DefaultApi.md) | [**getAgentAccessPoint**](doc/DefaultApi.md#getagentaccesspoint) | **GET** /agent_access_points/{accessPointKey} | Get agent access point by key
+[*DefaultApi*](doc/DefaultApi.md) | [**getBuilderSession**](doc/DefaultApi.md#getbuildersession) | **GET** /builder/session | Resolve the current builder administrator session
 [*DefaultApi*](doc/DefaultApi.md) | [**getChatSession**](doc/DefaultApi.md#getchatsession) | **GET** /chat/sessions/{sessionId} | Get chat session
 [*DefaultApi*](doc/DefaultApi.md) | [**getClinicalWriterStatus**](doc/DefaultApi.md#getclinicalwriterstatus) | **GET** /clinical_writer/status/{task_id} | Get asynchronous Clinical Writer task status
 [*DefaultApi*](doc/DefaultApi.md) | [**getCurrentScreener**](doc/DefaultApi.md#getcurrentscreener) | **GET** /screeners/me | Get the current screener profile
@@ -93,6 +97,7 @@ Class | Method | HTTP request | Description
 [*DefaultApi*](doc/DefaultApi.md) | [**getSurveyPrompt**](doc/DefaultApi.md#getsurveyprompt) | **GET** /survey_prompts/{promptKey} | Get reusable survey prompt by key
 [*DefaultApi*](doc/DefaultApi.md) | [**getSurveyResponse**](doc/DefaultApi.md#getsurveyresponse) | **GET** /survey_responses/{responseId} | Get survey response by id
 [*DefaultApi*](doc/DefaultApi.md) | [**getTemplate**](doc/DefaultApi.md#gettemplate) | **GET** /templates/{templateId} | Get template
+[*DefaultApi*](doc/DefaultApi.md) | [**listAgentAccessPoints**](doc/DefaultApi.md#listagentaccesspoints) | **GET** /agent_access_points/ | List agent access points
 [*DefaultApi*](doc/DefaultApi.md) | [**listChatMessages**](doc/DefaultApi.md#listchatmessages) | **GET** /chat/sessions/{sessionId}/messages | List chat messages
 [*DefaultApi*](doc/DefaultApi.md) | [**listChatSessions**](doc/DefaultApi.md#listchatsessions) | **GET** /chat/sessions | List chat sessions
 [*DefaultApi*](doc/DefaultApi.md) | [**listPersonaSkills**](doc/DefaultApi.md#listpersonaskills) | **GET** /persona_skills/ | List persona skills
@@ -101,7 +106,9 @@ Class | Method | HTTP request | Description
 [*DefaultApi*](doc/DefaultApi.md) | [**listSurveys**](doc/DefaultApi.md#listsurveys) | **GET** /surveys/ | List surveys
 [*DefaultApi*](doc/DefaultApi.md) | [**listTemplateDocumentTypes**](doc/DefaultApi.md#listtemplatedocumenttypes) | **GET** /templates/document-types | List supported template document types
 [*DefaultApi*](doc/DefaultApi.md) | [**listTemplates**](doc/DefaultApi.md#listtemplates) | **GET** /templates | List templates
+[*DefaultApi*](doc/DefaultApi.md) | [**loginBuilder**](doc/DefaultApi.md#loginbuilder) | **POST** /builder/login | Authenticate a builder administrator and issue a cookie-backed session
 [*DefaultApi*](doc/DefaultApi.md) | [**loginScreener**](doc/DefaultApi.md#loginscreener) | **POST** /screeners/login | Authenticate a screener and get an access token
+[*DefaultApi*](doc/DefaultApi.md) | [**logoutBuilder**](doc/DefaultApi.md#logoutbuilder) | **POST** /builder/logout | Clear the current builder administrator session
 [*DefaultApi*](doc/DefaultApi.md) | [**previewDocument**](doc/DefaultApi.md#previewdocument) | **POST** /documents/preview | Generate document preview
 [*DefaultApi*](doc/DefaultApi.md) | [**previewTemplate**](doc/DefaultApi.md#previewtemplate) | **POST** /templates/{templateId}/preview | Preview template
 [*DefaultApi*](doc/DefaultApi.md) | [**processClinicalWriter**](doc/DefaultApi.md#processclinicalwriter) | **POST** /clinical_writer/process | Forward content to Clinical Writer
@@ -111,6 +118,7 @@ Class | Method | HTTP request | Description
 [*DefaultApi*](doc/DefaultApi.md) | [**resendSurveyEmail**](doc/DefaultApi.md#resendsurveyemail) | **POST** /survey_responses/{responseId}/send_email | Resend survey response email
 [*DefaultApi*](doc/DefaultApi.md) | [**resolveScreenerAccessLink**](doc/DefaultApi.md#resolvescreeneraccesslink) | **GET** /screener_access_links/{token} | Resolve a prepared screener access link
 [*DefaultApi*](doc/DefaultApi.md) | [**transcribeVoiceAudio**](doc/DefaultApi.md#transcribevoiceaudio) | **POST** /voice/transcriptions | Transcribe voice audio
+[*DefaultApi*](doc/DefaultApi.md) | [**updateAgentAccessPoint**](doc/DefaultApi.md#updateagentaccesspoint) | **PUT** /agent_access_points/{accessPointKey} | Update agent access point
 [*DefaultApi*](doc/DefaultApi.md) | [**updateChatMessage**](doc/DefaultApi.md#updatechatmessage) | **PATCH** /chat/messages/{messageId} | Update chat message
 [*DefaultApi*](doc/DefaultApi.md) | [**updateChatSession**](doc/DefaultApi.md#updatechatsession) | **PATCH** /chat/sessions/{sessionId} | Update chat session
 [*DefaultApi*](doc/DefaultApi.md) | [**updatePersonaSkill**](doc/DefaultApi.md#updatepersonaskill) | **PUT** /persona_skills/{personaSkillKey} | Update persona skill
@@ -123,9 +131,13 @@ Class | Method | HTTP request | Description
 
  - [AIProgress](doc/AIProgress.md)
  - [Address](doc/Address.md)
+ - [AgentAccessPoint](doc/AgentAccessPoint.md)
+ - [AgentAccessPointUpsert](doc/AgentAccessPointUpsert.md)
+ - [AgentArtifactResponse](doc/AgentArtifactResponse.md)
  - [AgentResponse](doc/AgentResponse.md)
  - [Answer](doc/Answer.md)
  - [ApiError](doc/ApiError.md)
+ - [BuilderSessionResponse](doc/BuilderSessionResponse.md)
  - [ChatMessage](doc/ChatMessage.md)
  - [ChatMessageCreate](doc/ChatMessageCreate.md)
  - [ChatMessageUpdate](doc/ChatMessageUpdate.md)

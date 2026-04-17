@@ -8,9 +8,9 @@ from typing import Optional
 import bcrypt
 import jwt
 from fastapi import APIRouter, Depends, Header, HTTPException, status
-from fastapi_mail import MessageSchema, MessageType
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from app.api.models.auth_models import ScreenerLogin, ScreenerProfile, Token
 from app.config.logging_config import logger
 from app.config.settings import settings
 from app.integrations.email.service import get_mail_client
@@ -68,47 +68,6 @@ class ScreenerRegister(BaseModel):
             }
         }
     )
-
-class ScreenerLogin(BaseModel):
-    """Credentials used to exchange email and password for an access token."""
-
-    email: EmailStr = Field(..., description="Endereço de e-mail do Screener")
-    password: str = Field(..., description="Senha do Screener")
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "email": "maria.vale@holhos.com",
-                "password": "StrongPassword123",
-            }
-        }
-    )
-
-class Token(BaseModel):
-    """JWT bearer token returned after successful authentication."""
-
-    access_token: str
-    token_type: str
-
-
-class ScreenerProfile(BaseModel):
-    """Public screener profile returned to clients after authentication."""
-
-    id: str = Field(..., alias="_id")
-    cpf: str
-    firstName: str
-    surname: str
-    email: EmailStr
-    phone: str
-    address: Address
-    professionalCouncil: ProfessionalCouncil
-    jobTitle: str
-    degree: str
-    darvCourseYear: Optional[int] = None
-    initialNoticeAcceptedAt: Optional[datetime] = None
-
-    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
-
 
 def _get_email_from_authorization_header(authorization: Optional[str]) -> str:
     """Extract and validate the JWT subject from the Authorization header."""
@@ -264,6 +223,8 @@ async def recover_password(
             recovery_request.email
         )
         return {"message": "Se o e-mail estiver registrado, as instruções de recuperação serão enviadas."}
+
+    from fastapi_mail import MessageSchema, MessageType
 
     message = MessageSchema(
         subject="Recuperação de Senha - LAPAN Survey",

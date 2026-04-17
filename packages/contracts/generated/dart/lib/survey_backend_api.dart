@@ -14,9 +14,13 @@ export 'package:survey_backend_api/src/api/default_api.dart';
 
 export 'package:survey_backend_api/src/model/ai_progress.dart';
 export 'package:survey_backend_api/src/model/address.dart';
+export 'package:survey_backend_api/src/model/agent_access_point.dart';
+export 'package:survey_backend_api/src/model/agent_access_point_upsert.dart';
+export 'package:survey_backend_api/src/model/agent_artifact_response.dart';
 export 'package:survey_backend_api/src/model/agent_response.dart';
 export 'package:survey_backend_api/src/model/answer.dart';
 export 'package:survey_backend_api/src/model/api_error.dart';
+export 'package:survey_backend_api/src/model/builder_session_response.dart';
 export 'package:survey_backend_api/src/model/chat_message.dart';
 export 'package:survey_backend_api/src/model/chat_message_create.dart';
 export 'package:survey_backend_api/src/model/chat_message_update.dart';

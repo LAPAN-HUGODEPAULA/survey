@@ -23,6 +23,7 @@ part 'screener_profile.g.dart';
 /// * [professionalCouncil] 
 /// * [jobTitle] - Cargo/profissão do Screener
 /// * [degree] - Formação acadêmica/grau do Screener
+/// * [isBuilderAdmin] - Indica se o screener pode acessar o construtor administrativo
 /// * [darvCourseYear] - Ano de conclusão do curso DARV (opcional)
 /// * [initialNoticeAcceptedAt] - Data de aceite do aviso inicial de uso da plataforma
 @BuiltValue()
@@ -64,6 +65,10 @@ abstract class ScreenerProfile implements Built<ScreenerProfile, ScreenerProfile
   @BuiltValueField(wireName: r'degree')
   String get degree;
 
+  /// Indica se o screener pode acessar o construtor administrativo
+  @BuiltValueField(wireName: r'isBuilderAdmin')
+  bool? get isBuilderAdmin;
+
   /// Ano de conclusão do curso DARV (opcional)
   @BuiltValueField(wireName: r'darvCourseYear')
   int? get darvCourseYear;
@@ -77,7 +82,8 @@ abstract class ScreenerProfile implements Built<ScreenerProfile, ScreenerProfile
   factory ScreenerProfile([void updates(ScreenerProfileBuilder b)]) = _$ScreenerProfile;
 
   @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(ScreenerProfileBuilder b) => b;
+  static void _defaults(ScreenerProfileBuilder b) => b
+      ..isBuilderAdmin = false;
 
   @BuiltValueSerializer(custom: true)
   static Serializer<ScreenerProfile> get serializer => _$ScreenerProfileSerializer();
@@ -145,6 +151,13 @@ class _$ScreenerProfileSerializer implements PrimitiveSerializer<ScreenerProfile
       object.degree,
       specifiedType: const FullType(String),
     );
+    if (object.isBuilderAdmin != null) {
+      yield r'isBuilderAdmin';
+      yield serializers.serialize(
+        object.isBuilderAdmin,
+        specifiedType: const FullType(bool),
+      );
+    }
     if (object.darvCourseYear != null) {
       yield r'darvCourseYear';
       yield serializers.serialize(
@@ -251,6 +264,13 @@ class _$ScreenerProfileSerializer implements PrimitiveSerializer<ScreenerProfile
             specifiedType: const FullType(String),
           ) as String;
           result.degree = valueDes;
+          break;
+        case r'isBuilderAdmin':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.isBuilderAdmin = valueDes;
           break;
         case r'darvCourseYear':
           final valueDes = serializers.deserialize(

@@ -14,6 +14,7 @@ Name | Type | Description | Notes
 **testDate** | [**DateTime**](DateTime.md) |  | [optional] 
 **screenerId** | **String** |  | 
 **accessLinkToken** | **String** |  | [optional] 
+**accessPointKey** | **String** |  | [optional] 
 **promptKey** | **String** |  | [optional] 
 **personaSkillKey** | **String** |  | [optional] 
 **outputProfile** | **String** |  | [optional] 

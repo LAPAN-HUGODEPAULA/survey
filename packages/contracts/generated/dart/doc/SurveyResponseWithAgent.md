@@ -14,12 +14,14 @@ Name | Type | Description | Notes
 **testDate** | [**DateTime**](DateTime.md) |  | [optional] 
 **screenerId** | **String** |  | 
 **accessLinkToken** | **String** |  | [optional] 
+**accessPointKey** | **String** |  | [optional] 
 **promptKey** | **String** |  | [optional] 
 **personaSkillKey** | **String** |  | [optional] 
 **outputProfile** | **String** |  | [optional] 
 **patient** | [**Patient**](Patient.md) |  | [optional] 
 **answers** | [**BuiltList&lt;Answer&gt;**](Answer.md) |  | 
 **agentResponse** | [**AgentResponse**](AgentResponse.md) |  | [optional] 
+**agentResponses** | [**BuiltList&lt;AgentArtifactResponse&gt;**](AgentArtifactResponse.md) |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

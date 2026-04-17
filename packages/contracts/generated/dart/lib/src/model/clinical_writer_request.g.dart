@@ -135,6 +135,8 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
   @override
   final String locale;
   @override
+  final String? accessPointKey;
+  @override
   final String promptKey;
   @override
   final String? personaSkillKey;
@@ -155,6 +157,7 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
       {required this.inputType,
       required this.content,
       required this.locale,
+      this.accessPointKey,
       required this.promptKey,
       this.personaSkillKey,
       this.outputProfile,
@@ -178,6 +181,7 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
         inputType == other.inputType &&
         content == other.content &&
         locale == other.locale &&
+        accessPointKey == other.accessPointKey &&
         promptKey == other.promptKey &&
         personaSkillKey == other.personaSkillKey &&
         outputProfile == other.outputProfile &&
@@ -192,6 +196,7 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
     _$hash = $jc(_$hash, inputType.hashCode);
     _$hash = $jc(_$hash, content.hashCode);
     _$hash = $jc(_$hash, locale.hashCode);
+    _$hash = $jc(_$hash, accessPointKey.hashCode);
     _$hash = $jc(_$hash, promptKey.hashCode);
     _$hash = $jc(_$hash, personaSkillKey.hashCode);
     _$hash = $jc(_$hash, outputProfile.hashCode);
@@ -208,6 +213,7 @@ class _$ClinicalWriterRequest extends ClinicalWriterRequest {
           ..add('inputType', inputType)
           ..add('content', content)
           ..add('locale', locale)
+          ..add('accessPointKey', accessPointKey)
           ..add('promptKey', promptKey)
           ..add('personaSkillKey', personaSkillKey)
           ..add('outputProfile', outputProfile)
@@ -234,6 +240,11 @@ class ClinicalWriterRequestBuilder
   String? _locale;
   String? get locale => _$this._locale;
   set locale(String? locale) => _$this._locale = locale;
+
+  String? _accessPointKey;
+  String? get accessPointKey => _$this._accessPointKey;
+  set accessPointKey(String? accessPointKey) =>
+      _$this._accessPointKey = accessPointKey;
 
   String? _promptKey;
   String? get promptKey => _$this._promptKey;
@@ -275,6 +286,7 @@ class ClinicalWriterRequestBuilder
       _inputType = $v.inputType;
       _content = $v.content;
       _locale = $v.locale;
+      _accessPointKey = $v.accessPointKey;
       _promptKey = $v.promptKey;
       _personaSkillKey = $v.personaSkillKey;
       _outputProfile = $v.outputProfile;
@@ -310,6 +322,7 @@ class ClinicalWriterRequestBuilder
                 content, r'ClinicalWriterRequest', 'content'),
             locale: BuiltValueNullFieldError.checkNotNull(
                 locale, r'ClinicalWriterRequest', 'locale'),
+            accessPointKey: accessPointKey,
             promptKey: BuiltValueNullFieldError.checkNotNull(
                 promptKey, r'ClinicalWriterRequest', 'promptKey'),
             personaSkillKey: personaSkillKey,

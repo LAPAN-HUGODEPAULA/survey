@@ -92,9 +92,9 @@ class ClinicalWriterTaskResponseBuilder
   set aiProgress(AIProgressBuilder? aiProgress) =>
       _$this._aiProgress = aiProgress;
 
-  AgentResponseBuilder? _result;
-  AgentResponseBuilder get result => _$this._result ??= AgentResponseBuilder();
-  set result(AgentResponseBuilder? result) => _$this._result = result;
+  AgentResponse? _result;
+  AgentResponse? get result => _$this._result;
+  set result(AgentResponse? result) => _$this._result = result;
 
   ClinicalWriterTaskErrorBuilder? _error;
   ClinicalWriterTaskErrorBuilder get error =>
@@ -111,7 +111,7 @@ class ClinicalWriterTaskResponseBuilder
       _taskId = $v.taskId;
       _status = $v.status;
       _aiProgress = $v.aiProgress.toBuilder();
-      _result = $v.result?.toBuilder();
+      _result = $v.result;
       _error = $v.error?.toBuilder();
       _$v = null;
     }
@@ -141,7 +141,7 @@ class ClinicalWriterTaskResponseBuilder
             status: BuiltValueNullFieldError.checkNotNull(
                 status, r'ClinicalWriterTaskResponse', 'status'),
             aiProgress: aiProgress.build(),
-            result: _result?.build(),
+            result: result,
             error: _error?.build(),
           );
     } catch (_) {
@@ -149,8 +149,7 @@ class ClinicalWriterTaskResponseBuilder
       try {
         _$failedField = 'aiProgress';
         aiProgress.build();
-        _$failedField = 'result';
-        _result?.build();
+
         _$failedField = 'error';
         _error?.build();
       } catch (e) {

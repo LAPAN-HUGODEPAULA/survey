@@ -20,6 +20,7 @@ part 'survey_response.g.dart';
 /// * [testDate] 
 /// * [screenerId] 
 /// * [accessLinkToken] 
+/// * [accessPointKey] 
 /// * [promptKey] 
 /// * [personaSkillKey] 
 /// * [outputProfile] 
@@ -44,6 +45,9 @@ abstract class SurveyResponse  {
 
   @BuiltValueField(wireName: r'accessLinkToken')
   String? get accessLinkToken;
+
+  @BuiltValueField(wireName: r'accessPointKey')
+  String? get accessPointKey;
 
   @BuiltValueField(wireName: r'promptKey')
   String? get promptKey;
@@ -109,6 +113,13 @@ class _$SurveyResponseSerializer implements PrimitiveSerializer<SurveyResponse> 
       yield r'accessLinkToken';
       yield serializers.serialize(
         object.accessLinkToken,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.accessPointKey != null) {
+      yield r'accessPointKey';
+      yield serializers.serialize(
+        object.accessPointKey,
         specifiedType: const FullType.nullable(String),
       );
     }
@@ -250,6 +261,14 @@ class _$$SurveyResponseSerializer implements PrimitiveSerializer<$SurveyResponse
           ) as String?;
           if (valueDes == null) continue;
           result.accessLinkToken = valueDes;
+          break;
+        case r'accessPointKey':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.accessPointKey = valueDes;
           break;
         case r'promptKey':
           final valueDes = serializers.deserialize(

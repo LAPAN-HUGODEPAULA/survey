@@ -16,9 +16,13 @@ import 'package:survey_backend_api/src/model/date.dart';
 
 import 'package:survey_backend_api/src/model/ai_progress.dart';
 import 'package:survey_backend_api/src/model/address.dart';
+import 'package:survey_backend_api/src/model/agent_access_point.dart';
+import 'package:survey_backend_api/src/model/agent_access_point_upsert.dart';
+import 'package:survey_backend_api/src/model/agent_artifact_response.dart';
 import 'package:survey_backend_api/src/model/agent_response.dart';
 import 'package:survey_backend_api/src/model/answer.dart';
 import 'package:survey_backend_api/src/model/api_error.dart';
+import 'package:survey_backend_api/src/model/builder_session_response.dart';
 import 'package:survey_backend_api/src/model/chat_message.dart';
 import 'package:survey_backend_api/src/model/chat_message_create.dart';
 import 'package:survey_backend_api/src/model/chat_message_update.dart';
@@ -78,9 +82,13 @@ part 'serializers.g.dart';
 @SerializersFor([
   AIProgress,
   Address,
-  AgentResponse,
+  AgentAccessPoint,
+  AgentAccessPointUpsert,$AgentAccessPointUpsert,
+  AgentArtifactResponse,
+  AgentResponse,$AgentResponse,
   Answer,
   ApiError,
+  BuilderSessionResponse,
   ChatMessage,
   ChatMessageCreate,
   ChatMessageUpdate,
@@ -141,6 +149,10 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<SurveyResponse>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AgentAccessPoint)]),
+        () => ListBuilder<AgentAccessPoint>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(Survey)]),
         () => ListBuilder<Survey>(),
       )
@@ -168,6 +180,8 @@ Serializers serializers = (_$serializers.toBuilder()
         const FullType(BuiltList, [FullType(ChatMessage)]),
         () => ListBuilder<ChatMessage>(),
       )
+      ..add(AgentAccessPointUpsert.serializer)
+      ..add(AgentResponse.serializer)
       ..add(PersonaSkillUpsert.serializer)
       ..add(SurveyPromptUpsert.serializer)
       ..add(SurveyResponse.serializer)

@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **inputType** | **String** |  | 
 **content** | **String** |  | 
 **locale** | **String** |  | 
+**accessPointKey** | **String** |  | [optional] 
 **promptKey** | **String** |  | 
 **personaSkillKey** | **String** |  | [optional] 
 **outputProfile** | **String** |  | [optional] 

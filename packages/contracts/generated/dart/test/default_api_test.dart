@@ -42,6 +42,13 @@ void main() {
       // TODO
     });
 
+    // Create agent access point
+    //
+    //Future<AgentAccessPoint> createAgentAccessPoint(AgentAccessPointUpsert agentAccessPointUpsert) async
+    test('test createAgentAccessPoint', () async {
+      // TODO
+    });
+
     // Create chat message
     //
     //Future<ChatMessage> createChatMessage(String sessionId, ChatMessageCreate chatMessageCreate) async
@@ -105,6 +112,13 @@ void main() {
       // TODO
     });
 
+    // Delete agent access point
+    //
+    //Future deleteAgentAccessPoint(String accessPointKey) async
+    test('test deleteAgentAccessPoint', () async {
+      // TODO
+    });
+
     // Delete persona skill
     //
     //Future deletePersonaSkill(String personaSkillKey) async
@@ -137,6 +151,20 @@ void main() {
     //
     //Future<BuiltList<Survey>> exportSurveys() async
     test('test exportSurveys', () async {
+      // TODO
+    });
+
+    // Get agent access point by key
+    //
+    //Future<AgentAccessPoint> getAgentAccessPoint(String accessPointKey) async
+    test('test getAgentAccessPoint', () async {
+      // TODO
+    });
+
+    // Resolve the current builder administrator session
+    //
+    //Future<BuilderSessionResponse> getBuilderSession() async
+    test('test getBuilderSession', () async {
       // TODO
     });
 
@@ -203,6 +231,13 @@ void main() {
       // TODO
     });
 
+    // List agent access points
+    //
+    //Future<BuiltList<AgentAccessPoint>> listAgentAccessPoints() async
+    test('test listAgentAccessPoints', () async {
+      // TODO
+    });
+
     // List chat messages
     //
     //Future<BuiltList<ChatMessage>> listChatMessages(String sessionId) async
@@ -259,10 +294,24 @@ void main() {
       // TODO
     });
 
+    // Authenticate a builder administrator and issue a cookie-backed session
+    //
+    //Future<BuilderSessionResponse> loginBuilder(ScreenerLogin screenerLogin) async
+    test('test loginBuilder', () async {
+      // TODO
+    });
+
     // Authenticate a screener and get an access token
     //
     //Future<Token> loginScreener(ScreenerLogin screenerLogin) async
     test('test loginScreener', () async {
+      // TODO
+    });
+
+    // Clear the current builder administrator session
+    //
+    //Future logoutBuilder() async
+    test('test logoutBuilder', () async {
       // TODO
     });
 
@@ -326,6 +375,13 @@ void main() {
     //
     //Future<TranscriptionResponse> transcribeVoiceAudio(TranscriptionRequest transcriptionRequest) async
     test('test transcribeVoiceAudio', () async {
+      // TODO
+    });
+
+    // Update agent access point
+    //
+    //Future<AgentAccessPoint> updateAgentAccessPoint(String accessPointKey, AgentAccessPointUpsert agentAccessPointUpsert) async
+    test('test updateAgentAccessPoint', () async {
       // TODO
     });
 

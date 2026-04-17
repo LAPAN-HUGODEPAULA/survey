@@ -27,6 +27,9 @@ abstract class SurveyResponseBuilder {
   String? get accessLinkToken;
   set accessLinkToken(String? accessLinkToken);
 
+  String? get accessPointKey;
+  set accessPointKey(String? accessPointKey);
+
   String? get promptKey;
   set promptKey(String? promptKey);
 
@@ -57,6 +60,8 @@ class _$$SurveyResponse extends $SurveyResponse {
   @override
   final String? accessLinkToken;
   @override
+  final String? accessPointKey;
+  @override
   final String? promptKey;
   @override
   final String? personaSkillKey;
@@ -77,6 +82,7 @@ class _$$SurveyResponse extends $SurveyResponse {
       this.testDate,
       required this.screenerId,
       this.accessLinkToken,
+      this.accessPointKey,
       this.promptKey,
       this.personaSkillKey,
       this.outputProfile,
@@ -100,6 +106,7 @@ class _$$SurveyResponse extends $SurveyResponse {
         testDate == other.testDate &&
         screenerId == other.screenerId &&
         accessLinkToken == other.accessLinkToken &&
+        accessPointKey == other.accessPointKey &&
         promptKey == other.promptKey &&
         personaSkillKey == other.personaSkillKey &&
         outputProfile == other.outputProfile &&
@@ -116,6 +123,7 @@ class _$$SurveyResponse extends $SurveyResponse {
     _$hash = $jc(_$hash, testDate.hashCode);
     _$hash = $jc(_$hash, screenerId.hashCode);
     _$hash = $jc(_$hash, accessLinkToken.hashCode);
+    _$hash = $jc(_$hash, accessPointKey.hashCode);
     _$hash = $jc(_$hash, promptKey.hashCode);
     _$hash = $jc(_$hash, personaSkillKey.hashCode);
     _$hash = $jc(_$hash, outputProfile.hashCode);
@@ -134,6 +142,7 @@ class _$$SurveyResponse extends $SurveyResponse {
           ..add('testDate', testDate)
           ..add('screenerId', screenerId)
           ..add('accessLinkToken', accessLinkToken)
+          ..add('accessPointKey', accessPointKey)
           ..add('promptKey', promptKey)
           ..add('personaSkillKey', personaSkillKey)
           ..add('outputProfile', outputProfile)
@@ -175,6 +184,11 @@ class $SurveyResponseBuilder
   set accessLinkToken(covariant String? accessLinkToken) =>
       _$this._accessLinkToken = accessLinkToken;
 
+  String? _accessPointKey;
+  String? get accessPointKey => _$this._accessPointKey;
+  set accessPointKey(covariant String? accessPointKey) =>
+      _$this._accessPointKey = accessPointKey;
+
   String? _promptKey;
   String? get promptKey => _$this._promptKey;
   set promptKey(covariant String? promptKey) => _$this._promptKey = promptKey;
@@ -211,6 +225,7 @@ class $SurveyResponseBuilder
       _testDate = $v.testDate;
       _screenerId = $v.screenerId;
       _accessLinkToken = $v.accessLinkToken;
+      _accessPointKey = $v.accessPointKey;
       _promptKey = $v.promptKey;
       _personaSkillKey = $v.personaSkillKey;
       _outputProfile = $v.outputProfile;
@@ -248,6 +263,7 @@ class $SurveyResponseBuilder
             screenerId: BuiltValueNullFieldError.checkNotNull(
                 screenerId, r'$SurveyResponse', 'screenerId'),
             accessLinkToken: accessLinkToken,
+            accessPointKey: accessPointKey,
             promptKey: promptKey,
             personaSkillKey: personaSkillKey,
             outputProfile: outputProfile,

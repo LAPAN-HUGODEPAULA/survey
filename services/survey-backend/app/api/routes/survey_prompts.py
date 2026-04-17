@@ -5,13 +5,15 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from pymongo.errors import DuplicateKeyError
 
+from app.api.dependencies.builder_auth import require_builder_admin, require_builder_csrf
+from app.api.dependencies.correlation import CorrelationID
+from app.api.decorators.builder_audit import audit_builder_operation
 from app.config.logging_config import logger
 from app.domain.models.survey_prompt_model import SurveyPrompt, SurveyPromptUpsert
 from app.persistence.deps import get_survey_prompt_repo
 from app.persistence.repositories.survey_prompt_repo import SurveyPromptRepository
 
-
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_builder_admin)])
 
 
 @router.get("/survey_prompts/", response_model=List[SurveyPrompt])
@@ -34,10 +36,17 @@ async def get_survey_prompt(
     return SurveyPrompt(**prompt)
 
 
-@router.post("/survey_prompts/", response_model=SurveyPrompt, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/survey_prompts/",
+    response_model=SurveyPrompt,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_builder_csrf)],
+)
+@audit_builder_operation("create_prompt")
 async def create_survey_prompt(
     prompt: SurveyPromptUpsert,
     repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
+    correlation_id: CorrelationID,
 ):
     """Create a reusable survey prompt."""
     try:
@@ -48,11 +57,17 @@ async def create_survey_prompt(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Survey prompt key already exists") from exc
 
 
-@router.put("/survey_prompts/{prompt_key}", response_model=SurveyPrompt)
+@router.put(
+    "/survey_prompts/{prompt_key}",
+    response_model=SurveyPrompt,
+    dependencies=[Depends(require_builder_csrf)],
+)
+@audit_builder_operation("update_prompt")
 async def update_survey_prompt(
     prompt_key: str,
     prompt: SurveyPromptUpsert,
     repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
+    correlation_id: CorrelationID,
 ):
     """Update a reusable survey prompt."""
     if prompt.prompt_key != prompt_key:
@@ -69,10 +84,16 @@ async def update_survey_prompt(
     return SurveyPrompt(**updated)
 
 
-@router.delete("/survey_prompts/{prompt_key}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/survey_prompts/{prompt_key}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_builder_csrf)],
+)
+@audit_builder_operation("delete_prompt")
 async def delete_survey_prompt(
     prompt_key: str,
     repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
+    correlation_id: CorrelationID,
 ):
     """Delete a reusable survey prompt when it is not associated with any survey."""
     prompt = repo.get_by_key(prompt_key)
