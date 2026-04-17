@@ -26,6 +26,9 @@ import 'package:survey_app/core/repositories/survey_repository.dart';
 import 'package:survey_app/shared/widgets/assessment_flow_stepper.dart';
 import 'package:web/web.dart' as web;
 
+const _frontendThankYouAccessPointKey =
+    'survey_frontend.thank_you.auto_analysis';
+
 /// Confirms submission state and handles post-survey exports.
 class ThankYouPage extends StatefulWidget {
   /// Creates the terminal survey screen with the completed response payload.
@@ -134,6 +137,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
         testDate: DateTime.now(),
         screenerId: settings.screenerId,
         accessLinkToken: settings.accessLinkToken,
+        accessPointKey: _frontendThankYouAccessPointKey,
         promptKey: _selectedPromptKey,
         patient: patient,
         answers: _buildAnswers(),
@@ -211,14 +215,18 @@ class _ThankYouPageState extends State<ThankYouPage> {
     final content = jsonEncode(surveyResponse.toJson());
     final taskStart = await _surveyRepository.startClinicalWriterTask(
       content,
+      accessPointKey: surveyResponse.accessPointKey,
       promptKey: surveyResponse.promptKey,
+      surveyId: surveyResponse.surveyId,
     );
     final taskId =
         taskStart['taskId']?.toString() ?? taskStart['task_id']?.toString();
     if (taskId == null || taskId.isEmpty) {
       return _surveyRepository.processClinicalWriter(
         content,
+        accessPointKey: surveyResponse.accessPointKey,
         promptKey: surveyResponse.promptKey,
+        surveyId: surveyResponse.surveyId,
       );
     }
 
@@ -279,6 +287,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
         testDate: DateTime.now(),
         screenerId: settings.screenerId,
         accessLinkToken: settings.accessLinkToken,
+        accessPointKey: _frontendThankYouAccessPointKey,
         promptKey: _selectedPromptKey,
         patient: settings.patient.withClinicalData(
           familyHistory: settings.clinicalData.familyHistory,

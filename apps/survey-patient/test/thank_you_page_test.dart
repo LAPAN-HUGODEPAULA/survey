@@ -36,7 +36,9 @@ class _FakeSurveyRepository extends SurveyRepository {
   @override
   Future<Map<String, dynamic>> startClinicalWriterTask(
     String content, {
+    String? accessPointKey,
     String? promptKey,
+    String? surveyId,
   }) async {
     return <String, dynamic>{
       'taskId': 'task-1',
