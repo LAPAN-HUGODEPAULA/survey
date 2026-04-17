@@ -1,6 +1,6 @@
 [project]
 name = "survey-backend"
-version = "0.1.0"
+version = "0.2.0"
 description = "The main backend service for the LAPAN Survey Platform. It is a FastAPI application that provides a RESTful API for managing surveys, survey responses, and patient responses."
 readme = "README.md"
 requires-python = ">=3.13"

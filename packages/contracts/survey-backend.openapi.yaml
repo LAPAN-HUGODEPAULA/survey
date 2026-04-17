@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Survey Backend API
-  version: 0.1.0
+  version: 0.2.0
   description: API for managing surveys and collecting patient/survey responses.
 servers:
   - url: http://localhost:8000/api/v1
@@ -188,6 +188,100 @@ paths:
           description: Persona skill deleted
         '404':
           description: Persona skill not found
+  /agent_access_points/:
+    get:
+      summary: List agent access points
+      operationId: listAgentAccessPoints
+      responses:
+        '200':
+          description: List of agent access points
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AgentAccessPoint'
+    post:
+      summary: Create agent access point
+      operationId: createAgentAccessPoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentAccessPointUpsert'
+      responses:
+        '201':
+          description: Created agent access point
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentAccessPoint'
+        '409':
+          description: Duplicate access point key
+        '422':
+          description: Invalid survey, prompt, persona, or output-profile binding
+  /agent_access_points/{accessPointKey}:
+    get:
+      summary: Get agent access point by key
+      operationId: getAgentAccessPoint
+      parameters:
+        - in: path
+          name: accessPointKey
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Agent access point found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentAccessPoint'
+        '404':
+          description: Agent access point not found
+    put:
+      summary: Update agent access point
+      operationId: updateAgentAccessPoint
+      parameters:
+        - in: path
+          name: accessPointKey
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentAccessPointUpsert'
+      responses:
+        '200':
+          description: Updated agent access point
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentAccessPoint'
+        '404':
+          description: Agent access point not found
+        '409':
+          description: Duplicate access point key
+        '422':
+          description: Invalid survey, prompt, persona, or output-profile binding
+    delete:
+      summary: Delete agent access point
+      operationId: deleteAgentAccessPoint
+      parameters:
+        - in: path
+          name: accessPointKey
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Agent access point deleted
+        '404':
+          description: Agent access point not found
   /surveys/:
     get:
       summary: List surveys
@@ -473,6 +567,49 @@ paths:
           description: Password recovery initiated (email sent if user exists)
         '500':
           description: Internal server error or email service not configured
+  /builder/login:
+    post:
+      summary: Authenticate a builder administrator and issue a cookie-backed session
+      operationId: loginBuilder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScreenerLogin'
+      responses:
+        '200':
+          description: Builder session established
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuilderSessionResponse'
+        '401':
+          description: Invalid screener credentials
+        '403':
+          description: Screener is authenticated but not authorized for builder administration
+  /builder/session:
+    get:
+      summary: Resolve the current builder administrator session
+      operationId: getBuilderSession
+      responses:
+        '200':
+          description: Current builder session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuilderSessionResponse'
+        '401':
+          description: Builder login required or session expired
+        '403':
+          description: Screener session exists but builder admin access was revoked
+  /builder/logout:
+    post:
+      summary: Clear the current builder administrator session
+      operationId: logoutBuilder
+      responses:
+        '204':
+          description: Builder session cleared
   /screeners/me:
     get:
       summary: Get the current screener profile
@@ -981,6 +1118,17 @@ paths:
                 $ref: '#/components/schemas/TranscriptionResponse'
 components:
   schemas:
+    BuilderSessionResponse:
+      type: object
+      required:
+        - profile
+        - csrfToken
+      properties:
+        profile:
+          $ref: '#/components/schemas/ScreenerProfile'
+        csrfToken:
+          type: string
+          description: CSRF token that must be echoed in the builder write header
     TemplateDocumentType:
       type: string
       enum:
@@ -1297,6 +1445,51 @@ components:
             modifiedAt:
               type: string
               format: date-time
+    AgentAccessPointUpsert:
+      type: object
+      required:
+        - accessPointKey
+        - name
+        - sourceApp
+        - flowKey
+        - promptKey
+        - personaSkillKey
+        - outputProfile
+      properties:
+        accessPointKey:
+          type: string
+        name:
+          type: string
+        sourceApp:
+          type: string
+        flowKey:
+          type: string
+        promptKey:
+          type: string
+        personaSkillKey:
+          type: string
+        outputProfile:
+          type: string
+        surveyId:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+    AgentAccessPoint:
+      allOf:
+        - $ref: '#/components/schemas/AgentAccessPointUpsert'
+        - type: object
+          required:
+            - createdAt
+            - modifiedAt
+          properties:
+            createdAt:
+              type: string
+              format: date-time
+            modifiedAt:
+              type: string
+              format: date-time
     SurveyPromptReference:
       type: object
       required:
@@ -1404,6 +1597,9 @@ components:
         accessLinkToken:
           type: string
           nullable: true
+        accessPointKey:
+          type: string
+          nullable: true
         promptKey:
           type: string
           nullable: true
@@ -1478,6 +1674,14 @@ components:
           type: string
         aiProgress:
           $ref: '#/components/schemas/AIProgress'
+    AgentArtifactResponse:
+      allOf:
+        - $ref: '#/components/schemas/AgentResponse'
+        - type: object
+          properties:
+            accessPointKey:
+              type: string
+              nullable: true
     AIProgress:
       type: object
       properties:
@@ -1551,6 +1755,9 @@ components:
           type: string
         locale:
           type: string
+        accessPointKey:
+          type: string
+          nullable: true
         prompt_key:
           type: string
         persona_skill_key:
@@ -1573,6 +1780,10 @@ components:
             request_id:
               type: string
             patient_ref:
+              type: string
+            surveyId:
+              type: string
+            survey_id:
               type: string
     ClinicalWriterAnalysisRequest:
       type: object
@@ -1685,6 +1896,10 @@ components:
           properties:
             agentResponse:
               $ref: '#/components/schemas/AgentResponse'
+            agentResponses:
+              type: array
+              items:
+                $ref: '#/components/schemas/AgentArtifactResponse'
     Address:
       type: object
       required:
@@ -1776,6 +1991,10 @@ components:
         degree:
           type: string
           description: Formação acadêmica/grau do Screener
+        isBuilderAdmin:
+          type: boolean
+          default: false
+          description: Indica se o screener pode acessar o construtor administrativo
         darvCourseYear:
           type: integer
           description: Ano de conclusão do curso DARV (opcional)
@@ -1798,6 +2017,7 @@ components:
         - professionalCouncil
         - jobTitle
         - degree
+        - isBuilderAdmin
       properties:
         _id:
           type: string
@@ -1830,6 +2050,10 @@ components:
         degree:
           type: string
           description: Formação acadêmica/grau do Screener
+        isBuilderAdmin:
+          type: boolean
+          default: false
+          description: Indica se o screener pode acessar o construtor administrativo
         darvCourseYear:
           type: integer
           description: Ano de conclusão do curso DARV (opcional)
