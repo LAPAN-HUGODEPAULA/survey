@@ -1,16 +1,19 @@
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:survey_builder/core/auth/builder_auth_controller.dart';
 import 'package:survey_builder/core/models/survey_draft.dart';
 import 'package:survey_builder/core/repositories/survey_repository.dart';
 import 'package:survey_builder/core/services/file_download.dart';
+import 'package:survey_builder/features/survey/pages/agent_access_point_list_page.dart';
 import 'package:survey_builder/features/survey/pages/persona_skill_list_page.dart';
 import 'package:survey_builder/features/survey/pages/survey_form_page.dart';
 import 'package:survey_builder/features/survey/pages/survey_prompt_list_page.dart';
 
 class SurveyListPage extends StatefulWidget {
-  const SurveyListPage({super.key, this.repository});
+  const SurveyListPage({super.key, this.repository, this.authController});
 
   final SurveyRepository? repository;
+  final BuilderAuthController? authController;
 
   @override
   State<SurveyListPage> createState() => _SurveyListPageState();
@@ -247,7 +250,17 @@ class _SurveyListPageState extends State<SurveyListPage> {
       title: 'Construtor de Questionários',
       subtitle: 'Gerencie questionários, prompts e personas.',
       showAmbientGreeting: true,
+      userName: widget.authController?.profile?.fullName,
       useSafeArea: true,
+      actions: [
+        IconButton(
+          tooltip: 'Encerrar sessão',
+          onPressed: widget.authController == null
+              ? null
+              : () => widget.authController!.logout(),
+          icon: const Icon(Icons.logout),
+        ),
+      ],
       body: DsAdminCatalogShell<SurveyDraft>(
         heading: 'Questionários',
         createLabel: 'Criar questionário',
@@ -290,8 +303,8 @@ class _SurveyListPageState extends State<SurveyListPage> {
                 Text(
                   'Rótulos: ${_questionLabelPreview(survey)}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -341,6 +354,19 @@ class _SurveyListPageState extends State<SurveyListPage> {
             },
             icon: const Icon(Icons.face),
             label: const Text('Personas'),
+          ),
+          const SizedBox(height: 8),
+          FloatingActionButton.extended(
+            heroTag: 'manage-access-points',
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const AgentAccessPointListPage(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.hub),
+            label: const Text('Acessos'),
           ),
           const SizedBox(height: 8),
           FloatingActionButton.extended(

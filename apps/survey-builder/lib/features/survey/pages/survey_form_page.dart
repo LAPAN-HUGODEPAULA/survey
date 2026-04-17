@@ -11,6 +11,7 @@ import 'package:survey_builder/core/repositories/persona_skill_repository.dart';
 import 'package:survey_builder/core/repositories/survey_prompt_repository.dart';
 import 'package:survey_builder/core/repositories/survey_repository.dart';
 import 'package:survey_builder/features/survey/widgets/html_rich_text_editor.dart';
+import 'package:survey_builder/features/survey/pages/task_dashboard_page.dart';
 
 class SurveyFormPage extends StatefulWidget {
   const SurveyFormPage({
@@ -918,14 +919,6 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     MapEntry<String, GlobalKey>(_questionsSectionId, _questionsSectionKey),
   ];
 
-  List<DsStickySectionItem> get _stickySections => const [
-    DsStickySectionItem(id: _detailsSectionId, label: 'Detalhes'),
-    DsStickySectionItem(id: _instructionsSectionId, label: 'Instruções'),
-    DsStickySectionItem(id: _promptSectionId, label: 'Prompt'),
-    DsStickySectionItem(id: _personaSectionId, label: 'Persona'),
-    DsStickySectionItem(id: _questionsSectionId, label: 'Perguntas'),
-  ];
-
   String _sectionLabel(String sectionId) {
     switch (sectionId) {
       case _detailsSectionId:
@@ -1007,6 +1000,12 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
   List<DsBreadcrumbItem> _buildBreadcrumbs(bool isEditing) {
     return [
       DsBreadcrumbItem(
+        label: 'Dashboard',
+        onPressed: _saving ? null : () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => TaskDashboardPage()),
+        ),
+      ),
+      DsBreadcrumbItem(
         label: 'Questionários',
         onPressed: _saving ? null : _confirmCancel,
       ),
@@ -1063,7 +1062,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
       subtitle: 'Configure conteúdo, instruções, prompts e perguntas.',
       breadcrumbs: _buildBreadcrumbs(isEditing),
       onBack: _saving ? null : _confirmCancel,
-      backLabel: 'Voltar para questionários',
+      backLabel: 'Voltar',
       scrollable: false,
       body: Form(
         key: _formKey,
