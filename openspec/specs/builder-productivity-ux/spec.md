@@ -1,4 +1,9 @@
-## ADDED Requirements
+# builder-productivity-ux Specification
+
+## Purpose
+The `builder-productivity-ux` specification defines requirements for maximizing administrative productivity in the survey builder, focusing on navigation efficiency, orientation preservation, and context-loss reduction.
+
+## Requirements
 
 ### Requirement: Sectional Navigation for Long Administrative Forms
 The `survey-builder` application SHALL provide a sectional navigation component (e.g., a table of contents or sidebar) for long editing forms (Questionnaires, Prompts, Personas) to allow users to navigate between sections without exhaustive scrolling.
@@ -38,3 +43,16 @@ List views for administrative catalogs (Surveys, Prompts, Personas) MUST include
 - **WHEN** the user enters text in a search or filter field for a catalog
 - **THEN** the list MUST update in real-time to show only matching items
 - **AND** if no matches are found, a "No results" message MUST be shown with an option to clear the filter.
+
+### Requirement: Administrative navigation MUST reduce dead ends and context loss
+The `survey-builder` navigation model MUST prevent dead-end administrative screens and MUST preserve user orientation during long-lived catalog and editor workflows.
+
+#### Scenario: Admin opens a secondary catalog
+- **WHEN** an admin navigates from the survey area into a secondary catalog such as prompts or persona skills
+- **THEN** the destination screen MUST show its current section clearly
+- **AND** it MUST provide visible actions to return to the parent context or the administrative home
+
+#### Scenario: Admin completes a save inside a nested editor
+- **WHEN** an admin saves changes from a nested prompt, persona, or survey editor
+- **THEN** the post-save state MUST preserve orientation by showing the current section and available next navigation choices
+- **AND** the user MUST not land in a screen that lacks a clear onward path

@@ -234,3 +234,55 @@ The `survey-builder` application MUST present administrative save, validation, c
 - **THEN** the application MUST provide a recognizable success state through the canonical feedback model
 - **AND** the feedback MAY use a transient container only when the action does not require further interpretation
 
+### Requirement: Survey-builder MUST expose a dedicated admin login and blocked-access states
+The `survey-builder` application MUST present a dedicated login entry for administrative access and MUST provide explicit unauthorized and session-expired states instead of leaving the user in a blank or partially rendered builder screen.
+
+#### Scenario: Admin session expires during builder use
+- **WHEN** the builder session expires while the user is using `survey-builder`
+- **THEN** the application MUST interrupt further privileged actions
+- **AND** it MUST show a session-expired message with a clear path back to the login entry
+
+#### Scenario: Unauthorized screener attempts builder login
+- **WHEN** a non-admin screener submits valid professional credentials in the builder login entry
+- **THEN** the application MUST keep the user on the login entry with a blocked-access message that explains the account is not authorized for builder administration
+- **AND** it MUST prevent navigation into survey, prompt, persona, or access-point management views
+
+### Requirement: Survey-builder MUST provide access-point administration workflows
+The `survey-builder` application MUST let authorized administrators list, create, edit, and validate agent access-point definitions alongside existing survey, prompt, and persona catalogs.
+
+#### Scenario: Admin opens the access-point catalog
+- **WHEN** an authorized admin selects agent access-point management in `survey-builder`
+- **THEN** the application MUST display a dedicated access-point catalog screen
+- **AND** it MUST load the existing access-point definitions from the backend
+
+#### Scenario: Admin saves an access point
+- **WHEN** the admin submits a valid access-point form with a key, display metadata, prompt selection, persona selection, and output profile
+- **THEN** the application MUST persist the definition through the backend API
+- **AND** it MUST show the saved configuration in the access-point catalog
+
+### Requirement: Survey-builder MUST route privileged writes through auditable backend operations
+The `survey-builder` application MUST perform privileged create, update, delete, publish, and authentication actions through backend endpoints that can emit persistent audit records. Local-only state changes MUST NOT be treated as completed administrative actions.
+
+#### Scenario: Admin saves a survey draft
+- **WHEN** a builder admin clicks save in the survey editor
+- **THEN** the application MUST send the change through the backend write path
+- **AND** it MUST not represent the change as completed until the backend acknowledges the auditable operation result
+
+#### Scenario: Admin signs out from builder
+- **WHEN** a builder admin performs logout from `survey-builder`
+- **THEN** the application MUST use the logout flow defined for the authenticated admin session
+- **AND** the operation MUST be representable in the backend audit trail
+
+### Requirement: Survey-builder MUST provide a stable administrative home and section entry points
+The `survey-builder` application MUST expose a stable home screen or dashboard from which administrators can reach survey, prompt, persona, access-point, and future administrative sections without depending on secondary actions embedded inside other screens.
+
+#### Scenario: Admin returns to the home context from the persona catalog
+- **WHEN** the admin is viewing the persona skill catalog or editor
+- **THEN** the UI MUST provide an explicit action to return to the administrative home context
+- **AND** the return path MUST not depend exclusively on browser navigation
+
+#### Scenario: Builder grows with new admin sections
+- **WHEN** a new administrative section such as access-point management is added
+- **THEN** the application MUST expose that section from the same stable home and shell navigation model
+- **AND** the new section MUST not require users to discover it through an unrelated catalog flow
+
