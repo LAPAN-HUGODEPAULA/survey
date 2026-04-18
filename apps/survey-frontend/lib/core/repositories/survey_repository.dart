@@ -50,16 +50,27 @@ class SurveyRepository {
   /// Sends content to the Clinical Writer agent via backend proxy.
   Future<AgentResponse> processClinicalWriter(
     String content, {
+    String? accessPointKey,
     String? promptKey,
+    String? surveyId,
   }) async {
     final requestId = _generateRequestId();
+    final metadata = <String, dynamic>{
+      'source_app': 'survey-frontend',
+      'flow_key': 'thank_you.auto_analysis',
+      'request_id': requestId,
+    };
+    if (surveyId != null) {
+      metadata['surveyId'] = surveyId;
+    }
     final body = {
       'input_type': 'survey7',
       'content': content,
       'locale': 'pt-BR',
+      'accessPointKey': accessPointKey,
       'prompt_key': promptKey ?? 'survey7',
       'output_format': 'report_json',
-      'metadata': {'source_app': 'survey-frontend', 'request_id': requestId},
+      'metadata': metadata,
     };
     final data = await _postJson('clinical_writer/process', body);
     return AgentResponse.fromJson(data);
@@ -67,17 +78,28 @@ class SurveyRepository {
 
   Future<Map<String, dynamic>> startClinicalWriterTask(
     String content, {
+    String? accessPointKey,
     String? promptKey,
+    String? surveyId,
   }) async {
     final requestId = _generateRequestId();
+    final metadata = <String, dynamic>{
+      'source_app': 'survey-frontend',
+      'flow_key': 'thank_you.auto_analysis',
+      'request_id': requestId,
+    };
+    if (surveyId != null) {
+      metadata['surveyId'] = surveyId;
+    }
     final body = {
       'input_type': 'survey7',
       'content': content,
       'locale': 'pt-BR',
+      'accessPointKey': accessPointKey,
       'prompt_key': promptKey ?? 'survey7',
       'output_format': 'report_json',
       'asyncMode': true,
-      'metadata': {'source_app': 'survey-frontend', 'request_id': requestId},
+      'metadata': metadata,
     };
     return _postJson('clinical_writer/process', body);
   }

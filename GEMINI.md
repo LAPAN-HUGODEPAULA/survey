@@ -36,6 +36,16 @@ The project has evolved from a basic screening tool into a comprehensive clinica
 - **Autonomous Development & OpenSpec (Apr 2026):**
     - Adoption of the **OpenSpec** workflow for change management and design-first development.
     - Integration of specialized agent skills for exploration, proposal, and implementation.
+- **UX/UI Standardization & Clinical Safety (Apr 2026):**
+    - Executed a comprehensive UI/UX overhaul focusing on cognitive load reduction in `survey-builder`.
+    - Standardized feedback messaging, severity icons, and form validation patterns across all applications.
+    - Implemented high-visibility AI waiting states and conversational status indicators for Clinical AI.
+    - Integrated an Emotional Design layer to improve clinical user experience and patient trust.
+    - Added comprehensive platform-wide legal notices and a system-wide Dark Theme.
+- **Administrative Governance & Agent Lifecycle (Apr 2026 - Ongoing):**
+    - Transitioning clinical prompt resolution to a centralized Mongo-first model managed via `survey-builder`.
+    - Implementing dedicated administrative access control and audit trails for prompt governance.
+    - Centralizing Agent Access Points to decouple clinical AI configuration from external dependencies.
 
 ## Application Components
 
@@ -44,14 +54,16 @@ The system consists of four interconnected Flutter web applications sharing a co
 - **`survey-patient`**: A public-facing screening tool (7 questions) for preliminary assessment. Compliant with WCAG 2.1 Level AA.
 - **`survey-frontend`**: A professional platform for authorized screeners to administer full assessments (CHYPS-Br), manage patient records, and generate formal reports.
 - **`clinical-narrative`**: A conversational documentation tool that transforms clinician-patient interactions into structured medical records using AI. Features voice capture and hybrid transcription.
-- **`survey-builder`**: An administrative tool for managing questionnaires, surveys, and reusable clinical prompts (Persona Skills).
+- **`survey-builder`**: A secure administrative tool for managing questionnaires, reusable clinical prompts (Persona Skills), and Agent Access Points. Features dedicated admin authentication and persistent audit logging for clinical governance.
 
-## Survey Prompt Management
+## Survey Prompt Management & Agent Routing
 
-The platform features a centralized system for managing clinical AI prompts:
-- **Reusable Prompts**: Prompts are stored in the `survey_prompts` collection and can be referenced by multiple surveys.
-- **Prompt References**: Surveys now reference a specific `promptKey`, ensuring consistent AI processing across different survey instances.
-- **Management UI**: The `survey-builder` application provides a dedicated interface for CRUD operations on these reusable prompts and Persona Skills.
+The platform features a centralized system for managing clinical AI prompts and agent behavior:
+- **Reusable Prompts**: Prompts are stored in the `survey_prompts` collection and can be shared across multiple clinical contexts.
+- **Agent Access Points**: High-level configuration entries that map specific entry points (keys) to a combination of Questionnaire Prompts, Persona Skills, and Output Profiles.
+- **Mongo-First Resolution**: The system has transitioned from hardcoded or external prompt resolution to a dynamic, builder-managed model where `survey-builder` acts as the source of truth.
+- **Access-Point Keys**: Applications (`survey-patient`, `survey-frontend`) reference stable `accessPointKey` identifiers, allowing administrators to update underlying AI logic without code changes.
+- **Management UI**: The `survey-builder` application provides a dedicated interface for CRUD operations on these reusable prompts, Persona Skills, and Agent Access Points.
 
 ## Multi-Agent Architecture
 
@@ -88,9 +100,11 @@ The project uses MongoDB with a systematic migration framework:
     - `survey_prompts`: Reusable AI instructions for clinical narrative generation.
     - `questionnaire_prompts`: Questionnaire-specific clinical interpretation logic (Domain layer).
     - `persona_skills`: Output persona definitions with tone, format, and safety constraints (Persona layer).
+    - `agent_access_points`: Runtime configuration mapping keys to specific prompt and persona combinations.
     - `survey_responses`: Records of professional assessments.
     - `patient_responses`: Records of public screenings (pseudonymized).
     - `screeners`: Registered healthcare professionals.
+    - `survey_builder_audit_logs`: Persistent audit trail for administrative actions in `survey-builder`.
     - `clinical_writer_run_logs`: Audit logs for AI processing tasks.
 - **Migrations**: Found in `tools/migrations/survey-backend/`, these scripts ensure schema consistency.
 

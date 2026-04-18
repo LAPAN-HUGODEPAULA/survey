@@ -7,16 +7,20 @@ part of 'serializers.dart';
 // **************************************************************************
 
 Serializers _$serializers = (Serializers().toBuilder()
+      ..add($AgentAccessPointUpsert.serializer)
+      ..add($AgentResponse.serializer)
       ..add($PersonaSkillUpsert.serializer)
       ..add($SurveyPromptUpsert.serializer)
       ..add($SurveyResponse.serializer)
       ..add(AIProgress.serializer)
       ..add(AIProgressSeverityEnum.serializer)
       ..add(Address.serializer)
-      ..add(AgentResponse.serializer)
+      ..add(AgentAccessPoint.serializer)
+      ..add(AgentArtifactResponse.serializer)
       ..add(Answer.serializer)
       ..add(ApiError.serializer)
       ..add(ApiErrorSeverityEnum.serializer)
+      ..add(BuilderSessionResponse.serializer)
       ..add(ChatMessage.serializer)
       ..add(ChatMessageCreate.serializer)
       ..add(ChatMessageUpdate.serializer)
@@ -71,6 +75,10 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(TranscriptionResponse.serializer)
       ..add(TranscriptionSegment.serializer)
       ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(AgentArtifactResponse)]),
+          () => ListBuilder<AgentArtifactResponse>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Answer)]),
           () => ListBuilder<Answer>())
       ..addBuilderFactory(
@@ -109,6 +117,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Question)]),
           () => ListBuilder<Question>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())

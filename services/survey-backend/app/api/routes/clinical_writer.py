@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import json
 import uuid
 from typing import Any, Literal
 
@@ -10,6 +11,10 @@ from app.config.logging_config import logger
 from app.domain.models.agent_response_model import AgentResponse
 from app.domain.models.ai_stages import AIProcessingStage, STAGE_MESSAGES_PTBR
 from app.api.task_manager import task_manager
+from app.persistence.mongo.client import get_db
+from app.persistence.repositories.agent_access_point_repo import AgentAccessPointRepository
+from app.persistence.repositories.survey_repo import SurveyRepository
+from app.services.access_point_selection import resolve_access_point_selection
 from app.integrations.clinical_writer.client import (
     fetch_langgraph_status,
     send_to_langgraph_agent,
@@ -45,6 +50,7 @@ class ClinicalWriterRequest(BaseModel):
     input_type: str = Field(default="consult", description="consult|survey7|full_intake")
     content: str = Field(..., min_length=1, description="Conversation text or JSON string")
     locale: str = Field(default="pt-BR")
+    access_point_key: str | None = Field(default=None, alias="accessPointKey")
     prompt_key: str = Field(default="default")
     persona_skill_key: str | None = Field(default=None)
     output_profile: str | None = Field(default=None)
@@ -219,6 +225,7 @@ async def _run_background_task(task_id: str, request: ClinicalWriterRequest, req
 async def process_clinical_writer(request: ClinicalWriterRequest) -> AgentResponse | ClinicalWriterTaskResponse:
     """Forward a request to the Clinical Writer agent and optionally run it asynchronously."""
     logger.info("Forwarding clinical writer request.")
+    request = _resolve_request_selection(request)
 
     if request.async_mode:
         request_id = request.metadata.get("request_id") or str(uuid.uuid4())
@@ -258,6 +265,49 @@ async def process_clinical_writer(request: ClinicalWriterRequest) -> AgentRespon
     except Exception as exc:  # pragma: no cover - guard for unexpected response shapes
         logger.error("Invalid data returned by agent: %s", exc)
         return AgentResponse(error_message="Invalid agent response format")
+
+
+def _resolve_request_selection(request: ClinicalWriterRequest) -> ClinicalWriterRequest:
+    """Resolve access-point-backed runtime configuration for direct proxy calls."""
+    if not request.access_point_key:
+        return request
+
+    survey_id = request.metadata.get("surveyId") or request.metadata.get("survey_id")
+    if not survey_id:
+        try:
+            parsed = json.loads(request.content)
+        except Exception:
+            parsed = None
+        if isinstance(parsed, dict):
+            survey_id = parsed.get("surveyId") or parsed.get("survey_id")
+    if not survey_id:
+        raise HTTPException(
+            status_code=400,
+            detail="surveyId is required when resolving clinical writer accessPointKey",
+        )
+
+    db = get_db()
+    survey_repo = SurveyRepository(db)
+    access_point_repo = AgentAccessPointRepository(db)
+    survey = survey_repo.get_by_id(str(survey_id))
+    if not survey:
+        raise HTTPException(status_code=404, detail="Survey not found")
+
+    selection = resolve_access_point_selection(
+        survey=survey,
+        requested_access_point_key=request.access_point_key,
+        requested_prompt_key=request.prompt_key if request.prompt_key != "default" else None,
+        requested_persona_skill_key=request.persona_skill_key,
+        requested_output_profile=request.output_profile,
+        input_type=request.input_type,
+        get_access_point_by_key=access_point_repo.get_by_key,
+    )
+    payload = request.model_copy(deep=True)
+    payload.prompt_key = selection.prompt_key
+    payload.persona_skill_key = selection.persona_skill_key
+    payload.output_profile = selection.output_profile
+    payload.metadata.setdefault("surveyId", str(survey_id))
+    return payload
 
 
 @router.get("/clinical_writer/status/{task_id}", response_model=ClinicalWriterTaskResponse)

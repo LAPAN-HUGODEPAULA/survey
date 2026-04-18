@@ -18,6 +18,7 @@ class SurveyPromptRepository:
         self._col = db[self.PRIMARY_COLLECTION_NAME]
         self._legacy_col = db[self.LEGACY_COLLECTION_NAME]
         self._surveys = db["surveys"]
+        self._access_points = db["AgentAccessPoints"]
         self._col.create_index("promptKey", unique=True)
         self._legacy_col.create_index("promptKey", unique=True)
 
@@ -84,6 +85,7 @@ class SurveyPromptRepository:
                 limit=1,
             )
             > 0
+            or self._access_points.count_documents({"promptKey": prompt_key}, limit=1) > 0
         )
 
     @staticmethod

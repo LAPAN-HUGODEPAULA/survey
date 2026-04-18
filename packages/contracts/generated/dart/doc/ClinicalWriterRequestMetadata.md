@@ -11,6 +11,8 @@ Name | Type | Description | Notes
 **sourceApp** | **String** |  | [optional] 
 **requestId** | **String** |  | [optional] 
 **patientRef** | **String** |  | [optional] 
+**surveyId** | **String** |  | [optional] 
+**surveyId** | **String** |  | [optional] 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 

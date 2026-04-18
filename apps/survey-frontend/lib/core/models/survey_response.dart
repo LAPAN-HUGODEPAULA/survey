@@ -5,7 +5,9 @@ class SurveyResponse {
   const SurveyResponse({
     this.id,
     this.agentResponse,
+    this.agentResponses = const [],
     this.accessLinkToken,
+    this.accessPointKey,
     this.promptKey,
     required this.surveyId,
     required this.creatorId,
@@ -24,6 +26,11 @@ class SurveyResponse {
               json['agentResponse'] as Map<String, dynamic>,
             )
           : null,
+      agentResponses:
+          (json['agentResponses'] as List<dynamic>? ?? const <dynamic>[])
+              .whereType<Map<String, dynamic>>()
+              .map(AgentResponse.fromJson)
+              .toList(growable: false),
       surveyId: json['surveyId']?.toString() ?? '',
       creatorId:
           json['creatorId']?.toString() ??
@@ -32,6 +39,7 @@ class SurveyResponse {
       testDate: _parseDate(json['testDate']),
       screenerId: json['screenerId']?.toString() ?? '',
       accessLinkToken: json['accessLinkToken']?.toString(),
+      accessPointKey: json['accessPointKey']?.toString(),
       promptKey: json['promptKey']?.toString(),
       patient: json['patient'] is Map<String, dynamic>
           ? Patient.fromJson(json['patient'] as Map<String, dynamic>)
@@ -45,7 +53,9 @@ class SurveyResponse {
 
   final String? id;
   final AgentResponse? agentResponse;
+  final List<AgentResponse> agentResponses;
   final String? accessLinkToken;
+  final String? accessPointKey;
   final String? promptKey;
   final String surveyId;
   final String creatorId;
@@ -61,6 +71,7 @@ class SurveyResponse {
       'testDate': testDate.toIso8601String(),
       'screenerId': screenerId,
       'accessLinkToken': accessLinkToken,
+      'accessPointKey': accessPointKey,
       'promptKey': promptKey,
       'patient': patient.toJson(),
       'answers': answers.map((answer) => answer.toJson()).toList(),
@@ -74,10 +85,12 @@ class SurveyResponse {
     DateTime? testDate,
     String? screenerId,
     String? accessLinkToken,
+    String? accessPointKey,
     String? promptKey,
     Patient? patient,
     List<Answer>? answers,
     AgentResponse? agentResponse,
+    List<AgentResponse>? agentResponses,
   }) {
     return SurveyResponse(
       id: id ?? this.id,
@@ -86,10 +99,12 @@ class SurveyResponse {
       testDate: testDate ?? this.testDate,
       screenerId: screenerId ?? this.screenerId,
       accessLinkToken: accessLinkToken ?? this.accessLinkToken,
+      accessPointKey: accessPointKey ?? this.accessPointKey,
       promptKey: promptKey ?? this.promptKey,
       patient: patient ?? this.patient,
       answers: answers ?? this.answers,
       agentResponse: agentResponse ?? this.agentResponse,
+      agentResponses: agentResponses ?? this.agentResponses,
     );
   }
 }

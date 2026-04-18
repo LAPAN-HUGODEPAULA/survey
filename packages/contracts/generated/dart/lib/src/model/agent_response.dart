@@ -26,8 +26,8 @@ part 'agent_response.g.dart';
 /// * [medicalRecord] 
 /// * [errorMessage] 
 /// * [aiProgress] 
-@BuiltValue()
-abstract class AgentResponse implements Built<AgentResponse, AgentResponseBuilder> {
+@BuiltValue(instantiable: false)
+abstract class AgentResponse  {
   @BuiltValueField(wireName: r'ok')
   bool? get ok;
 
@@ -64,20 +64,13 @@ abstract class AgentResponse implements Built<AgentResponse, AgentResponseBuilde
   @BuiltValueField(wireName: r'aiProgress')
   AIProgress? get aiProgress;
 
-  AgentResponse._();
-
-  factory AgentResponse([void updates(AgentResponseBuilder b)]) = _$AgentResponse;
-
-  @BuiltValueHook(initializeBuilder: true)
-  static void _defaults(AgentResponseBuilder b) => b;
-
   @BuiltValueSerializer(custom: true)
   static Serializer<AgentResponse> get serializer => _$AgentResponseSerializer();
 }
 
 class _$AgentResponseSerializer implements PrimitiveSerializer<AgentResponse> {
   @override
-  final Iterable<Type> types = const [AgentResponse, _$AgentResponse];
+  final Iterable<Type> types = const [AgentResponse];
 
   @override
   final String wireName = r'AgentResponse';
@@ -180,6 +173,46 @@ class _$AgentResponseSerializer implements PrimitiveSerializer<AgentResponse> {
     FullType specifiedType = FullType.unspecified,
   }) {
     return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+  }
+
+  @override
+  AgentResponse deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return serializers.deserialize(serialized, specifiedType: FullType($AgentResponse)) as $AgentResponse;
+  }
+}
+
+/// a concrete implementation of [AgentResponse], since [AgentResponse] is not instantiable
+@BuiltValue(instantiable: true)
+abstract class $AgentResponse implements AgentResponse, Built<$AgentResponse, $AgentResponseBuilder> {
+  $AgentResponse._();
+
+  factory $AgentResponse([void Function($AgentResponseBuilder)? updates]) = _$$AgentResponse;
+
+  @BuiltValueHook(initializeBuilder: true)
+  static void _defaults($AgentResponseBuilder b) => b;
+
+  @BuiltValueSerializer(custom: true)
+  static Serializer<$AgentResponse> get serializer => _$$AgentResponseSerializer();
+}
+
+class _$$AgentResponseSerializer implements PrimitiveSerializer<$AgentResponse> {
+  @override
+  final Iterable<Type> types = const [$AgentResponse, _$$AgentResponse];
+
+  @override
+  final String wireName = r'$AgentResponse';
+
+  @override
+  Object serialize(
+    Serializers serializers,
+    $AgentResponse object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return serializers.serialize(object, specifiedType: FullType(AgentResponse))!;
   }
 
   void _deserializeProperties(
@@ -287,12 +320,12 @@ class _$AgentResponseSerializer implements PrimitiveSerializer<AgentResponse> {
   }
 
   @override
-  AgentResponse deserialize(
+  $AgentResponse deserialize(
     Serializers serializers,
     Object serialized, {
     FullType specifiedType = FullType.unspecified,
   }) {
-    final result = AgentResponseBuilder();
+    final result = $AgentResponseBuilder();
     final serializedList = (serialized as Iterable<Object?>).toList();
     final unhandled = <Object?>[];
     _deserializeProperties(

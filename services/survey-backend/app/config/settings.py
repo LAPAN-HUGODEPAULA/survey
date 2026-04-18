@@ -108,4 +108,5 @@ class Settings(BaseModel):
         if not self.cors_allowed_origins:
             raise RuntimeError("CORS_ALLOWED_ORIGINS must be configured in production.")
 
+
 settings = Settings()

@@ -6,7 +6,47 @@ part of 'agent_response.dart';
 // BuiltValueGenerator
 // **************************************************************************
 
-class _$AgentResponse extends AgentResponse {
+abstract class AgentResponseBuilder {
+  void replace(AgentResponse other);
+  void update(void Function(AgentResponseBuilder) updates);
+  bool? get ok;
+  set ok(bool? ok);
+
+  String? get inputType;
+  set inputType(String? inputType);
+
+  String? get promptVersion;
+  set promptVersion(String? promptVersion);
+
+  String? get questionnairePromptVersion;
+  set questionnairePromptVersion(String? questionnairePromptVersion);
+
+  String? get personaSkillVersion;
+  set personaSkillVersion(String? personaSkillVersion);
+
+  String? get modelVersion;
+  set modelVersion(String? modelVersion);
+
+  JsonObject? get report;
+  set report(JsonObject? report);
+
+  ListBuilder<String> get warnings;
+  set warnings(ListBuilder<String>? warnings);
+
+  String? get classification;
+  set classification(String? classification);
+
+  String? get medicalRecord;
+  set medicalRecord(String? medicalRecord);
+
+  String? get errorMessage;
+  set errorMessage(String? errorMessage);
+
+  AIProgressBuilder get aiProgress;
+  set aiProgress(AIProgressBuilder? aiProgress);
+}
+
+class _$$AgentResponse extends $AgentResponse {
   @override
   final bool? ok;
   @override
@@ -32,10 +72,10 @@ class _$AgentResponse extends AgentResponse {
   @override
   final AIProgress? aiProgress;
 
-  factory _$AgentResponse([void Function(AgentResponseBuilder)? updates]) =>
-      (AgentResponseBuilder()..update(updates))._build();
+  factory _$$AgentResponse([void Function($AgentResponseBuilder)? updates]) =>
+      ($AgentResponseBuilder()..update(updates))._build();
 
-  _$AgentResponse._(
+  _$$AgentResponse._(
       {this.ok,
       this.inputType,
       this.promptVersion,
@@ -50,16 +90,16 @@ class _$AgentResponse extends AgentResponse {
       this.aiProgress})
       : super._();
   @override
-  AgentResponse rebuild(void Function(AgentResponseBuilder) updates) =>
+  $AgentResponse rebuild(void Function($AgentResponseBuilder) updates) =>
       (toBuilder()..update(updates)).build();
 
   @override
-  AgentResponseBuilder toBuilder() => AgentResponseBuilder()..replace(this);
+  $AgentResponseBuilder toBuilder() => $AgentResponseBuilder()..replace(this);
 
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) return true;
-    return other is AgentResponse &&
+    return other is $AgentResponse &&
         ok == other.ok &&
         inputType == other.inputType &&
         promptVersion == other.promptVersion &&
@@ -95,7 +135,7 @@ class _$AgentResponse extends AgentResponse {
 
   @override
   String toString() {
-    return (newBuiltValueToStringHelper(r'AgentResponse')
+    return (newBuiltValueToStringHelper(r'$AgentResponse')
           ..add('ok', ok)
           ..add('inputType', inputType)
           ..add('promptVersion', promptVersion)
@@ -112,71 +152,77 @@ class _$AgentResponse extends AgentResponse {
   }
 }
 
-class AgentResponseBuilder
-    implements Builder<AgentResponse, AgentResponseBuilder> {
-  _$AgentResponse? _$v;
+class $AgentResponseBuilder
+    implements
+        Builder<$AgentResponse, $AgentResponseBuilder>,
+        AgentResponseBuilder {
+  _$$AgentResponse? _$v;
 
   bool? _ok;
   bool? get ok => _$this._ok;
-  set ok(bool? ok) => _$this._ok = ok;
+  set ok(covariant bool? ok) => _$this._ok = ok;
 
   String? _inputType;
   String? get inputType => _$this._inputType;
-  set inputType(String? inputType) => _$this._inputType = inputType;
+  set inputType(covariant String? inputType) => _$this._inputType = inputType;
 
   String? _promptVersion;
   String? get promptVersion => _$this._promptVersion;
-  set promptVersion(String? promptVersion) =>
+  set promptVersion(covariant String? promptVersion) =>
       _$this._promptVersion = promptVersion;
 
   String? _questionnairePromptVersion;
   String? get questionnairePromptVersion => _$this._questionnairePromptVersion;
-  set questionnairePromptVersion(String? questionnairePromptVersion) =>
+  set questionnairePromptVersion(
+          covariant String? questionnairePromptVersion) =>
       _$this._questionnairePromptVersion = questionnairePromptVersion;
 
   String? _personaSkillVersion;
   String? get personaSkillVersion => _$this._personaSkillVersion;
-  set personaSkillVersion(String? personaSkillVersion) =>
+  set personaSkillVersion(covariant String? personaSkillVersion) =>
       _$this._personaSkillVersion = personaSkillVersion;
 
   String? _modelVersion;
   String? get modelVersion => _$this._modelVersion;
-  set modelVersion(String? modelVersion) => _$this._modelVersion = modelVersion;
+  set modelVersion(covariant String? modelVersion) =>
+      _$this._modelVersion = modelVersion;
 
   JsonObject? _report;
   JsonObject? get report => _$this._report;
-  set report(JsonObject? report) => _$this._report = report;
+  set report(covariant JsonObject? report) => _$this._report = report;
 
   ListBuilder<String>? _warnings;
   ListBuilder<String> get warnings =>
       _$this._warnings ??= ListBuilder<String>();
-  set warnings(ListBuilder<String>? warnings) => _$this._warnings = warnings;
+  set warnings(covariant ListBuilder<String>? warnings) =>
+      _$this._warnings = warnings;
 
   String? _classification;
   String? get classification => _$this._classification;
-  set classification(String? classification) =>
+  set classification(covariant String? classification) =>
       _$this._classification = classification;
 
   String? _medicalRecord;
   String? get medicalRecord => _$this._medicalRecord;
-  set medicalRecord(String? medicalRecord) =>
+  set medicalRecord(covariant String? medicalRecord) =>
       _$this._medicalRecord = medicalRecord;
 
   String? _errorMessage;
   String? get errorMessage => _$this._errorMessage;
-  set errorMessage(String? errorMessage) => _$this._errorMessage = errorMessage;
+  set errorMessage(covariant String? errorMessage) =>
+      _$this._errorMessage = errorMessage;
 
   AIProgressBuilder? _aiProgress;
   AIProgressBuilder get aiProgress =>
       _$this._aiProgress ??= AIProgressBuilder();
-  set aiProgress(AIProgressBuilder? aiProgress) =>
+  set aiProgress(covariant AIProgressBuilder? aiProgress) =>
       _$this._aiProgress = aiProgress;
 
-  AgentResponseBuilder() {
-    AgentResponse._defaults(this);
+  $AgentResponseBuilder() {
+    $AgentResponse._defaults(this);
   }
 
-  AgentResponseBuilder get _$this {
+  $AgentResponseBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
       _ok = $v.ok;
@@ -197,23 +243,23 @@ class AgentResponseBuilder
   }
 
   @override
-  void replace(AgentResponse other) {
-    _$v = other as _$AgentResponse;
+  void replace(covariant $AgentResponse other) {
+    _$v = other as _$$AgentResponse;
   }
 
   @override
-  void update(void Function(AgentResponseBuilder)? updates) {
+  void update(void Function($AgentResponseBuilder)? updates) {
     if (updates != null) updates(this);
   }
 
   @override
-  AgentResponse build() => _build();
+  $AgentResponse build() => _build();
 
-  _$AgentResponse _build() {
-    _$AgentResponse _$result;
+  _$$AgentResponse _build() {
+    _$$AgentResponse _$result;
     try {
       _$result = _$v ??
-          _$AgentResponse._(
+          _$$AgentResponse._(
             ok: ok,
             inputType: inputType,
             promptVersion: promptVersion,
@@ -237,7 +283,7 @@ class AgentResponseBuilder
         _aiProgress?.build();
       } catch (e) {
         throw BuiltValueNestedFieldError(
-            r'AgentResponse', _$failedField, e.toString());
+            r'$AgentResponse', _$failedField, e.toString());
       }
       rethrow;
     }

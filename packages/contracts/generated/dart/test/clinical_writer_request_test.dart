@@ -22,6 +22,11 @@ void main() {
       // TODO
     });
 
+    // String accessPointKey
+    test('to test the property `accessPointKey`', () async {
+      // TODO
+    });
+
     // String promptKey
     test('to test the property `promptKey`', () async {
       // TODO

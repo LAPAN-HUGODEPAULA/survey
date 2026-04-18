@@ -4,7 +4,11 @@ Monorepo for the LAPAN healthcare survey and clinical narrative platform. It inc
 
 ## Versioning
 - The repository follows Semantic Versioning.
-- Current release: `0.1.0` (tracked in the root `VERSION` file).
+- Current release: `0.2.0` (tracked in the root `VERSION` file).
+- The root `VERSION` file is the canonical version source for the repo marketing version.
+- Propagate the version into managed files with `npm run version:sync`.
+- Verify there is no drift with `npm run version:check`.
+- CI enforces version consistency automatically; it does not rewrite files on your behalf.
 
 ## Repository Layout
 - `services/survey-backend` – FastAPI API for surveys, survey responses, and patient responses (MongoDB persistence via repositories).

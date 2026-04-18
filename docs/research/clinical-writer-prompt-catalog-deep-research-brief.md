@@ -3,12 +3,19 @@
 ## Objective
 
 This document is the working brief for refining the LAPAN Clinical Writer prompt stack before seeding MongoDB.
-It decomposes the current prompt inventory, highlights quality issues, and proposes a target catalog that can later be reviewed and then persisted as:
+It complements the governance reference and bootstrap pack by focusing on quality risks, research questions, and evaluation criteria.
+The target catalog can later be reviewed and then persisted as:
 
 - `QuestionnairePrompts`
 - `PersonaSkills`
-- `outputProfile` mappings
-- agent access-point defaults
+- `Output Profiles`
+- `Agent Access Points`
+
+Related references:
+
+- [clinical-prompt-catalog-governance.md](/home/hugo/Documents/LAPAN/dev/survey/docs/clinical-prompt-catalog-governance.md)
+- [clinical-prompt-catalog-bootstrap.md](/home/hugo/Documents/LAPAN/dev/survey/docs/bootstrap/clinical-prompt-catalog-bootstrap.md)
+- [clinical-prompt-catalog-seed-handoff.md](/home/hugo/Documents/LAPAN/dev/survey/docs/plans/clinical-prompt-catalog-seed-handoff.md)
 
 ## Current Runtime Situation
 
@@ -16,6 +23,18 @@ It decomposes the current prompt inventory, highlights quality issues, and propo
 - MongoDB currently has no seed data in `QuestionnairePrompts` or `PersonaSkills`.
 - The current runtime failure seen in `survey-patient` is not quota-related.
 - The failure occurs during prompt resolution in the Google Drive path, which makes Google Drive a runtime-critical dependency.
+- Explicit builder-managed access points are planned but not yet the primary runtime path.
+
+## Research Scope
+
+Deep Research should evaluate the prompt stack as four layers:
+
+1. questionnaire clinical logic
+2. persona skill
+3. output profile
+4. access-point binding
+
+The goal is to improve prompt quality without re-collapsing the stack back into a monolithic prompt document.
 
 ## Current Google Drive Prompt Inventory
 
@@ -169,6 +188,11 @@ Recommended starter persona skills:
    - audience: eye-care professional
    - tone: vision-specific, symptom-pattern oriented, referral-safe
 
+### Layer 3: Output Profiles
+
+Output profiles should define structure and contract expectations separately from audience wording.
+Research should test whether some current persona differences are actually output-profile differences.
+
 ## Recommended Starter Output Profiles
 
 Output profiles should remain stable identifiers that map to personas and formatting expectations.
@@ -186,6 +210,7 @@ Recommended starter profiles:
 ## Proposed Initial Agent Access Points
 
 These access points should become configurable from `survey-builder`.
+They are part of the planned runtime architecture and should be reviewed as bindings, not as prompt content.
 
 | Access point key | Intended app surface | Starter default |
 | --- | --- | --- |
@@ -194,6 +219,26 @@ These access points should become configurable from `survey-builder`.
 | `survey_frontend.thank_you.auto_analysis` | automatic screener-facing result after professional submission | `clinical_diagnostic_report` |
 | `survey_frontend.export.school_summary` | future school-facing export | `school_report` |
 | `survey_frontend.export.referral_letter` | future clinician handoff export | `clinical_referral_letter` |
+
+## Evaluation Criteria
+
+Any refined prompt candidate should be evaluated against the following criteria:
+
+1. Layer separation
+   - questionnaire logic is not mixed with persona wording
+   - access-point assumptions are not embedded in prompt text
+2. Determinism
+   - scoring and mapping instructions are explicit
+   - missing-data behavior is specified
+3. Safety
+   - screener-only evidence does not produce diagnostic overreach
+   - PHI and unsafe examples are excluded from prompt materials
+4. Output quality
+   - the response remains compatible with the expected output profile
+   - schema-sensitive outputs stay valid
+5. Operational readiness
+   - keys and bindings are seed-ready
+   - the prompt can be reviewed and versioned independently
 
 ## Deep Research Questions
 
@@ -221,6 +266,12 @@ Use these questions in Deep Research before any Mongo seed is finalized.
 9. What JSON-first prompting patterns best preserve strict schema validity for clinical report generation?
 10. How should prompt instructions distinguish required facts, derived facts, and optional narrative interpretation?
 
+### Access-point and governance quality
+
+11. Which access-point defaults should override survey defaults versus inherit them?
+12. What review signals should block publication of a bootstrap draft into an active version?
+13. Which output profile differences deserve a dedicated profile instead of a new persona skill?
+
 ## Proposed Seed Pack After Review
 
 After the Deep Research pass, create:
@@ -230,6 +281,15 @@ After the Deep Research pass, create:
 - 6 to 7 output profiles aligned with persona skills
 - 5 initial access-point records
 - 3 survey-to-default mappings
+
+## Target Outcomes
+
+The research pass should leave the team with:
+
+- a refined starter catalog that preserves prompt-layer boundaries
+- reviewed wording for the Lapan and NeuroCheck questionnaire prompts
+- clear evidence on whether the bootstrap NeuroCheck scoring adaptation should remain `0, 1, 3` or move to another deterministic scale
+- an approval-ready basis for a later Mongo seed implementation
 
 ## Bootstrap Draft Catalog
 

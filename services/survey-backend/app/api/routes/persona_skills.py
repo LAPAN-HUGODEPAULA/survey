@@ -11,7 +11,6 @@ from app.domain.models.persona_skill_model import PersonaSkill, PersonaSkillUpse
 from app.persistence.deps import get_persona_skill_repo
 from app.persistence.repositories.persona_skill_repo import PersonaSkillRepository
 
-
 router = APIRouter(dependencies=[Depends(require_builder_admin)])
 
 
@@ -92,5 +91,10 @@ async def delete_persona_skill(
     persona_skill = repo.get_by_key(persona_skill_key)
     if not persona_skill:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Persona skill not found")
+    if repo.is_in_use(persona_skill_key, persona_skill.get("outputProfile")):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Persona skill is still required by runtime configuration",
+        )
     repo.delete(persona_skill_key)
     return None

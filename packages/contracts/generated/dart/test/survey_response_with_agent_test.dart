@@ -37,6 +37,11 @@ void main() {
       // TODO
     });
 
+    // String accessPointKey
+    test('to test the property `accessPointKey`', () async {
+      // TODO
+    });
+
     // String promptKey
     test('to test the property `promptKey`', () async {
       // TODO
@@ -64,6 +69,11 @@ void main() {
 
     // AgentResponse agentResponse
     test('to test the property `agentResponse`', () async {
+      // TODO
+    });
+
+    // BuiltList<AgentArtifactResponse> agentResponses
+    test('to test the property `agentResponses`', () async {
       // TODO
     });
 

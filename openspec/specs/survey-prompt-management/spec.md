@@ -41,5 +41,27 @@ Deleting a prompt that is still referenced by a questionnaire would create a bro
 - **Given** a reusable prompt is associated with at least one survey
 - **When** an administrator attempts to delete that prompt
 - **Then** the system MUST reject the deletion
-- **And** it MUST explain that the prompt is still in use by a questionnaire
+- **AND** it MUST explain that the prompt is still in use by a questionnaire
+
+### Requirement: Questionnaire prompt governance MUST define authoring boundaries and starter records
+The questionnaire prompt catalog documentation MUST define what belongs inside questionnaire prompts, what must stay out of them, and which starter questionnaire prompts are proposed for the initial bootstrap catalog.
+
+#### Scenario: Admin reviews a questionnaire prompt candidate
+- **WHEN** an administrator evaluates a questionnaire prompt draft
+- **THEN** the governance documentation MUST state the expected structure, naming rules, and prohibited persona-only content
+- **AND** it MUST identify whether the draft aligns with one of the documented starter prompt candidates
+
+### Requirement: Questionnaire prompts MUST be referenceable from access-point configuration
+The questionnaire prompt catalog MUST support stable runtime references from access-point definitions managed in `survey-builder`.
+
+#### Scenario: Prompt appears in access-point configuration
+- **WHEN** an administrator configures an agent access point in `survey-builder`
+- **THEN** the questionnaire prompt catalog MUST expose prompt entries by stable key and display name
+- **AND** the system MUST preserve referential integrity between the access point and the selected prompt
+
+#### Scenario: Admin attempts to delete a prompt bound to an access point
+- **WHEN** an administrator tries to delete a questionnaire prompt that is currently referenced by an agent access point
+- **THEN** the system MUST reject the deletion
+- **AND** it MUST explain that the prompt is still in use by runtime access-point configuration
+
 

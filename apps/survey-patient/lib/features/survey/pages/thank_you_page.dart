@@ -25,6 +25,8 @@ const _radarPalette = <Color>[
   Color(0xFF26A69A),
   Color(0xFFFFEB3B),
 ];
+const _patientThankYouAccessPointKey =
+    'survey_patient.thank_you.auto_analysis';
 
 Color _withOpacity(Color base, double opacity) {
   final alpha = (opacity.clamp(0.0, 1.0) * 255).clamp(0.0, 255.0);
@@ -158,14 +160,18 @@ class _ThankYouPageState extends State<ThankYouPage> {
     final payload = jsonEncode(surveyResponse.toJson());
     final taskStart = await repository.startClinicalWriterTask(
       payload,
+      accessPointKey: surveyResponse.accessPointKey,
       promptKey: surveyResponse.promptKey,
+      surveyId: surveyResponse.surveyId,
     );
     final taskId =
         taskStart['taskId']?.toString() ?? taskStart['task_id']?.toString();
     if (taskId == null || taskId.isEmpty) {
       return repository.processClinicalWriter(
         payload,
+        accessPointKey: surveyResponse.accessPointKey,
         promptKey: surveyResponse.promptKey,
+        surveyId: surveyResponse.surveyId,
       );
     }
 
@@ -220,6 +226,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
       testDate: DateTime.now(),
       screenerId: settings.screener.id,
       promptKey: widget.survey.prompt?.promptKey,
+      accessPointKey: _patientThankYouAccessPointKey,
       patient: _resolvePatient(settings),
       answers: _buildAnswers(),
     );

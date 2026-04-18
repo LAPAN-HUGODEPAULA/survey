@@ -14,6 +14,7 @@ part 'clinical_writer_request_metadata.g.dart';
 /// * [sourceApp] 
 /// * [requestId] 
 /// * [patientRef] 
+/// * [surveyId] 
 @BuiltValue()
 abstract class ClinicalWriterRequestMetadata implements Built<ClinicalWriterRequestMetadata, ClinicalWriterRequestMetadataBuilder> {
   @BuiltValueField(wireName: r'source_app')
@@ -24,6 +25,9 @@ abstract class ClinicalWriterRequestMetadata implements Built<ClinicalWriterRequ
 
   @BuiltValueField(wireName: r'patient_ref')
   String? get patientRef;
+
+  @BuiltValueField(wireName: r'surveyId')
+  String? get surveyId;
 
   ClinicalWriterRequestMetadata._();
 
@@ -66,6 +70,20 @@ class _$ClinicalWriterRequestMetadataSerializer implements PrimitiveSerializer<C
       yield r'patient_ref';
       yield serializers.serialize(
         object.patientRef,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.surveyId != null) {
+      yield r'surveyId';
+      yield serializers.serialize(
+        object.surveyId,
+        specifiedType: const FullType(String),
+      );
+    }
+    if (object.surveyId != null) {
+      yield r'survey_id';
+      yield serializers.serialize(
+        object.surveyId,
         specifiedType: const FullType(String),
       );
     }
@@ -113,6 +131,20 @@ class _$ClinicalWriterRequestMetadataSerializer implements PrimitiveSerializer<C
           ) as String;
           result.patientRef = valueDes;
           break;
+        case r'surveyId':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.surveyId = valueDes;
+          break;
+        case r'survey_id':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.surveyId = valueDes;
+          break;
         default:
           unhandled.add(key);
           unhandled.add(value);
@@ -141,4 +173,3 @@ class _$ClinicalWriterRequestMetadataSerializer implements PrimitiveSerializer<C
     return result.build();
   }
 }
-

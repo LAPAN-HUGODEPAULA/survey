@@ -10,6 +10,8 @@ class _$SurveyResponseWithAgent extends SurveyResponseWithAgent {
   @override
   final AgentResponse? agentResponse;
   @override
+  final BuiltList<AgentArtifactResponse>? agentResponses;
+  @override
   final String? id;
   @override
   final String surveyId;
@@ -21,6 +23,8 @@ class _$SurveyResponseWithAgent extends SurveyResponseWithAgent {
   final String screenerId;
   @override
   final String? accessLinkToken;
+  @override
+  final String? accessPointKey;
   @override
   final String? promptKey;
   @override
@@ -38,12 +42,14 @@ class _$SurveyResponseWithAgent extends SurveyResponseWithAgent {
 
   _$SurveyResponseWithAgent._(
       {this.agentResponse,
+      this.agentResponses,
       this.id,
       required this.surveyId,
       required this.creatorId,
       this.testDate,
       required this.screenerId,
       this.accessLinkToken,
+      this.accessPointKey,
       this.promptKey,
       this.personaSkillKey,
       this.outputProfile,
@@ -64,12 +70,14 @@ class _$SurveyResponseWithAgent extends SurveyResponseWithAgent {
     if (identical(other, this)) return true;
     return other is SurveyResponseWithAgent &&
         agentResponse == other.agentResponse &&
+        agentResponses == other.agentResponses &&
         id == other.id &&
         surveyId == other.surveyId &&
         creatorId == other.creatorId &&
         testDate == other.testDate &&
         screenerId == other.screenerId &&
         accessLinkToken == other.accessLinkToken &&
+        accessPointKey == other.accessPointKey &&
         promptKey == other.promptKey &&
         personaSkillKey == other.personaSkillKey &&
         outputProfile == other.outputProfile &&
@@ -81,12 +89,14 @@ class _$SurveyResponseWithAgent extends SurveyResponseWithAgent {
   int get hashCode {
     var _$hash = 0;
     _$hash = $jc(_$hash, agentResponse.hashCode);
+    _$hash = $jc(_$hash, agentResponses.hashCode);
     _$hash = $jc(_$hash, id.hashCode);
     _$hash = $jc(_$hash, surveyId.hashCode);
     _$hash = $jc(_$hash, creatorId.hashCode);
     _$hash = $jc(_$hash, testDate.hashCode);
     _$hash = $jc(_$hash, screenerId.hashCode);
     _$hash = $jc(_$hash, accessLinkToken.hashCode);
+    _$hash = $jc(_$hash, accessPointKey.hashCode);
     _$hash = $jc(_$hash, promptKey.hashCode);
     _$hash = $jc(_$hash, personaSkillKey.hashCode);
     _$hash = $jc(_$hash, outputProfile.hashCode);
@@ -100,12 +110,14 @@ class _$SurveyResponseWithAgent extends SurveyResponseWithAgent {
   String toString() {
     return (newBuiltValueToStringHelper(r'SurveyResponseWithAgent')
           ..add('agentResponse', agentResponse)
+          ..add('agentResponses', agentResponses)
           ..add('id', id)
           ..add('surveyId', surveyId)
           ..add('creatorId', creatorId)
           ..add('testDate', testDate)
           ..add('screenerId', screenerId)
           ..add('accessLinkToken', accessLinkToken)
+          ..add('accessPointKey', accessPointKey)
           ..add('promptKey', promptKey)
           ..add('personaSkillKey', personaSkillKey)
           ..add('outputProfile', outputProfile)
@@ -121,11 +133,17 @@ class SurveyResponseWithAgentBuilder
         SurveyResponseBuilder {
   _$SurveyResponseWithAgent? _$v;
 
-  AgentResponseBuilder? _agentResponse;
-  AgentResponseBuilder get agentResponse =>
-      _$this._agentResponse ??= AgentResponseBuilder();
-  set agentResponse(covariant AgentResponseBuilder? agentResponse) =>
+  AgentResponse? _agentResponse;
+  AgentResponse? get agentResponse => _$this._agentResponse;
+  set agentResponse(covariant AgentResponse? agentResponse) =>
       _$this._agentResponse = agentResponse;
+
+  ListBuilder<AgentArtifactResponse>? _agentResponses;
+  ListBuilder<AgentArtifactResponse> get agentResponses =>
+      _$this._agentResponses ??= ListBuilder<AgentArtifactResponse>();
+  set agentResponses(
+          covariant ListBuilder<AgentArtifactResponse>? agentResponses) =>
+      _$this._agentResponses = agentResponses;
 
   String? _id;
   String? get id => _$this._id;
@@ -152,6 +170,11 @@ class SurveyResponseWithAgentBuilder
   String? get accessLinkToken => _$this._accessLinkToken;
   set accessLinkToken(covariant String? accessLinkToken) =>
       _$this._accessLinkToken = accessLinkToken;
+
+  String? _accessPointKey;
+  String? get accessPointKey => _$this._accessPointKey;
+  set accessPointKey(covariant String? accessPointKey) =>
+      _$this._accessPointKey = accessPointKey;
 
   String? _promptKey;
   String? get promptKey => _$this._promptKey;
@@ -183,13 +206,15 @@ class SurveyResponseWithAgentBuilder
   SurveyResponseWithAgentBuilder get _$this {
     final $v = _$v;
     if ($v != null) {
-      _agentResponse = $v.agentResponse?.toBuilder();
+      _agentResponse = $v.agentResponse;
+      _agentResponses = $v.agentResponses?.toBuilder();
       _id = $v.id;
       _surveyId = $v.surveyId;
       _creatorId = $v.creatorId;
       _testDate = $v.testDate;
       _screenerId = $v.screenerId;
       _accessLinkToken = $v.accessLinkToken;
+      _accessPointKey = $v.accessPointKey;
       _promptKey = $v.promptKey;
       _personaSkillKey = $v.personaSkillKey;
       _outputProfile = $v.outputProfile;
@@ -218,7 +243,8 @@ class SurveyResponseWithAgentBuilder
     try {
       _$result = _$v ??
           _$SurveyResponseWithAgent._(
-            agentResponse: _agentResponse?.build(),
+            agentResponse: agentResponse,
+            agentResponses: _agentResponses?.build(),
             id: id,
             surveyId: BuiltValueNullFieldError.checkNotNull(
                 surveyId, r'SurveyResponseWithAgent', 'surveyId'),
@@ -228,6 +254,7 @@ class SurveyResponseWithAgentBuilder
             screenerId: BuiltValueNullFieldError.checkNotNull(
                 screenerId, r'SurveyResponseWithAgent', 'screenerId'),
             accessLinkToken: accessLinkToken,
+            accessPointKey: accessPointKey,
             promptKey: promptKey,
             personaSkillKey: personaSkillKey,
             outputProfile: outputProfile,
@@ -237,8 +264,8 @@ class SurveyResponseWithAgentBuilder
     } catch (_) {
       late String _$failedField;
       try {
-        _$failedField = 'agentResponse';
-        _agentResponse?.build();
+        _$failedField = 'agentResponses';
+        _agentResponses?.build();
 
         _$failedField = 'patient';
         _patient?.build();

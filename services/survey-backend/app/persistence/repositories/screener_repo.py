@@ -48,6 +48,11 @@ class ScreenerRepository:
             return ScreenerModel.model_validate(self._normalize(screener_data))
         return None
 
+    def find_by_email_or_id(self, identifier: str) -> Optional[ScreenerModel]:
+        if "@" in identifier:
+            return self.find_by_email(identifier)
+        return self.find_by_id(identifier)
+
     def update(self, screener_id: str, data_to_update: dict) -> Optional[ScreenerModel]:
         """
         Updates a screener in the database.
@@ -66,6 +71,12 @@ class ScreenerRepository:
         if result:
             return ScreenerModel.model_validate(self._normalize(result))
         return None
+
+    def set_builder_admin(self, identifier: str, enabled: bool) -> Optional[ScreenerModel]:
+        screener = self.find_by_email_or_id(identifier)
+        if not screener or not screener.id:
+            return None
+        return self.update(screener.id, {"isBuilderAdmin": enabled})
 
     def record_initial_notice_agreement(
         self,
@@ -121,6 +132,7 @@ class ScreenerRepository:
             professionalCouncil=ProfessionalCouncil(type="none", registrationNumber=""),
             jobTitle="",
             degree="",
+            isBuilderAdmin=False,
             darvCourseYear=None,
             initialNoticeAcceptedAt=None,
             createdAt=now,
@@ -145,5 +157,6 @@ class ScreenerRepository:
             doc["_id"] = ObjectId(doc["_id"])
         now = datetime.utcnow()
         doc.setdefault("createdAt", now)
+        doc.setdefault("isBuilderAdmin", False)
         doc["updatedAt"] = now
         return doc

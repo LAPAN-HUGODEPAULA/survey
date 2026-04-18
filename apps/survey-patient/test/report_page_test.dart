@@ -40,7 +40,9 @@ class _FakeSurveyRepository extends SurveyRepository {
   @override
   Future<AgentResponse> processClinicalWriter(
     String content, {
+    String? accessPointKey,
     String? promptKey,
+    String? surveyId,
   }) async {
     return AgentResponse(
       report: ReportDocument.fromPlainText(

@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 from fastapi.testclient import TestClient
 
+from app.api.dependencies.builder_auth import require_builder_admin, require_builder_csrf
 from app.main import app
 from app.persistence.deps import get_persona_skill_repo
 
@@ -11,6 +12,8 @@ client = TestClient(app)
 
 
 def _override_persona_repo(mock_repo: MagicMock) -> None:
+    app.dependency_overrides[require_builder_admin] = lambda: None
+    app.dependency_overrides[require_builder_csrf] = lambda: None
     app.dependency_overrides[get_persona_skill_repo] = lambda: mock_repo
 
 

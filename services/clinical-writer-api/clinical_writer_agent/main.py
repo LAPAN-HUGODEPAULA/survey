@@ -47,7 +47,7 @@ from .transcription_service import transcribe
 app = FastAPI(
     title="Clinical Writer AI Agent",
     description="An AI agent that processes clinical conversations and survey data to generate structured reports.",
-    version="0.1.0",
+    version="0.2.0",
 )
 logger = logging.getLogger("clinical_writer")
 

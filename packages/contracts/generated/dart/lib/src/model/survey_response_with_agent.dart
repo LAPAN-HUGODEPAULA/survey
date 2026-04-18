@@ -8,6 +8,7 @@ import 'package:survey_backend_api/src/model/answer.dart';
 import 'package:survey_backend_api/src/model/survey_response.dart';
 import 'package:survey_backend_api/src/model/agent_response.dart';
 import 'package:built_collection/built_collection.dart';
+import 'package:survey_backend_api/src/model/agent_artifact_response.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -22,16 +23,21 @@ part 'survey_response_with_agent.g.dart';
 /// * [testDate] 
 /// * [screenerId] 
 /// * [accessLinkToken] 
+/// * [accessPointKey] 
 /// * [promptKey] 
 /// * [personaSkillKey] 
 /// * [outputProfile] 
 /// * [patient] 
 /// * [answers] 
 /// * [agentResponse] 
+/// * [agentResponses] 
 @BuiltValue()
 abstract class SurveyResponseWithAgent implements SurveyResponse, Built<SurveyResponseWithAgent, SurveyResponseWithAgentBuilder> {
   @BuiltValueField(wireName: r'agentResponse')
   AgentResponse? get agentResponse;
+
+  @BuiltValueField(wireName: r'agentResponses')
+  BuiltList<AgentArtifactResponse>? get agentResponses;
 
   SurveyResponseWithAgent._();
 
@@ -56,6 +62,35 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
     SurveyResponseWithAgent object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
+    yield r'surveyId';
+    yield serializers.serialize(
+      object.surveyId,
+      specifiedType: const FullType(String),
+    );
+    if (object.personaSkillKey != null) {
+      yield r'personaSkillKey';
+      yield serializers.serialize(
+        object.personaSkillKey,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    yield r'creatorId';
+    yield serializers.serialize(
+      object.creatorId,
+      specifiedType: const FullType(String),
+    );
+    yield r'answers';
+    yield serializers.serialize(
+      object.answers,
+      specifiedType: const FullType(BuiltList, [FullType(Answer)]),
+    );
+    if (object.agentResponses != null) {
+      yield r'agentResponses';
+      yield serializers.serialize(
+        object.agentResponses,
+        specifiedType: const FullType(BuiltList, [FullType(AgentArtifactResponse)]),
+      );
+    }
     if (object.promptKey != null) {
       yield r'promptKey';
       yield serializers.serialize(
@@ -67,18 +102,6 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
       yield r'outputProfile';
       yield serializers.serialize(
         object.outputProfile,
-        specifiedType: const FullType.nullable(String),
-      );
-    }
-    yield r'surveyId';
-    yield serializers.serialize(
-      object.surveyId,
-      specifiedType: const FullType(String),
-    );
-    if (object.personaSkillKey != null) {
-      yield r'personaSkillKey';
-      yield serializers.serialize(
-        object.personaSkillKey,
         specifiedType: const FullType.nullable(String),
       );
     }
@@ -94,6 +117,13 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
         specifiedType: const FullType.nullable(String),
       );
     }
+    if (object.accessPointKey != null) {
+      yield r'accessPointKey';
+      yield serializers.serialize(
+        object.accessPointKey,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
     if (object.patient != null) {
       yield r'patient';
       yield serializers.serialize(
@@ -101,16 +131,6 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
         specifiedType: const FullType(Patient),
       );
     }
-    yield r'creatorId';
-    yield serializers.serialize(
-      object.creatorId,
-      specifiedType: const FullType(String),
-    );
-    yield r'answers';
-    yield serializers.serialize(
-      object.answers,
-      specifiedType: const FullType(BuiltList, [FullType(Answer)]),
-    );
     if (object.id != null) {
       yield r'_id';
       yield serializers.serialize(
@@ -155,6 +175,42 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
       final key = serializedList[i] as String;
       final value = serializedList[i + 1];
       switch (key) {
+        case r'surveyId':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.surveyId = valueDes;
+          break;
+        case r'personaSkillKey':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.personaSkillKey = valueDes;
+          break;
+        case r'creatorId':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.creatorId = valueDes;
+          break;
+        case r'answers':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(Answer)]),
+          ) as BuiltList<Answer>;
+          result.answers.replace(valueDes);
+          break;
+        case r'agentResponses':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(AgentArtifactResponse)]),
+          ) as BuiltList<AgentArtifactResponse>;
+          result.agentResponses.replace(valueDes);
+          break;
         case r'promptKey':
           final valueDes = serializers.deserialize(
             value,
@@ -171,21 +227,6 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
           if (valueDes == null) continue;
           result.outputProfile = valueDes;
           break;
-        case r'surveyId':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.surveyId = valueDes;
-          break;
-        case r'personaSkillKey':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(String),
-          ) as String?;
-          if (valueDes == null) continue;
-          result.personaSkillKey = valueDes;
-          break;
         case r'screenerId':
           final valueDes = serializers.deserialize(
             value,
@@ -201,26 +242,20 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
           if (valueDes == null) continue;
           result.accessLinkToken = valueDes;
           break;
+        case r'accessPointKey':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.accessPointKey = valueDes;
+          break;
         case r'patient':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(Patient),
           ) as Patient;
           result.patient.replace(valueDes);
-          break;
-        case r'creatorId':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.creatorId = valueDes;
-          break;
-        case r'answers':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(BuiltList, [FullType(Answer)]),
-          ) as BuiltList<Answer>;
-          result.answers.replace(valueDes);
           break;
         case r'_id':
           final valueDes = serializers.deserialize(
@@ -234,7 +269,7 @@ class _$SurveyResponseWithAgentSerializer implements PrimitiveSerializer<SurveyR
             value,
             specifiedType: const FullType(AgentResponse),
           ) as AgentResponse;
-          result.agentResponse.replace(valueDes);
+          result.agentResponse = valueDes;
           break;
         case r'testDate':
           final valueDes = serializers.deserialize(

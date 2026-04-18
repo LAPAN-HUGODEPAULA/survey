@@ -13,6 +13,7 @@ class SurveyResponse(BaseModel):
     test_date: datetime = Field(..., alias="testDate")
     screener_id: str = Field(..., alias="screenerId")
     access_link_token: Optional[str] = Field(default=None, alias="accessLinkToken")
+    access_point_key: Optional[str] = Field(default=None, alias="accessPointKey")
     prompt_key: Optional[str] = Field(default=None, alias="promptKey")
     persona_skill_key: Optional[str] = Field(default=None, alias="personaSkillKey")
     output_profile: Optional[str] = Field(default=None, alias="outputProfile")

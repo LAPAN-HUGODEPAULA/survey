@@ -1,14 +1,15 @@
 """FastAPI router for managing surveys (create, list, retrieve, update, delete)."""
 
-from typing import List
 from datetime import datetime
-from bson.objectid import ObjectId
+from typing import List
 
-from fastapi import APIRouter, HTTPException, Depends, status
+from bson.objectid import ObjectId
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 
+from app.api.dependencies.builder_auth import require_builder_admin, require_builder_csrf
 from app.config.logging_config import logger
 from app.domain.models.survey_model import Survey
 from app.domain.models.survey_prompt_model import SurveyPromptReference
@@ -21,7 +22,7 @@ from app.persistence.repositories.persona_skill_repo import PersonaSkillReposito
 from app.persistence.repositories.survey_prompt_repo import SurveyPromptRepository
 from app.persistence.repositories.survey_repo import SurveyRepository
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_builder_admin)])
 
 
 def _resolve_prompt_reference(
@@ -82,7 +83,13 @@ def _resolve_persona_defaults(
         )
     return persona["personaSkillKey"], persona["outputProfile"]
 
-@router.post("/surveys/", response_model=Survey, status_code=201)
+
+@router.post(
+    "/surveys/",
+    response_model=Survey,
+    status_code=201,
+    dependencies=[Depends(require_builder_csrf)],
+)
 async def create_survey(
     survey: Survey,
     repo: SurveyRepository = Depends(get_survey_repo),
@@ -118,6 +125,7 @@ async def create_survey(
         logger.error("Unexpected error creating survey %s: %s", survey.id, e)
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
 
+
 @router.get("/surveys/", response_model=List[Survey])
 async def get_surveys(repo: SurveyRepository = Depends(get_survey_repo)):
     """Return a list of all surveys from the database."""
@@ -144,6 +152,7 @@ async def get_surveys(repo: SurveyRepository = Depends(get_survey_repo)):
         logger.error("Unexpected error fetching surveys: %s", e)
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
 
+
 @router.get("/surveys/export")
 async def export_surveys(repo: SurveyRepository = Depends(get_survey_repo)):
     """Export all surveys as a JSON file."""
@@ -158,6 +167,7 @@ async def export_surveys(repo: SurveyRepository = Depends(get_survey_repo)):
     except Exception as e:
         logger.error("Unexpected error exporting surveys: %s", e)
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
+
 
 @router.get("/surveys/{survey_id}", response_model=Survey)
 async def get_survey(survey_id: str, repo: SurveyRepository = Depends(get_survey_repo)):
@@ -179,7 +189,12 @@ async def get_survey(survey_id: str, repo: SurveyRepository = Depends(get_survey
         logger.error("Unexpected error fetching survey %s: %s", survey_id, e)
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
 
-@router.put("/surveys/{survey_id}", response_model=Survey)
+
+@router.put(
+    "/surveys/{survey_id}",
+    response_model=Survey,
+    dependencies=[Depends(require_builder_csrf)],
+)
 async def update_survey(
     survey_id: str,
     survey: Survey,
@@ -210,7 +225,12 @@ async def update_survey(
         logger.error("Unexpected error updating survey %s: %s", survey_id, e)
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
 
-@router.delete("/surveys/{survey_id}", status_code=204)
+
+@router.delete(
+    "/surveys/{survey_id}",
+    status_code=204,
+    dependencies=[Depends(require_builder_csrf)],
+)
 async def delete_survey(survey_id: str, repo: SurveyRepository = Depends(get_survey_repo)):
     """Delete a survey by its ID."""
     logger.info("Deleting survey with ID: %s", survey_id)

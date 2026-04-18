@@ -100,7 +100,6 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
     final activationOffset = 180.0;
     String nextSectionId = _detailsSectionId;
 
-    final detailsBox = _detailsSectionKey.currentContext?.findRenderObject() as RenderBox?;
     final instructionsBox = _instructionsSectionKey.currentContext?.findRenderObject() as RenderBox?;
 
     if (instructionsBox != null) {

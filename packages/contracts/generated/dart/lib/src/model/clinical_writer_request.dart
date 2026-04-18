@@ -16,6 +16,7 @@ part 'clinical_writer_request.g.dart';
 /// * [inputType] 
 /// * [content] 
 /// * [locale] 
+/// * [accessPointKey] 
 /// * [promptKey] 
 /// * [personaSkillKey] 
 /// * [outputProfile] 
@@ -33,6 +34,9 @@ abstract class ClinicalWriterRequest implements Built<ClinicalWriterRequest, Cli
 
   @BuiltValueField(wireName: r'locale')
   String get locale;
+
+  @BuiltValueField(wireName: r'accessPointKey')
+  String? get accessPointKey;
 
   @BuiltValueField(wireName: r'prompt_key')
   String get promptKey;
@@ -91,6 +95,13 @@ class _$ClinicalWriterRequestSerializer implements PrimitiveSerializer<ClinicalW
       object.locale,
       specifiedType: const FullType(String),
     );
+    if (object.accessPointKey != null) {
+      yield r'accessPointKey';
+      yield serializers.serialize(
+        object.accessPointKey,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
     yield r'prompt_key';
     yield serializers.serialize(
       object.promptKey,
@@ -170,6 +181,14 @@ class _$ClinicalWriterRequestSerializer implements PrimitiveSerializer<ClinicalW
             specifiedType: const FullType(String),
           ) as String;
           result.locale = valueDes;
+          break;
+        case r'accessPointKey':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.accessPointKey = valueDes;
           break;
         case r'prompt_key':
           final valueDes = serializers.deserialize(

@@ -5,6 +5,8 @@ class SurveyResponse {
   const SurveyResponse({
     this.id,
     this.agentResponse,
+    this.agentResponses = const [],
+    this.accessPointKey,
     this.promptKey,
     required this.surveyId,
     required this.creatorId,
@@ -21,10 +23,16 @@ class SurveyResponse {
       agentResponse: json['agentResponse'] is Map<String, dynamic>
           ? AgentResponse.fromJson(json['agentResponse'] as Map<String, dynamic>)
           : null,
+      agentResponses:
+          (json['agentResponses'] as List<dynamic>? ?? const <dynamic>[])
+              .whereType<Map<String, dynamic>>()
+              .map(AgentResponse.fromJson)
+              .toList(growable: false),
       surveyId: json['surveyId']?.toString() ?? '',
       creatorId: json['creatorId']?.toString() ?? '',
       testDate: _parseDate(json['testDate']),
       screenerId: json['screenerId']?.toString() ?? '',
+      accessPointKey: json['accessPointKey']?.toString(),
       promptKey: json['promptKey']?.toString(),
       patient: _parsePatient(json),
       answers: answersRaw
@@ -36,6 +44,8 @@ class SurveyResponse {
 
   final String? id;
   final AgentResponse? agentResponse;
+  final List<AgentResponse> agentResponses;
+  final String? accessPointKey;
   final String? promptKey;
   final String surveyId;
   final String creatorId;
@@ -50,6 +60,7 @@ class SurveyResponse {
       'creatorId': creatorId,
       'testDate': testDate.toIso8601String(),
       'screenerId': screenerId,
+      'accessPointKey': accessPointKey,
       'promptKey': promptKey,
       if (patient != null) 'patient': patient!.toJson(),
       'answers': answers.map((answer) => answer.toJson()).toList(),
@@ -62,10 +73,12 @@ class SurveyResponse {
     String? creatorId,
     DateTime? testDate,
     String? screenerId,
+    String? accessPointKey,
     String? promptKey,
     Patient? patient,
     List<Answer>? answers,
     AgentResponse? agentResponse,
+    List<AgentResponse>? agentResponses,
   }) {
     return SurveyResponse(
       id: id ?? this.id,
@@ -73,10 +86,12 @@ class SurveyResponse {
       creatorId: creatorId ?? this.creatorId,
       testDate: testDate ?? this.testDate,
       screenerId: screenerId ?? this.screenerId,
+      accessPointKey: accessPointKey ?? this.accessPointKey,
       promptKey: promptKey ?? this.promptKey,
       patient: patient ?? this.patient,
       answers: answers ?? this.answers,
       agentResponse: agentResponse ?? this.agentResponse,
+      agentResponses: agentResponses ?? this.agentResponses,
     );
   }
 }

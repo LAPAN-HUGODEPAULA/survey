@@ -14,20 +14,23 @@ from app.domain.models.survey_response_with_agent import SurveyResponseWithAgent
 from app.integrations.clinical_writer.client import send_to_langgraph_agent
 from app.integrations.email.service import send_survey_response_email
 from app.persistence.deps import (
+    get_agent_access_point_repo,
     get_persona_skill_repo,
     get_screener_access_link_repo,
     get_screener_repo,
     get_survey_repo,
     get_survey_response_repo,
 )
+from app.persistence.repositories.agent_access_point_repo import AgentAccessPointRepository
 from app.persistence.repositories.persona_skill_repo import PersonaSkillRepository
 from app.persistence.repositories.screener_access_link_repo import ScreenerAccessLinkRepository
 from app.persistence.repositories.screener_repo import ScreenerRepository
 from app.persistence.repositories.survey_repo import SurveyRepository
 from app.persistence.repositories.survey_response_repo import SurveyResponseRepository
+from app.domain.models.agent_response_model import AgentArtifactResponse
+from app.services.access_point_selection import resolve_access_point_selection
 from app.services.survey_prompt_selection import (
     hydrate_survey_persona_defaults,
-    resolve_prompt_selection,
 )
 
 router = APIRouter()
@@ -42,6 +45,7 @@ async def create_survey_response(
     screener_repo: ScreenerRepository = Depends(get_screener_repo),
     survey_repo: SurveyRepository = Depends(get_survey_repo),
     persona_repo: PersonaSkillRepository = Depends(get_persona_skill_repo),
+    access_point_repo: AgentAccessPointRepository = Depends(get_agent_access_point_repo),
 ):
     """
     Create a survey response, persist it, trigger an email, and enrich with AI agent output.
@@ -73,13 +77,16 @@ async def create_survey_response(
             get_persona_by_key=persona_repo.get_by_key,
             get_persona_by_output_profile=persona_repo.get_by_output_profile,
         )
-        selection = resolve_prompt_selection(
-            resolved_survey,
-            survey_response.prompt_key,
+        selection = resolve_access_point_selection(
+            survey=resolved_survey,
+            requested_access_point_key=survey_response.access_point_key,
+            requested_prompt_key=survey_response.prompt_key,
             requested_persona_skill_key=survey_response.persona_skill_key,
             requested_output_profile=survey_response.output_profile,
             input_type="survey7",
+            get_access_point_by_key=access_point_repo.get_by_key,
         )
+        survey_response.access_point_key = selection.access_point_key
         survey_response.prompt_key = selection.prompt_key
         survey_response.persona_skill_key = selection.persona_skill_key
         survey_response.output_profile = selection.output_profile
@@ -106,19 +113,33 @@ async def create_survey_response(
         survey_response.id = inserted_id
         response_payload = survey_response.model_dump(by_alias=True)
         agent_response: Optional[AgentResponse] = None
+        agent_responses: list[AgentArtifactResponse] = []
 
         try:
             logger.info("Sending survey response to LangGraph agent for processing...")
-            agent_result = await send_to_langgraph_agent(
-                response_payload,
-                input_type="survey7",
-                prompt_key=selection.prompt_key,
-                persona_skill_key=selection.persona_skill_key,
-                output_profile=selection.output_profile,
+            runtime_points = _resolve_runtime_access_points(
+                selection,
+                access_point_repo=access_point_repo,
+                survey_id=survey_response.survey_id,
                 source_app="survey-frontend",
-                patient_ref=survey_response.patient.email if survey_response.patient else None,
+                flow_key="thank_you.auto_analysis",
             )
-            agent_response = AgentResponse(**agent_result)
+            for runtime_point in runtime_points:
+                agent_result = await send_to_langgraph_agent(
+                    response_payload,
+                    input_type="survey7",
+                    prompt_key=runtime_point.prompt_key,
+                    persona_skill_key=runtime_point.persona_skill_key,
+                    output_profile=runtime_point.output_profile,
+                    source_app="survey-frontend",
+                    patient_ref=survey_response.patient.email if survey_response.patient else None,
+                )
+                artifact = AgentArtifactResponse(
+                    accessPointKey=runtime_point.access_point_key,
+                    **agent_result,
+                )
+                agent_responses.append(artifact)
+            agent_response = agent_responses[0] if agent_responses else None
             logger.info("Received agent response for survey %s.", inserted_id)
         except ValueError as exc:
             logger.warning("Invalid prompt selection for survey %s: %s", inserted_id, exc)
@@ -130,7 +151,11 @@ async def create_survey_response(
             logger.error("Failed to enrich survey response %s with agent output: %s", inserted_id, exc)
 
         logger.info("--- Returning created survey response with agent output ---")
-        return SurveyResponseWithAgent(**response_payload, agent_response=agent_response)
+        return SurveyResponseWithAgent(
+            **response_payload,
+            agent_response=agent_response,
+            agent_responses=agent_responses,
+        )
 
     except ValueError as exc:
         logger.warning(
@@ -144,6 +169,37 @@ async def create_survey_response(
     except Exception as e:
         logger.error("Unexpected error creating survey response for survey %s: %s", survey_response.survey_id, e)
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
+
+
+def _resolve_runtime_access_points(
+    primary_selection,
+    *,
+    access_point_repo: AgentAccessPointRepository,
+    survey_id: str,
+    source_app: str,
+    flow_key: str,
+):
+    runtime_points = [primary_selection]
+    configured = access_point_repo.list_for_runtime(
+        source_app=source_app,
+        flow_key=flow_key,
+        survey_id=survey_id,
+    )
+    seen_keys = {primary_selection.access_point_key, None}
+    for item in configured:
+        access_point_key = item.get("accessPointKey")
+        if access_point_key in seen_keys:
+            continue
+        seen_keys.add(access_point_key)
+        runtime_points.append(
+            type(primary_selection)(
+                access_point_key=access_point_key,
+                prompt_key=item["promptKey"],
+                persona_skill_key=item.get("personaSkillKey"),
+                output_profile=item.get("outputProfile"),
+            )
+        )
+    return runtime_points
 
 
 @router.post("/survey_responses/{response_id}/send_email", status_code=status.HTTP_202_ACCEPTED)

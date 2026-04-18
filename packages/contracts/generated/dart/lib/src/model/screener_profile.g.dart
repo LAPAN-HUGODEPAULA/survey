@@ -28,6 +28,8 @@ class _$ScreenerProfile extends ScreenerProfile {
   @override
   final String degree;
   @override
+  final bool? isBuilderAdmin;
+  @override
   final int? darvCourseYear;
   @override
   final DateTime? initialNoticeAcceptedAt;
@@ -46,6 +48,7 @@ class _$ScreenerProfile extends ScreenerProfile {
       required this.professionalCouncil,
       required this.jobTitle,
       required this.degree,
+      this.isBuilderAdmin,
       this.darvCourseYear,
       this.initialNoticeAcceptedAt})
       : super._();
@@ -70,6 +73,7 @@ class _$ScreenerProfile extends ScreenerProfile {
         professionalCouncil == other.professionalCouncil &&
         jobTitle == other.jobTitle &&
         degree == other.degree &&
+        isBuilderAdmin == other.isBuilderAdmin &&
         darvCourseYear == other.darvCourseYear &&
         initialNoticeAcceptedAt == other.initialNoticeAcceptedAt;
   }
@@ -87,6 +91,7 @@ class _$ScreenerProfile extends ScreenerProfile {
     _$hash = $jc(_$hash, professionalCouncil.hashCode);
     _$hash = $jc(_$hash, jobTitle.hashCode);
     _$hash = $jc(_$hash, degree.hashCode);
+    _$hash = $jc(_$hash, isBuilderAdmin.hashCode);
     _$hash = $jc(_$hash, darvCourseYear.hashCode);
     _$hash = $jc(_$hash, initialNoticeAcceptedAt.hashCode);
     _$hash = $jf(_$hash);
@@ -106,6 +111,7 @@ class _$ScreenerProfile extends ScreenerProfile {
           ..add('professionalCouncil', professionalCouncil)
           ..add('jobTitle', jobTitle)
           ..add('degree', degree)
+          ..add('isBuilderAdmin', isBuilderAdmin)
           ..add('darvCourseYear', darvCourseYear)
           ..add('initialNoticeAcceptedAt', initialNoticeAcceptedAt))
         .toString();
@@ -158,6 +164,11 @@ class ScreenerProfileBuilder
   String? get degree => _$this._degree;
   set degree(String? degree) => _$this._degree = degree;
 
+  bool? _isBuilderAdmin;
+  bool? get isBuilderAdmin => _$this._isBuilderAdmin;
+  set isBuilderAdmin(bool? isBuilderAdmin) =>
+      _$this._isBuilderAdmin = isBuilderAdmin;
+
   int? _darvCourseYear;
   int? get darvCourseYear => _$this._darvCourseYear;
   set darvCourseYear(int? darvCourseYear) =>
@@ -185,6 +196,7 @@ class ScreenerProfileBuilder
       _professionalCouncil = $v.professionalCouncil.toBuilder();
       _jobTitle = $v.jobTitle;
       _degree = $v.degree;
+      _isBuilderAdmin = $v.isBuilderAdmin;
       _darvCourseYear = $v.darvCourseYear;
       _initialNoticeAcceptedAt = $v.initialNoticeAcceptedAt;
       _$v = null;
@@ -228,6 +240,7 @@ class ScreenerProfileBuilder
                 jobTitle, r'ScreenerProfile', 'jobTitle'),
             degree: BuiltValueNullFieldError.checkNotNull(
                 degree, r'ScreenerProfile', 'degree'),
+            isBuilderAdmin: isBuilderAdmin,
             darvCourseYear: darvCourseYear,
             initialNoticeAcceptedAt: initialNoticeAcceptedAt,
           );

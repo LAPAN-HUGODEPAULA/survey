@@ -19,6 +19,7 @@ Name | Type | Description | Notes
 **professionalCouncil** | [**ProfessionalCouncil**](ProfessionalCouncil.md) |  | 
 **jobTitle** | **String** | Cargo/profissão do Screener | 
 **degree** | **String** | Formação acadêmica/grau do Screener | 
+**isBuilderAdmin** | **bool** | Indica se o screener pode acessar o construtor administrativo | [default to false]
 **darvCourseYear** | **int** | Ano de conclusão do curso DARV (opcional) | [optional] 
 **initialNoticeAcceptedAt** | [**DateTime**](DateTime.md) | Data de aceite do aviso inicial de uso da plataforma | [optional] 
 

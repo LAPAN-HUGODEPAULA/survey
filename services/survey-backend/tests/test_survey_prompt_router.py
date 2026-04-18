@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 from fastapi.testclient import TestClient
 
+from app.api.dependencies.builder_auth import require_builder_admin, require_builder_csrf
 from app.main import app
 from app.persistence.deps import get_survey_prompt_repo
 
@@ -11,6 +12,8 @@ client = TestClient(app)
 
 
 def _override_prompt_repo(mock_repo: MagicMock) -> None:
+    app.dependency_overrides[require_builder_admin] = lambda: None
+    app.dependency_overrides[require_builder_csrf] = lambda: None
     app.dependency_overrides[get_survey_prompt_repo] = lambda: mock_repo
 
 
@@ -82,5 +85,5 @@ def test_delete_survey_prompt_rejects_in_use():
     response = client.delete("/api/v1/survey_prompts/clinical_referral_letter:lapan7")
 
     assert response.status_code == 409
-    assert response.json()["detail"] == "Survey prompt is still associated with a questionnaire"
+    assert response.json()["userMessage"] == "Survey prompt is still associated with a questionnaire"
     app.dependency_overrides = {}

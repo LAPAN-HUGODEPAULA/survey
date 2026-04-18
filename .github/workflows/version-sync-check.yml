@@ -1,0 +1,20 @@
+name: Version Sync Check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  version_sync_check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate managed version fields
+        run: python3 tools/scripts/sync_version.py --check
