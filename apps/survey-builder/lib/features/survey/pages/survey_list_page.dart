@@ -1,6 +1,5 @@
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
-import 'package:survey_builder/core/auth/builder_auth_controller.dart';
 import 'package:survey_builder/core/models/survey_draft.dart';
 import 'package:survey_builder/core/repositories/survey_repository.dart';
 import 'package:survey_builder/core/services/file_download.dart';
@@ -10,10 +9,9 @@ import 'package:survey_builder/features/survey/pages/survey_form_page.dart';
 import 'package:survey_builder/features/survey/pages/survey_prompt_list_page.dart';
 
 class SurveyListPage extends StatefulWidget {
-  const SurveyListPage({super.key, this.repository, this.authController});
+  const SurveyListPage({super.key, this.repository});
 
   final SurveyRepository? repository;
-  final BuilderAuthController? authController;
 
   @override
   State<SurveyListPage> createState() => _SurveyListPageState();
@@ -250,17 +248,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
       title: 'Construtor de Questionários',
       subtitle: 'Gerencie questionários, prompts e personas.',
       showAmbientGreeting: true,
-      userName: widget.authController?.profile?.fullName,
       useSafeArea: true,
-      actions: [
-        IconButton(
-          tooltip: 'Encerrar sessão',
-          onPressed: widget.authController == null
-              ? null
-              : () => widget.authController!.logout(),
-          icon: const Icon(Icons.logout),
-        ),
-      ],
       body: DsAdminCatalogShell<SurveyDraft>(
         heading: 'Questionários',
         createLabel: 'Criar questionário',

@@ -10,8 +10,8 @@ import 'package:survey_builder/core/models/survey_prompt_draft.dart';
 import 'package:survey_builder/core/repositories/persona_skill_repository.dart';
 import 'package:survey_builder/core/repositories/survey_prompt_repository.dart';
 import 'package:survey_builder/core/repositories/survey_repository.dart';
-import 'package:survey_builder/features/survey/widgets/html_rich_text_editor.dart';
 import 'package:survey_builder/features/survey/pages/task_dashboard_page.dart';
+import 'package:survey_builder/features/survey/widgets/html_rich_text_editor.dart';
 
 class SurveyFormPage extends StatefulWidget {
   const SurveyFormPage({
@@ -1000,14 +1000,10 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
   List<DsBreadcrumbItem> _buildBreadcrumbs(bool isEditing) {
     return [
       DsBreadcrumbItem(
-        label: 'Dashboard',
-        onPressed: _saving ? null : () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => TaskDashboardPage()),
-        ),
-      ),
-      DsBreadcrumbItem(
         label: 'Questionários',
-        onPressed: _saving ? null : _confirmCancel,
+        onPressed: _saving ? null : () => Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const TaskDashboardPage()),
+        ),
       ),
       DsBreadcrumbItem(
         label: isEditing ? 'Editar questionário' : 'Criar questionário',

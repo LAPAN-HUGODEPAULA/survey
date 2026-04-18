@@ -12,8 +12,9 @@ class ChatSession {
   });
 
   factory ChatSession.fromJson(Map<String, dynamic> json) {
+    final rawId = json['_id'] ?? json['id'];
     return ChatSession(
-      id: (json['_id'] ?? '').toString(),
+      id: rawId?.toString().trim() ?? '',
       status: (json['status'] ?? '').toString(),
       phase: (json['phase'] ?? '').toString(),
       createdAt: (json['createdAt'] ?? '').toString(),
