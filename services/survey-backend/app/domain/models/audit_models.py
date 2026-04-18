@@ -114,11 +114,14 @@ class BuilderAuditCreate(BaseModel):
     """Input model for creating builder audit records."""
 
     correlation_id: str = Field(..., alias="correlationId")
+    namespace: str = "builder"
     event_type: str = Field(..., alias="eventType")
     actor: ActorInfo = Field(...)
     operation: str = Field(...)
     status: str = Field(...)
     resource: ResourceInfo = Field(...)
     outcome: dict = Field(...)
+    created_at: datetime = Field(default_factory=datetime.utcnow, alias="createdAt")
+    payload: Optional[dict] = None
 
     model_config = ConfigDict(populate_by_name=True, populate_by_alias=True)

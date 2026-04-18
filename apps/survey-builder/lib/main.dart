@@ -16,10 +16,14 @@ class SurveyBuilderApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final baseTheme = AppTheme.dark();
     return MaterialApp(
       title: 'LAPAN Construtor de Questionários',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark(),
+      theme: baseTheme.copyWith(
+        textTheme: baseTheme.textTheme.apply(fontFamily: 'NotoSans'),
+        primaryTextTheme: baseTheme.primaryTextTheme.apply(fontFamily: 'NotoSans'),
+      ),
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

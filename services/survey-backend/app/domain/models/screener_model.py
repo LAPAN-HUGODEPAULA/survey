@@ -73,6 +73,11 @@ class ScreenerModel(BaseModel):
     )
     jobTitle: str = Field(..., description="Cargo/profissão do Screener")
     degree: str = Field(..., description="Formação acadêmica/grau do Screener")
+    isBuilderAdmin: bool = Field(
+        default=False,
+        alias="isBuilderAdmin",
+        description="Whether the screener can access administrative builder routes.",
+    )
     darvCourseYear: Optional[int] = Field(
         None,
         description="Ano de conclusão do curso DARV (opcional), deve ser maior ou igual a 2000",

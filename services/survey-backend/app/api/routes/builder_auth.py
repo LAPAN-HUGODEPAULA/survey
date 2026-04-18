@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import bcrypt
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.api.dependencies.builder_auth import (
@@ -42,9 +42,10 @@ def _to_profile(screener: ScreenerModel) -> ScreenerProfile:
 @audit_auth_operation("login")
 async def login_builder(
     payload: ScreenerLogin,
+    request: Request,
     response: Response,
-    repo: ScreenerRepository = Depends(get_screener_repo),
     correlation_id: CorrelationID,
+    repo: ScreenerRepository = Depends(get_screener_repo),
 ) -> BuilderSessionResponse:
     screener = repo.find_by_email(payload.email)
     if not screener or not bcrypt.checkpw(
@@ -96,6 +97,7 @@ async def get_builder_session(
 @router.post("/builder/logout", status_code=status.HTTP_204_NO_CONTENT)
 @audit_auth_operation("logout")
 async def logout_builder(
+    request: Request,
     response: Response,
     correlation_id: CorrelationID,
 ) -> None:

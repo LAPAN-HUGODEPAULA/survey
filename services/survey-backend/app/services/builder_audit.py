@@ -1,17 +1,19 @@
 """Service for managing builder audit records with synchronization to security audit."""
 
-import asyncio
+from datetime import datetime
 import hashlib
 from typing import Optional
 
 from app.config.logging_config import logger
 from app.domain.models.audit_models import (
     ActorInfo,
+    AuthOutcome,
     BuilderAuditCreate,
     BuilderAuditLog,
-    ResourceInfo
+    PromptOutcome,
+    ResourceInfo,
+    SurveyOutcome,
 )
-from app.domain.models.privacy_models import SecurityAuditLog
 from app.persistence.repositories.builder_audit_repo import BuilderAuditRepository
 from app.persistence.repositories.security_audit_repo import SecurityAuditRepository
 from app.services.security_audit import SecurityAuditService
@@ -30,7 +32,7 @@ class BuilderAuditService:
         self._security_repo = security_repo
         self._security_service = security_service
 
-    async def record_event(
+    def record_event(
         self,
         correlation_id: str,
         event_type: str,
@@ -51,17 +53,15 @@ class BuilderAuditService:
             operation=operation,
             status=status,
             resource=resource,
-            outcome=outcome
+            outcome=outcome,
+            payload=payload,
         )
 
-        if payload:
-            audit_create.payload = payload
-
         # Write to builder collection
-        builder_record = await self._builder_repo.create(audit_create.model_dump(by_alias=True))
+        builder_record = self._builder_repo.create(audit_create.model_dump(by_alias=True))
 
         # Synchronize with security audit for platform visibility
-        await self._security_service.record_event(
+        self._security_service.record_event(
             event_type=f"builder_{operation}",
             actor=actor.model_dump(),
             target=resource.model_dump(),
@@ -83,7 +83,7 @@ class BuilderAuditService:
 
         return builder_record
 
-    async def record_survey_operation(
+    def record_survey_operation(
         self,
         correlation_id: str,
         actor: ActorInfo,
@@ -102,13 +102,13 @@ class BuilderAuditService:
             name=display_name
         )
 
-        outcome = {
-            "survey_id": survey_id,
-            "version": version,
-            "display_name": display_name
-        }
+        outcome = SurveyOutcome(
+            surveyId=survey_id,
+            version=version,
+            displayName=display_name,
+        ).model_dump(by_alias=True)
 
-        return await self.record_event(
+        return self.record_event(
             correlation_id=correlation_id,
             event_type=f"builder_{operation}_survey",
             actor=actor,
@@ -119,7 +119,7 @@ class BuilderAuditService:
             payload=payload
         )
 
-    async def record_prompt_operation(
+    def record_prompt_operation(
         self,
         correlation_id: str,
         actor: ActorInfo,
@@ -142,15 +142,15 @@ class BuilderAuditService:
             name=name
         )
 
-        outcome = {
-            "prompt_key": prompt_key,
-            "name": name,
-            "content_digest": content_digest,
-            "version": version,
-            "word_count": len(prompt_text.split())
-        }
+        outcome = PromptOutcome(
+            promptKey=prompt_key,
+            name=name,
+            contentDigest=content_digest,
+            version=version,
+            wordCount=len(prompt_text.split()),
+        ).model_dump(by_alias=True)
 
-        return await self.record_event(
+        return self.record_event(
             correlation_id=correlation_id,
             event_type=f"builder_{operation}_prompt",
             actor=actor,
@@ -161,7 +161,7 @@ class BuilderAuditService:
             payload=payload
         )
 
-    async def record_auth_operation(
+    def record_auth_operation(
         self,
         correlation_id: str,
         email: str,
@@ -182,16 +182,16 @@ class BuilderAuditService:
             name=f"Builder auth - {email}"
         )
 
-        outcome = {
-            "email": email,
-            "ip_address": ip_address,
-            "user_agent": user_agent,
-            "success": status == "success",
-            "failure_reason": failure_reason,
-            "session_duration": session_duration
-        }
+        outcome = AuthOutcome(
+            email=email,
+            ipAddress=ip_address,
+            userAgent=user_agent,
+            success=status == "success",
+            failureReason=failure_reason,
+            sessionDuration=session_duration,
+        ).model_dump(by_alias=True)
 
-        return await self.record_event(
+        return self.record_event(
             correlation_id=correlation_id,
             event_type=f"builder_{operation}_auth",
             actor=actor,
@@ -202,14 +202,14 @@ class BuilderAuditService:
             payload=payload
         )
 
-    async def initialize(self) -> None:
+    def initialize(self) -> None:
         """Initialize audit repository indexes."""
-        await self._builder_repo.initialize_indexes()
+        self._builder_repo.initialize_indexes()
 
-    async def get_correlation_trace(self, correlation_id: str) -> dict:
+    def get_correlation_trace(self, correlation_id: str) -> dict:
         """Get full trace for a correlation ID across both collections."""
         # Get builder records
-        builder_records = await self._builder_repo.list_by_correlation_id(correlation_id)
+        builder_records = self._builder_repo.list_by_correlation_id(correlation_id)
 
         # Format for easy consumption
         trace = {

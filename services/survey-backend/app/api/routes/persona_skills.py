@@ -5,13 +5,14 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from pymongo.errors import DuplicateKeyError
 
+from app.api.dependencies.builder_auth import require_builder_admin, require_builder_csrf
 from app.config.logging_config import logger
 from app.domain.models.persona_skill_model import PersonaSkill, PersonaSkillUpsert
 from app.persistence.deps import get_persona_skill_repo
 from app.persistence.repositories.persona_skill_repo import PersonaSkillRepository
 
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(require_builder_admin)])
 
 
 @router.get("/persona_skills/", response_model=List[PersonaSkill])
@@ -34,7 +35,12 @@ async def get_persona_skill(
     return PersonaSkill(**persona_skill)
 
 
-@router.post("/persona_skills/", response_model=PersonaSkill, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/persona_skills/",
+    response_model=PersonaSkill,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_builder_csrf)],
+)
 async def create_persona_skill(
     persona_skill: PersonaSkillUpsert,
     repo: PersonaSkillRepository = Depends(get_persona_skill_repo),
@@ -48,7 +54,11 @@ async def create_persona_skill(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Persona skill key already exists") from exc
 
 
-@router.put("/persona_skills/{persona_skill_key}", response_model=PersonaSkill)
+@router.put(
+    "/persona_skills/{persona_skill_key}",
+    response_model=PersonaSkill,
+    dependencies=[Depends(require_builder_csrf)],
+)
 async def update_persona_skill(
     persona_skill_key: str,
     persona_skill: PersonaSkillUpsert,
@@ -69,7 +79,11 @@ async def update_persona_skill(
     return PersonaSkill(**updated)
 
 
-@router.delete("/persona_skills/{persona_skill_key}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/persona_skills/{persona_skill_key}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_builder_csrf)],
+)
 async def delete_persona_skill(
     persona_skill_key: str,
     repo: PersonaSkillRepository = Depends(get_persona_skill_repo),
