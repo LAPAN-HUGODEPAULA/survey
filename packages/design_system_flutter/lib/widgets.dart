@@ -4,7 +4,7 @@ export 'components/admin/ds_admin_form_shell.dart';
 export 'components/admin/ds_admin_shell.dart';
 export 'components/admin/ds_sectional_nav.dart';
 export 'components/admin/ds_inline_conflict_message.dart';
-export 'components/admin/ds_task_button.dart' hide DsEmotion;
+export 'components/admin/ds_task_button.dart';
 export 'components/auth/ds_account_menu.dart';
 export 'components/auth/ds_professional_auth.dart';
 export 'components/async/ds_async_page.dart';

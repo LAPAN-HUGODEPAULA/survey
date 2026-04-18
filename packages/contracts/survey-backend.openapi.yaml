@@ -1783,8 +1783,6 @@ components:
               type: string
             surveyId:
               type: string
-            survey_id:
-              type: string
     ClinicalWriterAnalysisRequest:
       type: object
       required:

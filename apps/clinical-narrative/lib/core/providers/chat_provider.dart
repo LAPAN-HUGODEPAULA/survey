@@ -215,6 +215,10 @@ class ChatProvider extends ChangeNotifier {
       } else {
         _session = await _createSession(patientId: patientId);
       }
+      if (!_hasValidSessionId(_session?.id)) {
+        _clearSessionId();
+        _session = await _createSession(patientId: patientId);
+      }
       await _loadMessages();
       await _connectWebSocket();
       _scheduleAnalysis();
@@ -402,6 +406,9 @@ class ChatProvider extends ChangeNotifier {
       throw StateError('Invalid session response');
     }
     final session = ChatSession.fromJson(data);
+    if (!_hasValidSessionId(session.id)) {
+      throw StateError('Invalid session id in create session response');
+    }
     _storeSessionId(session.id);
     return session;
   }
@@ -416,6 +423,10 @@ class ChatProvider extends ChangeNotifier {
       final data = response.data;
       if (data is! Map<String, dynamic>) return null;
       final session = ChatSession.fromJson(data);
+      if (!_hasValidSessionId(session.id)) {
+        _clearSessionId();
+        return null;
+      }
       if (session.status == 'completed') {
         _clearSessionId();
         return null;
@@ -428,9 +439,10 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> _loadMessages() async {
-    if (_session == null) return;
+    final sessionId = _activeSessionId;
+    if (sessionId == null) return;
     final response = await _client.get<List<dynamic>>(
-      ApiConfig.requestPath('/chat/sessions/${_session!.id}/messages'),
+      ApiConfig.requestPath('/chat/sessions/$sessionId/messages'),
     );
     final data = response.data ?? [];
     _messages
@@ -442,8 +454,9 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> _connectWebSocket() async {
-    if (_session == null) return;
-    final wsUrl = _buildWebSocketUrl(_session!.id);
+    final sessionId = _activeSessionId;
+    if (sessionId == null) return;
+    final wsUrl = _buildWebSocketUrl(sessionId);
     _channel?.sink.close();
     _channel = WebSocketChannel.connect(wsUrl);
     _channel!.stream.listen(
@@ -488,10 +501,11 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> _sendPending(_PendingMessage pending) async {
-    if (_session == null) return;
+    final sessionId = _activeSessionId;
+    if (sessionId == null) return;
     try {
       final response = await _client.post<Map<String, dynamic>>(
-        ApiConfig.requestPath('/chat/sessions/${_session!.id}/messages'),
+        ApiConfig.requestPath('/chat/sessions/$sessionId/messages'),
         data: {
           'role': 'clinician',
           'messageType': 'user',
@@ -638,22 +652,45 @@ class ChatProvider extends ChangeNotifier {
 
   String? _readSessionId() {
     if (!kIsWeb) return null;
-    return web.window.localStorage.getItem(
+    final stored = web.window.localStorage.getItem(
       'clinical_narrative_chat_session_id',
     );
+    final normalized = _normalizeSessionId(stored);
+    if (normalized == null && stored != null) {
+      _clearSessionId();
+    }
+    return normalized;
   }
 
   void _storeSessionId(String sessionId) {
     if (!kIsWeb) return;
+    final normalized = _normalizeSessionId(sessionId);
+    if (normalized == null) return;
     web.window.localStorage.setItem(
       'clinical_narrative_chat_session_id',
-      sessionId,
+      normalized,
     );
   }
 
   void _clearSessionId() {
     if (!kIsWeb) return;
     web.window.localStorage.removeItem('clinical_narrative_chat_session_id');
+  }
+
+  String? get _activeSessionId => _normalizeSessionId(_session?.id);
+
+  bool _hasValidSessionId(String? sessionId) =>
+      _normalizeSessionId(sessionId) != null;
+
+  String? _normalizeSessionId(String? sessionId) {
+    final trimmed = sessionId?.trim();
+    if (trimmed == null || trimmed.isEmpty) {
+      return null;
+    }
+    if (trimmed == 'null' || trimmed == 'undefined') {
+      return null;
+    }
+    return trimmed;
   }
 
   @override

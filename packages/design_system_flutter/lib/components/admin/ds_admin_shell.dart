@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:design_system_flutter/widgets.dart';
+import 'package:design_system_flutter/components/admin/ds_task_button.dart';
 
 class DsAdminShell extends StatelessWidget {
   const DsAdminShell({
@@ -396,11 +397,4 @@ class RecentUpdate {
   final String title;
   final String description;
   final String time;
-}
-
-enum DsEmotion {
-  neutral,
-  delight,
-  urgent,
-  warning,
 }
