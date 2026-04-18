@@ -15,8 +15,6 @@ class _$ClinicalWriterRequestMetadata extends ClinicalWriterRequestMetadata {
   final String? patientRef;
   @override
   final String? surveyId;
-  @override
-  final String? surveyRef;
 
   factory _$ClinicalWriterRequestMetadata(
           [void Function(ClinicalWriterRequestMetadataBuilder)? updates]) =>
@@ -26,8 +24,7 @@ class _$ClinicalWriterRequestMetadata extends ClinicalWriterRequestMetadata {
       {this.sourceApp,
       this.requestId,
       this.patientRef,
-      this.surveyId,
-      this.surveyRef})
+      this.surveyId})
       : super._();
   @override
   ClinicalWriterRequestMetadata rebuild(
@@ -45,8 +42,7 @@ class _$ClinicalWriterRequestMetadata extends ClinicalWriterRequestMetadata {
         sourceApp == other.sourceApp &&
         requestId == other.requestId &&
         patientRef == other.patientRef &&
-        surveyId == other.surveyId &&
-        surveyRef == other.surveyRef;
+        surveyId == other.surveyId;
   }
 
   @override
@@ -56,7 +52,6 @@ class _$ClinicalWriterRequestMetadata extends ClinicalWriterRequestMetadata {
     _$hash = $jc(_$hash, requestId.hashCode);
     _$hash = $jc(_$hash, patientRef.hashCode);
     _$hash = $jc(_$hash, surveyId.hashCode);
-    _$hash = $jc(_$hash, surveyRef.hashCode);
     _$hash = $jf(_$hash);
     return _$hash;
   }
@@ -67,8 +62,7 @@ class _$ClinicalWriterRequestMetadata extends ClinicalWriterRequestMetadata {
           ..add('sourceApp', sourceApp)
           ..add('requestId', requestId)
           ..add('patientRef', patientRef)
-          ..add('surveyId', surveyId)
-          ..add('surveyRef', surveyRef))
+          ..add('surveyId', surveyId))
         .toString();
   }
 }
@@ -95,10 +89,6 @@ class ClinicalWriterRequestMetadataBuilder
   String? get surveyId => _$this._surveyId;
   set surveyId(String? surveyId) => _$this._surveyId = surveyId;
 
-  String? _surveyRef;
-  String? get surveyRef => _$this._surveyRef;
-  set surveyRef(String? surveyRef) => _$this._surveyRef = surveyRef;
-
   ClinicalWriterRequestMetadataBuilder() {
     ClinicalWriterRequestMetadata._defaults(this);
   }
@@ -110,7 +100,6 @@ class ClinicalWriterRequestMetadataBuilder
       _requestId = $v.requestId;
       _patientRef = $v.patientRef;
       _surveyId = $v.surveyId;
-      _surveyRef = $v.surveyRef;
       _$v = null;
     }
     return this;
@@ -136,7 +125,6 @@ class ClinicalWriterRequestMetadataBuilder
           requestId: requestId,
           patientRef: patientRef,
           surveyId: surveyId,
-          surveyRef: surveyRef,
         );
     replace(_$result);
     return _$result;
