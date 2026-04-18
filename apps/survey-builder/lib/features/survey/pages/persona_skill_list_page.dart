@@ -1,10 +1,9 @@
-import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:design_system_flutter/widgets.dart';
 import 'package:survey_builder/core/models/persona_skill_draft.dart';
 import 'package:survey_builder/core/repositories/persona_skill_repository.dart';
 import 'package:survey_builder/features/survey/pages/persona_skill_form_page.dart';
 import 'package:survey_builder/features/survey/pages/task_dashboard_page.dart';
-import 'package:survey_builder/features/survey/pages/empty_section_view.dart';
 
 class PersonaSkillListPage extends StatefulWidget {
   const PersonaSkillListPage({super.key, this.repository});
@@ -140,38 +139,43 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
   }
 
   void _showExamples() {
-    showDsDialog(
-      context,
-      title: 'Exemplos de personas',
-      content: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Alguns exemplos de personas comuns:', style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 16),
-          _buildPersonaExample(
-            context,
-            name: 'Cardiologista',
-            description: 'Foco em condições cardiovasculares e prevenção',
-          ),
-          _buildPersonaExample(
-            context,
-            name: 'Endocrinologista',
-            description: 'Especialista em diabetes e doenças metabólicas',
-          ),
-          _buildPersonaExample(
-            context,
-            name: 'Médico Geral',
-            description: 'Atendimento primário e saúde preventiva',
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => DsDialog(
+        title: 'Exemplos de personas',
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Alguns exemplos de personas comuns:',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            _buildPersonaExample(
+              context,
+              name: 'Cardiologista',
+              description: 'Foco em condições cardiovasculares e prevenção',
+            ),
+            _buildPersonaExample(
+              context,
+              name: 'Endocrinologista',
+              description: 'Especialista em diabetes e doenças metabólicas',
+            ),
+            _buildPersonaExample(
+              context,
+              name: 'Médico Geral',
+              description: 'Atendimento primário e saúde preventiva',
+            ),
+          ],
+        ),
+        actions: [
+          DsTextButton(
+            label: 'Fechar',
+            onPressed: () => Navigator.of(dialogContext).pop(),
           ),
         ],
       ),
-      actions: [
-        DsTextButton(
-          label: 'Fechar',
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ],
     );
   }
 
@@ -218,7 +222,7 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
         DsBreadcrumbItem(
           label: 'Dashboard',
           onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => TaskDashboardPage()),
+            MaterialPageRoute<void>(builder: (_) => const TaskDashboardPage()),
           ),
         ),
         DsBreadcrumbItem(
@@ -227,7 +231,7 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
         ),
       ],
       onBack: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => TaskDashboardPage()),
+        MaterialPageRoute<void>(builder: (_) => const TaskDashboardPage()),
       ),
       backLabel: 'Voltar ao dashboard',
       body: DsAdminCatalogShell<PersonaSkillDraft>(
@@ -240,12 +244,6 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
         emptyMessage: _filter.isEmpty
             ? 'Nenhuma persona encontrada.'
             : 'Nenhuma persona corresponde ao filtro "$_filter".',
-        emptyBuilder: (context) => EmptySectionView(
-          section: 'personas',
-          onCreate: _openForm,
-          onExplore: _showExamples,
-          hasData: false,
-        ),
         error: _error,
         feedback: _feedback == null
             ? null

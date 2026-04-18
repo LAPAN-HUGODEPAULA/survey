@@ -45,8 +45,8 @@ async def get_survey_prompt(
 @audit_builder_operation("create_prompt")
 async def create_survey_prompt(
     prompt: SurveyPromptUpsert,
-    repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
     correlation_id: CorrelationID,
+    repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
 ):
     """Create a reusable survey prompt."""
     try:
@@ -66,8 +66,8 @@ async def create_survey_prompt(
 async def update_survey_prompt(
     prompt_key: str,
     prompt: SurveyPromptUpsert,
-    repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
     correlation_id: CorrelationID,
+    repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
 ):
     """Update a reusable survey prompt."""
     if prompt.prompt_key != prompt_key:
@@ -92,8 +92,8 @@ async def update_survey_prompt(
 @audit_builder_operation("delete_prompt")
 async def delete_survey_prompt(
     prompt_key: str,
-    repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
     correlation_id: CorrelationID,
+    repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
 ):
     """Delete a reusable survey prompt when it is not associated with any survey."""
     prompt = repo.get_by_key(prompt_key)

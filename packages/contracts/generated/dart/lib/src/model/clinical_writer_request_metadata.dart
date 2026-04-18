@@ -15,7 +15,6 @@ part 'clinical_writer_request_metadata.g.dart';
 /// * [requestId] 
 /// * [patientRef] 
 /// * [surveyId] 
-/// * [surveyId] 
 @BuiltValue()
 abstract class ClinicalWriterRequestMetadata implements Built<ClinicalWriterRequestMetadata, ClinicalWriterRequestMetadataBuilder> {
   @BuiltValueField(wireName: r'source_app')
@@ -28,9 +27,6 @@ abstract class ClinicalWriterRequestMetadata implements Built<ClinicalWriterRequ
   String? get patientRef;
 
   @BuiltValueField(wireName: r'surveyId')
-  String? get surveyId;
-
-  @BuiltValueField(wireName: r'survey_id')
   String? get surveyId;
 
   ClinicalWriterRequestMetadata._();
@@ -177,4 +173,3 @@ class _$ClinicalWriterRequestMetadataSerializer implements PrimitiveSerializer<C
     return result.build();
   }
 }
-

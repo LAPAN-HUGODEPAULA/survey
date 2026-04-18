@@ -18,3 +18,7 @@ class AgentResponse(BaseModel):
     ai_progress: Optional[dict] = Field(default=None, alias="aiProgress")
 
     model_config = ConfigDict(populate_by_name=True)
+
+
+class AgentArtifactResponse(AgentResponse):
+    access_point_key: Optional[str] = Field(default=None, alias="accessPointKey")

@@ -111,7 +111,7 @@ packages:
       path: "../../packages/design_system_flutter"
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.2.0"
   dio:
     dependency: "direct main"
     description:
@@ -394,14 +394,14 @@ packages:
       path: "../../packages/runtime_api_url"
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.2.0"
   runtime_app_config:
     dependency: "direct main"
     description:
       path: "../../packages/runtime_app_config"
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.2.0"
   shared_preferences:
     dependency: "direct main"
     description:

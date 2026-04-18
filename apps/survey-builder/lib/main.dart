@@ -7,7 +7,6 @@ import 'package:survey_builder/core/auth/builder_auth_models.dart';
 import 'package:survey_builder/core/config/runtime_config.dart';
 import 'package:survey_builder/core/services/api_config.dart';
 import 'package:survey_builder/features/auth/pages/builder_login_page.dart';
-import 'package:survey_builder/features/survey/pages/survey_list_page.dart';
 import 'package:survey_builder/features/survey/pages/task_dashboard_page.dart';
 
 Future<void> main() async {
@@ -46,13 +45,19 @@ class _SurveyBuilderAppState extends State<SurveyBuilderApp> {
 
   @override
   Widget build(BuildContext context) {
+    final baseTheme = AppTheme.dark();
     return AnimatedBuilder(
       animation: _authController,
       builder: (context, child) {
         return MaterialApp(
           title: 'LAPAN Construtor de Questionários',
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.dark(),
+          theme: baseTheme.copyWith(
+            textTheme: baseTheme.textTheme.apply(fontFamily: 'NotoSans'),
+            primaryTextTheme: baseTheme.primaryTextTheme.apply(
+              fontFamily: 'NotoSans',
+            ),
+          ),
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,

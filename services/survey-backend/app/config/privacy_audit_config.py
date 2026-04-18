@@ -90,4 +90,4 @@ class BuilderAuditPrivacyConfig:
     @classmethod
     def get_retention_period(cls) -> timedelta:
         """Get the retention period as a timedelta."""
-        return timedelta(days cls.AUDIT_RETENTION_DAYS)
+        return timedelta(days=cls.AUDIT_RETENTION_DAYS)
