@@ -12,17 +12,17 @@ part 'agent_access_point.g.dart';
 /// AgentAccessPoint
 ///
 /// Properties:
-/// * [accessPointKey]
-/// * [name]
-/// * [sourceApp]
-/// * [flowKey]
-/// * [promptKey]
-/// * [personaSkillKey]
-/// * [outputProfile]
-/// * [surveyId]
-/// * [description]
-/// * [createdAt]
-/// * [modifiedAt]
+/// * [accessPointKey] 
+/// * [name] 
+/// * [sourceApp] 
+/// * [flowKey] 
+/// * [promptKey] 
+/// * [personaSkillKey] 
+/// * [outputProfile] 
+/// * [surveyId] 
+/// * [description] 
+/// * [createdAt] 
+/// * [modifiedAt] 
 @BuiltValue()
 abstract class AgentAccessPoint implements AgentAccessPointUpsert, Built<AgentAccessPoint, AgentAccessPointBuilder> {
   @BuiltValueField(wireName: r'createdAt')
@@ -54,34 +54,14 @@ class _$AgentAccessPointSerializer implements PrimitiveSerializer<AgentAccessPoi
     AgentAccessPoint object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
-    yield r'accessPointKey';
+    yield r'createdAt';
     yield serializers.serialize(
-      object.accessPointKey,
-      specifiedType: const FullType(String),
-    );
-    yield r'name';
-    yield serializers.serialize(
-      object.name,
-      specifiedType: const FullType(String),
-    );
-    yield r'sourceApp';
-    yield serializers.serialize(
-      object.sourceApp,
-      specifiedType: const FullType(String),
-    );
-    yield r'flowKey';
-    yield serializers.serialize(
-      object.flowKey,
-      specifiedType: const FullType(String),
+      object.createdAt,
+      specifiedType: const FullType(DateTime),
     );
     yield r'promptKey';
     yield serializers.serialize(
       object.promptKey,
-      specifiedType: const FullType(String),
-    );
-    yield r'personaSkillKey';
-    yield serializers.serialize(
-      object.personaSkillKey,
       specifiedType: const FullType(String),
     );
     yield r'outputProfile';
@@ -89,29 +69,49 @@ class _$AgentAccessPointSerializer implements PrimitiveSerializer<AgentAccessPoi
       object.outputProfile,
       specifiedType: const FullType(String),
     );
+    yield r'personaSkillKey';
+    yield serializers.serialize(
+      object.personaSkillKey,
+      specifiedType: const FullType(String),
+    );
     if (object.surveyId != null) {
       yield r'surveyId';
       yield serializers.serialize(
         object.surveyId,
-        specifiedType: const FullType(String),
+        specifiedType: const FullType.nullable(String),
       );
     }
-    if (object.description != null) {
-      yield r'description';
-      yield serializers.serialize(
-        object.description,
-        specifiedType: const FullType(String),
-      );
-    }
-    yield r'createdAt';
+    yield r'accessPointKey';
     yield serializers.serialize(
-      object.createdAt,
-      specifiedType: const FullType(DateTime),
+      object.accessPointKey,
+      specifiedType: const FullType(String),
+    );
+    yield r'sourceApp';
+    yield serializers.serialize(
+      object.sourceApp,
+      specifiedType: const FullType(String),
     );
     yield r'modifiedAt';
     yield serializers.serialize(
       object.modifiedAt,
       specifiedType: const FullType(DateTime),
+    );
+    yield r'name';
+    yield serializers.serialize(
+      object.name,
+      specifiedType: const FullType(String),
+    );
+    if (object.description != null) {
+      yield r'description';
+      yield serializers.serialize(
+        object.description,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    yield r'flowKey';
+    yield serializers.serialize(
+      object.flowKey,
+      specifiedType: const FullType(String),
     );
   }
 
@@ -136,33 +136,12 @@ class _$AgentAccessPointSerializer implements PrimitiveSerializer<AgentAccessPoi
       final key = serializedList[i] as String;
       final value = serializedList[i + 1];
       switch (key) {
-        case r'accessPointKey':
+        case r'createdAt':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.accessPointKey = valueDes;
-          break;
-        case r'name':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.name = valueDes;
-          break;
-        case r'sourceApp':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.sourceApp = valueDes;
-          break;
-        case r'flowKey':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.flowKey = valueDes;
+            specifiedType: const FullType(DateTime),
+          ) as DateTime;
+          result.createdAt = valueDes;
           break;
         case r'promptKey':
           final valueDes = serializers.deserialize(
@@ -171,13 +150,6 @@ class _$AgentAccessPointSerializer implements PrimitiveSerializer<AgentAccessPoi
           ) as String;
           result.promptKey = valueDes;
           break;
-        case r'personaSkillKey':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.personaSkillKey = valueDes;
-          break;
         case r'outputProfile':
           final valueDes = serializers.deserialize(
             value,
@@ -185,26 +157,34 @@ class _$AgentAccessPointSerializer implements PrimitiveSerializer<AgentAccessPoi
           ) as String;
           result.outputProfile = valueDes;
           break;
+        case r'personaSkillKey':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.personaSkillKey = valueDes;
+          break;
         case r'surveyId':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.surveyId = valueDes;
           break;
-        case r'description':
+        case r'accessPointKey':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType(String),
           ) as String;
-          result.description = valueDes;
+          result.accessPointKey = valueDes;
           break;
-        case r'createdAt':
+        case r'sourceApp':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(DateTime),
-          ) as DateTime;
-          result.createdAt = valueDes;
+            specifiedType: const FullType(String),
+          ) as String;
+          result.sourceApp = valueDes;
           break;
         case r'modifiedAt':
           final valueDes = serializers.deserialize(
@@ -212,6 +192,28 @@ class _$AgentAccessPointSerializer implements PrimitiveSerializer<AgentAccessPoi
             specifiedType: const FullType(DateTime),
           ) as DateTime;
           result.modifiedAt = valueDes;
+          break;
+        case r'name':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.name = valueDes;
+          break;
+        case r'description':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.description = valueDes;
+          break;
+        case r'flowKey':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.flowKey = valueDes;
           break;
         default:
           unhandled.add(key);
@@ -241,3 +243,4 @@ class _$AgentAccessPointSerializer implements PrimitiveSerializer<AgentAccessPoi
     return result.build();
   }
 }
+

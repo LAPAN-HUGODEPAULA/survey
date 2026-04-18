@@ -11,17 +11,17 @@ part 'agent_access_point_upsert.g.dart';
 /// AgentAccessPointUpsert
 ///
 /// Properties:
-/// * [accessPointKey]
-/// * [name]
-/// * [sourceApp]
-/// * [flowKey]
-/// * [promptKey]
-/// * [personaSkillKey]
-/// * [outputProfile]
-/// * [surveyId]
-/// * [description]
+/// * [accessPointKey] 
+/// * [name] 
+/// * [sourceApp] 
+/// * [flowKey] 
+/// * [promptKey] 
+/// * [personaSkillKey] 
+/// * [outputProfile] 
+/// * [surveyId] 
+/// * [description] 
 @BuiltValue(instantiable: false)
-abstract class AgentAccessPointUpsert {
+abstract class AgentAccessPointUpsert  {
   @BuiltValueField(wireName: r'accessPointKey')
   String get accessPointKey;
 
@@ -104,14 +104,14 @@ class _$AgentAccessPointUpsertSerializer implements PrimitiveSerializer<AgentAcc
       yield r'surveyId';
       yield serializers.serialize(
         object.surveyId,
-        specifiedType: const FullType(String),
+        specifiedType: const FullType.nullable(String),
       );
     }
     if (object.description != null) {
       yield r'description';
       yield serializers.serialize(
         object.description,
-        specifiedType: const FullType(String),
+        specifiedType: const FullType.nullable(String),
       );
     }
   }
@@ -229,15 +229,17 @@ class _$$AgentAccessPointUpsertSerializer implements PrimitiveSerializer<$AgentA
         case r'surveyId':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.surveyId = valueDes;
           break;
         case r'description':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
           result.description = valueDes;
           break;
         default:
@@ -268,3 +270,4 @@ class _$$AgentAccessPointUpsertSerializer implements PrimitiveSerializer<$AgentA
     return result.build();
   }
 }
+

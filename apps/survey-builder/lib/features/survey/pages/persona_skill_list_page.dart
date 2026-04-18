@@ -1,5 +1,5 @@
-import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:design_system_flutter/widgets.dart';
 import 'package:survey_builder/core/models/persona_skill_draft.dart';
 import 'package:survey_builder/core/repositories/persona_skill_repository.dart';
 import 'package:survey_builder/features/survey/pages/persona_skill_form_page.dart';
@@ -136,6 +136,81 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
         );
       });
     }
+  }
+
+  void _showExamples() {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => DsDialog(
+        title: 'Exemplos de personas',
+        content: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Alguns exemplos de personas comuns:',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            _buildPersonaExample(
+              context,
+              name: 'Cardiologista',
+              description: 'Foco em condições cardiovasculares e prevenção',
+            ),
+            _buildPersonaExample(
+              context,
+              name: 'Endocrinologista',
+              description: 'Especialista em diabetes e doenças metabólicas',
+            ),
+            _buildPersonaExample(
+              context,
+              name: 'Médico Geral',
+              description: 'Atendimento primário e saúde preventiva',
+            ),
+          ],
+        ),
+        actions: [
+          DsTextButton(
+            label: 'Fechar',
+            onPressed: () => Navigator.of(dialogContext).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersonaExample(BuildContext context, {required String name, required String description}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Icon(
+              Icons.person,
+              size: 16,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(name, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text(description, style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

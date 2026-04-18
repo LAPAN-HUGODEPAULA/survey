@@ -14,8 +14,7 @@ part 'clinical_writer_request_metadata.g.dart';
 /// * [sourceApp] 
 /// * [requestId] 
 /// * [patientRef] 
-/// * [surveyId]
-/// * [surveyRef]
+/// * [surveyId] 
 @BuiltValue()
 abstract class ClinicalWriterRequestMetadata implements Built<ClinicalWriterRequestMetadata, ClinicalWriterRequestMetadataBuilder> {
   @BuiltValueField(wireName: r'source_app')
@@ -29,9 +28,6 @@ abstract class ClinicalWriterRequestMetadata implements Built<ClinicalWriterRequ
 
   @BuiltValueField(wireName: r'surveyId')
   String? get surveyId;
-
-  @BuiltValueField(wireName: r'survey_id')
-  String? get surveyRef;
 
   ClinicalWriterRequestMetadata._();
 
@@ -84,10 +80,10 @@ class _$ClinicalWriterRequestMetadataSerializer implements PrimitiveSerializer<C
         specifiedType: const FullType(String),
       );
     }
-    if (object.surveyRef != null) {
+    if (object.surveyId != null) {
       yield r'survey_id';
       yield serializers.serialize(
-        object.surveyRef,
+        object.surveyId,
         specifiedType: const FullType(String),
       );
     }
@@ -147,7 +143,7 @@ class _$ClinicalWriterRequestMetadataSerializer implements PrimitiveSerializer<C
             value,
             specifiedType: const FullType(String),
           ) as String;
-          result.surveyRef = valueDes;
+          result.surveyId = valueDes;
           break;
         default:
           unhandled.add(key);
@@ -177,4 +173,3 @@ class _$ClinicalWriterRequestMetadataSerializer implements PrimitiveSerializer<C
     return result.build();
   }
 }
-

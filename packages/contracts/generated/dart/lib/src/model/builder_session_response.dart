@@ -12,13 +12,14 @@ part 'builder_session_response.g.dart';
 /// BuilderSessionResponse
 ///
 /// Properties:
-/// * [profile]
-/// * [csrfToken]
+/// * [profile] 
+/// * [csrfToken] - CSRF token that must be echoed in the builder write header
 @BuiltValue()
 abstract class BuilderSessionResponse implements Built<BuilderSessionResponse, BuilderSessionResponseBuilder> {
   @BuiltValueField(wireName: r'profile')
   ScreenerProfile get profile;
 
+  /// CSRF token that must be echoed in the builder write header
   @BuiltValueField(wireName: r'csrfToken')
   String get csrfToken;
 
@@ -120,3 +121,4 @@ class _$BuilderSessionResponseSerializer implements PrimitiveSerializer<BuilderS
     return result.build();
   }
 }
+
