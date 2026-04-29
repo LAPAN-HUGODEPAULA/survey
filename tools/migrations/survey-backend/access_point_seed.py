@@ -35,6 +35,19 @@ DEFAULT_AGENT_ACCESS_POINT_SEEDS = [
         ),
     },
     {
+        "accessPointKey": "survey_patient.report.detailed_analysis",
+        "name": "Relatório detalhado do questionário do paciente",
+        "sourceApp": "survey-patient",
+        "flowKey": "report.detailed_analysis",
+        "promptKey": "survey7",
+        "personaSkillKey": "patient_condition_report",
+        "outputProfile": "patient_condition_report",
+        "description": (
+            "Gera o relatório clínico detalhado a partir das respostas "
+            "do questionário do paciente."
+        ),
+    },
+    {
         "accessPointKey": "clinical_narrative.narrative.generate_report",
         "name": "Geração de prontuário da narrativa clínica",
         "sourceApp": "clinical-narrative",

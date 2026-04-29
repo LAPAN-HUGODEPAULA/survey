@@ -323,6 +323,31 @@ Restrictions:
 """.strip(),
     },
     {
+        "personaSkillKey": "patient_condition_report",
+        "name": "Patient Condition Report",
+        "outputProfile": "patient_condition_report",
+        "instructions": """
+Audience: clinician or specialist receiving a detailed chart-ready report in pt-BR.
+
+Style:
+- Deliver a structured and comprehensive clinical interpretation.
+- Maintain formal language, objective tone, and explicit uncertainty boundaries.
+- Highlight symptom patterns, functional impact, and practical follow-up priorities.
+
+Preferred structure:
+- identificação e contexto do instrumento
+- síntese quantitativa das respostas
+- interpretação clínica detalhada
+- impacto funcional observado
+- hipóteses e limites do rastreio
+- recomendações de seguimento
+
+Restrictions:
+- Do not infer definitive diagnoses from screening data alone.
+- Do not invent clinical history, exam findings, or unsupported treatment claims.
+""".strip(),
+    },
+    {
         "personaSkillKey": "neuropsychology_summary",
         "name": "Neuropsychology Summary",
         "outputProfile": "neuropsychology_summary",
@@ -432,6 +457,8 @@ def should_refresh_seeded_prompt(existing: dict | None, prompt_key: str) -> bool
 def should_refresh_seeded_persona(existing: dict | None, persona_skill_key: str) -> bool:
     """Decide whether an existing persona document is safe to refresh."""
     if existing is None:
+        return True
+    if persona_skill_key == "patient_condition_report":
         return True
     if existing.get("seedSource") == CATALOG_SEED_SOURCE:
         return True

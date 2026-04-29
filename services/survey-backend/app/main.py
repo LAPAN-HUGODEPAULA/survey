@@ -19,6 +19,7 @@ from app.api.routes.clinical_writer import router as clinical_writer_router
 from app.api.routes.documents import router as documents_router
 from app.api.routes.persona_skills import router as persona_skills_router
 from app.api.routes.patient_responses import router as patient_responses_router
+from app.api.routes.medications import router as medications_router
 from app.api.routes.privacy import router as privacy_router
 from app.api.routes.screener_access_links import router as screener_access_links_router
 from app.api.routes.screener_routes import router as screeners_router
@@ -150,6 +151,7 @@ app.include_router(persona_skills_router, prefix="/api/v1", tags=["persona_skill
 app.include_router(agent_access_points_router, prefix="/api/v1", tags=["agent_access_points"])
 app.include_router(survey_responses_router, prefix="/api/v1", tags=["survey_responses"])
 app.include_router(patient_responses_router, prefix="/api/v1", tags=["patient_responses"])
+app.include_router(medications_router, prefix="/api/v1", tags=["medications"])
 app.include_router(clinical_writer_router, prefix="/api/v1", tags=["clinical_writer"])
 app.include_router(screeners_router, prefix="/api/v1", tags=["screeners"])
 app.include_router(builder_auth_router, prefix="/api/v1", tags=["builder_auth"])

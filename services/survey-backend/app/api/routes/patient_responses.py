@@ -1,16 +1,23 @@
 """FastAPI router for patient survey responses."""
 
-from typing import Optional
+from pathlib import Path
+from tempfile import NamedTemporaryFile
+from typing import Any, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from pydantic import ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from app.config.settings import settings
 from app.config.logging_config import logger
 from app.domain.models.agent_response_model import AgentResponse
+from app.domain.models.agent_response_model import AgentArtifactResponse
 from app.domain.models.survey_response_model import SurveyResponse
 from app.domain.models.survey_response_with_agent import SurveyResponseWithAgent
 from app.integrations.clinical_writer.client import send_to_langgraph_agent
-from app.integrations.email.service import send_patient_response_email
+from app.integrations.email.service import (
+    send_patient_report_email,
+    send_patient_response_email,
+)
 from app.persistence.deps import (
     get_agent_access_point_repo,
     get_patient_response_repo,
@@ -21,13 +28,19 @@ from app.persistence.repositories.agent_access_point_repo import AgentAccessPoin
 from app.persistence.repositories.patient_response_repo import PatientResponseRepository
 from app.persistence.repositories.persona_skill_repo import PersonaSkillRepository
 from app.persistence.repositories.survey_repo import SurveyRepository
-from app.domain.models.agent_response_model import AgentArtifactResponse
 from app.services.access_point_selection import resolve_access_point_selection
 from app.services.survey_prompt_selection import (
     hydrate_survey_persona_defaults,
 )
 
 router = APIRouter()
+
+
+class SendReportEmailRequest(BaseModel):
+    """Payload for report email delivery."""
+
+    report_text: str | None = Field(default=None, alias="reportText")
+    model_config = ConfigDict(populate_by_name=True)
 
 
 @router.post("/patient_responses/", response_model=SurveyResponseWithAgent, status_code=status.HTTP_201_CREATED)
@@ -126,6 +139,19 @@ async def create_patient_response(
         except Exception as exc:
             logger.error("Failed to enrich patient response %s with agent output: %s", inserted_id, exc)
 
+        if agent_responses:
+            repo.update_fields(
+                inserted_id,
+                {
+                    "agentResponse": agent_response.model_dump(by_alias=True)
+                    if agent_response is not None
+                    else None,
+                    "agentResponses": [
+                        item.model_dump(by_alias=True) for item in agent_responses
+                    ],
+                },
+            )
+
         logger.info("--- Returning created patient response with agent output ---")
         return SurveyResponseWithAgent(
             **response_payload,
@@ -145,6 +171,65 @@ async def create_patient_response(
     except Exception as e:
         logger.error("Unexpected error creating patient response for survey %s: %s", survey_response.survey_id, e)
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
+
+
+@router.post("/patient_responses/{response_id}/send_report_email", status_code=status.HTTP_200_OK)
+async def send_report_email(
+    response_id: str,
+    payload: SendReportEmailRequest | None = None,
+    repo: PatientResponseRepository = Depends(get_patient_response_repo),
+):
+    """Generate a report PDF and send it to the patient email."""
+    response = repo.get_by_id(response_id)
+    if not response:
+        raise HTTPException(status_code=404, detail="Patient response not found.")
+
+    patient_email = (
+        response.get("patient", {}).get("email", "").strip()
+        if isinstance(response.get("patient"), dict)
+        else ""
+    )
+    if not patient_email:
+        raise HTTPException(
+            status_code=422,
+            detail="Patient response does not contain an email address.",
+        )
+
+    report_text = _resolve_report_text(response, payload.report_text if payload else None)
+    if not report_text:
+        raise HTTPException(
+            status_code=422,
+            detail="No report data available to generate PDF.",
+        )
+
+    pdf_bytes = _generate_report_pdf(report_text)
+    recipients = _resolve_report_recipients(patient_email)
+    temp_file_path = _write_temp_pdf(pdf_bytes, response_id)
+    try:
+        await send_patient_report_email(
+            response_id=response_id,
+            recipients=recipients,
+            attachment_paths=[temp_file_path],
+        )
+    except Exception as exc:
+        logger.error(
+            "Failed to send report email for patient response %s: %s",
+            response_id,
+            exc,
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to send report email.",
+        ) from exc
+    finally:
+        Path(temp_file_path).unlink(missing_ok=True)
+
+    return {
+        "status": "sent",
+        "responseId": response_id,
+        "recipients": recipients,
+    }
 
 
 def _resolve_runtime_access_points(
@@ -176,3 +261,101 @@ def _resolve_runtime_access_points(
             )
         )
     return runtime_points
+
+
+def _resolve_report_recipients(patient_email: str) -> list[str]:
+    recipients = [patient_email]
+    lapan_copy_email = settings.smtp_user or "lapan.hugodepaula@gmail.com"
+    if lapan_copy_email and lapan_copy_email.lower() != patient_email.lower():
+        recipients.append(lapan_copy_email)
+    return recipients
+
+
+def _resolve_report_text(response: dict[str, Any], override_text: str | None) -> str:
+    if override_text and override_text.strip():
+        return override_text.strip()
+
+    candidate_payloads: list[dict[str, Any]] = []
+    primary = response.get("agentResponse")
+    if isinstance(primary, dict):
+        candidate_payloads.append(primary)
+    artifacts = response.get("agentResponses")
+    if isinstance(artifacts, list):
+        candidate_payloads.extend(item for item in artifacts if isinstance(item, dict))
+
+    for payload in candidate_payloads:
+        medical_record = payload.get("medicalRecord")
+        if isinstance(medical_record, str) and medical_record.strip():
+            return medical_record.strip()
+        report = payload.get("report")
+        if isinstance(report, dict):
+            rendered = _report_dict_to_text(report).strip()
+            if rendered:
+                return rendered
+    return ""
+
+
+def _report_dict_to_text(report: dict[str, Any], level: int = 0) -> str:
+    lines: list[str] = []
+    indent = "  " * level
+    for key, value in report.items():
+        label = key.replace("_", " ").strip().capitalize()
+        if value is None:
+            continue
+        if isinstance(value, str):
+            content = value.strip()
+            if content:
+                lines.append(f"{indent}{label}: {content}")
+            continue
+        if isinstance(value, dict):
+            nested = _report_dict_to_text(value, level + 1).strip()
+            if nested:
+                lines.append(f"{indent}{label}:")
+                lines.append(nested)
+            continue
+        if isinstance(value, list):
+            if not value:
+                continue
+            lines.append(f"{indent}{label}:")
+            for item in value:
+                if isinstance(item, dict):
+                    nested = _report_dict_to_text(item, level + 2).strip()
+                    if nested:
+                        lines.append(f"{indent}  -")
+                        lines.append(nested)
+                else:
+                    item_text = str(item).strip()
+                    if item_text:
+                        lines.append(f"{indent}  - {item_text}")
+            continue
+        lines.append(f"{indent}{label}: {value}")
+    return "\n".join(lines)
+
+
+def _generate_report_pdf(report_text: str) -> bytes:
+    try:
+        from fpdf import FPDF
+    except ModuleNotFoundError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="PDF generation dependency is not installed.",
+        ) from exc
+
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+    pdf.set_font("Helvetica", size=11)
+    for line in report_text.splitlines() or [" "]:
+        pdf.multi_cell(0, 6, text=line if line.strip() else " ")
+    return bytes(pdf.output(dest="S"))
+
+
+def _write_temp_pdf(pdf_bytes: bytes, response_id: str) -> str:
+    with NamedTemporaryFile(
+        mode="wb",
+        suffix=f"_{response_id}.pdf",
+        prefix="patient_report_",
+        delete=False,
+    ) as temp_file:
+        temp_file.write(pdf_bytes)
+        return temp_file.name

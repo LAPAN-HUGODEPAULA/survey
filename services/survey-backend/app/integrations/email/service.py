@@ -77,7 +77,13 @@ def get_mail_client() -> Optional[Any]:
     return _fast_mail
 
 
-def _build_message(*, subject: str, recipients: list[str], body: str) -> Any | None:
+def _build_message(
+    *,
+    subject: str,
+    recipients: list[str],
+    body: str,
+    attachments: list[Any] | None = None,
+) -> Any | None:
     mail_client = get_mail_client()
     if mail_client is None or _message_schema_type is None or _message_type_enum is None:
         return None
@@ -86,6 +92,7 @@ def _build_message(*, subject: str, recipients: list[str], body: str) -> Any | N
         recipients=recipients,
         body=body,
         subtype=_message_type_enum.plain,
+        attachments=attachments or [],
     )
 
 
@@ -163,3 +170,31 @@ async def send_patient_response_email(response_id: str):
         body_prefix="New patient survey response received:",
         log_label="patient response",
     )
+
+
+async def send_patient_report_email(
+    *,
+    response_id: str,
+    recipients: list[str],
+    attachment_paths: list[str],
+) -> None:
+    """Send a patient report email with PDF attachments."""
+    message = _build_message(
+        subject=f"Relatório clínico do paciente {response_id}",
+        recipients=recipients,
+        body=(
+            "Segue o relatório clínico em PDF gerado a partir da resposta do paciente.\n\n"
+            f"ID da resposta: {response_id}"
+        ),
+        attachments=attachment_paths,
+    )
+    if message is None:
+        logger.warning("Email client unavailable; skipping report send for %s", response_id)
+        return
+
+    mail_client = get_mail_client()
+    if mail_client is None:
+        logger.warning("Email client unavailable; skipping report send for %s", response_id)
+        return
+
+    await mail_client.send_message(message)

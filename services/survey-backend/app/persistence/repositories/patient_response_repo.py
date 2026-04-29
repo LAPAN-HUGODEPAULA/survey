@@ -27,6 +27,14 @@ class PatientResponseRepository:
             return None
         return self._normalize(self._col.find_one({"_id": object_id}))
 
+    def update_fields(self, response_id: str, fields: dict) -> dict | None:
+        try:
+            object_id = ObjectId(response_id)
+        except Exception:
+            return None
+        self._col.update_one({"_id": object_id}, {"$set": fields})
+        return self._normalize(self._col.find_one({"_id": object_id}))
+
     def _normalize(self, doc: dict | None) -> dict:
         """Convert Mongo IDs into plain strings without mutating the source document."""
         if not doc:
