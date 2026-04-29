@@ -1,21 +1,30 @@
 import 'package:clinical_narrative_app/core/models/agent_response.dart';
 import 'package:clinical_narrative_app/core/services/api_config.dart';
 import 'package:dio/dio.dart';
+import 'package:runtime_agent_access_points/runtime_agent_access_points.dart';
 
 class ClinicalWriterService {
   ClinicalWriterService({Dio? httpClient})
     : _httpClient = httpClient ?? ApiConfig.createDio();
 
   final Dio _httpClient;
+  static const _accessPoint =
+      RuntimeAccessPointCatalog.clinicalNarrativeGenerateReport;
 
   Future<AgentResponse> processContent(String content) async {
+    final requestId = 'req_${DateTime.now().microsecondsSinceEpoch}';
     final payload = {
       'input_type': 'consult',
       'content': content,
       'locale': 'pt-BR',
       'prompt_key': 'default',
+      'accessPointKey': _accessPoint.accessPointKey,
       'output_format': 'report_json',
-      'metadata': {'source_app': 'clinical-narrative'},
+      'metadata': {
+        'source_app': _accessPoint.sourceApp,
+        'flow_key': _accessPoint.flowKey,
+        'request_id': requestId,
+      },
     };
     final response = await _httpClient.post<Map<String, dynamic>>(
       ApiConfig.requestPath('clinical_writer/process'),
@@ -35,9 +44,14 @@ class ClinicalWriterService {
       'content': content,
       'locale': 'pt-BR',
       'prompt_key': 'default',
+      'accessPointKey': _accessPoint.accessPointKey,
       'output_format': 'report_json',
       'asyncMode': true,
-      'metadata': {'source_app': 'clinical-narrative', 'request_id': requestId},
+      'metadata': {
+        'source_app': _accessPoint.sourceApp,
+        'flow_key': _accessPoint.flowKey,
+        'request_id': requestId,
+      },
     };
     final response = await _httpClient.post<Map<String, dynamic>>(
       ApiConfig.requestPath('clinical_writer/process'),

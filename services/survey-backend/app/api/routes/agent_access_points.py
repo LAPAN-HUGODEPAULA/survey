@@ -22,6 +22,7 @@ from app.persistence.repositories.survey_prompt_repo import SurveyPromptReposito
 from app.persistence.repositories.survey_repo import SurveyRepository
 
 router = APIRouter(dependencies=[Depends(require_builder_admin)])
+_LOCAL_PROMPT_KEYS = {"default", "consult", "survey7", "full_intake"}
 
 
 def _validate_access_point_bindings(
@@ -37,7 +38,11 @@ def _validate_access_point_bindings(
             detail=f"Unknown surveyId: {access_point.survey_id}",
         )
 
-    prompt = prompt_repo.get_by_key(access_point.prompt_key)
+    prompt = (
+        {"promptKey": access_point.prompt_key}
+        if access_point.prompt_key in _LOCAL_PROMPT_KEYS
+        else prompt_repo.get_by_key(access_point.prompt_key)
+    )
     if not prompt:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -58,13 +63,6 @@ def _validate_access_point_bindings(
                 "outputProfile does not match personaSkillKey: "
                 f"{access_point.persona_skill_key}"
             ),
-        )
-
-    persona_by_output = persona_repo.get_by_output_profile(access_point.output_profile)
-    if not persona_by_output:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-            detail=f"Unknown outputProfile: {access_point.output_profile}",
         )
 
 
@@ -174,4 +172,3 @@ async def delete_agent_access_point(
         )
     repo.delete(access_point_key)
     return None
-

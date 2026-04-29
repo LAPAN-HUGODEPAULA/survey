@@ -1,5 +1,6 @@
 import 'package:survey_app/core/models/agent_response.dart';
 import 'package:survey_app/core/models/patient.dart';
+import 'package:survey_responses_shared/answer.dart' as shared;
 
 class SurveyResponse {
   const SurveyResponse({
@@ -46,7 +47,7 @@ class SurveyResponse {
           : Patient.fromJson(json),
       answers: answersRaw
           .whereType<Map<String, dynamic>>()
-          .map(Answer.fromJson)
+          .map(shared.Answer.fromJson)
           .toList(growable: false),
     );
   }
@@ -62,7 +63,7 @@ class SurveyResponse {
   final DateTime testDate;
   final String screenerId;
   final Patient patient;
-  final List<Answer> answers;
+  final List<shared.Answer> answers;
 
   Map<String, dynamic> toJson() {
     return {
@@ -88,7 +89,7 @@ class SurveyResponse {
     String? accessPointKey,
     String? promptKey,
     Patient? patient,
-    List<Answer>? answers,
+    List<shared.Answer>? answers,
     AgentResponse? agentResponse,
     List<AgentResponse>? agentResponses,
   }) {
@@ -106,26 +107,6 @@ class SurveyResponse {
       agentResponse: agentResponse ?? this.agentResponse,
       agentResponses: agentResponses ?? this.agentResponses,
     );
-  }
-}
-
-class Answer {
-  const Answer({required this.id, required this.answer});
-
-  factory Answer.fromJson(Map<String, dynamic> json) {
-    return Answer(
-      id: json['id'] is int
-          ? json['id'] as int
-          : int.parse(json['id'].toString()),
-      answer: json['answer']?.toString() ?? '',
-    );
-  }
-
-  final int id;
-  final String answer;
-
-  Map<String, dynamic> toJson() {
-    return {'id': id, 'answer': answer};
   }
 }
 

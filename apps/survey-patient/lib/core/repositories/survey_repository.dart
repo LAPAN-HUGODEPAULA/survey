@@ -38,9 +38,7 @@ class SurveyRepository {
           ),
         )
         .toList(growable: false);
-    debugPrint(
-      'SurveyRepository.fetchAll: parsed ${surveys.length} surveys',
-    );
+    debugPrint('SurveyRepository.fetchAll: parsed ${surveys.length} surveys');
     return surveys;
   }
 
@@ -85,7 +83,7 @@ class SurveyRepository {
       'content': content,
       'locale': 'pt-BR',
       'accessPointKey': accessPointKey,
-      'prompt_key': promptKey ?? 'survey7',
+      'prompt_key': promptKey ?? 'default',
       'output_format': 'report_json',
       'metadata': metadata,
     };
@@ -113,7 +111,7 @@ class SurveyRepository {
       'content': content,
       'locale': 'pt-BR',
       'accessPointKey': accessPointKey,
-      'prompt_key': promptKey ?? 'survey7',
+      'prompt_key': promptKey ?? 'default',
       'output_format': 'report_json',
       'asyncMode': true,
       'metadata': metadata,

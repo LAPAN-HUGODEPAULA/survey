@@ -15,6 +15,7 @@ import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/core/repositories/survey_repository.dart';
 import 'package:patient_app/shared/widgets/patient_journey_stepper.dart';
 import 'package:provider/provider.dart';
+import 'package:runtime_agent_access_points/runtime_agent_access_points.dart';
 
 const _radarPalette = <Color>[
   Color(0xFFEF5350),
@@ -25,9 +26,6 @@ const _radarPalette = <Color>[
   Color(0xFF26A69A),
   Color(0xFFFFEB3B),
 ];
-const _patientThankYouAccessPointKey =
-    'survey_patient.thank_you.auto_analysis';
-
 Color _withOpacity(Color base, double opacity) {
   final alpha = (opacity.clamp(0.0, 1.0) * 255).clamp(0.0, 255.0);
   return base.withValues(alpha: alpha);
@@ -161,7 +159,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
     final taskStart = await repository.startClinicalWriterTask(
       payload,
       accessPointKey: surveyResponse.accessPointKey,
-      promptKey: surveyResponse.promptKey,
       surveyId: surveyResponse.surveyId,
     );
     final taskId =
@@ -170,7 +167,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
       return repository.processClinicalWriter(
         payload,
         accessPointKey: surveyResponse.accessPointKey,
-        promptKey: surveyResponse.promptKey,
         surveyId: surveyResponse.surveyId,
       );
     }
@@ -225,8 +221,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
       creatorId: widget.survey.creatorId,
       testDate: DateTime.now(),
       screenerId: settings.screener.id,
-      promptKey: widget.survey.prompt?.promptKey,
-      accessPointKey: _patientThankYouAccessPointKey,
+      accessPointKey: RuntimeAccessPointCatalog
+          .surveyPatientThankYouAutoAnalysis
+          .accessPointKey,
       patient: _resolvePatient(settings),
       answers: _buildAnswers(),
     );

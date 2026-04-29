@@ -4,18 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-
-def _normalize_key(value: str, *, field_name: str) -> str:
-    normalized = value.strip()
-    if not normalized:
-        raise ValueError(f"{field_name} must not be blank")
-    allowed = set("abcdefghijklmnopqrstuvwxyz0123456789.:_-")
-    lowered = normalized.lower()
-    if any(char not in allowed for char in lowered):
-        raise ValueError(
-            f"{field_name} must contain only lowercase letters, digits, period, colon, underscore, or hyphen"
-        )
-    return lowered
+from app.domain.models._key_validation import normalize_key
 
 
 class AgentAccessPointUpsert(BaseModel):
@@ -43,7 +32,7 @@ class AgentAccessPointUpsert(BaseModel):
     )
     @classmethod
     def validate_key_fields(cls, value: str, info) -> str:
-        return _normalize_key(value, field_name=info.field_name)
+        return normalize_key(value, field_name=info.field_name, allowed_extra_chars=".")
 
     @field_validator("name")
     @classmethod

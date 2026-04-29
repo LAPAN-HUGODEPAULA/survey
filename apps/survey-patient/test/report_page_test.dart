@@ -10,7 +10,6 @@ import 'package:patient_app/core/models/survey/survey.dart';
 import 'package:patient_app/core/models/survey_response.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
 import 'package:patient_app/core/repositories/survey_repository.dart';
-import 'package:patient_app/core/services/api_config.dart';
 import 'package:patient_app/features/report/pages/report_page.dart';
 import 'package:provider/provider.dart';
 import 'package:survey_backend_api/survey_backend_api.dart' as api;
@@ -19,10 +18,10 @@ class _FakeSurveyRepository extends SurveyRepository {
   _FakeSurveyRepository()
       : super(
           apiClient: api.DefaultApi(
-            Dio(BaseOptions(baseUrl: ApiConfig.dioBaseUrl)),
+            Dio(BaseOptions(baseUrl: 'http://localhost')),
             api.standardSerializers,
           ),
-          rawClient: Dio(BaseOptions(baseUrl: ApiConfig.dioBaseUrl)),
+          rawClient: Dio(BaseOptions(baseUrl: 'http://localhost')),
         );
 
   @override
@@ -76,10 +75,11 @@ void main() {
     );
 
     final repository = _FakeSurveyRepository();
+    final settingsRepository = _FakeSurveyRepository();
 
     await tester.pumpWidget(
       ChangeNotifierProvider(
-        create: (_) => AppSettings(surveyRepository: repository),
+        create: (_) => AppSettings(surveyRepository: settingsRepository),
         child: MaterialApp(
           home: ReportPage(
             survey: survey,
@@ -91,10 +91,14 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
 
     expect(find.text('Salvar como texto'), findsOneWidget);
     expect(find.text('Exportar PDF'), findsOneWidget);
     expect(find.text(dsSharedStatusBarText), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
   });
 }

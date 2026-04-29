@@ -4,6 +4,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.domain.models._key_validation import normalize_key
+
 
 class SurveyPromptReference(BaseModel):
     """Compact questionnaire prompt reference embedded inside a survey definition."""
@@ -27,16 +29,7 @@ class SurveyPromptUpsert(BaseModel):
     @classmethod
     def validate_prompt_key(cls, value: str) -> str:
         """Require a code-safe key that works in runtime calls."""
-        normalized = value.strip()
-        if not normalized:
-            raise ValueError("promptKey must not be blank")
-        allowed = set("abcdefghijklmnopqrstuvwxyz0123456789:_-")
-        lowered = normalized.lower()
-        if any(char not in allowed for char in lowered):
-            raise ValueError(
-                "promptKey must contain only lowercase letters, digits, colon, underscore, or hyphen"
-            )
-        return lowered
+        return normalize_key(value, field_name="promptKey")
 
     @field_validator("name", "prompt_text")
     @classmethod

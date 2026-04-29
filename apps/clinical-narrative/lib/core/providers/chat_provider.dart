@@ -10,6 +10,7 @@ import 'package:clinical_narrative_app/core/models/transcription_models.dart';
 import 'package:clinical_narrative_app/core/services/api_config.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:runtime_agent_access_points/runtime_agent_access_points.dart';
 import 'package:web/web.dart' as web;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -172,6 +173,8 @@ class ChatProvider extends ChangeNotifier {
     String? previewText,
     Map<String, dynamic>? metadata,
   }) async {
+    const accessPoint =
+        RuntimeAccessPointCatalog.clinicalNarrativeVoiceTranscription;
     final response = await _client.post<Map<String, dynamic>>(
       ApiConfig.requestPath('/voice/transcriptions'),
       data: {
@@ -184,7 +187,12 @@ class ChatProvider extends ChangeNotifier {
         'clinicalMode': clinicalMode,
         'confidenceThreshold': ?confidenceThreshold,
         'previewText': ?previewText,
-        'metadata': ?metadata,
+        'metadata': {
+          'source_app': accessPoint.sourceApp,
+          'flow_key': accessPoint.flowKey,
+          'accessPointCandidateKey': accessPoint.accessPointKey,
+          ...?metadata,
+        },
       },
     );
     final data = response.data;
