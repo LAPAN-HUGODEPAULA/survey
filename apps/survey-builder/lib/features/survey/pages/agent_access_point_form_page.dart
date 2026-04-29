@@ -333,10 +333,22 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
 
     setState(() => _saving = true);
     try {
-      if (_isEditing) {
+      var shouldUpdate = _isEditing;
+      if (!shouldUpdate) {
+        final existing = await _repository.getAccessPointByKey(
+          draft.accessPointKey,
+        );
+        shouldUpdate = existing != null;
+      }
+
+      if (shouldUpdate) {
         await _repository.updateAccessPoint(draft);
       } else {
-        await _repository.createAccessPoint(draft);
+        try {
+          await _repository.createAccessPoint(draft);
+        } on AgentAccessPointConflictException {
+          await _repository.updateAccessPoint(draft);
+        }
       }
       if (!mounted) {
         return;

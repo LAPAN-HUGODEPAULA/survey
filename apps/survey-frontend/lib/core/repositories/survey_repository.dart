@@ -47,6 +47,32 @@ class SurveyRepository {
     return ui.SurveyResponse.fromJson(data);
   }
 
+  /// Searches reference medications by query text.
+  Future<List<String>> searchMedications(String query, {int limit = 10}) async {
+    final normalized = query.trim();
+    if (normalized.length < 3) {
+      return const <String>[];
+    }
+
+    final response = await _rawClient.get<Object?>(
+      ApiConfig.requestPath('medications/search', <String, dynamic>{
+        'q': normalized,
+        'limit': limit,
+      }),
+      options: Options(responseType: ResponseType.plain),
+    );
+    final data = _decodeJsonBody(response.data);
+    final rawResults = data is Map<String, dynamic> ? data['results'] : null;
+    if (rawResults is! List) {
+      return const <String>[];
+    }
+    return rawResults
+        .whereType<Map<String, dynamic>>()
+        .map((item) => item['substance']?.toString().trim() ?? '')
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+  }
+
   /// Sends content to the Clinical Writer agent via backend proxy.
   Future<AgentResponse> processClinicalWriter(
     String content, {
@@ -161,14 +187,18 @@ class SurveyRepository {
 
   Future<Map<String, dynamic>> _getJson(String path) async {
     final response = await _rawClient.get<Object?>(ApiConfig.requestPath(path));
-    final data = response.data;
+    final data = _decodeJsonBody(response.data);
     if (data is Map<String, dynamic>) {
       return Map<String, dynamic>.from(data);
     }
-    if (data is String) {
-      return jsonDecode(data) as Map<String, dynamic>;
-    }
     throw const FormatException('Unexpected response payload.');
+  }
+
+  Object? _decodeJsonBody(Object? data) {
+    if (data is String) {
+      return jsonDecode(data);
+    }
+    return data;
   }
 
   String _generateRequestId() {

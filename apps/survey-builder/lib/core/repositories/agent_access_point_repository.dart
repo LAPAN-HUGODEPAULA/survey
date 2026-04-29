@@ -80,6 +80,25 @@ class AgentAccessPointRepository {
     }
   }
 
+  Future<AgentAccessPointDraft?> getAccessPointByKey(
+    String accessPointKey,
+  ) async {
+    try {
+      final response = await _client.get<Object?>(
+        ApiConfig.requestPath('agent_access_points/$accessPointKey'),
+      );
+      return _mapResponse(response.data);
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 404) {
+        return null;
+      }
+      throw _mapError(
+        error,
+        fallbackMessage: 'Falha ao buscar ponto de acesso.',
+      );
+    }
+  }
+
   AgentAccessPointDraft _mapResponse(Object? payload) {
     final decoded = _coerceJson(payload);
     if (decoded is Map<String, dynamic>) {

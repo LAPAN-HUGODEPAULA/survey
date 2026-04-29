@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:survey_app/core/navigation/app_navigator.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
+import 'package:survey_app/core/repositories/survey_repository.dart';
 import 'package:survey_app/shared/widgets/assessment_flow_stepper.dart';
 import 'package:survey_app/shared/widgets/screener_navigation_app_bar.dart';
 
@@ -19,6 +20,7 @@ class DemographicsPage extends StatefulWidget {
 class _DemographicsPageState extends State<DemographicsPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late final DsDemographicsFormController _demographicsController;
+  late final SurveyRepository _surveyRepository;
 
   @override
   void initState() {
@@ -28,6 +30,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
           'Informe se a pessoa faz uso de medicação psiquiátrica.',
       additionalValidationItemsBuilder: _buildAdditionalValidationItems,
     );
+    _surveyRepository = SurveyRepository();
     _demographicsController.loadInitialData();
     Provider.of<AppSettings>(
       context,
@@ -42,6 +45,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
       listen: false,
     ).removeListener(_onSettingsChanged);
     _demographicsController.dispose();
+    _surveyRepository.dispose();
     super.dispose();
   }
 
@@ -85,6 +89,10 @@ class _DemographicsPageState extends State<DemographicsPage> {
     );
 
     AppNavigator.toClinical(context);
+  }
+
+  Future<List<String>> _searchMedications(String query) {
+    return _surveyRepository.searchMedications(query);
   }
 
   @override
@@ -163,8 +171,13 @@ class _DemographicsPageState extends State<DemographicsPage> {
                         catalogs: _demographicsController.catalogs,
                         professionController:
                             _demographicsController.professionController,
-                        medicationNameController:
-                            _demographicsController.medicationNameController,
+                        selectedMedications:
+                            _demographicsController.selectedMedications,
+                        searchMedications: _searchMedications,
+                        onMedicationAdded:
+                            _demographicsController.addMedication,
+                        onMedicationRemoved:
+                            _demographicsController.removeMedication,
                         selectedDiagnoses:
                             _demographicsController.selectedDiagnoses,
                         selectedSex: _demographicsController.selectedSex,

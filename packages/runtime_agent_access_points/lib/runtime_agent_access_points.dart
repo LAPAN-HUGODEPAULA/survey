@@ -50,6 +50,17 @@ class RuntimeAccessPointCatalog {
     availability: RuntimeAccessPointAvailability.configurable,
   );
 
+  static const surveyPatientReportDetailedAnalysis = RuntimeAccessPointDescriptor(
+    accessPointKey: 'survey_patient.report.detailed_analysis',
+    name: 'Relatório detalhado do questionário do paciente',
+    sourceApp: 'survey-patient',
+    flowKey: 'report.detailed_analysis',
+    surfaceLabel: 'survey-patient · Questionários · Gerar relatório',
+    description:
+        'Gera o relatório clínico detalhado a partir das respostas do questionário do paciente.',
+    availability: RuntimeAccessPointAvailability.configurable,
+  );
+
   static const clinicalNarrativeGenerateReport = RuntimeAccessPointDescriptor(
     accessPointKey: 'clinical_narrative.narrative.generate_report',
     name: 'Geração de prontuário da narrativa clínica',
@@ -90,6 +101,7 @@ class RuntimeAccessPointCatalog {
   static const List<RuntimeAccessPointDescriptor> configurable = [
     surveyFrontendThankYouAutoAnalysis,
     surveyPatientThankYouAutoAnalysis,
+    surveyPatientReportDetailedAnalysis,
     clinicalNarrativeGenerateReport,
   ];
 
@@ -101,6 +113,7 @@ class RuntimeAccessPointCatalog {
   static const List<RuntimeAccessPointDescriptor> all = [
     surveyFrontendThankYouAutoAnalysis,
     surveyPatientThankYouAutoAnalysis,
+    surveyPatientReportDetailedAnalysis,
     clinicalNarrativeGenerateReport,
     clinicalNarrativeChatAnalysis,
     clinicalNarrativeVoiceTranscription,

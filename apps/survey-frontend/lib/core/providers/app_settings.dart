@@ -172,7 +172,7 @@ class AppSettings extends ChangeNotifier {
     required String ethnicity,
     required String educationLevel,
     required String profession,
-    required String medication,
+    required List<String> medication,
     required List<String> diagnoses,
   }) {
     _patient = _patient.copyWith(
@@ -183,7 +183,7 @@ class AppSettings extends ChangeNotifier {
       ethnicity: ethnicity,
       educationLevel: educationLevel,
       profession: profession,
-      medication: _normaliseMedication(medication),
+      medication: medication,
       diagnoses: diagnoses,
     );
     notifyListeners();
@@ -222,17 +222,5 @@ class AppSettings extends ChangeNotifier {
   void dispose() {
     _surveyRepository.dispose();
     super.dispose();
-  }
-
-  List<String> _normaliseMedication(String medication) {
-    final normalised = medication.trim();
-    if (normalised.isEmpty || normalised.toLowerCase() == 'não aplicável') {
-      return const <String>[];
-    }
-    return normalised
-        .split(',')
-        .map((entry) => entry.trim())
-        .where((entry) => entry.isNotEmpty)
-        .toList();
   }
 }
