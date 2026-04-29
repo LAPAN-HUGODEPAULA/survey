@@ -28,36 +28,16 @@ class DemographicsPage extends StatefulWidget {
 
 class _DemographicsPageState extends State<DemographicsPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _dobController = TextEditingController();
-  final TextEditingController _professionController = TextEditingController();
-  final TextEditingController _medicationNameController =
-      TextEditingController();
-  final DsDemographicsCatalogLoader _catalogLoader =
-      DsDemographicsCatalogLoader();
-
-  DsDemographicsCatalogs? _catalogs;
-  String? _catalogError;
-  bool _isLoadingCatalogs = true;
-  bool _hasSubmitted = false;
-  List<DsValidationSummaryItem> _validationItems =
-      const <DsValidationSummaryItem>[];
-  String? _selectedSex;
-  String? _selectedRace;
-  String? _selectedEducationLevel;
-  String? _usesMedication;
-  Map<String, bool> _selectedDiagnoses = <String, bool>{};
+  late final DsDemographicsFormController _demographicsController;
 
   @override
   void initState() {
     super.initState();
-    _loadInitialData();
-    _nameController.addListener(_syncValidationSummary);
-    _emailController.addListener(_syncValidationSummary);
-    _dobController.addListener(_syncValidationSummary);
-    _professionController.addListener(_syncValidationSummary);
-    _medicationNameController.addListener(_syncValidationSummary);
+    _demographicsController = DsDemographicsFormController(
+      usesMedicationRequiredMessage:
+          'Informe se você faz uso de medicação psiquiátrica.',
+    );
+    _demographicsController.loadInitialData();
     Provider.of<AppSettings>(
       context,
       listen: false,
@@ -70,176 +50,33 @@ class _DemographicsPageState extends State<DemographicsPage> {
       context,
       listen: false,
     ).removeListener(_onSettingsChanged);
-    _nameController.removeListener(_syncValidationSummary);
-    _emailController.removeListener(_syncValidationSummary);
-    _dobController.removeListener(_syncValidationSummary);
-    _professionController.removeListener(_syncValidationSummary);
-    _medicationNameController.removeListener(_syncValidationSummary);
-    _nameController.dispose();
-    _emailController.dispose();
-    _dobController.dispose();
-    _professionController.dispose();
-    _medicationNameController.dispose();
+    _demographicsController.dispose();
     super.dispose();
   }
 
   void _onSettingsChanged() {
     final settings = Provider.of<AppSettings>(context, listen: false);
     if (settings.patient.name.isEmpty) {
-      _clearAllFields();
+      _demographicsController.reset();
     }
-  }
-
-  Future<void> _loadInitialData() async {
-    setState(() {
-      _isLoadingCatalogs = true;
-      _catalogError = null;
-    });
-
-    try {
-      final catalogs = await _catalogLoader.loadAll();
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _catalogs = catalogs;
-        _selectedDiagnoses = <String, bool>{
-          for (final String diagnosis in catalogs.diagnoses) diagnosis: false,
-        };
-      });
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _catalogError = 'Erro ao carregar dados do formulário: $error';
-      });
-    } finally {
-      if (mounted) {
-        setState(() => _isLoadingCatalogs = false);
-      }
-    }
-  }
-
-  void _clearAllFields() {
-    _nameController.clear();
-    _emailController.clear();
-    _dobController.clear();
-    _professionController.clear();
-    _medicationNameController.clear();
-    setState(() {
-      _selectedSex = null;
-      _selectedRace = null;
-      _selectedEducationLevel = null;
-      _usesMedication = null;
-      _hasSubmitted = false;
-      _validationItems = const <DsValidationSummaryItem>[];
-      _selectedDiagnoses = <String, bool>{
-        for (final String diagnosis in _catalogs?.diagnoses ?? const <String>[])
-          diagnosis: false,
-      };
-    });
-  }
-
-  void _syncValidationSummary() {
-    if (!_hasSubmitted || !mounted) {
-      return;
-    }
-    setState(() {
-      _validationItems = _buildValidationItems();
-    });
-  }
-
-  List<DsValidationSummaryItem> _buildValidationItems() {
-    final items = <DsValidationSummaryItem>[];
-
-    void addItem(String label, String? message) {
-      if (message == null || message.trim().isEmpty) {
-        return;
-      }
-      items.add(DsValidationSummaryItem(label: label, message: message));
-    }
-
-    addItem(
-      'Nome completo',
-      DsFormValidators.validatePersonName(
-        _nameController.text,
-        context: 'patient',
-      ),
-    );
-    addItem(
-      'E-mail',
-      DsFormValidators.validateEmail(_emailController.text, context: 'patient'),
-    );
-    addItem(
-      'Data de nascimento',
-      DsFormValidators.validateBirthDate(_dobController.text),
-    );
-    addItem(
-      'Sexo',
-      DsFormValidators.validateDropdownSelection(_selectedSex, 'Sexo'),
-    );
-    addItem(
-      'Raça/Etnia',
-      DsFormValidators.validateDropdownSelection(_selectedRace, 'Raça/Etnia'),
-    );
-    addItem(
-      'Grau de escolaridade',
-      DsFormValidators.validateDropdownSelection(
-        _selectedEducationLevel,
-        'Grau de Escolaridade',
-      ),
-    );
-    addItem('Uso de medicação psiquiátrica', _validateUsesMedication());
-    if (_usesMedication == 'Sim') {
-      addItem(
-        'Nome do(s) medicamento(s)',
-        DsFormValidators.validateRequired(_medicationNameController.text),
-      );
-    }
-
-    return items;
-  }
-
-  String? _validateUsesMedication() {
-    if (_usesMedication == null) {
-      return 'Informe se você faz uso de medicação psiquiátrica.';
-    }
-    return null;
   }
 
   void _submitForm() {
-    final isFormValid = _formKey.currentState!.validate();
-    final validationItems = _buildValidationItems();
-
-    if (!isFormValid || validationItems.isNotEmpty) {
-      setState(() {
-        _hasSubmitted = true;
-        _validationItems = validationItems;
-      });
+    final submission = _demographicsController.submit(_formKey);
+    if (submission == null) {
       return;
     }
 
-    setState(() {
-      _hasSubmitted = false;
-      _validationItems = const <DsValidationSummaryItem>[];
-    });
-
     Provider.of<AppSettings>(context, listen: false).setPatientData(
-      name: _nameController.text.trim(),
-      email: _emailController.text.trim(),
-      birthDate: _dobController.text,
-      gender: _selectedSex!,
-      ethnicity: _selectedRace!,
-      educationLevel: _selectedEducationLevel!,
-      profession: _professionController.text.trim(),
-      medication: _usesMedication == 'Sim'
-          ? _medicationNameController.text.trim()
-          : 'Não aplicável',
-      diagnoses: _selectedDiagnoses.entries
-          .where((MapEntry<String, bool> entry) => entry.value)
-          .map((MapEntry<String, bool> entry) => entry.key)
-          .toList(growable: false),
+      name: submission.name,
+      email: submission.email,
+      birthDate: submission.birthDate,
+      gender: submission.gender,
+      ethnicity: submission.ethnicity,
+      educationLevel: submission.educationLevel,
+      profession: submission.profession,
+      medication: submission.medication,
+      diagnoses: submission.diagnoses,
     );
 
     AppNavigator.toReport(
@@ -265,130 +102,103 @@ class _DemographicsPageState extends State<DemographicsPage> {
         ? widget.survey.surveyDisplayName
         : widget.survey.surveyName;
 
-    return DsScaffold(
-      isLoading: _isLoadingCatalogs,
-      error: _catalogError,
-      title: 'Informações demográficas',
-      subtitle:
-          'Complete os dados adicionais para enriquecer o relatório de $displayName.',
-      onBack: () => Navigator.of(context).pop(),
-      backLabel: 'Voltar para o resumo',
-      scrollable: true,
-      body: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const PatientJourneyStepper(
-              currentStep: PatientJourneyStep.relatorio,
-            ),
-            DsHandoffFork(
-              title: 'Adicionar informações é opcional',
-              subtitle: DsHandoffCopy.optionalEnrichmentGuidance,
-              actions: [
-                DsHandoffForkAction(
-                  title: 'Se preferir, siga direto para o relatório',
-                  description:
-                      'Você pode preencher os campos abaixo agora ou pular esta etapa sem perder o andamento da avaliação.',
-                  primaryLabel: 'Pular por agora',
-                  onPrimaryPressed: _skipEnrichment,
-                  icon: Icons.analytics_outlined,
+    return ListenableBuilder(
+      listenable: _demographicsController,
+      builder: (context, child) {
+        return DsScaffold(
+          isLoading: _demographicsController.isLoadingCatalogs,
+          error: _demographicsController.catalogError,
+          title: 'Informações demográficas',
+          subtitle:
+              'Complete os dados adicionais para enriquecer o relatório de $displayName.',
+          onBack: () => Navigator.of(context).pop(),
+          backLabel: 'Voltar para o resumo',
+          scrollable: true,
+          body: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const PatientJourneyStepper(
+                  currentStep: PatientJourneyStep.relatorio,
+                ),
+                DsHandoffFork(
+                  title: 'Adicionar informações é opcional',
+                  subtitle: DsHandoffCopy.optionalEnrichmentGuidance,
+                  actions: [
+                    DsHandoffForkAction(
+                      title: 'Se preferir, siga direto para o relatório',
+                      description:
+                          'Você pode preencher os campos abaixo agora ou pular esta etapa sem perder o andamento da avaliação.',
+                      primaryLabel: 'Pular por agora',
+                      onPrimaryPressed: _skipEnrichment,
+                      icon: Icons.analytics_outlined,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                if (_demographicsController.validationItems.isNotEmpty) ...[
+                  DsValidationSummary(
+                    items: _demographicsController.validationItems,
+                    description:
+                        'Corrija os itens abaixo e os campos destacados antes de continuar.',
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                DsSection(
+                  eyebrow: 'Paciente',
+                  title: 'Identificação',
+                  subtitle:
+                      'Informe os dados essenciais para contextualizar a avaliação.',
+                  child: DsPatientIdentitySection(
+                    nameController: _demographicsController.nameController,
+                    emailController: _demographicsController.emailController,
+                    birthDateController:
+                        _demographicsController.birthDateController,
+                    showEmail: true,
+                    showBirthDate: true,
+                    emailLabel: 'E-mail *',
+                    submitted: _demographicsController.hasSubmitted,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                DsSection(
+                  eyebrow: 'Contexto clínico',
+                  title: 'Dados complementares',
+                  subtitle:
+                      'Essas informações ajudam a montar um relatório mais completo.',
+                  child: DsSurveyDemographicsSection(
+                    catalogs: _demographicsController.catalogs,
+                    professionController:
+                        _demographicsController.professionController,
+                    medicationNameController:
+                        _demographicsController.medicationNameController,
+                    selectedDiagnoses:
+                        _demographicsController.selectedDiagnoses,
+                    selectedSex: _demographicsController.selectedSex,
+                    selectedRace: _demographicsController.selectedRace,
+                    selectedEducationLevel:
+                        _demographicsController.selectedEducationLevel,
+                    usesMedication: _demographicsController.usesMedication,
+                    onSexChanged: _demographicsController.updateSex,
+                    onRaceChanged: _demographicsController.updateRace,
+                    onEducationChanged:
+                        _demographicsController.updateEducationLevel,
+                    onUsesMedicationChanged:
+                        _demographicsController.updateUsesMedication,
+                    onDiagnosisChanged: _demographicsController.updateDiagnosis,
+                    submitted: _demographicsController.hasSubmitted,
+                    usesMedicationErrorText:
+                        _demographicsController.usesMedicationErrorText,
+                    continueLabel: 'Gerar relatório detalhado',
+                    onContinue: _submitForm,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            if (_validationItems.isNotEmpty) ...[
-              DsValidationSummary(
-                items: _validationItems,
-                description:
-                    'Corrija os itens abaixo e os campos destacados antes de continuar.',
-              ),
-              const SizedBox(height: 16),
-            ],
-            DsSection(
-              eyebrow: 'Paciente',
-              title: 'Identificação',
-              subtitle:
-                  'Informe os dados essenciais para contextualizar a avaliação.',
-              child: DsPatientIdentitySection(
-                nameController: _nameController,
-                emailController: _emailController,
-                birthDateController: _dobController,
-                showEmail: true,
-                showBirthDate: true,
-                emailLabel: 'E-mail *',
-                submitted: _hasSubmitted,
-              ),
-            ),
-            const SizedBox(height: 16),
-            DsSection(
-              eyebrow: 'Contexto clínico',
-              title: 'Dados complementares',
-              subtitle:
-                  'Essas informações ajudam a montar um relatório mais completo.',
-              child: DsSurveyDemographicsSection(
-                catalogs:
-                    _catalogs ??
-                    const DsDemographicsCatalogs(
-                      diagnoses: <String>[],
-                      educationLevels: <String>[],
-                      professions: <String>[],
-                    ),
-                professionController: _professionController,
-                medicationNameController: _medicationNameController,
-                selectedDiagnoses: _selectedDiagnoses,
-                selectedSex: _selectedSex,
-                selectedRace: _selectedRace,
-                selectedEducationLevel: _selectedEducationLevel,
-                usesMedication: _usesMedication,
-                onSexChanged: (String? value) {
-                  setState(() {
-                    _selectedSex = value;
-                    if (_hasSubmitted) {
-                      _validationItems = _buildValidationItems();
-                    }
-                  });
-                },
-                onRaceChanged: (String? value) {
-                  setState(() {
-                    _selectedRace = value;
-                    if (_hasSubmitted) {
-                      _validationItems = _buildValidationItems();
-                    }
-                  });
-                },
-                onEducationChanged: (String? value) {
-                  setState(() {
-                    _selectedEducationLevel = value;
-                    if (_hasSubmitted) {
-                      _validationItems = _buildValidationItems();
-                    }
-                  });
-                },
-                onUsesMedicationChanged: (String? value) {
-                  setState(() {
-                    _usesMedication = value;
-                    if (_hasSubmitted) {
-                      _validationItems = _buildValidationItems();
-                    }
-                  });
-                },
-                onDiagnosisChanged: (String diagnosis, bool isSelected) {
-                  setState(() {
-                    _selectedDiagnoses[diagnosis] = isSelected;
-                  });
-                },
-                submitted: _hasSubmitted,
-                usesMedicationErrorText: _hasSubmitted
-                    ? _validateUsesMedication()
-                    : null,
-                continueLabel: 'Gerar relatório detalhado',
-                onContinue: _submitForm,
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

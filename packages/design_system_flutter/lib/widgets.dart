@@ -16,6 +16,7 @@ export 'components/forms/ds_validated_fields.dart';
 export 'components/legal/ds_legal_notice.dart';
 export 'components/legal/ds_legal_viewer.dart';
 export 'components/respondent_flow/ds_demographics_catalog_loader.dart';
+export 'components/respondent_flow/ds_demographics_form_controller.dart';
 export 'components/respondent_flow/ds_patient_identity_section.dart';
 export 'components/respondent_flow/ds_survey_demographics_section.dart';
 export 'components/respondent_flow/ds_survey_details_panel.dart';
