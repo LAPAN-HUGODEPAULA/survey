@@ -11,6 +11,7 @@ import 'dart:js_interop';
 import 'package:design_system_flutter/report/report_models.dart';
 import 'package:design_system_flutter/report/report_view.dart';
 import 'package:design_system_flutter/widgets.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -50,6 +51,34 @@ class ThankYouPage extends StatefulWidget {
 }
 
 enum AssessmentHandoffState { registering, registered, analyzing, ready }
+
+const _radarPalette = <Color>[
+  Color(0xFFEF5350),
+  Color(0xFFFFA726),
+  Color(0xFF66BB6A),
+  Color(0xFF42A5F5),
+  Color(0xFF7E57C2),
+  Color(0xFF26A69A),
+  Color(0xFFFFEB3B),
+];
+
+const _radarOptionScores = <String, double>{
+  'quase nunca': 0.0,
+  'ocasionalmente': 1.0,
+  'frequentemente': 2.0,
+  'quase sempre': 3.0,
+};
+
+Color _withOpacity(Color base, double opacity) {
+  final alpha = (opacity.clamp(0.0, 1.0) * 255).clamp(0.0, 255.0);
+  return base.withValues(alpha: alpha);
+}
+
+Color _darken(Color color, [double amount = 0.42]) {
+  final hsl = HSLColor.fromColor(color);
+  final lightness = (hsl.lightness - amount).clamp(0.0, 1.0);
+  return hsl.withLightness(lightness).toColor();
+}
 
 class _ThankYouPageState extends State<ThankYouPage> {
   AssessmentHandoffState _handoffState = AssessmentHandoffState.registering;
@@ -104,6 +133,48 @@ class _ThankYouPageState extends State<ThankYouPage> {
     }
 
     return answers;
+  }
+
+  List<_AnswerSummary> _buildSummaries() {
+    final summaries = <_AnswerSummary>[];
+    for (var index = 0; index < widget.surveyQuestions.length; index++) {
+      final question = widget.surveyQuestions[index];
+      final answer = index < widget.surveyAnswers.length
+          ? widget.surveyAnswers[index]
+          : '';
+      final label = 'Q${index + 1}';
+      summaries.add(
+        _AnswerSummary(
+          questionText: question.questionText,
+          label: label,
+          answerText: answer.isNotEmpty ? answer : 'Sem resposta',
+          value: _resolveRadarScore(question, answer),
+        ),
+      );
+    }
+    return summaries;
+  }
+
+  double _resolveRadarScore(Question question, String answer) {
+    final normalizedAnswer = answer.trim().toLowerCase();
+    final mapped = _radarOptionScores[normalizedAnswer];
+    if (mapped != null) {
+      return mapped;
+    }
+
+    final index = question.answers.indexWhere(
+      (candidate) => candidate.trim().toLowerCase() == normalizedAnswer,
+    );
+    if (index < 0) {
+      return 0.0;
+    }
+    if (question.answers.length <= 1) {
+      return 0.0;
+    }
+    if (question.answers.length == 4) {
+      return index.clamp(0, 3).toDouble();
+    }
+    return (index * (3 / (question.answers.length - 1))).clamp(0.0, 3.0);
   }
 
   @override
@@ -577,6 +648,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
   Widget build(BuildContext context) {
     final settings = Provider.of<AppSettings>(context);
     final tone = DsEmotionalToneProvider.resolveTokens(context);
+    final summaries = _buildSummaries();
+    const maxValue = 3;
+    final values = summaries.map((item) => item.value).toList(growable: false);
+    final labels = summaries.map((item) => item.label).toList(growable: false);
     final reportDocument = _agentResponse == null
         ? null
         : _resolveReportDocument(settings, _agentResponse!);
@@ -663,6 +738,92 @@ class _ThankYouPageState extends State<ThankYouPage> {
                   ),
                   const SizedBox(height: 24),
                 ],
+                DsSection(
+                  eyebrow: 'Resumo visual',
+                  title: 'Radar das respostas',
+                  subtitle:
+                      'Compare as respostas e revise o que foi registrado em cada pergunta.',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 280,
+                        child: values.isEmpty
+                            ? const Center(
+                                child: Text('Sem respostas para exibir.'),
+                              )
+                            : values.length < 3
+                            ? const Center(
+                                child: Text(
+                                  'O radar será exibido quando houver pelo menos 3 respostas.',
+                                ),
+                              )
+                            : _SurveyRadarChart(
+                                values: values,
+                                maxValue: maxValue,
+                                labels: labels,
+                              ),
+                      ),
+                      if (labels.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: List.generate(labels.length, (index) {
+                            final color =
+                                _radarPalette[index % _radarPalette.length];
+                            return _RadarLegendChip(
+                              label: labels[index],
+                              color: color,
+                            );
+                          }),
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      Text(
+                        'Resumo das respostas',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      for (final summary in summaries)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: DsFocusFrame(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  summary.label,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  summary.questionText,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  summary.answerText,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
                 if (handoffState == AssessmentHandoffState.analyzing) ...[
                   DsSection(
                     tone: DsPanelTone.high,
@@ -846,4 +1007,110 @@ class _ThankYouPageState extends State<ThankYouPage> {
       ),
     );
   }
+}
+
+class _RadarLegendChip extends StatelessWidget {
+  const _RadarLegendChip({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final badgeColor = _darken(color, 0.44);
+    return DsPanel(
+      tone: DsPanelTone.high,
+      backgroundColor: badgeColor,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      borderRadius: BorderRadius.circular(16),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SurveyRadarChart extends StatelessWidget {
+  const _SurveyRadarChart({
+    required this.values,
+    required this.maxValue,
+    required this.labels,
+  });
+
+  final List<double> values;
+  final int maxValue;
+  final List<String> labels;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final borderColor = theme.colorScheme.primary;
+    final fillColor = _withOpacity(borderColor, 0.25);
+
+    return RadarChart(
+      RadarChartData(
+        radarBorderData: BorderSide(
+          color: _withOpacity(theme.colorScheme.onSurface, 0.3),
+        ),
+        dataSets: [
+          RadarDataSet(
+            fillColor: fillColor,
+            borderColor: borderColor,
+            borderWidth: 2,
+            entryRadius: 3,
+            dataEntries: values
+                .map((value) => RadarEntry(value: value))
+                .toList(),
+          ),
+        ],
+        titleTextStyle: theme.textTheme.bodySmall?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+        ),
+        getTitle: (int index, double angle) {
+          final label = labels.isEmpty ? 'Q${index + 1}' : labels[index];
+          return RadarChartTitle(text: label, angle: angle);
+        },
+        titlePositionPercentageOffset: 0.15,
+        tickCount: maxValue,
+        ticksTextStyle: theme.textTheme.labelSmall?.copyWith(
+          color: const Color(0xFFFDF7F0),
+          fontWeight: FontWeight.w700,
+        ),
+        gridBorderData: BorderSide(
+          color: theme.colorScheme.outlineVariant,
+          width: 1,
+        ),
+      ),
+      duration: const Duration(milliseconds: 400),
+    );
+  }
+}
+
+class _AnswerSummary {
+  const _AnswerSummary({
+    required this.questionText,
+    required this.label,
+    required this.answerText,
+    required this.value,
+  });
+
+  final String questionText;
+  final String label;
+  final String answerText;
+  final double value;
 }

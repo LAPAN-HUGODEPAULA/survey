@@ -34,32 +34,31 @@ class _SurveyPageState extends State<SurveyPage> {
       subtitle: 'Responda uma pergunta por vez para concluir a triagem.',
       onBack: () => Navigator.of(context).pop(),
       backLabel: 'Voltar para Instruções',
+      scrollable: true,
       body: Column(
         children: [
           const AssessmentFlowStepper(
             currentStep: AssessmentFlowStep.questionario,
           ),
-          Expanded(
-            child: DsSurveyQuestionRunner(
-              surveyTitle: displayName,
-              questions: _survey.questions
-                  .map(
-                    (question) => DsSurveyQuestionData(
-                      id: question.id,
-                      questionText: question.questionText,
-                      answers: question.answers,
-                    ),
-                  )
-                  .toList(growable: false),
-              onCompleted: (answers) {
-                AppNavigator.toThankYou(
-                  context,
-                  survey: _survey,
-                  surveyAnswers: answers,
-                  surveyQuestions: _survey.questions,
-                );
-              },
-            ),
+          DsSurveyQuestionRunner(
+            surveyTitle: displayName,
+            questions: _survey.questions
+                .map(
+                  (question) => DsSurveyQuestionData(
+                    id: question.id,
+                    questionText: question.questionText,
+                    answers: question.answers,
+                  ),
+                )
+                .toList(growable: false),
+            onCompleted: (answers) {
+              AppNavigator.toThankYou(
+                context,
+                survey: _survey,
+                surveyAnswers: answers,
+                surveyQuestions: _survey.questions,
+              );
+            },
           ),
         ],
       ),

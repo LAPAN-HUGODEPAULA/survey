@@ -61,6 +61,7 @@ class _DsSurveyQuestionRunnerState extends State<DsSurveyQuestionRunner> {
       subtitle: currentAnswer.trim().isEmpty
           ? null
           : 'Resposta atual: $currentAnswer',
+      scrollableChild: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

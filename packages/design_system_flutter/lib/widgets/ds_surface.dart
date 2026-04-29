@@ -115,6 +115,8 @@ class DsSection extends StatelessWidget {
     this.tone = DsPanelTone.low,
     this.padding = const EdgeInsets.all(24),
     this.headerSpacing = 16,
+    this.scrollableChild = false,
+    this.maxScrollableChildHeight,
   });
 
   final Widget child;
@@ -125,6 +127,8 @@ class DsSection extends StatelessWidget {
   final DsPanelTone tone;
   final EdgeInsetsGeometry padding;
   final double headerSpacing;
+  final bool scrollableChild;
+  final double? maxScrollableChildHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +137,18 @@ class DsSection extends StatelessWidget {
 
     final hasHeader =
         eyebrow != null || title != null || subtitle != null || action != null;
+
+    Widget resolvedChild = child;
+    if (scrollableChild) {
+      final viewportHeight = MediaQuery.sizeOf(context).height;
+      final defaultMaxHeight = (viewportHeight * 0.52).clamp(220.0, 520.0);
+      resolvedChild = ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: maxScrollableChildHeight ?? defaultMaxHeight,
+        ),
+        child: Scrollbar(child: SingleChildScrollView(child: child)),
+      );
+    }
 
     return DsPanel(
       tone: tone,
@@ -152,7 +168,7 @@ class DsSection extends StatelessWidget {
                         Text(
                           eyebrow!,
                           style: theme.textTheme.labelMedium?.copyWith(
-                            color: colorScheme.primary,
+                            color: const Color(0xFFFFF7EF),
                           ),
                         ),
                       if (eyebrow != null && title != null)
@@ -183,7 +199,7 @@ class DsSection extends StatelessWidget {
               ],
             ),
           if (hasHeader) SizedBox(height: headerSpacing),
-          child,
+          resolvedChild,
         ],
       ),
     );

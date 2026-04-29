@@ -302,7 +302,7 @@ class LapanInteractionTokens extends ThemeExtension<LapanInteractionTokens> {
 class AppTheme {
   static const Color _floor = Color(0xFF57595C);
   static const Color _surface = Color(0xFF5D5F62);
-  static const Color _surfaceLow = Color(0xFF636568);
+  static const Color _surfaceLow = Color(0xFF5B5D60);
   static const Color _surfaceBase = Color(0xFF696B6E);
   static const Color _surfaceHigh = Color(0xFF6A6C6F);
   static const Color _surfaceFocus = Color(0xFF6B6D70);
