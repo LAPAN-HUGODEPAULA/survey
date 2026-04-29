@@ -11,6 +11,7 @@ export 'components/async/ds_async_page.dart';
 export 'components/async/ds_error_mapper.dart';
 export 'components/forms/ds_form_validators.dart';
 export 'components/forms/ds_form_formatters.dart';
+export 'components/forms/ds_medication_autocomplete_field.dart';
 export 'components/forms/ds_normalized_key_field.dart';
 export 'components/forms/ds_validated_fields.dart';
 export 'components/legal/ds_legal_notice.dart';

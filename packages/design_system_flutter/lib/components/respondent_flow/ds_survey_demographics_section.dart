@@ -1,5 +1,6 @@
 import 'package:design_system_flutter/components/forms/ds_validated_fields.dart';
 import 'package:design_system_flutter/components/forms/ds_form_validators.dart';
+import 'package:design_system_flutter/components/forms/ds_medication_autocomplete_field.dart';
 import 'package:design_system_flutter/components/respondent_flow/respondent_flow_models.dart';
 import 'package:design_system_flutter/widgets/ds_buttons.dart';
 import 'package:design_system_flutter/widgets/ds_chip.dart';
@@ -11,7 +12,10 @@ class DsSurveyDemographicsSection extends StatelessWidget {
     super.key,
     required this.catalogs,
     required this.professionController,
-    required this.medicationNameController,
+    required this.selectedMedications,
+    required this.searchMedications,
+    required this.onMedicationAdded,
+    required this.onMedicationRemoved,
     required this.selectedDiagnoses,
     required this.selectedSex,
     required this.selectedRace,
@@ -26,11 +30,17 @@ class DsSurveyDemographicsSection extends StatelessWidget {
     this.onContinue,
     this.submitted = false,
     this.usesMedicationErrorText,
+    this.requireSelectionFields = true,
+    this.requireMedicationChoice = true,
+    this.requireMedicationListWhenUsingMedication = true,
   });
 
   final DsDemographicsCatalogs catalogs;
   final TextEditingController professionController;
-  final TextEditingController medicationNameController;
+  final List<String> selectedMedications;
+  final DsMedicationSearchFn searchMedications;
+  final ValueChanged<String> onMedicationAdded;
+  final ValueChanged<String> onMedicationRemoved;
   final Map<String, bool> selectedDiagnoses;
   final String? selectedSex;
   final String? selectedRace;
@@ -45,6 +55,9 @@ class DsSurveyDemographicsSection extends StatelessWidget {
   final VoidCallback? onContinue;
   final bool submitted;
   final String? usesMedicationErrorText;
+  final bool requireSelectionFields;
+  final bool requireMedicationChoice;
+  final bool requireMedicationListWhenUsingMedication;
 
   static const List<String> sexOptions = <String>[
     'Feminino',
@@ -72,7 +85,9 @@ class DsSurveyDemographicsSection extends StatelessWidget {
           key: const ValueKey('sex'),
           submitted: submitted,
           initialValue: selectedSex,
-          decoration: const InputDecoration(labelText: 'Sexo *'),
+          decoration: InputDecoration(
+            labelText: requireSelectionFields ? 'Sexo *' : 'Sexo',
+          ),
           items: sexOptions
               .map(
                 (String option) => DropdownMenuItem<String>(
@@ -82,15 +97,18 @@ class DsSurveyDemographicsSection extends StatelessWidget {
               )
               .toList(),
           onChanged: onSexChanged,
-          validator: (value) =>
-              DsFormValidators.validateDropdownSelection(value, 'Sexo'),
+          validator: (value) => requireSelectionFields
+              ? DsFormValidators.validateDropdownSelection(value, 'Sexo')
+              : null,
         ),
         const SizedBox(height: 16),
         DsValidatedDropdownButtonFormField<String>(
           key: const ValueKey('race'),
           submitted: submitted,
           initialValue: selectedRace,
-          decoration: const InputDecoration(labelText: 'Raça/Etnia *'),
+          decoration: InputDecoration(
+            labelText: requireSelectionFields ? 'Raça/Etnia *' : 'Raça/Etnia',
+          ),
           items: raceOptions
               .map(
                 (String option) => DropdownMenuItem<String>(
@@ -100,16 +118,19 @@ class DsSurveyDemographicsSection extends StatelessWidget {
               )
               .toList(),
           onChanged: onRaceChanged,
-          validator: (value) =>
-              DsFormValidators.validateDropdownSelection(value, 'Raça/Etnia'),
+          validator: (value) => requireSelectionFields
+              ? DsFormValidators.validateDropdownSelection(value, 'Raça/Etnia')
+              : null,
         ),
         const SizedBox(height: 16),
         DsValidatedDropdownButtonFormField<String>(
           key: const ValueKey('education'),
           submitted: submitted,
           initialValue: selectedEducationLevel,
-          decoration: const InputDecoration(
-            labelText: 'Grau de Escolaridade *',
+          decoration: InputDecoration(
+            labelText: requireSelectionFields
+                ? 'Grau de Escolaridade *'
+                : 'Grau de Escolaridade',
           ),
           items: catalogs.educationLevels
               .map(
@@ -120,10 +141,12 @@ class DsSurveyDemographicsSection extends StatelessWidget {
               )
               .toList(),
           onChanged: onEducationChanged,
-          validator: (value) => DsFormValidators.validateDropdownSelection(
-            value,
-            'Grau de Escolaridade',
-          ),
+          validator: (value) => requireSelectionFields
+              ? DsFormValidators.validateDropdownSelection(
+                  value,
+                  'Grau de Escolaridade',
+                )
+              : null,
         ),
         const SizedBox(height: 16),
         Autocomplete<String>(
@@ -176,7 +199,11 @@ class DsSurveyDemographicsSection extends StatelessWidget {
           }).toList(),
         ),
         const SizedBox(height: 24),
-        const Text('Faz uso de medicamento psiquiátrico? *'),
+        Text(
+          requireMedicationChoice
+              ? 'Faz uso de medicamento psiquiátrico? *'
+              : 'Faz uso de medicamento psiquiátrico?',
+        ),
         if (usesMedicationErrorText != null) ...[
           const SizedBox(height: 8),
           DsInlineMessage(
@@ -205,17 +232,19 @@ class DsSurveyDemographicsSection extends StatelessWidget {
         ),
         if (usesMedication == 'Sim') ...[
           const SizedBox(height: 8),
-          DsValidatedTextFormField(
-            controller: medicationNameController,
+          DsMedicationAutocompleteField(
+            selectedMedications: selectedMedications,
+            searchMedications: searchMedications,
+            onMedicationAdded: onMedicationAdded,
+            onMedicationRemoved: onMedicationRemoved,
             submitted: submitted,
-            decoration: const InputDecoration(
-              labelText: 'Nome do(s) medicamento(s)',
-            ),
-            validator: (value) {
-              if (usesMedication != 'Sim') {
+            labelText: 'Nome do(s) medicamento(s)',
+            validator: () {
+              if (!requireMedicationListWhenUsingMedication ||
+                  usesMedication != 'Sim') {
                 return null;
               }
-              return DsFormValidators.validateRequired(value);
+              return selectedMedications.isEmpty ? 'Campo obrigatório' : null;
             },
           ),
         ],

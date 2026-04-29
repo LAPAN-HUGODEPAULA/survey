@@ -27,7 +27,7 @@ class DsDemographicsSubmission {
   final String ethnicity;
   final String educationLevel;
   final String profession;
-  final String medication;
+  final List<String> medication;
   final List<String> diagnoses;
 }
 
@@ -36,12 +36,15 @@ class DsDemographicsFormController extends ChangeNotifier {
     DsDemographicsCatalogLoader? catalogLoader,
     required this.usesMedicationRequiredMessage,
     this.additionalValidationItemsBuilder,
+    this.requireIdentityFields = true,
+    this.requireSelectionFields = true,
+    this.requireMedicationChoice = true,
+    this.requireMedicationListWhenUsingMedication = true,
   }) : _catalogLoader = catalogLoader ?? DsDemographicsCatalogLoader() {
     nameController.addListener(_syncValidationSummary);
     emailController.addListener(_syncValidationSummary);
     birthDateController.addListener(_syncValidationSummary);
     professionController.addListener(_syncValidationSummary);
-    medicationNameController.addListener(_syncValidationSummary);
   }
 
   static const DsDemographicsCatalogs _emptyCatalogs = DsDemographicsCatalogs(
@@ -53,13 +56,15 @@ class DsDemographicsFormController extends ChangeNotifier {
   final DsDemographicsCatalogLoader _catalogLoader;
   final String usesMedicationRequiredMessage;
   final DsAdditionalValidationItemsBuilder? additionalValidationItemsBuilder;
+  final bool requireIdentityFields;
+  final bool requireSelectionFields;
+  final bool requireMedicationChoice;
+  final bool requireMedicationListWhenUsingMedication;
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController birthDateController = TextEditingController();
   final TextEditingController professionController = TextEditingController();
-  final TextEditingController medicationNameController =
-      TextEditingController();
 
   DsDemographicsCatalogs? _catalogs;
   String? _catalogError;
@@ -72,6 +77,7 @@ class DsDemographicsFormController extends ChangeNotifier {
   String? _selectedEducationLevel;
   String? _usesMedication;
   Map<String, bool> _selectedDiagnoses = <String, bool>{};
+  final List<String> _selectedMedications = <String>[];
 
   DsDemographicsCatalogs get catalogs => _catalogs ?? _emptyCatalogs;
   String? get catalogError => _catalogError;
@@ -82,6 +88,8 @@ class DsDemographicsFormController extends ChangeNotifier {
   String? get selectedRace => _selectedRace;
   String? get selectedEducationLevel => _selectedEducationLevel;
   String? get usesMedication => _usesMedication;
+  List<String> get selectedMedications =>
+      List<String>.unmodifiable(_selectedMedications);
   Map<String, bool> get selectedDiagnoses =>
       Map<String, bool>.unmodifiable(_selectedDiagnoses);
   String? get usesMedicationErrorText =>
@@ -111,7 +119,7 @@ class DsDemographicsFormController extends ChangeNotifier {
     emailController.clear();
     birthDateController.clear();
     professionController.clear();
-    medicationNameController.clear();
+    _selectedMedications.clear();
     _selectedSex = null;
     _selectedRace = null;
     _selectedEducationLevel = null;
@@ -141,6 +149,31 @@ class DsDemographicsFormController extends ChangeNotifier {
 
   void updateUsesMedication(String? value) {
     _usesMedication = value;
+    if (value != 'Sim') {
+      _selectedMedications.clear();
+    }
+    _refreshValidationSummary();
+  }
+
+  void addMedication(String medication) {
+    final value = medication.trim();
+    if (value.isEmpty) {
+      return;
+    }
+    final exists = _selectedMedications.any(
+      (item) => item.toLowerCase() == value.toLowerCase(),
+    );
+    if (exists) {
+      return;
+    }
+    _selectedMedications.add(value);
+    _refreshValidationSummary();
+  }
+
+  void removeMedication(String medication) {
+    _selectedMedications.removeWhere(
+      (item) => item.toLowerCase() == medication.toLowerCase(),
+    );
     _refreshValidationSummary();
   }
 
@@ -168,13 +201,13 @@ class DsDemographicsFormController extends ChangeNotifier {
       name: nameController.text.trim(),
       email: emailController.text.trim(),
       birthDate: birthDateController.text,
-      gender: _selectedSex!,
-      ethnicity: _selectedRace!,
-      educationLevel: _selectedEducationLevel!,
+      gender: _selectedSex ?? '',
+      ethnicity: _selectedRace ?? '',
+      educationLevel: _selectedEducationLevel ?? '',
       profession: professionController.text.trim(),
       medication: _usesMedication == 'Sim'
-          ? medicationNameController.text.trim()
-          : 'Não aplicável',
+          ? List<String>.unmodifiable(_selectedMedications)
+          : const <String>[],
       diagnoses: _selectedDiagnoses.entries
           .where((MapEntry<String, bool> entry) => entry.value)
           .map((MapEntry<String, bool> entry) => entry.key)
@@ -183,6 +216,9 @@ class DsDemographicsFormController extends ChangeNotifier {
   }
 
   String? _validateUsesMedication() {
+    if (!requireMedicationChoice) {
+      return null;
+    }
     if (_usesMedication == null) {
       return usesMedicationRequiredMessage;
     }
@@ -216,39 +252,44 @@ class DsDemographicsFormController extends ChangeNotifier {
       items.add(DsValidationSummaryItem(label: label, message: message));
     }
 
-    addItem(
-      'Nome completo',
-      DsFormValidators.validatePersonName(nameController.text,
-          context: 'patient'),
-    );
-    addItem(
-      'E-mail',
-      DsFormValidators.validateEmail(emailController.text, context: 'patient'),
-    );
-    addItem(
-      'Data de nascimento',
-      DsFormValidators.validateBirthDate(birthDateController.text),
-    );
-    addItem(
-      'Sexo',
-      DsFormValidators.validateDropdownSelection(_selectedSex, 'Sexo'),
-    );
-    addItem(
-      'Raça/Etnia',
-      DsFormValidators.validateDropdownSelection(_selectedRace, 'Raça/Etnia'),
-    );
-    addItem(
-      'Grau de escolaridade',
-      DsFormValidators.validateDropdownSelection(
-        _selectedEducationLevel,
-        'Grau de Escolaridade',
-      ),
-    );
+    if (requireIdentityFields) {
+      addItem(
+        'Nome completo',
+        DsFormValidators.validatePersonName(nameController.text,
+            context: 'patient'),
+      );
+      addItem(
+        'E-mail',
+        DsFormValidators.validateEmail(emailController.text,
+            context: 'patient'),
+      );
+      addItem(
+        'Data de nascimento',
+        DsFormValidators.validateBirthDate(birthDateController.text),
+      );
+    }
+    if (requireSelectionFields) {
+      addItem(
+        'Sexo',
+        DsFormValidators.validateDropdownSelection(_selectedSex, 'Sexo'),
+      );
+      addItem(
+        'Raça/Etnia',
+        DsFormValidators.validateDropdownSelection(_selectedRace, 'Raça/Etnia'),
+      );
+      addItem(
+        'Grau de escolaridade',
+        DsFormValidators.validateDropdownSelection(
+          _selectedEducationLevel,
+          'Grau de Escolaridade',
+        ),
+      );
+    }
     addItem('Uso de medicação psiquiátrica', _validateUsesMedication());
-    if (_usesMedication == 'Sim') {
+    if (requireMedicationListWhenUsingMedication && _usesMedication == 'Sim') {
       addItem(
         'Nome do(s) medicamento(s)',
-        DsFormValidators.validateRequired(medicationNameController.text),
+        _selectedMedications.isEmpty ? 'Campo obrigatório' : null,
       );
     }
 
@@ -266,12 +307,10 @@ class DsDemographicsFormController extends ChangeNotifier {
     emailController.removeListener(_syncValidationSummary);
     birthDateController.removeListener(_syncValidationSummary);
     professionController.removeListener(_syncValidationSummary);
-    medicationNameController.removeListener(_syncValidationSummary);
     nameController.dispose();
     emailController.dispose();
     birthDateController.dispose();
     professionController.dispose();
-    medicationNameController.dispose();
     super.dispose();
   }
 }
