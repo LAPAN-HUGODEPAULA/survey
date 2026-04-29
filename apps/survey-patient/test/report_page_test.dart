@@ -40,6 +40,7 @@ class _FakeSurveyRepository extends SurveyRepository {
   Future<AgentResponse> processClinicalWriter(
     String content, {
     String? accessPointKey,
+    String flowKey = 'thank_you.auto_analysis',
     String? promptKey,
     String? surveyId,
   }) async {

@@ -30,16 +30,7 @@ class InitialNoticePage extends StatelessWidget {
               if (!context.mounted) {
                 return;
               }
-
-              final target = settings.consumePostNoticeNavigationTarget();
-              final survey = settings.selectedSurvey;
-              if (target == PostNoticeNavigationTarget.survey &&
-                  survey != null) {
-                await AppNavigator.replaceWithSurvey(context, survey: survey);
-                return;
-              }
-
-              await AppNavigator.replaceWithWelcome(context);
+              await AppNavigator.replaceWithIdentification(context);
             },
           ),
         ],

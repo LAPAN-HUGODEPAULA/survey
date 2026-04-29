@@ -70,7 +70,7 @@ void main() {
           ethnicity: 'Branca',
           educationLevel: 'Superior',
           profession: 'Pesquisadora',
-          medication: 'Nenhuma',
+          medication: const <String>[],
           diagnoses: const ['Enxaqueca'],
         );
 

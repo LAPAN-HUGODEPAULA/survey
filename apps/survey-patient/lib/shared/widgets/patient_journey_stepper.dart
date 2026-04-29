@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 enum PatientJourneyStep {
   aviso,
+  identificacao,
   boasVindas,
   instrucoes,
   questionario,
@@ -42,6 +43,8 @@ class PatientJourneyStepper extends StatelessWidget {
     switch (step) {
       case PatientJourneyStep.aviso:
         return 'Aviso';
+      case PatientJourneyStep.identificacao:
+        return 'Identificação';
       case PatientJourneyStep.boasVindas:
         return 'Boas-vindas';
       case PatientJourneyStep.instrucoes:

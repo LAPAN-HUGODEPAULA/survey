@@ -37,6 +37,7 @@ class _FakeSurveyRepository extends SurveyRepository {
   Future<Map<String, dynamic>> startClinicalWriterTask(
     String content, {
     String? accessPointKey,
+    String flowKey = 'thank_you.auto_analysis',
     String? promptKey,
     String? surveyId,
   }) async {

@@ -19,6 +19,7 @@ import 'package:patient_app/features/report/pages/report_download_stub.dart'
     as report_download;
 import 'package:patient_app/shared/widgets/patient_journey_stepper.dart';
 import 'package:provider/provider.dart';
+import 'package:runtime_agent_access_points/runtime_agent_access_points.dart';
 
 class ReportPage extends StatefulWidget {
   const ReportPage({
@@ -41,9 +42,14 @@ class ReportPage extends StatefulWidget {
 }
 
 class _ReportPageState extends State<ReportPage> {
+  static const int _maxPollingAttempts = 120;
+  static const Duration _pollingDelay = Duration(seconds: 1);
+
   bool _isSaving = false;
   bool _saveSuccess = false;
+  bool _isSendingReportEmail = false;
   String? _saveError;
+  String? _reportError;
   String? _savedFilePath;
   String? _savedResponseId;
   AgentResponse? _agentResponse;
@@ -99,9 +105,15 @@ class _ReportPageState extends State<ReportPage> {
   Future<void> _submitResponse() async {
     setState(() {
       _isSaving = true;
+      _saveSuccess = false;
       _saveError = null;
+      _reportError = null;
+      _savedFilePath = null;
+      _savedResponseId = null;
+      _agentResponse = null;
     });
 
+    var responseSavedRemotely = false;
     try {
       final settings = Provider.of<AppSettings>(context, listen: false);
       final patient = _resolvePatient(settings);
@@ -111,56 +123,123 @@ class _ReportPageState extends State<ReportPage> {
         creatorId: widget.survey.creatorId,
         testDate: DateTime.now(),
         screenerId: settings.screener.id,
+        accessPointKey: RuntimeAccessPointCatalog
+            .surveyPatientReportDetailedAnalysis
+            .accessPointKey,
         promptKey: _selectedPromptKey,
         patient: patient,
         answers: _buildAnswers(),
       );
 
       final saved = await _surveyRepository.submitResponse(surveyResponse);
-      setState(() {
-        _isSaving = false;
-        _saveSuccess = true;
-        _savedResponseId = saved.id;
-        _agentResponse = saved.agentResponse;
-      });
-      await _maybeFetchAgentResponse(surveyResponse, saved.agentResponse);
-    } catch (e) {
-      await _fallbackToLocalSave(e);
-    }
-  }
-
-  Future<void> _maybeFetchAgentResponse(
-    SurveyResponse surveyResponse,
-    AgentResponse? agentResponse,
-  ) async {
-    if (!mounted) {
-      return;
-    }
-
-    if (agentResponse != null) {
-      setState(() {
-        _agentResponse = agentResponse;
-      });
-      return;
-    }
-
-    try {
-      final content = jsonEncode(surveyResponse.toJson());
-      final response = await _surveyRepository.processClinicalWriter(
-        content,
-        promptKey: surveyResponse.promptKey,
-      );
       if (!mounted) {
         return;
       }
       setState(() {
-        _agentResponse = response;
+        _saveSuccess = true;
+        _savedResponseId = saved.id;
+        _agentResponse = saved.agentResponse;
       });
+      responseSavedRemotely = true;
+      if (saved.agentResponse == null) {
+        final response = await _startAndPollAgentResponse(
+          surveyResponse,
+          accessPointKey: RuntimeAccessPointCatalog
+              .surveyPatientReportDetailedAnalysis
+              .accessPointKey,
+        );
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _agentResponse = response;
+        });
+      }
+      setState(() {
+        _isSaving = false;
+      });
+    } on _ReportPollingException catch (error) {
+      if (!mounted) {
+        return;
+      }
+      if (responseSavedRemotely) {
+        setState(() {
+          _isSaving = false;
+          _reportError = error.message;
+        });
+        return;
+      }
+      await _fallbackToLocalSave(error);
     } catch (e) {
-      if (kDebugMode) {
-        debugPrint('Clinical writer fallback failed: $e');
+      if (responseSavedRemotely) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _isSaving = false;
+          _reportError =
+              'Não foi possível concluir a geração do relatório. Tente novamente.';
+        });
+        return;
+      }
+      await _fallbackToLocalSave(e);
+    }
+  }
+
+  Future<AgentResponse> _startAndPollAgentResponse(
+    SurveyResponse surveyResponse, {
+    required String accessPointKey,
+  }) async {
+    final payload = jsonEncode(surveyResponse.toJson());
+    final taskStart = await _surveyRepository.startClinicalWriterTask(
+      payload,
+      accessPointKey: accessPointKey,
+      surveyId: surveyResponse.surveyId,
+      flowKey: 'report.detailed_analysis',
+    );
+    final taskId =
+        taskStart['taskId']?.toString() ?? taskStart['task_id']?.toString();
+    if (taskId == null || taskId.isEmpty) {
+      throw const _ReportPollingException(
+        'Não foi possível iniciar a geração assíncrona do relatório.',
+      );
+    }
+
+    for (var attempt = 0; attempt < _maxPollingAttempts; attempt++) {
+      await Future<void>.delayed(_pollingDelay);
+      final statusPayload = await _surveyRepository.getClinicalWriterTaskStatus(
+        taskId,
+      );
+      final status = statusPayload['status']?.toString() ?? '';
+
+      if (status == 'completed' &&
+          statusPayload['result'] is Map<String, dynamic>) {
+        return AgentResponse.fromJson(
+          statusPayload['result'] as Map<String, dynamic>,
+        );
+      }
+
+      if (status == 'failed') {
+        final errorPayload = statusPayload['error'];
+        if (errorPayload is Map<String, dynamic>) {
+          throw _ReportPollingException(
+            errorPayload['userMessage']?.toString() ??
+                'Não foi possível gerar o relatório clínico para este caso.',
+          );
+        }
+        throw const _ReportPollingException(
+          'Não foi possível gerar o relatório clínico para este caso.',
+        );
       }
     }
+
+    throw const _ReportPollingException(
+      'O relatório está demorando mais que o esperado. Tente novamente para gerar uma nova tentativa.',
+    );
+  }
+
+  Future<void> _retryReportGeneration() async {
+    await _submitResponse();
   }
 
   Future<void> _fallbackToLocalSave(Object originalError) async {
@@ -185,6 +264,7 @@ class _ReportPageState extends State<ReportPage> {
 
       setState(() {
         _isSaving = false;
+        _reportError = null;
         _saveSuccess = true;
         _savedFilePath = filePath;
         _saveError =
@@ -194,10 +274,61 @@ class _ReportPageState extends State<ReportPage> {
     } catch (fallbackError) {
       setState(() {
         _isSaving = false;
+        _reportError = null;
         _saveError =
             'Erro ao enviar para o servidor: $originalError\n'
             'Falha ao salvar localmente: $fallbackError';
       });
+    }
+  }
+
+  Future<void> _sendReportByEmail(
+    AppSettings settings,
+    ReportDocument report,
+  ) async {
+    final responseId = _savedResponseId;
+    if (responseId == null || responseId.isEmpty) {
+      return;
+    }
+
+    final patientEmail = settings.patient.email.trim();
+    if (patientEmail.isEmpty) {
+      return;
+    }
+
+    setState(() => _isSendingReportEmail = true);
+    try {
+      await _surveyRepository.sendReportEmail(
+        responseId: responseId,
+        reportText: _buildReportText(report),
+      );
+      if (!mounted) {
+        return;
+      }
+      showDsToast(
+        context,
+        feedback: const DsFeedbackMessage(
+          severity: DsStatusType.success,
+          title: 'Relatório enviado',
+          message: 'O relatório em PDF foi enviado para o e-mail informado.',
+        ),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      showDsToast(
+        context,
+        feedback: DsFeedbackMessage(
+          severity: DsStatusType.error,
+          title: 'Falha no envio do relatório',
+          message: 'Não foi possível enviar o e-mail: $error',
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSendingReportEmail = false);
+      }
     }
   }
 
@@ -401,6 +532,14 @@ class _ReportPageState extends State<ReportPage> {
     final reportDocument = _agentResponse == null
         ? null
         : _resolveReportDocument(settings, _agentResponse!);
+    final reportForEmail = reportDocument;
+    final patientEmail = settings.patient.email.trim();
+    final hasPatientEmail = patientEmail.isNotEmpty;
+    final canSendReportEmail =
+        !_isSendingReportEmail &&
+        reportDocument != null &&
+        hasPatientEmail &&
+        _savedResponseId != null;
     final displayName = widget.survey.surveyDisplayName.isNotEmpty
         ? widget.survey.surveyDisplayName
         : widget.survey.surveyName;
@@ -462,6 +601,22 @@ class _ReportPageState extends State<ReportPage> {
                 ),
               ),
             ),
+          if (_reportError != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: DsMessageBanner(
+                feedback: DsFeedbackMessage(
+                  severity: DsStatusType.warning,
+                  title: 'Relatório indisponível no momento',
+                  message: _reportError!,
+                  primaryAction: DsFeedbackAction(
+                    label: 'Tentar novamente',
+                    icon: Icons.refresh,
+                    onPressed: _retryReportGeneration,
+                  ),
+                ),
+              ),
+            ),
           const SizedBox(height: 16),
           if (reportDocument != null) ...[
             ReportView(
@@ -487,7 +642,10 @@ class _ReportPageState extends State<ReportPage> {
               ],
             ),
           ],
-          if (!_isSaving && reportDocument == null && _saveError == null)
+          if (!_isSaving &&
+              reportDocument == null &&
+              _saveError == null &&
+              _reportError == null)
             Padding(
               padding: const EdgeInsets.only(top: 24.0),
               child: Text(
@@ -496,6 +654,26 @@ class _ReportPageState extends State<ReportPage> {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: DsFilledButton(
+              label: _isSendingReportEmail
+                  ? 'Enviando relatório...'
+                  : 'Enviar relatório por e-mail',
+              icon: Icons.email_outlined,
+              onPressed: canSendReportEmail && reportForEmail != null
+                  ? () => _sendReportByEmail(settings, reportForEmail)
+                  : null,
+            ),
+          ),
+          if (!hasPatientEmail) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Informe um e-mail na identificação do paciente para habilitar o envio do relatório.',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
@@ -508,4 +686,13 @@ class _ReportPageState extends State<ReportPage> {
       ),
     );
   }
+}
+
+class _ReportPollingException implements Exception {
+  const _ReportPollingException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }

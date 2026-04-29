@@ -1,6 +1,7 @@
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:patient_app/core/providers/app_settings.dart';
+import 'package:patient_app/features/identification/pages/patient_identification_page.dart';
 import 'package:patient_app/features/legal/pages/initial_notice_page.dart';
 import 'package:patient_app/features/welcome/pages/welcome_page.dart';
 import 'package:provider/provider.dart';
@@ -39,6 +40,15 @@ class _PatientEntryPageState extends State<PatientEntryPage> {
 
         if (!settings.hasAcceptedInitialNotice) {
           return const InitialNoticePage();
+        }
+
+        final patient = settings.patient;
+        final hasRequiredIdentification =
+            patient.name.trim().isNotEmpty &&
+            patient.email.trim().isNotEmpty &&
+            patient.birthDate.trim().isNotEmpty;
+        if (!hasRequiredIdentification) {
+          return const PatientIdentificationPage();
         }
 
         return const WelcomePage();

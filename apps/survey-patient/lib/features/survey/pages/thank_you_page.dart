@@ -15,6 +15,7 @@ import 'package:patient_app/core/repositories/survey_repository.dart';
 import 'package:patient_app/shared/widgets/patient_journey_stepper.dart';
 import 'package:provider/provider.dart';
 import 'package:runtime_agent_access_points/runtime_agent_access_points.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 const _radarPalette = <Color>[
   Color(0xFFEF5350),
@@ -67,6 +68,10 @@ class ThankYouPage extends StatefulWidget {
 enum HandoffState { registering, registered, analyzing, ready }
 
 class _ThankYouPageState extends State<ThankYouPage> {
+  static final Uri _specialistUri = Uri.parse(
+    'https://chatgpt.com/g/g-699b668db91c8191877e65ba10726cd2-irlen-syndrome-for-teachers-and-educators',
+  );
+
   SurveyRepository? _surveyRepository;
   bool _ownsRepository = false;
   HandoffState _handoffState = HandoffState.registering;
@@ -330,10 +335,29 @@ class _ThankYouPageState extends State<ThankYouPage> {
   Future<void> _restartSurveyFlow() async {
     final appSettings = Provider.of<AppSettings>(context, listen: false);
     await appSettings.restartAssessmentFlow();
-    if (!context.mounted) {
+    if (!mounted) {
       return;
     }
     AppNavigator.replaceWithEntryGate(context);
+  }
+
+  Future<void> _openSpecialistAssistant() async {
+    final opened = await launchUrl(
+      _specialistUri,
+      mode: LaunchMode.externalApplication,
+      webOnlyWindowName: '_blank',
+    );
+    if (opened || !mounted) {
+      return;
+    }
+    showDsToast(
+      context,
+      feedback: const DsFeedbackMessage(
+        severity: DsStatusType.error,
+        title: 'Não foi possível abrir o link',
+        message: 'Tente novamente em alguns instantes.',
+      ),
+    );
   }
 
   @override
@@ -586,6 +610,28 @@ class _ThankYouPageState extends State<ThankYouPage> {
                     ),
                   ),
                 ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          DsSection(
+            eyebrow: 'Apoio externo',
+            title: 'Converse com o especialista',
+            subtitle:
+                'Este GPT é um projeto externo da LAPAN com orientações sobre desconforto visual e aprendizagem.',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ele pode oferecer dicas úteis para situações de sensibilidade visual e dificuldades relacionadas ao ambiente de estudo.',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 12),
+                DsOutlinedButton(
+                  label: 'Abrir especialista Irlen',
+                  icon: Icons.open_in_new,
+                  onPressed: _openSpecialistAssistant,
+                ),
               ],
             ),
           ),
