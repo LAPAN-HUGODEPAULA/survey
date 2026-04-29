@@ -52,9 +52,9 @@ class _WelcomePageState extends State<WelcomePage> {
         );
 
         return DsScaffold(
-          title: 'Bem-vindo',
+          title: 'Questionário de triagem de paciente',
           subtitle:
-              'Reserve o tempo que precisar. Vamos conduzir a triagem com cuidado e clareza.',
+              'Bem vindo! Vamos iniciar a triagem. Reserve o tempo que precisar.',
           userName: settings.patient.name,
           showAmbientGreeting: true,
           scrollable: true,

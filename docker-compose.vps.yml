@@ -18,7 +18,7 @@ services:
       - survey_network
 
   contracts-dart-build-runner:
-    image: ghcr.io/cirruslabs/flutter:3.38.3
+    image: ghcr.io/cirruslabs/flutter:3.41.6
     container_name: contracts_dart_build_runner
     working_dir: /work/packages/contracts/generated/dart
     entrypoint: ["/bin/sh", "-lc"]

@@ -32,8 +32,17 @@ Future<void> _enterTextByKey(
 ) async {
   final field = _editableTextByKey(key);
   await tester.ensureVisible(field);
-  await tester.tap(field);
+  await tester.tap(field, warnIfMissed: false);
   await tester.enterText(field, text);
+  await tester.pumpAndSettle();
+}
+
+Future<void> _tapVisible(
+  WidgetTester tester,
+  Finder finder,
+) async {
+  await tester.ensureVisible(finder);
+  await tester.tap(finder, warnIfMissed: false);
   await tester.pumpAndSettle();
 }
 
@@ -79,13 +88,11 @@ void main() {
     );
 
     await tester.enterText(cpfField, '11111111111');
-    await tester.tap(firstNameField);
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, firstNameField);
 
     expect(find.text('CPF inválido.'), findsOneWidget);
 
-    await tester.tap(cpfField);
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, cpfField);
     await tester.enterText(cpfField, '123');
     await tester.pump();
 
@@ -152,8 +159,7 @@ void main() {
       '1234',
     );
 
-    await tester.tap(find.text('Registrar'));
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, find.text('Registrar'));
 
     expect(find.text('Informe o tipo de conselho.'), findsOneWidget);
   });
@@ -168,8 +174,7 @@ void main() {
     await _fillRequiredFields(tester);
     await _enterTextByKey(tester, 'screener-registration-council-type', 'CRM');
 
-    await tester.tap(find.text('Registrar'));
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, find.text('Registrar'));
 
     expect(find.text('Informe o número de registro.'), findsOneWidget);
   });
@@ -182,8 +187,7 @@ void main() {
     await _fillRequiredFields(tester);
     await _enterTextByKey(tester, 'screener-registration-council-type', 'ABC');
 
-    await tester.tap(find.text('Registrar'));
-    await tester.pumpAndSettle();
+    await _tapVisible(tester, find.text('Registrar'));
 
     expect(find.text('Tipo de conselho inválido.'), findsOneWidget);
   });

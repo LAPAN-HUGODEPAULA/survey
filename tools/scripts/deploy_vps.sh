@@ -60,6 +60,7 @@ rsync -vrupthlgo --delete --no-whole-file --bwlimit=150 \
   --exclude='android/' \
   --exclude='build/' \
   --exclude='__pycache__' \
+  --exclude='.dart_tool/' \
   -e "$RSYNC_SSH" \
   /home/hugo/Documents/LAPAN/dev/survey/* \
   "$REMOTE_HOST:$REMOTE_DIR/"

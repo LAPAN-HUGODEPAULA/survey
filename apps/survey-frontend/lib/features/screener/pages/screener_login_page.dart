@@ -14,7 +14,7 @@ class ScreenerLoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DsScaffold(
-      title: 'Login do avaliador',
+      title: 'Login do screener',
       subtitle: 'Acesse sua conta profissional para iniciar uma nova triagem.',
       scrollable: true,
       body: DsProfessionalSignInCard(
