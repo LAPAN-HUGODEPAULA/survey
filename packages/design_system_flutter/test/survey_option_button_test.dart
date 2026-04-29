@@ -18,7 +18,9 @@ double _contrastRatio(Color foreground, Color background) {
 
 void main() {
   group('SurveyOptionButton', () {
-    testWidgets('uses color from theme', (WidgetTester tester) async {
+    testWidgets('uses gradient colors derived from theme', (
+      WidgetTester tester,
+    ) async {
       const optionIndex = 0;
       const optionCount = 5;
 
@@ -37,12 +39,21 @@ void main() {
       );
 
       final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
-      final expectedColor = AppTheme.dark()
-          .extension<SurveyOptionColors>()!
-          .palette[optionIndex]
-          .withValues(alpha: 0.8);
+      final baseColor =
+          AppTheme.dark().extension<SurveyOptionColors>()!.palette[optionIndex];
+      final hsl = HSLColor.fromColor(baseColor);
+      final expectedBottomColor =
+          hsl.withLightness((hsl.lightness - 0.12).clamp(0.0, 1.0)).toColor();
 
-      expect(button.style?.backgroundColor?.resolve({}), expectedColor);
+      final ink = tester.widget<Ink>(find.byType(Ink));
+      final decoration = ink.decoration as BoxDecoration;
+      final gradient = decoration.gradient as LinearGradient;
+
+      expect(button.style?.backgroundColor?.resolve({}), Colors.transparent);
+      expect(gradient.begin, Alignment.topLeft);
+      expect(gradient.end, Alignment.bottomRight);
+      expect(gradient.colors.first, baseColor);
+      expect(gradient.colors.last, expectedBottomColor);
     });
   });
 
@@ -115,6 +126,89 @@ void main() {
       expect(find.text('Demo'), findsOneWidget);
       expect(find.text('Body'), findsOneWidget);
       expect(find.text(dsSharedStatusBarText), findsOneWidget);
+    });
+  });
+
+  group('DsSurveyProgressIndicator', () {
+    testWidgets('supports includeSuccessPage endowment progression', (
+      WidgetTester tester,
+    ) async {
+      Future<double?> pumpProgress({
+        required int currentIndex,
+        required int total,
+        required bool includeSuccessPage,
+      }) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: DsSurveyProgressIndicator(
+                currentIndex: currentIndex,
+                total: total,
+                includeSuccessPage: includeSuccessPage,
+              ),
+            ),
+          ),
+        );
+        return tester
+            .widget<LinearProgressIndicator>(
+              find.byType(LinearProgressIndicator),
+            )
+            .value;
+      }
+
+      expect(
+        await pumpProgress(
+          currentIndex: 0,
+          total: 10,
+          includeSuccessPage: true,
+        ),
+        closeTo(1 / 11, 0.0001),
+      );
+      expect(
+        await pumpProgress(
+          currentIndex: 9,
+          total: 10,
+          includeSuccessPage: true,
+        ),
+        closeTo(10 / 11, 0.0001),
+      );
+      expect(
+        await pumpProgress(
+          currentIndex: 10,
+          total: 10,
+          includeSuccessPage: true,
+        ),
+        1.0,
+      );
+      expect(
+        await pumpProgress(
+          currentIndex: 9,
+          total: 10,
+          includeSuccessPage: false,
+        ),
+        1.0,
+      );
+    });
+
+    testWidgets('applies a minimum visible progress in endowment mode', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: DsSurveyProgressIndicator(
+              currentIndex: 0,
+              total: 200,
+              includeSuccessPage: true,
+            ),
+          ),
+        ),
+      );
+
+      final value = tester
+          .widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator))
+          .value;
+      expect(value, 0.02);
     });
   });
 }

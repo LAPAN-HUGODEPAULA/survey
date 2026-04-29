@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 class DsSurveyProgressIndicator extends StatelessWidget {
   final int currentIndex;
   final int total;
+  final bool includeSuccessPage;
   final bool showLabel;
   final EdgeInsetsGeometry padding;
   final double minHeight;
@@ -13,6 +14,7 @@ class DsSurveyProgressIndicator extends StatelessWidget {
     super.key,
     required this.currentIndex,
     required this.total,
+    this.includeSuccessPage = false,
     this.showLabel = false,
     this.padding = const EdgeInsets.only(bottom: 24.0),
     this.minHeight = 4,
@@ -23,7 +25,12 @@ class DsSurveyProgressIndicator extends StatelessWidget {
     final safeTotal = max(0, total);
     final safeIndex =
         max(0, min(currentIndex, safeTotal > 0 ? safeTotal - 1 : 0));
-    final value = safeTotal == 0 ? 0.0 : (safeIndex + 1) / safeTotal;
+    final value = switch (safeTotal) {
+      0 => 0.0,
+      _ when includeSuccessPage && currentIndex >= safeTotal => 1.0,
+      _ when includeSuccessPage => max(0.02, (safeIndex + 1) / (safeTotal + 1)),
+      _ => (safeIndex + 1) / safeTotal,
+    };
 
     return Padding(
       padding: padding,

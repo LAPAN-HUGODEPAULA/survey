@@ -68,6 +68,7 @@ class _DsSurveyQuestionRunnerState extends State<DsSurveyQuestionRunner> {
           DsSurveyProgressIndicator(
             currentIndex: _currentQuestionIndex,
             total: widget.questions.length,
+            includeSuccessPage: true,
             padding: const EdgeInsets.only(bottom: 20),
           ),
           ...currentQuestion.answers.asMap().entries.map((entry) {
@@ -84,6 +85,7 @@ class _DsSurveyQuestionRunnerState extends State<DsSurveyQuestionRunner> {
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
               onPressed: _currentQuestionIndex == 0 ? null : _goBack,
+              style: TextButton.styleFrom(foregroundColor: Colors.white),
               icon: const Icon(Icons.arrow_back_rounded),
               label: const Text('Voltar para a pergunta anterior'),
             ),

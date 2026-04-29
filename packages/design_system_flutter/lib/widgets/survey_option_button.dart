@@ -17,6 +17,12 @@ class SurveyOptionButton extends StatelessWidget {
   final int optionCount;
   final bool selected;
 
+  Color _darken(Color color, [double amount = 0.12]) {
+    final hsl = HSLColor.fromColor(color);
+    final lightness = (hsl.lightness - amount).clamp(0.0, 1.0);
+    return hsl.withLightness(lightness).toColor();
+  }
+
   @override
   Widget build(BuildContext context) {
     final surveyOptionColors =
@@ -32,14 +38,17 @@ class SurveyOptionButton extends StatelessWidget {
     // doesn't match the number of colors in the palette.
     final colorIndex = optionIndex % surveyOptionColors.palette.length;
     final color = surveyOptionColors.palette[colorIndex];
+    final bottomRightColor = _darken(color);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          backgroundColor: color,
+          padding: EdgeInsets.zero,
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -48,7 +57,22 @@ class SurveyOptionButton extends StatelessWidget {
                 : BorderSide.none,
           ),
         ),
-        child: Text(text, style: const TextStyle(fontSize: 16)),
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [color, bottomRightColor],
+            ),
+          ),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            alignment: Alignment.center,
+            child: Text(text, style: const TextStyle(fontSize: 16)),
+          ),
+        ),
       ),
     );
   }
