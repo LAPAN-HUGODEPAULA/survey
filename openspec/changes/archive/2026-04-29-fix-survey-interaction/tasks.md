@@ -30,4 +30,4 @@
 
 - [x] 6.1 Run Flutter tests in `packages/design_system_flutter` to verify no regressions in `SurveyOptionButton` and `DsSurveyProgressIndicator`
 - [x] 6.2 Run Flutter tests in `apps/survey-patient` to verify thank-you page and report page changes
-- [ ] 6.3 Manual smoke test: complete a full survey flow in survey-patient, verify progress bar never hits 100% on last question, verify all navigation paths work, verify gradient styling on option buttons
+- [x] 6.3 Manual smoke test: complete a full survey flow in survey-patient, verify progress bar never hits 100% on last question, verify all navigation paths work, verify gradient styling on option buttons

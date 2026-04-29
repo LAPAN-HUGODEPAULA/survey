@@ -19,6 +19,46 @@ The applications `survey-frontend` and `survey-patient` SHALL consume shared res
 - **THEN** the screen MUST be composed from shared components exported by `packages/design_system_flutter`
 - **AND** the application MAY keep a thin local page wrapper for navigation, repository access, and provider integration
 
+#### Scenario: Medication input uses shared autocomplete component
+- **WHEN** the demographics form shows the medication section and the user has selected "Sim"
+- **THEN** the form MUST render `DsMedicationAutocompleteField` instead of a plain `TextFormField`
+- **AND** selected medications MUST be tracked as a `List<String>` in the form controller
+
+#### Scenario: Option buttons render with consistent gradient styling
+- **WHEN** a survey app renders option buttons via `SurveyOptionButton`
+- **THEN** the buttons MUST display a top-left-to-bottom-right gradient using the assigned palette color
+- **AND** the gradient MUST be identical across `survey-patient`, `survey-frontend`, and `survey-builder`
+
+#### Scenario: Question runner uses endowment-effect progress
+- **WHEN** `DsSurveyQuestionRunner` is rendered in any consuming app
+- **THEN** the progress indicator MUST use `includeSuccessPage: true`
+- **AND** the progress MUST NOT reach 100% until the user transitions past the last question
+
+#### Scenario: Back button text is visible on dark background
+- **WHEN** the "Voltar para a pergunta anterior" button is displayed in `DsSurveyQuestionRunner`
+- **THEN** the text color MUST be white to match the option button text styling
+
+### Requirement: DsDemographicsFormController MUST manage medication as a list
+The form controller SHALL track selected medications as `List<String>` instead of a single `TextEditingController`. The `DsDemographicsSubmission.medication` field SHALL be `List<String>`.
+
+#### Scenario: Form controller medication state
+- **WHEN** the form controller is initialized
+- **THEN** `selectedMedications` MUST be an empty `List<String>`
+- **AND** the controller MUST expose `addMedication(String)` and `removeMedication(String)` methods
+
+#### Scenario: Form submission with medications
+- **WHEN** the form is submitted with `usesMedication == 'Sim'`
+- **THEN** `DsDemographicsSubmission.medication` MUST contain the list of selected medication names
+- **AND** validation MUST fail if the list is empty
+
+#### Scenario: Form submission without medications
+- **WHEN** the form is submitted with `usesMedication == 'Não'`
+- **THEN** `DsDemographicsSubmission.medication` MUST be an empty list
+
+#### Scenario: Validation item for empty medication list
+- **WHEN** `usesMedication == 'Sim'` and `selectedMedications` is empty
+- **THEN** the validation summary MUST include an item for "Nome do(s) medicamento(s)" indicating the field is required
+
 ### Requirement: Shared survey-form components MUST preserve common demographic rules
 The shared demographics components SHALL centralize the common business rules already duplicated across the survey respondent applications, including required demographic fields, diagnosis multi-select behavior, conditional medication-name entry, and loading of shared reference data such as diagnoses, education levels, and professions.
 
@@ -121,3 +161,27 @@ The shared component library SHALL provide reusable variants or slots for specia
 - **WHEN** a Flutter app renders a domain-specific screen such as a chat surface, report panel, survey step, or admin editor
 - **THEN** the screen MUST compose from shared primitives or approved shared feature components in `packages/design_system_flutter`
 - **AND** the app MUST NOT introduce a second visual language that bypasses the shared dark-theme primitives
+
+### Requirement: Shared respondent status metadata MUST meet high contrast thresholds
+Shared respondent-flow metadata text rendered on tonal surfaces from `packages/design_system_flutter` (including progress and survey-status labels) MUST maintain a minimum contrast ratio of 6:1 between text foreground and background.
+
+#### Scenario: Progress and status metadata render on respondent cards
+- **WHEN** a respondent app renders metadata such as `"Progresso (2 de 5)"` or `"Questionário ativo"`
+- **THEN** the shared component styles MUST provide at least 6:1 contrast ratio for the metadata text against its background surface
+- **AND** the contrast treatment MUST be consistent across `survey-patient` and `survey-frontend`
+
+### Requirement: Shared survey answer buttons MUST keep white-label readability
+The shared survey answer option buttons used by `DsSurveyQuestionData` MUST use fill colors that provide a minimum contrast ratio of 6:1 against white text labels.
+
+#### Scenario: Respondent sees survey response options
+- **WHEN** the survey answer buttons are rendered with white text
+- **THEN** each configured button background color MUST satisfy at least 6:1 contrast ratio against the text color
+- **AND** the color mapping MUST remain stable for all four option buttons
+
+### Requirement: Shared section containers MUST support vertical scrolling
+Shared respondent section containers in `packages/design_system_flutter` MUST provide vertical scrolling behavior when content height exceeds the viewport on low-resolution devices.
+
+#### Scenario: Section content exceeds available viewport
+- **WHEN** a consuming app renders a shared section with content taller than the device viewport
+- **THEN** the shared section container MUST allow vertical scrolling without clipping child controls
+- **AND** consuming apps MUST NOT need to implement duplicate local scroll wrappers for the same section behavior
