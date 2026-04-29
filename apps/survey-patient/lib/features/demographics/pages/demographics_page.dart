@@ -84,6 +84,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
       survey: widget.survey,
       surveyAnswers: widget.surveyAnswers,
       surveyQuestions: widget.surveyQuestions,
+      onRestartSurvey: _restartSurveyFlow,
     );
   }
 
@@ -93,7 +94,17 @@ class _DemographicsPageState extends State<DemographicsPage> {
       survey: widget.survey,
       surveyAnswers: widget.surveyAnswers,
       surveyQuestions: widget.surveyQuestions,
+      onRestartSurvey: _restartSurveyFlow,
     );
+  }
+
+  Future<void> _restartSurveyFlow() async {
+    final appSettings = Provider.of<AppSettings>(context, listen: false);
+    await appSettings.restartAssessmentFlow();
+    if (!context.mounted) {
+      return;
+    }
+    AppNavigator.replaceWithEntryGate(context);
   }
 
   @override

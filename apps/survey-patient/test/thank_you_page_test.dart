@@ -84,7 +84,9 @@ class _IdleSurveyRepository extends SurveyRepository {
 }
 
 void main() {
-  testWidgets('ThankYouPage shows summary and CTA buttons', (tester) async {
+  testWidgets('ThankYouPage shows radar, actions, and no text summary', (
+    tester,
+  ) async {
     final survey = Survey(
       id: 'survey-1',
       surveyDisplayName: 'Survey Demo',
@@ -126,7 +128,9 @@ void main() {
     expect(find.text('Radar das respostas'), findsOneWidget);
     expect(find.text('Avaliação preliminar'), findsOneWidget);
     expect(find.text('Adicionar informações'), findsOneWidget);
+    expect(find.text('Gerar relatório'), findsOneWidget);
     expect(find.text('Iniciar nova avaliação'), findsOneWidget);
+    expect(find.text('Resumo das respostas'), findsNothing);
   });
 
   testWidgets(

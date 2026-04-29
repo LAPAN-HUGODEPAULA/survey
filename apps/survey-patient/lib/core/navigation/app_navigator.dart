@@ -11,7 +11,13 @@ import 'package:patient_app/features/welcome/pages/welcome_page.dart';
 
 class AppNavigator {
   static Future<T?> push<T>(BuildContext context, Widget page) {
-    return Navigator.push<T>(context, MaterialPageRoute(builder: (_) => page));
+    return Navigator.push<T>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => page,
+        settings: RouteSettings(name: page.runtimeType.toString()),
+      ),
+    );
   }
 
   static Future<T?> replace<T, TO extends Object?>(
@@ -20,7 +26,10 @@ class AppNavigator {
   ) {
     return Navigator.pushReplacement<T, TO>(
       context,
-      MaterialPageRoute(builder: (_) => page),
+      MaterialPageRoute(
+        builder: (_) => page,
+        settings: RouteSettings(name: page.runtimeType.toString()),
+      ),
     );
   }
 
@@ -69,6 +78,7 @@ class AppNavigator {
     required Survey survey,
     required List<String> surveyAnswers,
     required List<Question> surveyQuestions,
+    required Future<void> Function() onRestartSurvey,
   }) {
     return push(
       context,
@@ -76,6 +86,7 @@ class AppNavigator {
         survey: survey,
         surveyAnswers: surveyAnswers,
         surveyQuestions: surveyQuestions,
+        onRestartSurvey: onRestartSurvey,
       ),
     );
   }
@@ -108,6 +119,7 @@ class AppNavigator {
     required Survey survey,
     required List<String> surveyAnswers,
     required List<Question> surveyQuestions,
+    required Future<void> Function() onRestartSurvey,
   }) {
     return replace(
       context,
@@ -115,6 +127,7 @@ class AppNavigator {
         survey: survey,
         surveyAnswers: surveyAnswers,
         surveyQuestions: surveyQuestions,
+        onRestartSurvey: onRestartSurvey,
       ),
     );
   }

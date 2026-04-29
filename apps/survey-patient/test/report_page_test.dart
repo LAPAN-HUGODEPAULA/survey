@@ -16,13 +16,13 @@ import 'package:survey_backend_api/survey_backend_api.dart' as api;
 
 class _FakeSurveyRepository extends SurveyRepository {
   _FakeSurveyRepository()
-      : super(
-          apiClient: api.DefaultApi(
-            Dio(BaseOptions(baseUrl: 'http://localhost')),
-            api.standardSerializers,
-          ),
-          rawClient: Dio(BaseOptions(baseUrl: 'http://localhost')),
-        );
+    : super(
+        apiClient: api.DefaultApi(
+          Dio(BaseOptions(baseUrl: 'http://localhost')),
+          api.standardSerializers,
+        ),
+        rawClient: Dio(BaseOptions(baseUrl: 'http://localhost')),
+      );
 
   @override
   Future<SurveyResponse> submitResponse(SurveyResponse response) async {
@@ -44,10 +44,7 @@ class _FakeSurveyRepository extends SurveyRepository {
     String? surveyId,
   }) async {
     return AgentResponse(
-      report: ReportDocument.fromPlainText(
-        text: content,
-        title: 'Relatorio',
-      ),
+      report: ReportDocument.fromPlainText(text: content, title: 'Relatorio'),
     );
   }
 }
@@ -85,6 +82,7 @@ void main() {
             survey: survey,
             surveyAnswers: const ['A'],
             surveyQuestions: survey.questions,
+            onRestartSurvey: () async {},
             surveyRepository: repository,
           ),
         ),

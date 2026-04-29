@@ -26,12 +26,14 @@ class ReportPage extends StatefulWidget {
     required this.survey,
     required this.surveyAnswers,
     required this.surveyQuestions,
+    required this.onRestartSurvey,
     this.surveyRepository,
   });
 
   final Survey survey;
   final List<String> surveyAnswers;
   final List<Question> surveyQuestions;
+  final Future<void> Function() onRestartSurvey;
   final SurveyRepository? surveyRepository;
 
   @override
@@ -406,8 +408,10 @@ class _ReportPageState extends State<ReportPage> {
     return DsScaffold(
       title: 'Relatório',
       subtitle: 'Análise consolidada do questionário $displayName.',
-      onBack: () => Navigator.of(context).pop(),
-      backLabel: 'Voltar para os dados demográficos',
+      onBack: () => Navigator.of(context).popUntil(
+        (route) => route.settings.name == 'ThankYouPage' || route.isFirst,
+      ),
+      backLabel: 'Voltar',
       scrollable: true,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -492,6 +496,14 @@ class _ReportPageState extends State<ReportPage> {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: DsOutlinedButton(
+              label: 'Iniciar nova avaliação',
+              onPressed: widget.onRestartSurvey,
+            ),
+          ),
         ],
       ),
     );

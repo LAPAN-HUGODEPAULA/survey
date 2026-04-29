@@ -283,14 +283,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
       final label = (question.label?.trim().isNotEmpty ?? false)
           ? question.label!.trim()
           : 'Q${index + 1}';
-      summaries.add(
-        _AnswerSummary(
-          questionText: question.questionText,
-          label: label,
-          answerText: answer.isNotEmpty ? answer : 'Sem resposta',
-          value: value,
-        ),
-      );
+      summaries.add(_AnswerSummary(label: label, value: value));
     }
     return summaries;
   }
@@ -332,6 +325,15 @@ class _ThankYouPageState extends State<ThankYouPage> {
       return response.errorMessage!.trim();
     }
     return 'A avaliação preliminar foi concluída mas ainda não retornou texto.';
+  }
+
+  Future<void> _restartSurveyFlow() async {
+    final appSettings = Provider.of<AppSettings>(context, listen: false);
+    await appSettings.restartAssessmentFlow();
+    if (!context.mounted) {
+      return;
+    }
+    AppNavigator.replaceWithEntryGate(context);
   }
 
   @override
@@ -408,47 +410,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
                     }),
                   ),
                 ],
-                const SizedBox(height: 24),
-                Text(
-                  'Resumo das respostas',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                for (final summary in summaries)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: DsFocusFrame(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            summary.label,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            summary.questionText,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            summary.answerText,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -647,6 +608,20 @@ class _ThankYouPageState extends State<ThankYouPage> {
                 ),
                 icon: Icons.person_add_alt_1_outlined,
               ),
+              DsHandoffForkAction(
+                title: 'Gerar relatório com as respostas atuais',
+                description:
+                    'Siga direto para o relatório clínico com base nas respostas já registradas.',
+                primaryLabel: 'Gerar relatório',
+                onPrimaryPressed: () => AppNavigator.toReport(
+                  context,
+                  survey: widget.survey,
+                  surveyAnswers: widget.surveyAnswers,
+                  surveyQuestions: widget.surveyQuestions,
+                  onRestartSurvey: _restartSurveyFlow,
+                ),
+                icon: Icons.description_outlined,
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -654,17 +629,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
             width: double.infinity,
             child: DsOutlinedButton(
               label: 'Iniciar nova avaliação',
-              onPressed: () async {
-                final appSettings = Provider.of<AppSettings>(
-                  context,
-                  listen: false,
-                );
-                await appSettings.restartAssessmentFlow();
-                if (!context.mounted) {
-                  return;
-                }
-                AppNavigator.replaceWithEntryGate(context);
-              },
+              onPressed: _restartSurveyFlow,
             ),
           ),
         ],
@@ -766,15 +731,8 @@ class _SurveyRadarChart extends StatelessWidget {
 }
 
 class _AnswerSummary {
-  const _AnswerSummary({
-    required this.questionText,
-    required this.label,
-    required this.answerText,
-    required this.value,
-  });
+  const _AnswerSummary({required this.label, required this.value});
 
-  final String questionText;
   final String label;
-  final String answerText;
   final double value;
 }
