@@ -56,7 +56,7 @@ class _WelcomePageState extends State<WelcomePage> {
           subtitle:
               'Bem vindo! Vamos iniciar a triagem. Reserve o tempo que precisar.',
           userName: settings.patient.name,
-          showAmbientGreeting: true,
+          showAmbientGreeting: false,
           scrollable: true,
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:design_system_flutter/widgets.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -26,9 +25,23 @@ const _radarPalette = <Color>[
   Color(0xFF26A69A),
   Color(0xFFFFEB3B),
 ];
+
+const _radarOptionScores = <String, double>{
+  'quase nunca': 0.0,
+  'ocasionalmente': 1.0,
+  'frequentemente': 2.0,
+  'quase sempre': 3.0,
+};
+
 Color _withOpacity(Color base, double opacity) {
   final alpha = (opacity.clamp(0.0, 1.0) * 255).clamp(0.0, 255.0);
   return base.withValues(alpha: alpha);
+}
+
+Color _darken(Color color, [double amount = 0.42]) {
+  final hsl = HSLColor.fromColor(color);
+  final lightness = (hsl.lightness - amount).clamp(0.0, 1.0);
+  return hsl.withLightness(lightness).toColor();
 }
 
 class ThankYouPage extends StatefulWidget {
@@ -266,22 +279,42 @@ class _ThankYouPageState extends State<ThankYouPage> {
       final answer = index < widget.surveyAnswers.length
           ? widget.surveyAnswers[index]
           : '';
-      final answerIndex = question.answers.indexOf(answer);
-      final value = answerIndex >= 0 ? (answerIndex + 1).toDouble() : 0.0;
+      final value = _resolveRadarScore(question, answer);
       final label = (question.label?.trim().isNotEmpty ?? false)
           ? question.label!.trim()
-          : 'Q${question.id}';
+          : 'Q${index + 1}';
       summaries.add(
         _AnswerSummary(
           questionText: question.questionText,
           label: label,
           answerText: answer.isNotEmpty ? answer : 'Sem resposta',
           value: value,
-          maxValue: question.answers.length,
         ),
       );
     }
     return summaries;
+  }
+
+  double _resolveRadarScore(Question question, String answer) {
+    final normalizedAnswer = answer.trim().toLowerCase();
+    final mapped = _radarOptionScores[normalizedAnswer];
+    if (mapped != null) {
+      return mapped;
+    }
+
+    final index = question.answers.indexWhere(
+      (candidate) => candidate.trim().toLowerCase() == normalizedAnswer,
+    );
+    if (index < 0) {
+      return 0.0;
+    }
+    if (question.answers.length <= 1) {
+      return 0.0;
+    }
+    if (question.answers.length == 4) {
+      return index.clamp(0, 3).toDouble();
+    }
+    return (index * (3 / (question.answers.length - 1))).clamp(0.0, 3.0);
   }
 
   String _agentSummaryText(AgentResponse response) {
@@ -305,9 +338,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
   Widget build(BuildContext context) {
     final settings = context.watch<AppSettings>();
     final summaries = _buildSummaries();
-    final maxValue = summaries.isEmpty
-        ? 1
-        : summaries.map((item) => item.maxValue).reduce(max);
+    const maxValue = 3;
     final values = summaries.map((item) => item.value).toList(growable: false);
     final labels = summaries.map((item) => item.label).toList(growable: false);
     final theme = Theme.of(context);
@@ -650,9 +681,10 @@ class _RadarLegendChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final badgeColor = _darken(color, 0.44);
     return DsPanel(
       tone: DsPanelTone.high,
-      backgroundColor: _withOpacity(color, 0.2),
+      backgroundColor: badgeColor,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       borderRadius: BorderRadius.circular(16),
       child: Row(
@@ -664,7 +696,12 @@ class _RadarLegendChip extends StatelessWidget {
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 6),
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.white),
+          ),
         ],
       ),
     );
@@ -705,7 +742,8 @@ class _SurveyRadarChart extends StatelessWidget {
           ),
         ],
         titleTextStyle: theme.textTheme.bodySmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
         ),
         getTitle: (index, angle) {
           final label = labels.isEmpty ? 'Q${index + 1}' : labels[index];
@@ -714,7 +752,8 @@ class _SurveyRadarChart extends StatelessWidget {
         titlePositionPercentageOffset: 0.15,
         tickCount: maxValue,
         ticksTextStyle: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
+          color: const Color(0xFFFDF7F0),
+          fontWeight: FontWeight.w700,
         ),
         gridBorderData: BorderSide(
           color: theme.colorScheme.outlineVariant,
@@ -732,12 +771,10 @@ class _AnswerSummary {
     required this.label,
     required this.answerText,
     required this.value,
-    required this.maxValue,
   });
 
   final String questionText;
   final String label;
   final String answerText;
   final double value;
-  final int maxValue;
 }

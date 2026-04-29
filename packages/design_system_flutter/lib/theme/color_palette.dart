@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 class ColorPalette {
   static const List<Color> diagnosticScale = [
-    Color(0xFF86CFFF),
-    Color(0xFFB5C8DF),
-    Color(0xFFFFDCC5),
-    Color(0xFFFFB783),
-    Color(0xFFF38A2E),
+    Color(0xFF1F5A7A),
+    Color(0xFF275F44),
+    Color(0xFF7A3E1E),
+    Color(0xFF5A3B74),
+    Color(0xFF1F4B5C),
   ];
 }
