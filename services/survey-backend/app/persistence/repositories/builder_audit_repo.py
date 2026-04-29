@@ -1,13 +1,12 @@
 """Repository for builder audit records."""
 
 from datetime import datetime, timedelta
-from typing import Optional
 
 from bson import ObjectId
 from pymongo import IndexModel, ASCENDING, DESCENDING
 from pymongo.database import Database
 
-from app.domain.models.audit_models import BuilderAuditLog, BuilderAuditCreate
+from app.domain.models.audit_models import BuilderAuditLog
 
 
 class BuilderAuditRepository:
@@ -37,8 +36,8 @@ class BuilderAuditRepository:
             "createdAt": audit_data.get("createdAt") or datetime.utcnow(),
         }
         result = self._collection.insert_one(audit_data)
-        created = self._collection.find_one({"_id": result.inserted_id})
-        return BuilderAuditLog.model_validate(self._normalize(created))
+        audit_data["_id"] = str(result.inserted_id)
+        return BuilderAuditLog.model_validate(self._normalize(audit_data))
 
     def list_by_correlation_id(self, correlation_id: str) -> list[BuilderAuditLog]:
         """List all audit records for a correlation ID."""
@@ -65,7 +64,7 @@ class BuilderAuditRepository:
         ).sort("createdAt", DESCENDING).limit(limit)
         return [BuilderAuditLog.model_validate(self._normalize(doc)) for doc in cursor]
 
-    def find_by_id(self, audit_id: str) -> Optional[BuilderAuditLog]:
+    def find_by_id(self, audit_id: str) -> BuilderAuditLog | None:
         """Find an audit record by ID."""
         try:
             object_id = ObjectId(audit_id)
@@ -86,38 +85,37 @@ class BuilderAuditRepository:
 
     def get_statistics(self) -> dict:
         """Get audit statistics for monitoring."""
+        yesterday = datetime.utcnow() - timedelta(hours=24)
         pipeline = [
             {
-                "$group": {
-                    "_id": {
-                        "operation": "$operation",
-                        "status": "$status",
-                        "namespace": "$namespace"
-                    },
-                    "count": {"$sum": 1}
+                "$facet": {
+                    "total": [{"$count": "count"}],
+                    "recent_24h": [
+                        {"$match": {"createdAt": {"$gte": yesterday}}},
+                        {"$count": "count"},
+                    ],
+                    "operation_stats": [
+                        {"$group": {
+                            "_id": {
+                                "operation": "$operation",
+                                "status": "$status",
+                                "namespace": "$namespace",
+                            },
+                            "count": {"$sum": 1},
+                        }},
+                        {"$sort": {"count": -1}},
+                    ],
                 }
-            },
-            {
-                "$sort": {"count": -1}
             }
         ]
         results = list(self._collection.aggregate(pipeline))
-
-        # Total records
-        total = self._collection.count_documents({})
-
-        # Records in last 24 hours
-        yesterday = datetime.utcnow() - timedelta(hours=24)
-        recent = self._collection.count_documents(
-            {
-                "createdAt": {"$gte": yesterday},
-            }
-        )
-
+        facet = results[0] if results else {}
+        total_bucket = facet.get("total", [])
+        recent_bucket = facet.get("recent_24h", [])
         return {
-            "total_records": total,
-            "recent_records_24h": recent,
-            "operation_stats": results
+            "total_records": total_bucket[0]["count"] if total_bucket else 0,
+            "recent_records_24h": recent_bucket[0]["count"] if recent_bucket else 0,
+            "operation_stats": facet.get("operation_stats", []),
         }
 
     def _normalize(self, doc: dict | None) -> dict:

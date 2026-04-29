@@ -20,6 +20,13 @@ class PatientResponseRepository:
     def list_all(self) -> list[dict]:
         return [self._normalize(x) for x in self._col.find()]
 
+    def get_by_id(self, response_id: str) -> dict | None:
+        try:
+            object_id = ObjectId(response_id)
+        except Exception:
+            return None
+        return self._normalize(self._col.find_one({"_id": object_id}))
+
     def _normalize(self, doc: dict | None) -> dict:
         """Convert Mongo IDs into plain strings without mutating the source document."""
         if not doc:

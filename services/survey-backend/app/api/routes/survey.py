@@ -22,7 +22,7 @@ from app.persistence.repositories.persona_skill_repo import PersonaSkillReposito
 from app.persistence.repositories.survey_prompt_repo import SurveyPromptRepository
 from app.persistence.repositories.survey_repo import SurveyRepository
 
-router = APIRouter(dependencies=[Depends(require_builder_admin)])
+router = APIRouter()
 
 
 def _resolve_prompt_reference(
@@ -88,7 +88,7 @@ def _resolve_persona_defaults(
     "/surveys/",
     response_model=Survey,
     status_code=201,
-    dependencies=[Depends(require_builder_csrf)],
+    dependencies=[Depends(require_builder_admin), Depends(require_builder_csrf)],
 )
 async def create_survey(
     survey: Survey,
@@ -153,7 +153,7 @@ async def get_surveys(repo: SurveyRepository = Depends(get_survey_repo)):
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
 
 
-@router.get("/surveys/export")
+@router.get("/surveys/export", dependencies=[Depends(require_builder_admin)])
 async def export_surveys(repo: SurveyRepository = Depends(get_survey_repo)):
     """Export all surveys as a JSON file."""
     logger.info("Exporting all surveys")
@@ -193,7 +193,7 @@ async def get_survey(survey_id: str, repo: SurveyRepository = Depends(get_survey
 @router.put(
     "/surveys/{survey_id}",
     response_model=Survey,
-    dependencies=[Depends(require_builder_csrf)],
+    dependencies=[Depends(require_builder_admin), Depends(require_builder_csrf)],
 )
 async def update_survey(
     survey_id: str,
@@ -229,7 +229,7 @@ async def update_survey(
 @router.delete(
     "/surveys/{survey_id}",
     status_code=204,
-    dependencies=[Depends(require_builder_csrf)],
+    dependencies=[Depends(require_builder_admin), Depends(require_builder_csrf)],
 )
 async def delete_survey(survey_id: str, repo: SurveyRepository = Depends(get_survey_repo)):
     """Delete a survey by its ID."""

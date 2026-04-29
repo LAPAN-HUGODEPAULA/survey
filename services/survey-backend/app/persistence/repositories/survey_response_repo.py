@@ -25,6 +25,13 @@ class SurveyResponseRepository:
     def list_all(self) -> list[dict]:
         return [self._normalize(x) for x in self._col.find()]
 
+    def get_by_id(self, response_id: str) -> dict | None:
+        try:
+            object_id = ObjectId(response_id)
+        except Exception:
+            return None
+        return self._normalize(self._col.find_one({"_id": object_id}))
+
     def _normalize(self, doc: dict | None) -> dict:
         """Convert Mongo IDs and strip internal enrichment fields for plain API reads."""
         if not doc:
