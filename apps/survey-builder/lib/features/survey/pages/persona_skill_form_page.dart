@@ -100,7 +100,9 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
     final activationOffset = 180.0;
     String nextSectionId = _detailsSectionId;
 
-    final instructionsBox = _instructionsSectionKey.currentContext?.findRenderObject() as RenderBox?;
+    final instructionsBox =
+        _instructionsSectionKey.currentContext?.findRenderObject()
+            as RenderBox?;
 
     if (instructionsBox != null) {
       final top = instructionsBox.localToGlobal(Offset.zero).dy;
@@ -115,7 +117,9 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
   }
 
   void _jumpToSection(String sectionId) {
-    final targetKey = sectionId == _detailsSectionId ? _detailsSectionKey : _instructionsSectionKey;
+    final targetKey = sectionId == _detailsSectionId
+        ? _detailsSectionKey
+        : _instructionsSectionKey;
     final context = targetKey.currentContext;
     if (context != null) {
       setState(() => _currentSectionId = sectionId);
@@ -183,23 +187,41 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
     final items = <DsValidationSummaryItem>[];
     void addItem(String label, String? message, GlobalKey targetKey) {
       if (message != null && message.isNotEmpty) {
-        items.add(DsValidationSummaryItem(
-          label: label,
-          message: message,
-          onTap: () => Scrollable.ensureVisible(
-            targetKey.currentContext!,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            alignment: 0.1,
+        items.add(
+          DsValidationSummaryItem(
+            label: label,
+            message: message,
+            onTap: () => Scrollable.ensureVisible(
+              targetKey.currentContext!,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              alignment: 0.1,
+            ),
           ),
-        ));
+        );
       }
     }
 
-    addItem('Chave da persona', DsKeyFieldSupport.validateRequired(_personaSkillKeyController.text), _detailsSectionKey);
-    addItem('Nome da persona', DsKeyFieldSupport.validateRequired(_nameController.text), _detailsSectionKey);
-    addItem('Perfil de saída', DsKeyFieldSupport.validateRequired(_outputProfileController.text), _detailsSectionKey);
-    addItem('Instruções', DsKeyFieldSupport.validateRequired(_instructionsController.text), _instructionsSectionKey);
+    addItem(
+      'Chave da persona',
+      DsKeyFieldSupport.validateRequired(_personaSkillKeyController.text),
+      _detailsSectionKey,
+    );
+    addItem(
+      'Nome da persona',
+      DsKeyFieldSupport.validateRequired(_nameController.text),
+      _detailsSectionKey,
+    );
+    addItem(
+      'Perfil de saída',
+      DsKeyFieldSupport.validateRequired(_outputProfileController.text),
+      _detailsSectionKey,
+    );
+    addItem(
+      'Instruções',
+      DsKeyFieldSupport.validateRequired(_instructionsController.text),
+      _instructionsSectionKey,
+    );
 
     return items;
   }
@@ -269,7 +291,9 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    final validationItems = _hasSubmitted ? _buildValidationItems() : <DsValidationSummaryItem>[];
+    final validationItems = _hasSubmitted
+        ? _buildValidationItems()
+        : <DsValidationSummaryItem>[];
 
     return DsScaffold(
       title: _isEditing ? 'Editar persona' : 'Criar persona',
@@ -286,6 +310,7 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
       ],
       onBack: () => Navigator.of(context).pop(),
       backLabel: 'Voltar para personas',
+      maxBodyWidth: 1920,
       scrollable: false,
       body: Form(
         key: _formKey,
@@ -298,13 +323,29 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
           stickyFooter: const SizedBox.shrink(),
           sectionalNav: DsSectionalNav(
             items: [
-              DsSectionalNavItem(label: 'Detalhes', targetKey: _detailsSectionKey),
-              DsSectionalNavItem(label: 'Instruções', targetKey: _instructionsSectionKey),
+              DsSectionalNavItem(
+                label: 'Detalhes',
+                targetKey: _detailsSectionKey,
+              ),
+              DsSectionalNavItem(
+                label: 'Instruções',
+                targetKey: _instructionsSectionKey,
+              ),
             ],
             activeItem: _currentSectionId == _detailsSectionId
-                ? DsSectionalNavItem(label: 'Detalhes', targetKey: _detailsSectionKey)
-                : DsSectionalNavItem(label: 'Instruções', targetKey: _instructionsSectionKey),
-            onItemTap: (item) => _jumpToSection(item.targetKey == _detailsSectionKey ? _detailsSectionId : _instructionsSectionId),
+                ? DsSectionalNavItem(
+                    label: 'Detalhes',
+                    targetKey: _detailsSectionKey,
+                  )
+                : DsSectionalNavItem(
+                    label: 'Instruções',
+                    targetKey: _instructionsSectionKey,
+                  ),
+            onItemTap: (item) => _jumpToSection(
+              item.targetKey == _detailsSectionKey
+                  ? _detailsSectionId
+                  : _instructionsSectionId,
+            ),
           ),
           feedback: _feedback == null
               ? null
@@ -337,10 +378,13 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
                       controller: _personaSkillKeyController,
                       readOnly: _isEditing,
                       label: 'Chave da persona *',
-                      helperText: 'Use letras minúsculas, números, ":" , "_" ou "-".',
+                      helperText:
+                          'Use letras minúsculas, números, ":" , "_" ou "-".',
                     ),
                     if (_personaSkillKeyConflictText != null)
-                      DsInlineConflictMessage(message: _personaSkillKeyConflictText!),
+                      DsInlineConflictMessage(
+                        message: _personaSkillKeyConflictText!,
+                      ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _nameController,
@@ -353,10 +397,13 @@ class _PersonaSkillFormPageState extends State<PersonaSkillFormPage> {
                     DsNormalizedKeyField(
                       controller: _outputProfileController,
                       label: 'Perfil de saída *',
-                      helperText: 'Use letras minúsculas, números, ":" , "_" ou "-".',
+                      helperText:
+                          'Use letras minúsculas, números, ":" , "_" ou "-".',
                     ),
                     if (_outputProfileConflictText != null)
-                      DsInlineConflictMessage(message: _outputProfileConflictText!),
+                      DsInlineConflictMessage(
+                        message: _outputProfileConflictText!,
+                      ),
                   ],
                 ),
               ),

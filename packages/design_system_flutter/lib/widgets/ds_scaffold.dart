@@ -181,7 +181,7 @@ class DsPageFrame extends StatelessWidget {
   const DsPageFrame({
     super.key,
     required this.child,
-    this.maxWidth = 1120,
+    this.maxWidth = 1440,
     this.padding = const EdgeInsets.all(24),
   });
 
@@ -225,7 +225,7 @@ class DsScaffold extends StatefulWidget {
     this.footer,
     this.floatingActionButton,
     this.bodyPadding = const EdgeInsets.all(24),
-    this.maxBodyWidth = 1120,
+    this.maxBodyWidth = 1440,
     this.scrollable = false,
     this.userName,
     this.showAmbientGreeting = false,

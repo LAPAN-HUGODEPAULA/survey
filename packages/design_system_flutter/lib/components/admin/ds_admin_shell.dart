@@ -7,16 +7,22 @@ class DsAdminShell extends StatelessWidget {
     super.key,
     required this.navigation,
     required this.child,
-    this.currentSection,
+    required this.currentSection,
+    required this.onNavigateToSection,
     this.userProfile,
     this.recentUpdates,
+    this.onRefresh,
+    this.headerActions,
   });
 
   final List<NavigationItem> navigation;
   final Widget child;
-  final String? currentSection;
+  final String currentSection;
+  final ValueChanged<String> onNavigateToSection;
   final Widget? userProfile;
   final List<RecentUpdate>? recentUpdates;
+  final VoidCallback? onRefresh;
+  final List<Widget>? headerActions;
 
   @override
   Widget build(BuildContext context) {
@@ -103,32 +109,34 @@ class DsAdminShell extends StatelessWidget {
                     Expanded(
                       child: Row(
                         children: [
-                          _buildBreadcrumbItem(context, 'Dashboard', null),
-                          if (currentSection != null) ...[
+                          _buildBreadcrumbItem(
+                            context,
+                            'Dashboard',
+                            currentSection == 'dashboard'
+                                ? null
+                                : () => _navigateToSection('dashboard'),
+                          ),
+                          if (currentSection != 'dashboard') ...[
                             const SizedBox(width: 8),
                             const Icon(Icons.chevron_right, size: 16),
                             const SizedBox(width: 8),
                             _buildBreadcrumbItem(
                               context,
-                              currentSection!,
-                              () => _navigateToSection(context, currentSection!),
+                              _sectionLabel(currentSection),
+                              null,
                             ),
                           ],
                         ],
                       ),
                     ),
                     // Actions
-                    const SizedBox(width: 16),
-                    IconButton(
-                      tooltip: 'Atualizar',
-                      icon: const Icon(Icons.refresh),
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      tooltip: 'Configurações',
-                      icon: const Icon(Icons.settings),
-                      onPressed: () {},
-                    ),
+                    if (onRefresh != null)
+                      IconButton(
+                        tooltip: 'Atualizar',
+                        icon: const Icon(Icons.refresh),
+                        onPressed: onRefresh,
+                      ),
+                    if (headerActions != null) ...headerActions!,
                   ],
                 ),
               ),
@@ -142,7 +150,9 @@ class DsAdminShell extends StatelessWidget {
                   height: 120,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceVariant,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     border: Border(
                       top: BorderSide(
                         color: Theme.of(context).colorScheme.outlineVariant,
@@ -177,23 +187,30 @@ class DsAdminShell extends StatelessWidget {
                                 children: [
                                   Text(
                                     update.title,
-                                    style: Theme.of(context).textTheme.bodyMedium,
+                                    style:
+                                        Theme.of(context).textTheme.bodyMedium,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     update.description,
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     update.time,
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                        ),
                                   ),
                                 ],
                               ),
@@ -229,11 +246,11 @@ class DsAdminShell extends StatelessWidget {
           child: Row(
             children: [
               // Back button (only if not on dashboard)
-              if (currentSection != null) ...[
+              if (currentSection != 'dashboard') ...[
                 IconButton(
                   tooltip: 'Voltar ao dashboard',
                   icon: const Icon(Icons.arrow_back),
-                  onPressed: () => _navigateToSection(context, 'dashboard'),
+                  onPressed: () => _navigateToSection('dashboard'),
                 ),
               ] else ...[
                 const SizedBox(width: 48),
@@ -241,23 +258,18 @@ class DsAdminShell extends StatelessWidget {
               // Title
               Expanded(
                 child: Text(
-                  currentSection ?? 'Dashboard',
+                  _sectionLabel(currentSection),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               // Actions
-              IconButton(
-                tooltip: 'Atualizar',
-                icon: const Icon(Icons.refresh),
-                onPressed: () {},
-              ),
-              if (userProfile != null) ...[
+              if (onRefresh != null)
                 IconButton(
-                  tooltip: 'Perfil',
-                  icon: const Icon(Icons.account_circle),
-                  onPressed: () {},
+                  tooltip: 'Atualizar',
+                  icon: const Icon(Icons.refresh),
+                  onPressed: onRefresh,
                 ),
-              ],
+              if (headerActions != null) ...headerActions!,
             ],
           ),
         ),
@@ -306,14 +318,14 @@ class DsAdminShell extends StatelessWidget {
       return DsTaskButton(
         icon: item.icon,
         label: item.label,
-        onTap: () => _navigateToSection(context, item.key),
+        onTap: () => _navigateToSection(item.key),
         emotion: item.emotion,
         size: DsTaskButtonSize.medium,
         showChevron: item.hasChildren,
       );
     } else {
       return InkWell(
-        onTap: () => _navigateToSection(context, item.key),
+        onTap: () => _navigateToSection(item.key),
         borderRadius: BorderRadius.circular(8),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -348,26 +360,34 @@ class DsAdminShell extends StatelessWidget {
     }
   }
 
-  Widget _buildBreadcrumbItem(BuildContext context, String label, VoidCallback? onTap) {
+  Widget _buildBreadcrumbItem(
+      BuildContext context, String label, VoidCallback? onTap) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(4),
       child: Text(
         label,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: onTap != null
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.onSurface,
-          fontWeight: onTap != null ? FontWeight.w500 : FontWeight.normal,
-        ),
+              color: onTap != null
+                  ? Theme.of(context).colorScheme.onSurfaceVariant
+                  : Theme.of(context).colorScheme.onSurface,
+              fontWeight: onTap != null ? FontWeight.w500 : FontWeight.normal,
+            ),
       ),
     );
   }
 
-  void _navigateToSection(BuildContext context, String sectionKey) {
-    // Navigate to the appropriate section
-    // This will be implemented with proper routing in a later task
-    print('Navigating to section: $sectionKey');
+  void _navigateToSection(String sectionKey) {
+    onNavigateToSection(sectionKey);
+  }
+
+  String _sectionLabel(String key) {
+    for (final item in navigation) {
+      if (item.key == key) {
+        return item.label;
+      }
+    }
+    return 'Dashboard';
   }
 }
 

@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:runtime_api_url/runtime_api_url.dart';
 import 'package:survey_builder/core/auth/builder_auth_models.dart';
 import 'package:survey_builder/core/config/runtime_config.dart';
@@ -102,11 +101,5 @@ class ApiConfig {
     return normalized.contains('/builder/login') ||
         normalized.contains('/builder/logout') ||
         normalized.contains('/builder/session');
-  }
-
-  static void debugLogResolved(String path) {
-    if (kDebugMode) {
-      // Intentionally left empty.
-    }
   }
 }

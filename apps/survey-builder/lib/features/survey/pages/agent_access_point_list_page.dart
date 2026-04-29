@@ -5,9 +5,14 @@ import 'package:survey_builder/core/repositories/agent_access_point_repository.d
 import 'package:survey_builder/features/survey/pages/agent_access_point_form_page.dart';
 
 class AgentAccessPointListPage extends StatefulWidget {
-  const AgentAccessPointListPage({super.key, this.repository});
+  const AgentAccessPointListPage({
+    super.key,
+    this.repository,
+    this.embedded = false,
+  });
 
   final AgentAccessPointRepository? repository;
+  final bool embedded;
 
   @override
   State<AgentAccessPointListPage> createState() =>
@@ -138,48 +143,54 @@ class _AgentAccessPointListPageState extends State<AgentAccessPointListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final content = DsAdminCatalogShell<AgentAccessPointDraft>(
+      heading: 'Catálogo de pontos de acesso',
+      createLabel: 'Criar ponto de acesso',
+      isLoading: _loading,
+      items: _filteredAccessPoints,
+      searchController: _searchController,
+      searchPlaceholder: 'Filtrar por nome, chave, fluxo ou survey...',
+      emptyMessage: _filter.isEmpty
+          ? 'Nenhum ponto de acesso encontrado.'
+          : 'Nenhum ponto de acesso corresponde ao filtro "$_filter".',
+      error: _error,
+      feedback: _feedback == null
+          ? null
+          : DsMessageBanner(
+              feedback: DsFeedbackMessage(
+                severity: _feedback!.severity,
+                title: _feedback!.title,
+                message: _feedback!.message,
+                dismissible: true,
+                onDismiss: () => setState(() => _feedback = null),
+              ),
+              margin: EdgeInsets.zero,
+            ),
+      onRetry: _load,
+      onRefresh: _load,
+      onCreate: _openForm,
+      itemBuilder: (BuildContext context, AgentAccessPointDraft accessPoint) {
+        final surveyScope = accessPoint.surveyId == null
+            ? 'global'
+            : 'survey ${accessPoint.surveyId}';
+        return DsAdminCatalogItem(
+          title: accessPoint.name,
+          subtitle:
+              '${accessPoint.accessPointKey} · ${accessPoint.sourceApp}/${accessPoint.flowKey} · $surveyScope',
+          onEdit: () => _openForm(draft: accessPoint),
+          onDelete: () => _deleteAccessPoint(accessPoint),
+        );
+      },
+    );
+
+    if (widget.embedded) {
+      return content;
+    }
+
     return DsScaffold(
       title: 'Pontos de acesso',
       subtitle: 'Gerencie o roteamento de runtime por fluxo e superfície.',
-      body: DsAdminCatalogShell<AgentAccessPointDraft>(
-        heading: 'Catálogo de pontos de acesso',
-        createLabel: 'Criar ponto de acesso',
-        isLoading: _loading,
-        items: _filteredAccessPoints,
-        searchController: _searchController,
-        searchPlaceholder: 'Filtrar por nome, chave, fluxo ou survey...',
-        emptyMessage: _filter.isEmpty
-            ? 'Nenhum ponto de acesso encontrado.'
-            : 'Nenhum ponto de acesso corresponde ao filtro "$_filter".',
-        error: _error,
-        feedback: _feedback == null
-            ? null
-            : DsMessageBanner(
-                feedback: DsFeedbackMessage(
-                  severity: _feedback!.severity,
-                  title: _feedback!.title,
-                  message: _feedback!.message,
-                  dismissible: true,
-                  onDismiss: () => setState(() => _feedback = null),
-                ),
-                margin: EdgeInsets.zero,
-              ),
-        onRetry: _load,
-        onRefresh: _load,
-        onCreate: _openForm,
-        itemBuilder: (BuildContext context, AgentAccessPointDraft accessPoint) {
-          final surveyScope = accessPoint.surveyId == null
-              ? 'global'
-              : 'survey ${accessPoint.surveyId}';
-          return DsAdminCatalogItem(
-            title: accessPoint.name,
-            subtitle:
-                '${accessPoint.accessPointKey} · ${accessPoint.sourceApp}/${accessPoint.flowKey} · $surveyScope',
-            onEdit: () => _openForm(draft: accessPoint),
-            onDelete: () => _deleteAccessPoint(accessPoint),
-          );
-        },
-      ),
+      body: content,
     );
   }
 }

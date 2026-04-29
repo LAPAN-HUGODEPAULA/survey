@@ -241,7 +241,7 @@ void main() {
 
     expect(find.text('Nada cadastrado.'), findsOneWidget);
 
-    await tester.tap(find.text('Criar item'));
+    await tester.tap(find.text('Criar item').first);
     await tester.pumpAndSettle();
 
     expect(createTapCount, 1);

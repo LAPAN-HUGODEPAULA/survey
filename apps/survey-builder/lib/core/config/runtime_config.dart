@@ -17,9 +17,7 @@ class RuntimeConfig {
 
   static Future<void> load() async {
     final loaded = await RuntimeAppConfig.loadStringConfig(
-      fallback: {
-        'apiBaseUrl': RuntimeAppConfig.resolveApiBaseUrl(),
-      },
+      fallback: {'apiBaseUrl': RuntimeAppConfig.resolveApiBaseUrl()},
     );
 
     _instance = RuntimeConfig(apiBaseUrl: loaded['apiBaseUrl']!);

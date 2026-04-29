@@ -35,12 +35,12 @@ class DsSectionalNav extends StatelessWidget {
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
-                  color: Theme.of(context).colorScheme.outline,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
           ),
         ),
         ...items.map((item) {
-          final isActive = item == activeItem;
+          final isActive = identical(item.targetKey, activeItem?.targetKey);
           return _DsSectionalNavItemWidget(
             item: item,
             isActive: isActive,
@@ -80,13 +80,15 @@ class _DsSectionalNavItemWidget extends StatelessWidget {
               width: 3,
             ),
           ),
-          color: isActive ? colorScheme.primaryContainer.withOpacity(0.1) : null,
+          color: isActive
+              ? colorScheme.primaryContainer.withValues(alpha: 0.1)
+              : null,
         ),
         child: Text(
           item.label,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                color: isActive ? colorScheme.primary : colorScheme.onSurface,
+                color: colorScheme.onSurface,
               ),
         ),
       ),

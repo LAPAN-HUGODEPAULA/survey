@@ -19,7 +19,8 @@ class PlatformHtmlRichTextEditor extends StatefulWidget {
       _PlatformHtmlRichTextEditorState();
 }
 
-class _PlatformHtmlRichTextEditorState extends State<PlatformHtmlRichTextEditor> {
+class _PlatformHtmlRichTextEditorState
+    extends State<PlatformHtmlRichTextEditor> {
   late final TextEditingController _controller;
 
   @override

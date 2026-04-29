@@ -1,14 +1,18 @@
-import 'package:flutter/material.dart';
 import 'package:design_system_flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:survey_builder/core/models/persona_skill_draft.dart';
 import 'package:survey_builder/core/repositories/persona_skill_repository.dart';
 import 'package:survey_builder/features/survey/pages/persona_skill_form_page.dart';
-import 'package:survey_builder/features/survey/pages/task_dashboard_page.dart';
 
 class PersonaSkillListPage extends StatefulWidget {
-  const PersonaSkillListPage({super.key, this.repository});
+  const PersonaSkillListPage({
+    super.key,
+    this.repository,
+    this.embedded = false,
+  });
 
   final PersonaSkillRepository? repository;
+  final bool embedded;
 
   @override
   State<PersonaSkillListPage> createState() => _PersonaSkillListPageState();
@@ -138,137 +142,61 @@ class _PersonaSkillListPageState extends State<PersonaSkillListPage> {
     }
   }
 
-  void _showExamples() {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => DsDialog(
-        title: 'Exemplos de personas',
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Alguns exemplos de personas comuns:',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 16),
-            _buildPersonaExample(
-              context,
-              name: 'Cardiologista',
-              description: 'Foco em condições cardiovasculares e prevenção',
-            ),
-            _buildPersonaExample(
-              context,
-              name: 'Endocrinologista',
-              description: 'Especialista em diabetes e doenças metabólicas',
-            ),
-            _buildPersonaExample(
-              context,
-              name: 'Médico Geral',
-              description: 'Atendimento primário e saúde preventiva',
-            ),
-          ],
-        ),
-        actions: [
-          DsTextButton(
-            label: 'Fechar',
-            onPressed: () => Navigator.of(dialogContext).pop(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPersonaExample(BuildContext context, {required String name, required String description}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Icon(
-              Icons.person,
-              size: 16,
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name, style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 2),
-                Text(description, style: Theme.of(context).textTheme.bodySmall),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final content = DsAdminCatalogShell<PersonaSkillDraft>(
+      heading: 'Catálogo de personas',
+      createLabel: 'Criar persona',
+      isLoading: _loading,
+      items: _filteredSkills,
+      searchController: _searchController,
+      searchPlaceholder: 'Filtrar personas por nome, chave ou perfil...',
+      emptyMessage: _filter.isEmpty
+          ? 'Nenhuma persona encontrada.'
+          : 'Nenhuma persona corresponde ao filtro "$_filter".',
+      error: _error,
+      feedback: _feedback == null
+          ? null
+          : DsMessageBanner(
+              feedback: DsFeedbackMessage(
+                severity: _feedback!.severity,
+                title: _feedback!.title,
+                message: _feedback!.message,
+                dismissible: true,
+                onDismiss: () => setState(() => _feedback = null),
+              ),
+              margin: EdgeInsets.zero,
+            ),
+      onRetry: _load,
+      onRefresh: _load,
+      onCreate: _openForm,
+      itemBuilder: (BuildContext context, PersonaSkillDraft skill) {
+        return DsAdminCatalogItem(
+          title: skill.name,
+          subtitle: '${skill.personaSkillKey} · ${skill.outputProfile}',
+          onEdit: () => _openForm(draft: skill),
+          onDelete: () => _deletePersonaSkill(skill),
+        );
+      },
+    );
+
+    if (widget.embedded) {
+      return content;
+    }
+
     return DsScaffold(
       title: 'Personas',
       subtitle: 'Gerencie personas compartilhadas e perfis padrão.',
       breadcrumbs: [
         DsBreadcrumbItem(
           label: 'Dashboard',
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute<void>(builder: (_) => const TaskDashboardPage()),
-          ),
+          onPressed: () => Navigator.of(context).maybePop(),
         ),
-        DsBreadcrumbItem(
-          label: 'Personas',
-          isCurrent: true,
-        ),
+        DsBreadcrumbItem(label: 'Personas', isCurrent: true),
       ],
-      onBack: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const TaskDashboardPage()),
-      ),
-      backLabel: 'Voltar ao dashboard',
-      body: DsAdminCatalogShell<PersonaSkillDraft>(
-        heading: 'Catálogo de personas',
-        createLabel: 'Criar persona',
-        isLoading: _loading,
-        items: _filteredSkills,
-        searchController: _searchController,
-        searchPlaceholder: 'Filtrar personas por nome, chave ou perfil...',
-        emptyMessage: _filter.isEmpty
-            ? 'Nenhuma persona encontrada.'
-            : 'Nenhuma persona corresponde ao filtro "$_filter".',
-        error: _error,
-        feedback: _feedback == null
-            ? null
-            : DsMessageBanner(
-                feedback: DsFeedbackMessage(
-                  severity: _feedback!.severity,
-                  title: _feedback!.title,
-                  message: _feedback!.message,
-                  dismissible: true,
-                  onDismiss: () => setState(() => _feedback = null),
-                ),
-                margin: EdgeInsets.zero,
-              ),
-        onRetry: _load,
-        onRefresh: _load,
-        onCreate: _openForm,
-        itemBuilder: (BuildContext context, PersonaSkillDraft skill) {
-          return DsAdminCatalogItem(
-            title: skill.name,
-            subtitle: '${skill.personaSkillKey} · ${skill.outputProfile}',
-            onEdit: () => _openForm(draft: skill),
-            onDelete: () => _deletePersonaSkill(skill),
-          );
-        },
-      ),
+      onBack: () => Navigator.of(context).maybePop(),
+      backLabel: 'Voltar',
+      body: content,
     );
   }
 }

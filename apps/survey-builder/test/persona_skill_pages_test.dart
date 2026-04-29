@@ -193,6 +193,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.scrollUntilVisible(
+      find.text('Nenhuma persona encontrada.'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('Nenhuma persona encontrada.'), findsOneWidget);
     expect(find.byType(DsAdminCatalogItem), findsNothing);
   });
