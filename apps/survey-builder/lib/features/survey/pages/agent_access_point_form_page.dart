@@ -1,5 +1,6 @@
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:runtime_agent_access_points/runtime_agent_access_points.dart';
 import 'package:survey_builder/core/models/agent_access_point_draft.dart';
 import 'package:survey_builder/core/models/persona_skill_draft.dart';
 import 'package:survey_builder/core/models/survey_draft.dart';
@@ -25,13 +26,26 @@ class AgentAccessPointFormPage extends StatefulWidget {
 }
 
 class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
+  static const String _routingSectionId = 'routing';
+  static const String _assignmentSectionId = 'assignment';
+  static const List<(String, String)> _localPromptOptions = [
+    ('default', 'Prompt local padrão'),
+    ('consult', 'Prompt local de consulta'),
+    ('survey7', 'Prompt local estruturado survey7'),
+    ('full_intake', 'Prompt local de intake completo'),
+  ];
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _routingSectionKey = GlobalKey();
+  final GlobalKey _assignmentSectionKey = GlobalKey();
   late final AgentAccessPointRepository _repository;
   late final bool _isEditing;
   late final TextEditingController _nameController;
   late final TextEditingController _keyController;
   late final TextEditingController _flowKeyController;
   late final TextEditingController _descriptionController;
+  String? _selectedInjectionPointKey;
   String _sourceApp = 'survey-patient';
   String? _surveyId;
   String? _promptKey;
@@ -39,6 +53,10 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
   bool _loadingCatalogs = true;
   bool _saving = false;
   bool _isDirty = false;
+  bool _hasSubmitted = false;
+  String _currentSectionId = _routingSectionId;
+  String? _promptSelectionError;
+  String? _personaSelectionError;
   DsFeedbackMessage? _feedback;
   List<SurveyDraft> _surveys = <SurveyDraft>[];
   List<SurveyPromptDraft> _prompts = <SurveyPromptDraft>[];
@@ -66,17 +84,29 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
       ..addListener(_handleMutation);
     _flowKeyController = TextEditingController(text: draft.flowKey)
       ..addListener(_handleMutation);
-    _descriptionController = TextEditingController(text: draft.description ?? '')
-      ..addListener(_handleMutation);
+    _descriptionController = TextEditingController(
+      text: draft.description ?? '',
+    )..addListener(_handleMutation);
+    final configuredPoint = RuntimeAccessPointCatalog.byKey(
+      draft.accessPointKey,
+    );
+    _selectedInjectionPointKey = configuredPoint?.isConfigurable == true
+        ? configuredPoint!.accessPointKey
+        : null;
     _sourceApp = draft.sourceApp;
     _surveyId = draft.surveyId;
     _promptKey = draft.promptKey.isEmpty ? null : draft.promptKey;
-    _personaSkillKey = draft.personaSkillKey.isEmpty ? null : draft.personaSkillKey;
+    _personaSkillKey = draft.personaSkillKey.isEmpty
+        ? null
+        : draft.personaSkillKey;
+    _scrollController.addListener(_handleSectionScroll);
     _loadCatalogs();
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_handleSectionScroll);
+    _scrollController.dispose();
     _nameController.dispose();
     _keyController.dispose();
     _flowKeyController.dispose();
@@ -86,9 +116,135 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
   }
 
   void _handleMutation() {
+    _clearSelectionErrors();
     if (!_isDirty) {
       setState(() => _isDirty = true);
     }
+  }
+
+  void _handleSectionScroll() {
+    final activationOffset = 180.0;
+    var nextSectionId = _routingSectionId;
+    final assignmentBox =
+        _assignmentSectionKey.currentContext?.findRenderObject() as RenderBox?;
+    if (assignmentBox != null) {
+      final top = assignmentBox.localToGlobal(Offset.zero).dy;
+      if (top <= activationOffset) {
+        nextSectionId = _assignmentSectionId;
+      }
+    }
+    if (nextSectionId != _currentSectionId && mounted) {
+      setState(() => _currentSectionId = nextSectionId);
+    }
+  }
+
+  void _jumpToSection(String sectionId) {
+    final targetKey = sectionId == _routingSectionId
+        ? _routingSectionKey
+        : _assignmentSectionKey;
+    final context = targetKey.currentContext;
+    if (context != null) {
+      setState(() => _currentSectionId = sectionId);
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        alignment: 0.1,
+      );
+    }
+  }
+
+  void _clearSelectionErrors() {
+    if (_promptSelectionError == null && _personaSelectionError == null) {
+      return;
+    }
+    setState(() {
+      _promptSelectionError = null;
+      _personaSelectionError = null;
+    });
+  }
+
+  RuntimeAccessPointDescriptor? get _selectedInjectionPoint =>
+      RuntimeAccessPointCatalog.byKey(_selectedInjectionPointKey);
+
+  void _handleInjectionPointChanged(String? accessPointKey) {
+    final previous = _selectedInjectionPoint;
+    final selected = RuntimeAccessPointCatalog.byKey(accessPointKey);
+    final next = selected?.isConfigurable == true ? selected : null;
+
+    if (next != null) {
+      final currentName = _nameController.text.trim();
+      final currentDescription = _descriptionController.text.trim();
+      final shouldReplaceName =
+          currentName.isEmpty || currentName == previous?.name;
+      final shouldReplaceDescription =
+          currentDescription.isEmpty ||
+          currentDescription == previous?.description;
+
+      _keyController.text = next.accessPointKey;
+      _flowKeyController.text = next.flowKey;
+      _sourceApp = next.sourceApp;
+      if (shouldReplaceName) {
+        _nameController.text = next.name;
+      }
+      if (shouldReplaceDescription) {
+        _descriptionController.text = next.description;
+      }
+    }
+
+    setState(() {
+      _selectedInjectionPointKey = next?.accessPointKey;
+      _isDirty = true;
+    });
+  }
+
+  List<DsValidationSummaryItem> _buildValidationItems() {
+    final items = <DsValidationSummaryItem>[];
+
+    void addItem(String label, String? message, GlobalKey targetKey) {
+      if (message == null || message.isEmpty) {
+        return;
+      }
+      items.add(
+        DsValidationSummaryItem(
+          label: label,
+          message: message,
+          onTap: () => Scrollable.ensureVisible(
+            targetKey.currentContext!,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            alignment: 0.1,
+          ),
+        ),
+      );
+    }
+
+    addItem(
+      'Nome do ponto de acesso',
+      DsKeyFieldSupport.validateRequired(_nameController.text),
+      _routingSectionKey,
+    );
+    addItem(
+      'Chave estável',
+      _validateAccessPointKey(_keyController.text),
+      _routingSectionKey,
+    );
+    addItem(
+      'Fluxo de runtime',
+      _validateAccessPointKey(_flowKeyController.text),
+      _routingSectionKey,
+    );
+    addItem(
+      'Prompt',
+      _promptKey == null ? 'Selecione um prompt válido.' : null,
+      _assignmentSectionKey,
+    );
+    addItem(
+      'Persona',
+      _personaSkillKey == null ? 'Selecione uma persona válida.' : null,
+      _assignmentSectionKey,
+    );
+    return items;
   }
 
   String? _validateAccessPointKey(String? value) {
@@ -143,17 +299,17 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
   }
 
   Future<void> _save() async {
+    setState(() => _hasSubmitted = true);
     final form = _formKey.currentState;
-    if (form == null || !form.validate()) {
-      return;
-    }
-    if (_promptKey == null || _personaSkillKey == null) {
+    final validationItems = _buildValidationItems();
+    if (form == null || !form.validate() || validationItems.isNotEmpty) {
       setState(() {
-        _feedback = const DsFeedbackMessage(
-          severity: DsStatusType.warning,
-          title: 'Campos obrigatórios',
-          message: 'Selecione um prompt e uma persona válidos.',
-        );
+        _promptSelectionError = _promptKey == null
+            ? 'Selecione um prompt válido.'
+            : null;
+        _personaSelectionError = _personaSkillKey == null
+            ? 'Selecione uma persona válida.'
+            : null;
       });
       return;
     }
@@ -206,10 +362,11 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final validationItems = _hasSubmitted
+        ? _buildValidationItems()
+        : <DsValidationSummaryItem>[];
     return DsScaffold(
-      title: _isEditing
-          ? 'Editar ponto de acesso'
-          : 'Criar ponto de acesso',
+      title: _isEditing ? 'Editar ponto de acesso' : 'Criar ponto de acesso',
       subtitle: 'Mapeie um fluxo de runtime para prompt, persona e perfil.',
       breadcrumbs: [
         DsBreadcrumbItem(
@@ -225,6 +382,7 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
       ],
       onBack: () => Navigator.of(context).pop(),
       backLabel: 'Voltar para pontos de acesso',
+      maxBodyWidth: 1920,
       body: _loadingCatalogs
           ? const Center(child: CircularProgressIndicator())
           : Form(
@@ -234,6 +392,34 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                 hasUnsavedChanges: _isDirty,
                 onCancel: () => Navigator.of(context).pop(),
                 onSave: _save,
+                scrollController: _scrollController,
+                stickyFooter: const SizedBox.shrink(),
+                sectionalNav: DsSectionalNav(
+                  items: [
+                    DsSectionalNavItem(
+                      label: 'Roteamento',
+                      targetKey: _routingSectionKey,
+                    ),
+                    DsSectionalNavItem(
+                      label: 'Vinculações',
+                      targetKey: _assignmentSectionKey,
+                    ),
+                  ],
+                  activeItem: _currentSectionId == _routingSectionId
+                      ? DsSectionalNavItem(
+                          label: 'Roteamento',
+                          targetKey: _routingSectionKey,
+                        )
+                      : DsSectionalNavItem(
+                          label: 'Vinculações',
+                          targetKey: _assignmentSectionKey,
+                        ),
+                  onItemTap: (item) => _jumpToSection(
+                    item.label == 'Roteamento'
+                        ? _routingSectionId
+                        : _assignmentSectionId,
+                  ),
+                ),
                 feedback: _feedback == null
                     ? null
                     : DsMessageBanner(
@@ -247,135 +433,280 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                         margin: EdgeInsets.zero,
                       ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nome do ponto de acesso *',
+                    if (validationItems.isNotEmpty) ...[
+                      DsValidationSummary(
+                        items: validationItems,
+                        description:
+                            'Revise os campos destacados antes de salvar.',
                       ),
-                      validator: DsKeyFieldSupport.validateRequired,
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _keyController,
-                      readOnly: _isEditing,
-                      decoration: const InputDecoration(
-                        labelText: 'Chave estável *',
-                        helperText:
-                            'Ex.: survey_patient.thank_you.auto_analysis',
-                      ),
-                      validator: _validateAccessPointKey,
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      initialValue: _sourceApp,
-                      decoration: const InputDecoration(
-                        labelText: 'Superfície de origem *',
-                      ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: 'survey-patient',
-                          child: Text('survey-patient'),
-                        ),
-                        DropdownMenuItem(
-                          value: 'survey-frontend',
-                          child: Text('survey-frontend'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() {
-                          _sourceApp = value;
-                          _isDirty = true;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _flowKeyController,
-                      decoration: const InputDecoration(
-                        labelText: 'Fluxo de runtime *',
-                        helperText: 'Ex.: thank_you.auto_analysis',
-                      ),
-                      validator: _validateAccessPointKey,
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String?>(
-                      initialValue: _surveyId,
-                      decoration: const InputDecoration(
-                        labelText: 'Survey associado',
-                        helperText: 'Opcional. Deixe vazio para uso global.',
-                      ),
-                      items: [
-                        const DropdownMenuItem<String?>(
-                          value: null,
-                          child: Text('Global'),
-                        ),
-                        ..._surveys.map(
-                          (survey) => DropdownMenuItem<String?>(
-                            value: survey.id,
-                            child: Text(survey.surveyDisplayName),
-                          ),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          _surveyId = value;
-                          _isDirty = true;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      initialValue: _promptKey,
-                      decoration: const InputDecoration(
-                        labelText: 'Prompt questionário *',
-                      ),
-                      items: _prompts
-                          .map(
-                            (prompt) => DropdownMenuItem<String>(
-                              value: prompt.promptKey,
-                              child: Text(prompt.name),
+                      const SizedBox(height: 16),
+                    ],
+                    DsSection(
+                      key: _routingSectionKey,
+                      title: 'Roteamento do acesso',
+                      subtitle:
+                          'Escolha um ponto de injeção suportado para preencher automaticamente chave, superfície e fluxo com o menor esforço possível.',
+                      child: Column(
+                        children: [
+                          DropdownButtonFormField<String?>(
+                            initialValue: _selectedInjectionPointKey,
+                            decoration: const InputDecoration(
+                              labelText: 'Ponto de injeção suportado',
+                              helperText:
+                                  'Selecione um fluxo conhecido do runtime ou mantenha em Personalizado.',
                             ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (value) {
-                        setState(() {
-                          _promptKey = value;
-                          _isDirty = true;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      initialValue: _personaSkillKey,
-                      decoration: const InputDecoration(
-                        labelText: 'Persona *',
+                            items: [
+                              const DropdownMenuItem<String?>(
+                                value: null,
+                                child: Text('Personalizado'),
+                              ),
+                              ...RuntimeAccessPointCatalog.configurable.map(
+                                (descriptor) => DropdownMenuItem<String?>(
+                                  value: descriptor.accessPointKey,
+                                  child: Text(descriptor.surfaceLabel),
+                                ),
+                              ),
+                            ],
+                            onChanged: _handleInjectionPointChanged,
+                          ),
+                          if (_selectedInjectionPoint != null) ...[
+                            const SizedBox(height: 12),
+                            DsInlineMessage(
+                              feedback: DsFeedbackMessage(
+                                severity: DsStatusType.info,
+                                title: _selectedInjectionPoint!.name,
+                                message: _selectedInjectionPoint!.description,
+                              ),
+                              margin: EdgeInsets.zero,
+                            ),
+                          ],
+                          if (RuntimeAccessPointCatalog
+                              .observedOnly
+                              .isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            DsInlineMessage(
+                              feedback: DsFeedbackMessage(
+                                severity: DsStatusType.neutral,
+                                title:
+                                    'Pontos observados no runtime fora do catálogo configurável',
+                                message: RuntimeAccessPointCatalog.observedOnly
+                                    .map(
+                                      (descriptor) =>
+                                          '${descriptor.surfaceLabel}: ${descriptor.notes}',
+                                    )
+                                    .join('\n'),
+                              ),
+                              margin: EdgeInsets.zero,
+                            ),
+                          ],
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _nameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Nome do ponto de acesso *',
+                            ),
+                            validator: DsKeyFieldSupport.validateRequired,
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _keyController,
+                            readOnly:
+                                _isEditing || _selectedInjectionPoint != null,
+                            decoration: const InputDecoration(
+                              labelText: 'Chave estável *',
+                              helperText:
+                                  'Ex.: survey_patient.thank_you.auto_analysis',
+                            ),
+                            validator: _validateAccessPointKey,
+                          ),
+                          const SizedBox(height: 12),
+                          DropdownButtonFormField<String>(
+                            initialValue: _sourceApp,
+                            decoration: const InputDecoration(
+                              labelText: 'Superfície de origem *',
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'survey-patient',
+                                child: Text('survey-patient'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'survey-frontend',
+                                child: Text('survey-frontend'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'clinical-narrative',
+                                child: Text('clinical-narrative'),
+                              ),
+                            ],
+                            onChanged: _selectedInjectionPoint != null
+                                ? null
+                                : (value) {
+                                    if (value == null) {
+                                      return;
+                                    }
+                                    setState(() {
+                                      _sourceApp = value;
+                                      _isDirty = true;
+                                    });
+                                  },
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _flowKeyController,
+                            readOnly: _selectedInjectionPoint != null,
+                            decoration: const InputDecoration(
+                              labelText: 'Fluxo de runtime *',
+                              helperText: 'Ex.: thank_you.auto_analysis',
+                            ),
+                            validator: _validateAccessPointKey,
+                          ),
+                          const SizedBox(height: 12),
+                          DropdownButtonFormField<String?>(
+                            initialValue: _surveyId,
+                            decoration: const InputDecoration(
+                              labelText: 'Survey associado',
+                              helperText:
+                                  'Opcional. Deixe vazio para uso global.',
+                            ),
+                            items: [
+                              const DropdownMenuItem<String?>(
+                                value: null,
+                                child: Text('Global'),
+                              ),
+                              ..._surveys.map(
+                                (survey) => DropdownMenuItem<String?>(
+                                  value: survey.id,
+                                  child: Text(survey.surveyDisplayName),
+                                ),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              if (value == null) {
+                                setState(() {
+                                  _surveyId = null;
+                                  _isDirty = true;
+                                });
+                                return;
+                              }
+                              setState(() {
+                                _surveyId = value;
+                                _isDirty = true;
+                              });
+                            },
+                          ),
+                        ],
                       ),
-                      items: _personas
-                          .map(
-                            (persona) => DropdownMenuItem<String>(
-                              value: persona.personaSkillKey,
-                              child: Text(
-                                '${persona.name} · ${persona.outputProfile}',
+                    ),
+                    const SizedBox(height: 24),
+                    DsSection(
+                      key: _assignmentSectionKey,
+                      title: 'Vinculações de IA',
+                      subtitle:
+                          'Associe o prompt e a persona usados por este ponto de acesso para produzir a saída esperada.',
+                      child: Column(
+                        children: [
+                          DropdownButtonFormField<String>(
+                            initialValue: _promptKey,
+                            decoration: const InputDecoration(
+                              labelText: 'Prompt do questionário *',
+                            ),
+                            items: [
+                              ..._localPromptOptions.map(
+                                (option) => DropdownMenuItem<String>(
+                                  value: option.$1,
+                                  child: Text('${option.$2} · ${option.$1}'),
+                                ),
+                              ),
+                              ..._prompts
+                                  .map(
+                                    (prompt) => DropdownMenuItem<String>(
+                                      value: prompt.promptKey,
+                                      child: Text(prompt.name),
+                                    ),
+                                  )
+                                  .where(
+                                    (item) => !_localPromptOptions.any(
+                                      (option) => option.$1 == item.value,
+                                    ),
+                                  ),
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                _promptKey = value;
+                                _promptSelectionError = null;
+                                _isDirty = true;
+                              });
+                            },
+                          ),
+                          if (_promptSelectionError != null)
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  _promptSelectionError!,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
+                                      ),
+                                ),
                               ),
                             ),
-                          )
-                          .toList(growable: false),
-                      onChanged: (value) {
-                        setState(() {
-                          _personaSkillKey = value;
-                          _isDirty = true;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _descriptionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Descrição operacional',
+                          const SizedBox(height: 12),
+                          DropdownButtonFormField<String>(
+                            initialValue: _personaSkillKey,
+                            decoration: const InputDecoration(
+                              labelText: 'Persona *',
+                            ),
+                            items: _personas
+                                .map(
+                                  (persona) => DropdownMenuItem<String>(
+                                    value: persona.personaSkillKey,
+                                    child: Text(
+                                      '${persona.name} · ${persona.outputProfile}',
+                                    ),
+                                  ),
+                                )
+                                .toList(growable: false),
+                            onChanged: (value) {
+                              setState(() {
+                                _personaSkillKey = value;
+                                _personaSelectionError = null;
+                                _isDirty = true;
+                              });
+                            },
+                          ),
+                          if (_personaSelectionError != null)
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text(
+                                  _personaSelectionError!,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.error,
+                                      ),
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _descriptionController,
+                            decoration: const InputDecoration(
+                              labelText: 'Descrição operacional',
+                            ),
+                            maxLines: 3,
+                          ),
+                        ],
                       ),
-                      maxLines: 3,
                     ),
                   ],
                 ),

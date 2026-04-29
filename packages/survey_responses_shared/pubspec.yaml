@@ -1,0 +1,15 @@
+name: survey_responses_shared
+description: Shared response models and utilities for LAPAN survey apps.
+version: 0.2.0
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  design_system_flutter:
+    path: ../design_system_flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

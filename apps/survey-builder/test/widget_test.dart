@@ -271,16 +271,12 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Prompt').last);
-    await tester.pumpAndSettle();
     final selector = find.byKey(const ValueKey('survey-prompt-selector'));
     await tester.ensureVisible(selector);
     await tester.pumpAndSettle();
     await tester.tap(selector);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Nenhum prompt').last, warnIfMissed: false);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Persona').last);
     await tester.pumpAndSettle();
     final personaSelector = find.byKey(
       const ValueKey('survey-persona-selector'),
@@ -299,7 +295,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(saveButton);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(repository.lastSavedDraft, isNotNull);
     expect(repository.lastSavedDraft!.prompt, isNull);
@@ -322,8 +319,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Persona').last);
-    await tester.pumpAndSettle();
     final outputSelector = find.byKey(
       const ValueKey('survey-output-profile-selector'),
     );
@@ -345,7 +340,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(saveButton);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(repository.lastSavedDraft, isNotNull);
     expect(

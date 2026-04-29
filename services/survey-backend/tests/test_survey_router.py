@@ -1,7 +1,11 @@
 from fastapi.testclient import TestClient
 from unittest.mock import MagicMock
 
-from app.api.dependencies.builder_auth import require_builder_admin, require_builder_csrf
+from app.api.dependencies.builder_auth import (
+    build_auth_http_exception,
+    require_builder_admin,
+    require_builder_csrf,
+)
 from app.main import app
 from app.persistence.deps import (
     get_persona_skill_repo,
@@ -26,6 +30,18 @@ def _override_survey_dependencies(
     prompt_repo = mock_prompt_repo or MagicMock()
     persona_repo = mock_persona_repo or MagicMock()
     _override_builder_auth()
+    app.dependency_overrides[get_survey_repo] = lambda: mock_repo
+    app.dependency_overrides[get_survey_prompt_repo] = lambda: prompt_repo
+    app.dependency_overrides[get_persona_skill_repo] = lambda: persona_repo
+
+
+def _override_survey_repositories_only(
+    mock_repo: MagicMock,
+    mock_prompt_repo: MagicMock | None = None,
+    mock_persona_repo: MagicMock | None = None,
+) -> None:
+    prompt_repo = mock_prompt_repo or MagicMock()
+    persona_repo = mock_persona_repo or MagicMock()
     app.dependency_overrides[get_survey_repo] = lambda: mock_repo
     app.dependency_overrides[get_survey_prompt_repo] = lambda: prompt_repo
     app.dependency_overrides[get_persona_skill_repo] = lambda: persona_repo
@@ -198,10 +214,34 @@ def test_get_surveys():
     app.dependency_overrides = {}
 
 
+def test_get_surveys_is_public():
+    mock_repo = MagicMock()
+    mock_repo.list_all.return_value = [_survey_doc(prompt=None)]
+    _override_survey_repositories_only(mock_repo)
+
+    response = client.get("/api/v1/surveys/")
+
+    assert response.status_code == 200
+    assert response.json()[0]["surveyDisplayName"] == "Test Survey"
+    app.dependency_overrides = {}
+
+
 def test_get_survey():
     mock_repo = MagicMock()
     mock_repo.get_by_id.return_value = _survey_doc(prompt=None)
     _override_survey_dependencies(mock_repo)
+
+    response = client.get("/api/v1/surveys/60c728efd4c4a4f8b8c8d0d0")
+
+    assert response.status_code == 200
+    assert response.json()["surveyDisplayName"] == "Test Survey"
+    app.dependency_overrides = {}
+
+
+def test_get_survey_is_public():
+    mock_repo = MagicMock()
+    mock_repo.get_by_id.return_value = _survey_doc(prompt=None)
+    _override_survey_repositories_only(mock_repo)
 
     response = client.get("/api/v1/surveys/60c728efd4c4a4f8b8c8d0d0")
 
@@ -266,4 +306,27 @@ def test_update_survey():
 
     assert response.status_code == 200
     assert response.json()["surveyDisplayName"] == "Updated Survey"
+    app.dependency_overrides = {}
+
+
+def test_create_survey_requires_builder_auth():
+    mock_repo = MagicMock()
+    _override_survey_repositories_only(mock_repo)
+    app.dependency_overrides[require_builder_admin] = lambda: (_ for _ in ()).throw(
+        build_auth_http_exception(
+            status_code=401,
+            code="BUILDER_LOGIN_REQUIRED",
+            user_message="Faça login para acessar o construtor administrativo.",
+            operation="builder_session",
+            retryable=True,
+        )
+    )
+
+    response = client.post(
+        "/api/v1/surveys/",
+        json=_survey_payload(prompt=None),
+    )
+
+    assert response.status_code == 401
+    assert response.json()["code"] == "BUILDER_LOGIN_REQUIRED"
     app.dependency_overrides = {}

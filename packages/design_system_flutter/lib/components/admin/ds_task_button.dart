@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:design_system_flutter/widgets/ds_buttons.dart';
 
 class DsTaskButton extends StatelessWidget {
   const DsTaskButton({
@@ -113,7 +112,8 @@ class DsTaskButton extends StatelessWidget {
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   value: progress,
-                  valueColor: AlwaysStoppedAnimation<Color>(_getIconColor(theme)),
+                  valueColor:
+                      AlwaysStoppedAnimation<Color>(_getIconColor(theme)),
                 ),
               )
             else if (showChevron)
@@ -146,25 +146,24 @@ class DsTaskButton extends StatelessWidget {
 
   Color _getBackgroundColor(ThemeData theme) {
     if (isLoading) {
-      return theme.colorScheme.surfaceVariant;
+      return theme.colorScheme.surfaceContainerHighest;
     }
 
     switch (emotion) {
       case DsEmotion.delight:
-        return theme.colorScheme.primaryContainer.withOpacity(0.1);
+        return theme.colorScheme.primaryContainer.withValues(alpha: 0.1);
       case DsEmotion.urgent:
-        return theme.colorScheme.errorContainer.withOpacity(0.1);
+        return theme.colorScheme.errorContainer.withValues(alpha: 0.1);
       case DsEmotion.warning:
-        return theme.colorScheme.outlineVariant.withOpacity(0.1);
+        return theme.colorScheme.outlineVariant.withValues(alpha: 0.1);
       case DsEmotion.neutral:
-      default:
         return theme.colorScheme.surface;
     }
   }
 
   Color _getBorderColor(ThemeData theme) {
     if (isLoading) {
-      return theme.colorScheme.outline.withOpacity(0.2);
+      return theme.colorScheme.outline.withValues(alpha: 0.2);
     }
 
     switch (emotion) {
@@ -175,8 +174,7 @@ class DsTaskButton extends StatelessWidget {
       case DsEmotion.warning:
         return theme.colorScheme.outline;
       case DsEmotion.neutral:
-      default:
-        return theme.colorScheme.outline.withOpacity(0.2);
+        return theme.colorScheme.outline.withValues(alpha: 0.2);
     }
   }
 
@@ -193,7 +191,6 @@ class DsTaskButton extends StatelessWidget {
       case DsEmotion.warning:
         return theme.colorScheme.onSurfaceVariant;
       case DsEmotion.neutral:
-      default:
         return theme.colorScheme.onSurface;
     }
   }
@@ -211,21 +208,20 @@ class DsTaskButton extends StatelessWidget {
       case DsEmotion.warning:
         return theme.colorScheme.onSurfaceVariant;
       case DsEmotion.neutral:
-      default:
         return theme.colorScheme.onSurface;
     }
   }
 }
 
 enum DsTaskButtonSize {
-  large,  // Icon + Label + Description (dashboard)
+  large, // Icon + Label + Description (dashboard)
   medium, // Icon + Label (sidebar)
-  small,  // Label only (mobile bottom nav)
+  small, // Label only (mobile bottom nav)
 }
 
 enum DsEmotion {
   neutral,
-  delight,  // Success, positive actions
-  urgent,   // Error, critical actions
-  warning,  // Caution, attention needed
+  delight, // Success, positive actions
+  urgent, // Error, critical actions
+  warning, // Caution, attention needed
 }

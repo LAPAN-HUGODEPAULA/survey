@@ -38,13 +38,13 @@ class DsAdminFormShell extends StatelessWidget {
           Icon(
             Icons.info_outline,
             size: 16,
-            color: Theme.of(context).colorScheme.primary,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: 8),
           Text(
             'Alterações não salvas',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.bold,
                 ),
           ),
@@ -59,7 +59,7 @@ class DsAdminFormShell extends StatelessWidget {
           Text(
             'Salvando...',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
           ),
         ],
@@ -114,7 +114,8 @@ class DsAdminFormShell extends StatelessWidget {
         controller: scrollController,
         slivers: [
           SliverPadding(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, stickyFooter == null ? 0 : 16),
+            padding:
+                EdgeInsets.fromLTRB(16, 16, 16, stickyFooter == null ? 0 : 16),
             sliver: SliverToBoxAdapter(
               child: stickyFooter == null ? _buildToolbar(context) : null,
             ),
@@ -148,7 +149,9 @@ class DsAdminFormShell extends StatelessWidget {
                 width: 240,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 16, left: 16),
-                  child: sectionalNav,
+                  child: SingleChildScrollView(
+                    child: sectionalNav,
+                  ),
                 ),
               ),
               const VerticalDivider(width: 1),

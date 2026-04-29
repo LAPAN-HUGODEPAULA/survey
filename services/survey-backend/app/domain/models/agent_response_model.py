@@ -1,24 +1,22 @@
-from typing import Optional
-
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class AgentResponse(BaseModel):
-    ok: Optional[bool] = None
-    input_type: Optional[str] = None
-    prompt_version: Optional[str] = None
-    questionnaire_prompt_version: Optional[str] = None
-    persona_skill_version: Optional[str] = None
-    model_version: Optional[str] = None
-    report: Optional[dict] = None
+    ok: bool | None = None
+    input_type: str | None = None
+    prompt_version: str | None = None
+    questionnaire_prompt_version: str | None = None
+    persona_skill_version: str | None = None
+    model_version: str | None = None
+    report: dict | None = None
     warnings: list[str] = Field(default_factory=list)
-    classification: Optional[str] = None
-    medical_record: Optional[str] = Field(default=None, alias="medicalRecord")
-    error_message: Optional[str] = Field(default=None, alias="errorMessage")
-    ai_progress: Optional[dict] = Field(default=None, alias="aiProgress")
+    classification: str | None = None
+    medical_record: str | None = Field(default=None, alias="medicalRecord")
+    error_message: str | None = Field(default=None, alias="errorMessage")
+    ai_progress: dict | None = Field(default=None, alias="aiProgress")
 
     model_config = ConfigDict(populate_by_name=True)
 
 
 class AgentArtifactResponse(AgentResponse):
-    access_point_key: Optional[str] = Field(default=None, alias="accessPointKey")
+    access_point_key: str | None = Field(default=None, alias="accessPointKey")

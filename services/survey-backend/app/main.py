@@ -49,6 +49,37 @@ def _build_security_headers() -> dict[str, str]:
     return headers
 
 
+def _ensure_reserved_system_screener(screener_repo: ScreenerRepository) -> None:
+    """Ensure the reserved builder account exists and keeps admin access."""
+    system_screener = screener_repo.find_by_id(SYSTEM_SCREENER_ID) or screener_repo.find_by_email(
+        SYSTEM_SCREENER_EMAIL
+    )
+    if system_screener and system_screener.isBuilderAdmin:
+        logger.info("System Screener already exists with id=%s", SYSTEM_SCREENER_ID)
+        return
+
+    if system_screener:
+        logger.info(
+            "System Screener exists without builder admin access. Promoting email=%s.",
+            SYSTEM_SCREENER_EMAIL,
+        )
+        screener_repo.ensure_system_screener(system_screener.password)
+        return
+
+    logger.info("System Screener not found. Creating a new one with id=%s.", SYSTEM_SCREENER_ID)
+    system_screener_password = "".join(
+        secrets.choice(string.ascii_letters + string.digits) for _ in range(16)
+    )
+    hashed_password = bcrypt.hashpw(system_screener_password.encode("utf-8"), bcrypt.gensalt())
+    screener_repo.ensure_system_screener(hashed_password.decode("utf-8"))
+    logger.info("System Screener created.")
+    if not settings.is_production:
+        logger.warning(
+            "System Screener created with a generated development credential. "
+            "Reset it through the database before sharing the environment."
+        )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize service-level dependencies when the API starts."""
@@ -59,27 +90,10 @@ async def lifespan(app: FastAPI):
     db = get_db()
     screener_repo = ScreenerRepository(db)
 
-    system_screener = screener_repo.find_by_id(SYSTEM_SCREENER_ID) or screener_repo.find_by_email(
-        SYSTEM_SCREENER_EMAIL
-    )
-    if system_screener:
-        logger.info("System Screener already exists with id=%s", SYSTEM_SCREENER_ID)
-    else:
-        logger.info("System Screener not found. Creating a new one with id=%s.", SYSTEM_SCREENER_ID)
-        system_screener_password = "".join(
-            secrets.choice(string.ascii_letters + string.digits) for _ in range(16)
-        )
-        hashed_password = bcrypt.hashpw(system_screener_password.encode("utf-8"), bcrypt.gensalt())
-        try:
-            screener_repo.ensure_system_screener(hashed_password.decode("utf-8"))
-            logger.info("System Screener created.")
-            if not settings.is_production:
-                logger.warning(
-                    "System Screener created with a generated development credential. "
-                    "Reset it through the database before sharing the environment."
-                )
-        except Exception as e:
-            logger.error("Failed to create System Screener: %s", e)
+    try:
+        _ensure_reserved_system_screener(screener_repo)
+    except Exception as e:
+        logger.error("Failed to create System Screener: %s", e)
 
     yield
     logger.info("Survey Application API stopped")

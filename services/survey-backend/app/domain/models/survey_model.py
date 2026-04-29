@@ -2,6 +2,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import List, Optional
 from datetime import datetime
 
+from app.domain.models._key_validation import normalize_key
 from app.domain.models.instructions_model import Instructions
 from app.domain.models.question_model import Question
 from app.domain.models.survey_prompt_model import SurveyPromptReference
@@ -28,17 +29,6 @@ class Survey(BaseModel):
 
     @field_validator("persona_skill_key", "output_profile")
     @classmethod
-    def validate_optional_key_fields(cls, value: str | None) -> str | None:
+    def validate_optional_key_fields(cls, value: str | None, info) -> str | None:
         """Normalize optional runtime keys used for persona configuration."""
-        if value is None:
-            return None
-        normalized = value.strip()
-        if not normalized:
-            return None
-        allowed = set("abcdefghijklmnopqrstuvwxyz0123456789:_-")
-        lowered = normalized.lower()
-        if any(char not in allowed for char in lowered):
-            raise ValueError(
-                "value must contain only lowercase letters, digits, colon, underscore, or hyphen"
-            )
-        return lowered
+        return normalize_key(value, field_name=info.field_name, optional=True)

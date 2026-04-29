@@ -7,7 +7,7 @@ import 'package:survey_builder/core/auth/builder_auth_models.dart';
 import 'package:survey_builder/core/config/runtime_config.dart';
 import 'package:survey_builder/core/services/api_config.dart';
 import 'package:survey_builder/features/auth/pages/builder_login_page.dart';
-import 'package:survey_builder/features/survey/pages/task_dashboard_page.dart';
+import 'package:survey_builder/features/survey/pages/builder_shell_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -80,7 +80,7 @@ class _SurveyBuilderAppState extends State<SurveyBuilderApp> {
       case BuilderAuthStatus.loading:
         return const _BuilderLoadingPage();
       case BuilderAuthStatus.authenticated:
-        return TaskDashboardPage(authController: _authController);
+        return BuilderShellPage(authController: _authController);
       case BuilderAuthStatus.unauthenticated:
         return BuilderLoginPage(
           controller: _authController,

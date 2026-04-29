@@ -1,0 +1,8 @@
+name: runtime_agent_access_points
+description: Shared runtime access-point catalog for LAPAN apps.
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+

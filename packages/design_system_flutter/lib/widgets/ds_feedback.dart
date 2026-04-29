@@ -163,7 +163,7 @@ Color dsFeedbackForegroundColor(BuildContext context, DsStatusType severity) {
     case DsStatusType.info:
       return scheme.onSecondaryContainer;
     case DsStatusType.neutral:
-      return scheme.onSurfaceVariant;
+      return scheme.onSurface;
   }
 }
 

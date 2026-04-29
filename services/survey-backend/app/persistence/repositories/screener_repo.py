@@ -109,6 +109,17 @@ class ScreenerRepository:
             {"email": SYSTEM_SCREENER_EMAIL}
         )
         if existing:
+            if not existing.get("isBuilderAdmin", False):
+                now = datetime.utcnow()
+                existing = self._col.find_one_and_update(
+                    {"_id": existing["_id"]},
+                    {"$set": {"isBuilderAdmin": True, "updatedAt": now}},
+                    return_document=ReturnDocument.AFTER,
+                ) or existing
+                logger.info(
+                    "System screener promoted to builder admin for email=%s",
+                    SYSTEM_SCREENER_EMAIL,
+                )
             return ScreenerModel.model_validate(self._normalize(existing))
 
         now = datetime.utcnow()
@@ -132,7 +143,7 @@ class ScreenerRepository:
             professionalCouncil=ProfessionalCouncil(type="none", registrationNumber=""),
             jobTitle="",
             degree="",
-            isBuilderAdmin=False,
+            isBuilderAdmin=True,
             darvCourseYear=None,
             initialNoticeAcceptedAt=None,
             createdAt=now,

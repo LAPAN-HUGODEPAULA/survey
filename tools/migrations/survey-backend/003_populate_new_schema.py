@@ -14,6 +14,10 @@ from pymongo import MongoClient
 from pymongo.database import Database
 
 from _env import load_migration_env, resolve_mongo_db_name, resolve_mongo_uri
+from prompt_catalog_seed import (
+    build_persona_skill_documents,
+    build_questionnaire_prompt_documents,
+)
 
 
 logging.basicConfig(
@@ -485,35 +489,21 @@ def migrate_survey_prompts() -> None:
     questionnaire_prompts_collection = db[QUESTIONNAIRE_PROMPTS_COLLECTION]
     prompts_collection.create_index("promptKey", unique=True)
     questionnaire_prompts_collection.create_index("promptKey", unique=True)
-    payload = {
-        "promptKey": DEFAULT_SURVEY_PROMPT_KEY,
-        "name": DEFAULT_SURVEY_PROMPT_NAME,
-        "promptText": DEFAULT_SURVEY_PROMPT_TEXT,
-        "createdAt": datetime.now(timezone.utc),
-        "modifiedAt": datetime.now(timezone.utc),
-        "legacySource": "003_populate_new_schema",
-    }
-    prompts_collection.replace_one({"promptKey": DEFAULT_SURVEY_PROMPT_KEY}, payload, upsert=True)
-    questionnaire_prompts_collection.replace_one(
-        {"promptKey": DEFAULT_SURVEY_PROMPT_KEY},
-        payload,
-        upsert=True,
-    )
-
-    neurocheck_payload = {
-        "promptKey": NEUROCHECK_PROMPT_KEY,
-        "name": NEUROCHECK_PROMPT_NAME,
-        "promptText": NEUROCHECK_PROMPT_TEXT,
-        "createdAt": datetime.now(timezone.utc),
-        "modifiedAt": datetime.now(timezone.utc),
-        "legacySource": "003_populate_new_schema",
-    }
-    prompts_collection.replace_one({"promptKey": NEUROCHECK_PROMPT_KEY}, neurocheck_payload, upsert=True)
-    questionnaire_prompts_collection.replace_one(
-        {"promptKey": NEUROCHECK_PROMPT_KEY},
-        neurocheck_payload,
-        upsert=True,
-    )
+    timestamp = datetime.now(timezone.utc)
+    for payload in build_questionnaire_prompt_documents(
+        "003_populate_new_schema",
+        timestamp=timestamp,
+    ):
+        prompts_collection.replace_one(
+            {"promptKey": payload["promptKey"]},
+            payload,
+            upsert=True,
+        )
+        questionnaire_prompts_collection.replace_one(
+            {"promptKey": payload["promptKey"]},
+            payload,
+            upsert=True,
+        )
     logger.info("Survey prompt catalog ready.")
 
 
@@ -522,14 +512,14 @@ def migrate_persona_skills() -> None:
     persona_skills_collection = db[PERSONA_SKILLS_COLLECTION]
     persona_skills_collection.create_index("personaSkillKey", unique=True)
     persona_skills_collection.create_index("outputProfile", unique=True)
-    for item in DEFAULT_PERSONA_SKILLS:
+    timestamp = datetime.now(timezone.utc)
+    for item in build_persona_skill_documents(
+        "003_populate_new_schema",
+        timestamp=timestamp,
+    ):
         persona_skills_collection.replace_one(
             {"personaSkillKey": item["personaSkillKey"]},
-            {
-                **item,
-                "createdAt": datetime.now(timezone.utc),
-                "modifiedAt": datetime.now(timezone.utc),
-            },
+            item,
             upsert=True,
         )
     logger.info("Persona skill catalog ready.")

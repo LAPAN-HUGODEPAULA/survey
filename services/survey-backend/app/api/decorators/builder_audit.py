@@ -27,6 +27,16 @@ def _build_audit_service() -> BuilderAuditService:
     )
 
 
+_audit_service: BuilderAuditService | None = None
+
+
+def _get_audit_service() -> BuilderAuditService:
+    global _audit_service
+    if _audit_service is None:
+        _audit_service = _build_audit_service()
+    return _audit_service
+
+
 def _extract_failure_reason(error: Exception) -> str:
     if isinstance(error, HTTPException):
         detail = error.detail
@@ -80,7 +90,7 @@ def _record_auth_event(
     )
 
     try:
-        _build_audit_service().record_auth_operation(
+        _get_audit_service().record_auth_operation(
             correlation_id=correlation_id or "unknown",
             email=_auth_email(kwargs, result),
             operation=operation_type,
@@ -158,7 +168,7 @@ def audit_builder_operation(operation_type: str) -> Callable:
                 result = await func(*args, **kwargs)
             except Exception as error:
                 try:
-                    _build_audit_service().record_event(
+                    _get_audit_service().record_event(
                         correlation_id=correlation_id or "unknown",
                         event_type=f"builder_{operation_type}",
                         actor=actor,
@@ -172,7 +182,7 @@ def audit_builder_operation(operation_type: str) -> Callable:
                 raise
 
             try:
-                _build_audit_service().record_event(
+                _get_audit_service().record_event(
                     correlation_id=correlation_id or "unknown",
                     event_type=f"builder_{operation_type}",
                     actor=actor,

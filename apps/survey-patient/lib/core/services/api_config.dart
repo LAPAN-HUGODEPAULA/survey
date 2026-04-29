@@ -1,6 +1,5 @@
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:patient_app/core/config/runtime_config.dart';
 import 'package:runtime_api_url/runtime_api_url.dart';
 
@@ -47,12 +46,5 @@ class ApiConfig {
   /// prefix request paths with a leading slash.
   static String get dioBaseUrl {
     return RuntimeApiUrl.dioBaseUrl(baseUrl);
-  }
-
-  /// Helper to log the resolved URL when debugging.
-  static void debugLogResolved(String path) {
-    if (kDebugMode) {
-      // This is intentionally left empty.
-    }
   }
 }

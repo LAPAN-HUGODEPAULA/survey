@@ -17,6 +17,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:path/path.dart' as path;
 import 'package:provider/provider.dart';
+import 'package:runtime_agent_access_points/runtime_agent_access_points.dart';
 import 'package:survey_app/core/models/agent_response.dart';
 import 'package:survey_app/core/models/survey/question.dart';
 import 'package:survey_app/core/models/survey/survey.dart';
@@ -24,10 +25,8 @@ import 'package:survey_app/core/models/survey_response.dart';
 import 'package:survey_app/core/providers/app_settings.dart';
 import 'package:survey_app/core/repositories/survey_repository.dart';
 import 'package:survey_app/shared/widgets/assessment_flow_stepper.dart';
+import 'package:survey_responses_shared/answer.dart' as shared;
 import 'package:web/web.dart' as web;
-
-const _frontendThankYouAccessPointKey =
-    'survey_frontend.thank_you.auto_analysis';
 
 /// Confirms submission state and handles post-survey exports.
 class ThankYouPage extends StatefulWidget {
@@ -62,7 +61,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
   bool _isAgentLoading = false;
   bool _agentRetryable = false;
   AIProgress? _aiProgress;
-  String? _selectedPromptKey;
   ReportDocument? _demoReport;
   String? _demoReportError;
   final SurveyRepository _surveyRepository = SurveyRepository();
@@ -86,19 +84,18 @@ class _ThankYouPageState extends State<ThankYouPage> {
   @override
   void initState() {
     super.initState();
-    _selectedPromptKey = widget.survey.prompt?.promptKey;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _submitResponse();
     });
   }
 
-  List<Answer> _buildAnswers() {
-    final answers = <Answer>[];
+  List<shared.Answer> _buildAnswers() {
+    final answers = <shared.Answer>[];
 
     for (int i = 0; i < widget.surveyAnswers.length; i++) {
       if (i < widget.surveyQuestions.length) {
         answers.add(
-          Answer(
+          shared.Answer(
             id: widget.surveyQuestions[i].id,
             answer: widget.surveyAnswers[i],
           ),
@@ -137,8 +134,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
         testDate: DateTime.now(),
         screenerId: settings.screenerId,
         accessLinkToken: settings.accessLinkToken,
-        accessPointKey: _frontendThankYouAccessPointKey,
-        promptKey: _selectedPromptKey,
+        accessPointKey: RuntimeAccessPointCatalog
+            .surveyFrontendThankYouAutoAnalysis
+            .accessPointKey,
         patient: patient,
         answers: _buildAnswers(),
       );
@@ -216,7 +214,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
     final taskStart = await _surveyRepository.startClinicalWriterTask(
       content,
       accessPointKey: surveyResponse.accessPointKey,
-      promptKey: surveyResponse.promptKey,
       surveyId: surveyResponse.surveyId,
     );
     final taskId =
@@ -225,7 +222,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
       return _surveyRepository.processClinicalWriter(
         content,
         accessPointKey: surveyResponse.accessPointKey,
-        promptKey: surveyResponse.promptKey,
         surveyId: surveyResponse.surveyId,
       );
     }
@@ -287,8 +283,9 @@ class _ThankYouPageState extends State<ThankYouPage> {
         testDate: DateTime.now(),
         screenerId: settings.screenerId,
         accessLinkToken: settings.accessLinkToken,
-        accessPointKey: _frontendThankYouAccessPointKey,
-        promptKey: _selectedPromptKey,
+        accessPointKey: RuntimeAccessPointCatalog
+            .surveyFrontendThankYouAutoAnalysis
+            .accessPointKey,
         patient: settings.patient.withClinicalData(
           familyHistory: settings.clinicalData.familyHistory,
           socialHistory: settings.clinicalData.socialData,

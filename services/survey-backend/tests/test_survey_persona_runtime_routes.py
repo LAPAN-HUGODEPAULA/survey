@@ -152,3 +152,49 @@ def test_create_patient_response_uses_access_point_bindings(monkeypatch):
     assert response.json()["accessPointKey"] == "survey_patient.thank_you.auto_analysis"
     assert response.json()["agentResponse"]["medicalRecord"] == "ok"
     app.dependency_overrides = {}
+
+
+def test_process_clinical_writer_resolves_global_access_point_without_survey_id(monkeypatch):
+    access_point_repo = MagicMock()
+    access_point_repo.get_by_key.return_value = {
+        "accessPointKey": "clinical_narrative.narrative.generate_report",
+        "promptKey": "narrative_prompt",
+        "personaSkillKey": "clinical_writer_persona",
+        "outputProfile": "clinical_diagnostic_report",
+    }
+
+    async def _fake_agent(*args, **kwargs):
+        assert kwargs["prompt_key"] == "narrative_prompt"
+        assert kwargs["persona_skill_key"] == "clinical_writer_persona"
+        assert kwargs["output_profile"] == "clinical_diagnostic_report"
+        return {
+            "ok": True,
+            "medicalRecord": "ok",
+            "prompt_version": "v1",
+        }
+
+    monkeypatch.setattr("app.api.routes.clinical_writer.send_to_langgraph_agent", _fake_agent)
+    monkeypatch.setattr(
+        "app.api.routes.clinical_writer.AgentAccessPointRepository",
+        lambda _db: access_point_repo,
+    )
+    monkeypatch.setattr("app.api.routes.clinical_writer.get_db", lambda: object())
+
+    response = client.post(
+        "/api/v1/clinical_writer/process",
+        json={
+            "input_type": "consult",
+            "content": "Paciente com queixa principal de insônia.",
+            "locale": "pt-BR",
+            "accessPointKey": "clinical_narrative.narrative.generate_report",
+            "prompt_key": "default",
+            "asyncMode": False,
+            "metadata": {
+                "source_app": "clinical-narrative",
+                "flow_key": "narrative.generate_report",
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["medicalRecord"] == "ok"

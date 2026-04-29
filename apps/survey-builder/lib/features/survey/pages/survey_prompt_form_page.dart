@@ -75,7 +75,9 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
     final activationOffset = 180.0;
     String nextSectionId = _detailsSectionId;
 
-    final instructionsBox = _instructionsSectionKey.currentContext?.findRenderObject() as RenderBox?;
+    final instructionsBox =
+        _instructionsSectionKey.currentContext?.findRenderObject()
+            as RenderBox?;
 
     if (instructionsBox != null) {
       final top = instructionsBox.localToGlobal(Offset.zero).dy;
@@ -90,7 +92,9 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
   }
 
   void _jumpToSection(String sectionId) {
-    final targetKey = sectionId == _detailsSectionId ? _detailsSectionKey : _instructionsSectionKey;
+    final targetKey = sectionId == _detailsSectionId
+        ? _detailsSectionKey
+        : _instructionsSectionKey;
     final context = targetKey.currentContext;
     if (context != null) {
       setState(() => _currentSectionId = sectionId);
@@ -107,22 +111,36 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
     final items = <DsValidationSummaryItem>[];
     void addItem(String label, String? message, GlobalKey targetKey) {
       if (message != null && message.isNotEmpty) {
-        items.add(DsValidationSummaryItem(
-          label: label,
-          message: message,
-          onTap: () => Scrollable.ensureVisible(
-            targetKey.currentContext!,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            alignment: 0.1,
+        items.add(
+          DsValidationSummaryItem(
+            label: label,
+            message: message,
+            onTap: () => Scrollable.ensureVisible(
+              targetKey.currentContext!,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              alignment: 0.1,
+            ),
           ),
-        ));
+        );
       }
     }
 
-    addItem('Nome do prompt', DsKeyFieldSupport.validateRequired(_nameController.text), _detailsSectionKey);
-    addItem('Chave do prompt', DsKeyFieldSupport.validateRequired(_keyController.text), _detailsSectionKey);
-    addItem('Texto do prompt', DsKeyFieldSupport.validateRequired(_promptTextController.text), _instructionsSectionKey);
+    addItem(
+      'Nome do prompt',
+      DsKeyFieldSupport.validateRequired(_nameController.text),
+      _detailsSectionKey,
+    );
+    addItem(
+      'Chave do prompt',
+      DsKeyFieldSupport.validateRequired(_keyController.text),
+      _detailsSectionKey,
+    );
+    addItem(
+      'Texto do prompt',
+      DsKeyFieldSupport.validateRequired(_promptTextController.text),
+      _instructionsSectionKey,
+    );
 
     return items;
   }
@@ -174,7 +192,9 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    final validationItems = _hasSubmitted ? _buildValidationItems() : <DsValidationSummaryItem>[];
+    final validationItems = _hasSubmitted
+        ? _buildValidationItems()
+        : <DsValidationSummaryItem>[];
 
     return DsScaffold(
       title: _isEditing ? 'Editar prompt' : 'Criar prompt',
@@ -191,6 +211,7 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
       ],
       onBack: () => Navigator.of(context).pop(),
       backLabel: 'Voltar para prompts',
+      maxBodyWidth: 1920,
       scrollable: false,
       body: Form(
         key: _formKey,
@@ -203,13 +224,29 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
           stickyFooter: const SizedBox.shrink(),
           sectionalNav: DsSectionalNav(
             items: [
-              DsSectionalNavItem(label: 'Detalhes', targetKey: _detailsSectionKey),
-              DsSectionalNavItem(label: 'Instruções', targetKey: _instructionsSectionKey),
+              DsSectionalNavItem(
+                label: 'Detalhes',
+                targetKey: _detailsSectionKey,
+              ),
+              DsSectionalNavItem(
+                label: 'Instruções',
+                targetKey: _instructionsSectionKey,
+              ),
             ],
             activeItem: _currentSectionId == _detailsSectionId
-                ? DsSectionalNavItem(label: 'Detalhes', targetKey: _detailsSectionKey)
-                : DsSectionalNavItem(label: 'Instruções', targetKey: _instructionsSectionKey),
-            onItemTap: (item) => _jumpToSection(item.targetKey == _detailsSectionKey ? _detailsSectionId : _instructionsSectionId),
+                ? DsSectionalNavItem(
+                    label: 'Detalhes',
+                    targetKey: _detailsSectionKey,
+                  )
+                : DsSectionalNavItem(
+                    label: 'Instruções',
+                    targetKey: _instructionsSectionKey,
+                  ),
+            onItemTap: (item) => _jumpToSection(
+              item.targetKey == _detailsSectionKey
+                  ? _detailsSectionId
+                  : _instructionsSectionId,
+            ),
           ),
           feedback: _feedback == null
               ? null
@@ -250,7 +287,8 @@ class _SurveyPromptFormPageState extends State<SurveyPromptFormPage> {
                       controller: _keyController,
                       readOnly: _isEditing,
                       label: 'Chave do prompt *',
-                      helperText: 'Use letras minúsculas, números, ":" , "_" ou "-".',
+                      helperText:
+                          'Use letras minúsculas, números, ":" , "_" ou "-".',
                     ),
                   ],
                 ),

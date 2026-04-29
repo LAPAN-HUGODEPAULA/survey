@@ -4,7 +4,7 @@ import json
 import uuid
 from typing import Any, Literal
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field
 
 from app.config.logging_config import logger
@@ -272,6 +272,9 @@ def _resolve_request_selection(request: ClinicalWriterRequest) -> ClinicalWriter
     if not request.access_point_key:
         return request
 
+    db = get_db()
+    access_point_repo = AgentAccessPointRepository(db)
+
     survey_id = request.metadata.get("surveyId") or request.metadata.get("survey_id")
     if not survey_id:
         try:
@@ -280,33 +283,50 @@ def _resolve_request_selection(request: ClinicalWriterRequest) -> ClinicalWriter
             parsed = None
         if isinstance(parsed, dict):
             survey_id = parsed.get("surveyId") or parsed.get("survey_id")
-    if not survey_id:
+
+    survey = None
+    if survey_id:
+        survey_repo = SurveyRepository(db)
+        survey = survey_repo.get_by_id(str(survey_id))
+        if not survey:
+            raise HTTPException(status_code=404, detail="Survey not found")
+    elif access_point_repo.get_by_key(request.access_point_key) is None:
         raise HTTPException(
-            status_code=400,
-            detail="surveyId is required when resolving clinical writer accessPointKey",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Unknown accessPointKey: {request.access_point_key}",
         )
 
-    db = get_db()
-    survey_repo = SurveyRepository(db)
-    access_point_repo = AgentAccessPointRepository(db)
-    survey = survey_repo.get_by_id(str(survey_id))
-    if not survey:
-        raise HTTPException(status_code=404, detail="Survey not found")
+    requested_prompt_key = request.prompt_key
+    if requested_prompt_key in {"", "default", request.input_type}:
+        requested_prompt_key = None
 
-    selection = resolve_access_point_selection(
-        survey=survey,
-        requested_access_point_key=request.access_point_key,
-        requested_prompt_key=request.prompt_key if request.prompt_key != "default" else None,
-        requested_persona_skill_key=request.persona_skill_key,
-        requested_output_profile=request.output_profile,
-        input_type=request.input_type,
-        get_access_point_by_key=access_point_repo.get_by_key,
-    )
+    try:
+        selection = resolve_access_point_selection(
+            survey=survey,
+            requested_access_point_key=request.access_point_key,
+            requested_prompt_key=requested_prompt_key,
+            requested_persona_skill_key=request.persona_skill_key,
+            requested_output_profile=request.output_profile,
+            input_type=request.input_type,
+            get_access_point_by_key=access_point_repo.get_by_key,
+        )
+    except ValueError as exc:
+        detail = str(exc)
+        raise HTTPException(
+            status_code=(
+                status.HTTP_404_NOT_FOUND
+                if detail.startswith("Unknown accessPointKey:")
+                else status.HTTP_400_BAD_REQUEST
+            ),
+            detail=detail,
+        ) from exc
+
     payload = request.model_copy(deep=True)
     payload.prompt_key = selection.prompt_key
     payload.persona_skill_key = selection.persona_skill_key
     payload.output_profile = selection.output_profile
-    payload.metadata.setdefault("surveyId", str(survey_id))
+    if survey_id:
+        payload.metadata.setdefault("surveyId", str(survey_id))
     return payload
 
 

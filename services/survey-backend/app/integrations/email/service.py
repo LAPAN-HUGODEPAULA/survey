@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Optional
+from typing import Any, Optional, Protocol
 
 from bson.objectid import InvalidId, ObjectId
 from pydantic.json import pydantic_encoder
@@ -17,6 +17,10 @@ from app.persistence.repositories.survey_response_repo import SurveyResponseRepo
 _fast_mail: Optional[Any] = None
 _message_schema_type: Any = None
 _message_type_enum: Any = None
+
+
+class _ResponseRepo(Protocol):
+    def get_by_id(self, response_id: str) -> dict | None: ...
 
 
 def _load_fastapi_mail() -> tuple[Any, Any, Any] | tuple[None, None, None]:
@@ -85,9 +89,16 @@ def _build_message(*, subject: str, recipients: list[str], body: str) -> Any | N
     )
 
 
-async def send_survey_response_email(response_id: str):
-    """Fetch a survey response by its ID and send it via email."""
-    logger.info("--- Preparing to send survey response email for ID: %s ---", response_id)
+async def _send_response_email(
+    repo: _ResponseRepo,
+    response_id: str,
+    *,
+    subject_prefix: str,
+    body_prefix: str,
+    log_label: str,
+) -> None:
+    """Fetch a response by ID and send it via email."""
+    logger.info("--- Preparing to send %s email for ID: %s ---", log_label, response_id)
     try:
         try:
             ObjectId(response_id)
@@ -95,91 +106,60 @@ async def send_survey_response_email(response_id: str):
             logger.warning("Invalid ObjectId format for email sending: %s", response_id)
             return
 
-        logger.info("Fetching survey response from database for email...")
-        repo = SurveyResponseRepository(get_db())
-        survey_response_dict = next((item for item in repo.list_all() if str(item.get("_id")) == response_id), None)
+        logger.info("Fetching %s from database for email...", log_label)
+        response_dict = repo.get_by_id(response_id)
 
-        if not survey_response_dict:
-            logger.error("Survey response with ID %s not found for email sending.", response_id)
+        if not response_dict:
+            logger.error("%s with ID %s not found for email sending.", log_label, response_id)
             return
 
-        logger.info("Preparing JSON string of survey response for email...")
-        survey_response_json = json.dumps(survey_response_dict, default=pydantic_encoder, indent=2)
+        logger.info("Preparing JSON string of %s for email...", log_label)
+        response_json = json.dumps(response_dict, default=pydantic_encoder, indent=2)
 
         recipients = ["lapan.hugodepaula@gmail.com"]
-        patient_email = survey_response_dict.get("patient", {}).get("email")
+        patient_email = response_dict.get("patient", {}).get("email")
         if patient_email:
             recipients.append(patient_email)
 
         message = _build_message(
-            subject=f"New Survey Response for Survey ID {response_id}",
+            subject=f"{subject_prefix} {response_id}",
             recipients=recipients,
-            body=f"""New survey response received:
-
-{survey_response_json}""",
+            body=f"{body_prefix}\n\n{response_json}",
         )
         if message is None:
-            logger.warning("Email client unavailable; skipping send for survey response %s", response_id)
+            logger.warning("Email client unavailable; skipping send for %s %s", log_label, response_id)
             return
 
         mail_client = get_mail_client()
         if mail_client is None:
-            logger.warning("Email client unavailable; skipping send for survey response %s", response_id)
+            logger.warning("Email client unavailable; skipping send for %s %s", log_label, response_id)
             return
 
-        logger.info("Sending email in background...")
+        logger.info("Sending email...")
         await mail_client.send_message(message)
-        logger.info("Email for survey response %s sent successfully.", response_id)
+        logger.info("Email for %s %s sent successfully.", log_label, response_id)
 
     except Exception as e:
-        logger.error("Failed to send email for survey response %s: %s", response_id, e, exc_info=True)
+        logger.error("Failed to send email for %s %s: %s", log_label, response_id, e, exc_info=True)
+
+
+async def send_survey_response_email(response_id: str):
+    """Fetch a survey response by its ID and send it via email."""
+    repo = SurveyResponseRepository(get_db())
+    await _send_response_email(
+        repo, response_id,
+        subject_prefix="New Survey Response for Survey ID",
+        body_prefix="New survey response received:",
+        log_label="survey response",
+    )
 
 
 async def send_patient_response_email(response_id: str):
     """Fetch a patient survey response by its ID and send it via email."""
-    logger.info("--- Preparing to send patient response email for ID: %s ---", response_id)
-    try:
-        try:
-            ObjectId(response_id)
-        except InvalidId:
-            logger.warning("Invalid ObjectId format for patient email sending: %s", response_id)
-            return
-
-        logger.info("Fetching patient response from database for email...")
-        repo = PatientResponseRepository(get_db())
-        patient_response_dict = next((item for item in repo.list_all() if str(item.get("_id")) == response_id), None)
-
-        if not patient_response_dict:
-            logger.error("Patient response with ID %s not found for email sending.", response_id)
-            return
-
-        logger.info("Preparing JSON string of patient response for email...")
-        patient_response_json = json.dumps(patient_response_dict, default=pydantic_encoder, indent=2)
-
-        recipients = ["lapan.hugodepaula@gmail.com"]
-        patient_email = patient_response_dict.get("patient", {}).get("email")
-        if patient_email:
-            recipients.append(patient_email)
-
-        message = _build_message(
-            subject=f"New Patient Survey Response ID {response_id}",
-            recipients=recipients,
-            body=f"""New patient survey response received:
-
-{patient_response_json}""",
-        )
-        if message is None:
-            logger.warning("Email client unavailable; skipping send for patient response %s", response_id)
-            return
-
-        mail_client = get_mail_client()
-        if mail_client is None:
-            logger.warning("Email client unavailable; skipping send for patient response %s", response_id)
-            return
-
-        logger.info("Sending patient email in background...")
-        await mail_client.send_message(message)
-        logger.info("Patient response email for %s sent successfully.", response_id)
-
-    except Exception as e:
-        logger.error("Failed to send email for patient response %s: %s", response_id, e, exc_info=True)
+    repo = PatientResponseRepository(get_db())
+    await _send_response_email(
+        repo, response_id,
+        subject_prefix="New Patient Survey Response ID",
+        body_prefix="New patient survey response received:",
+        log_label="patient response",
+    )

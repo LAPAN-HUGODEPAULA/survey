@@ -10,7 +10,6 @@ import 'package:survey_builder/core/models/survey_prompt_draft.dart';
 import 'package:survey_builder/core/repositories/persona_skill_repository.dart';
 import 'package:survey_builder/core/repositories/survey_prompt_repository.dart';
 import 'package:survey_builder/core/repositories/survey_repository.dart';
-import 'package:survey_builder/features/survey/pages/task_dashboard_page.dart';
 import 'package:survey_builder/features/survey/widgets/html_rich_text_editor.dart';
 
 class SurveyFormPage extends StatefulWidget {
@@ -20,12 +19,14 @@ class SurveyFormPage extends StatefulWidget {
     this.repository,
     this.promptRepository,
     this.personaSkillRepository,
+    this.onReturnToCatalog,
   });
 
   final SurveyDraft? initialDraft;
   final SurveyRepository? repository;
   final SurveyPromptRepository? promptRepository;
   final PersonaSkillRepository? personaSkillRepository;
+  final VoidCallback? onReturnToCatalog;
 
   @override
   State<SurveyFormPage> createState() => _SurveyFormPageState();
@@ -1001,15 +1002,21 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
     return [
       DsBreadcrumbItem(
         label: 'Questionários',
-        onPressed: _saving ? null : () => Navigator.of(context).push(
-          MaterialPageRoute<void>(builder: (_) => const TaskDashboardPage()),
-        ),
+        onPressed: _saving ? null : _returnToCatalog,
       ),
       DsBreadcrumbItem(
         label: isEditing ? 'Editar questionário' : 'Criar questionário',
         isCurrent: true,
       ),
     ];
+  }
+
+  void _returnToCatalog() {
+    if (widget.onReturnToCatalog != null) {
+      widget.onReturnToCatalog!();
+      return;
+    }
+    Navigator.of(context).maybePop();
   }
 
   Widget? _buildDraftStatusFeedback() {
@@ -1059,6 +1066,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
       breadcrumbs: _buildBreadcrumbs(isEditing),
       onBack: _saving ? null : _confirmCancel,
       backLabel: 'Voltar',
+      maxBodyWidth: 1920,
       scrollable: false,
       body: Form(
         key: _formKey,
@@ -1068,7 +1076,8 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
           onCancel: _saving ? () {} : _confirmCancel,
           onSave: _saving ? () {} : _save,
           scrollController: _scrollController,
-          stickyFooter: const SizedBox.shrink(), // Explicitly enable sticky footer
+          stickyFooter:
+              const SizedBox.shrink(), // Explicitly enable sticky footer
           sectionalNav: DsSectionalNav(
             items: _sectionAnchors
                 .map(
@@ -1395,6 +1404,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                         child: DropdownButtonFormField<String?>(
                           key: const ValueKey('survey-persona-selector'),
                           initialValue: _selectedPersonaSkillKey,
+                          isExpanded: true,
                           decoration: const InputDecoration(
                             labelText: 'Persona padrão (opcional)',
                             helperText:
@@ -1427,6 +1437,7 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                         child: DropdownButtonFormField<String?>(
                           key: const ValueKey('survey-output-profile-selector'),
                           initialValue: _selectedOutputProfile,
+                          isExpanded: true,
                           decoration: const InputDecoration(
                             labelText: 'Perfil de saída padrão (opcional)',
                             helperText:
@@ -1492,24 +1503,22 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
                           'Perguntas cadastradas',
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 180),
-                          child: DsOutlinedButton(
-                            label: 'Adicionar pergunta',
-                            onPressed: () {
-                              setState(() {
-                                _questions.add(
-                                  QuestionDraft(
-                                    id: _nextQuestionId(),
-                                    questionText: '',
-                                    label: '',
-                                    answers: [''],
-                                  ),
-                                );
-                              });
-                              _updateDirtyState();
-                            },
-                          ),
+                        DsOutlinedButton(
+                          label: 'Adicionar pergunta',
+                          icon: Icons.add_rounded,
+                          onPressed: () {
+                            setState(() {
+                              _questions.add(
+                                QuestionDraft(
+                                  id: _nextQuestionId(),
+                                  questionText: '',
+                                  label: '',
+                                  answers: [''],
+                                ),
+                              );
+                            });
+                            _updateDirtyState();
+                          },
                         ),
                       ],
                     ),

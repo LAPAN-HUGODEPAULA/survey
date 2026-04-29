@@ -1,8 +1,10 @@
 """Service for enforcing privacy rules on audit data."""
 
+from __future__ import annotations
+
 import hashlib
 import re
-from typing import Dict, List, Optional, Any
+from datetime import datetime, timezone
 
 from app.config.privacy_audit_config import BuilderAuditPrivacyConfig
 from app.config.logging_config import logger
@@ -13,9 +15,9 @@ class AuditPrivacyService:
 
     @staticmethod
     def minimize_outcome_data(
-        outcome: Dict[str, Any],
+        outcome: dict[str, Any],
         resource_type: str
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Apply minimization rules to outcome data."""
         if resource_type not in BuilderAuditPrivacyConfig.CONTENT_MINIMIZATION:
             # If resource type not configured, return empty dict
@@ -38,13 +40,13 @@ class AuditPrivacyService:
         return minimized
 
     @staticmethod
-    def detect_sensitive_content(text: str) -> List[str]:
+    def detect_sensitive_content(text: str) -> list[str]:
         """Detect sensitive content in text."""
         detected_patterns = []
 
-        # Check for PHI keywords
+        lowered = text.lower()
         for keyword in BuilderAuditPrivacyConfig.SENSITIVE_PATTERNS["phi_keywords"]:
-            if keyword.lower() in text.lower():
+            if keyword in lowered:
                 detected_patterns.append(f"PHI_KEYWORD:{keyword}")
 
         # Check for PII patterns
@@ -56,7 +58,7 @@ class AuditPrivacyService:
         return detected_patterns
 
     @staticmethod
-    def compute_content_digest(text: Optional[str] = None, data: Optional[Dict] = None) -> Optional[str]:
+    def compute_content_digest(text: str | None = None, data: dict | None = None) -> str | None:
         """Compute content digest for integrity checking."""
         if text:
             # Use text content
@@ -79,7 +81,7 @@ class AuditPrivacyService:
         return sanitized
 
     @staticmethod
-    def should_audit_access(user_roles: List[str], requested_records: int = 1) -> bool:
+    def should_audit_access(user_roles: list[str], requested_records: int = 1) -> bool:
         """Check if access to audit records should be audited."""
         config = BuilderAuditPrivacyConfig.ACCESS_CONTROL
 
@@ -99,7 +101,7 @@ class AuditPrivacyService:
         return config["audit_on_access"]
 
     @staticmethod
-    def validate_retention_policy() -> Dict[str, Any]:
+    def validate_retention_policy() -> dict[str, Any]:
         """Validate current retention policy configuration."""
         config = BuilderAuditPrivacyConfig
 
@@ -129,12 +131,12 @@ class AuditPrivacyService:
         return validation
 
     @staticmethod
-    def generate_privacy_report() -> Dict[str, Any]:
+    def generate_privacy_report() -> dict[str, Any]:
         """Generate a privacy compliance report for audit records."""
         config = BuilderAuditPrivacyConfig
 
         return {
-            "timestamp": "2026-04-17T00:00:00Z",  # Current date
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "configuration": {
                 "retention_days": config.AUDIT_RETENTION_DAYS,
                 "content_minimization_enabled": True,

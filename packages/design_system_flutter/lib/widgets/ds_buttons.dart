@@ -150,32 +150,44 @@ class DsOutlinedButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final buttonSize = _buttonSize(size);
     final textStyle = _buttonTextStyle(context, size);
+    final theme = Theme.of(context);
     final child = loading
         ? SizedBox(
             width: buttonSize.height * 0.5,
             height: buttonSize.height * 0.5,
-            child: const CircularProgressIndicator(strokeWidth: 2),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: theme.colorScheme.onSurface,
+            ),
           )
-        : Text(label, style: textStyle);
+        : Text(
+            label,
+            style: textStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+          );
 
     return Semantics(
       button: true,
       label: semanticsLabel ?? label,
       child: SizedBox(
-        height: buttonSize.height,
-        child: icon == null
-            ? OutlinedButton(
-                onPressed: loading ? null : onPressed,
-                child: child,
-              )
-            : OutlinedButton.icon(
-                onPressed: loading ? null : onPressed,
-                icon: Icon(icon,
-                    size: textStyle.fontSize != null
-                        ? textStyle.fontSize! + 2
-                        : 16),
-                label: child,
-              ),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: buttonSize.height),
+          child: icon == null
+              ? OutlinedButton(
+                  onPressed: loading ? null : onPressed,
+                  child: child,
+                )
+              : OutlinedButton.icon(
+                  onPressed: loading ? null : onPressed,
+                  icon: Icon(icon,
+                      size: textStyle.fontSize != null
+                          ? textStyle.fontSize! + 2
+                          : 16),
+                  label: child,
+                ),
+        ),
       ),
     );
   }
@@ -203,13 +215,23 @@ class DsTextButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final buttonSize = _buttonSize(size);
     final textStyle = _buttonTextStyle(context, size);
+    final theme = Theme.of(context);
     final child = loading
         ? SizedBox(
             width: buttonSize.height * 0.5,
             height: buttonSize.height * 0.5,
-            child: const CircularProgressIndicator(strokeWidth: 2),
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: theme.colorScheme.onSurface,
+            ),
           )
-        : Text(label, style: textStyle);
+        : Text(
+            label,
+            style: textStyle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            softWrap: false,
+          );
 
     return Semantics(
       button: true,

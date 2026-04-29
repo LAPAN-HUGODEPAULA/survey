@@ -143,3 +143,47 @@ def test_create_agent_access_point_rejects_missing_prompt():
     assert response.status_code == 422
     assert response.json()["userMessage"] == "Unknown promptKey: missing"
     app.dependency_overrides = {}
+
+
+def test_create_agent_access_point_accepts_local_prompt_key():
+    repo = MagicMock()
+    repo.create.return_value = {
+        **_access_point_doc(),
+        "accessPointKey": "clinical_narrative.narrative.generate_report",
+        "name": "Narrativa clínica",
+        "sourceApp": "clinical-narrative",
+        "flowKey": "narrative.generate_report",
+        "surveyId": None,
+        "promptKey": "default",
+        "personaSkillKey": "clinical_diagnostic_report",
+        "outputProfile": "clinical_diagnostic_report",
+    }
+    prompt_repo = MagicMock()
+    prompt_repo.get_by_key.return_value = None
+    persona_repo = MagicMock()
+    persona_repo.get_by_key.return_value = {
+        "personaSkillKey": "clinical_diagnostic_report",
+        "outputProfile": "clinical_diagnostic_report",
+    }
+    _override_dependencies(
+        access_point_repo=repo,
+        prompt_repo=prompt_repo,
+        persona_repo=persona_repo,
+    )
+
+    response = client.post(
+        "/api/v1/agent_access_points/",
+        json={
+            "accessPointKey": "clinical_narrative.narrative.generate_report",
+            "name": "Narrativa clínica",
+            "sourceApp": "clinical-narrative",
+            "flowKey": "narrative.generate_report",
+            "promptKey": "default",
+            "personaSkillKey": "clinical_diagnostic_report",
+            "outputProfile": "clinical_diagnostic_report",
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["promptKey"] == "default"
+    app.dependency_overrides = {}

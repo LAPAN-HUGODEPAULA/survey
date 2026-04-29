@@ -25,18 +25,12 @@ class SurveyPromptDraft {
 }
 
 class SurveyPromptReferenceDraft {
-  SurveyPromptReferenceDraft({
-    required this.promptKey,
-    required this.name,
-  });
+  SurveyPromptReferenceDraft({required this.promptKey, required this.name});
 
   String promptKey;
   String name;
 
   SurveyPromptReferenceDraft copy() {
-    return SurveyPromptReferenceDraft(
-      promptKey: promptKey,
-      name: name,
-    );
+    return SurveyPromptReferenceDraft(promptKey: promptKey, name: name);
   }
 }

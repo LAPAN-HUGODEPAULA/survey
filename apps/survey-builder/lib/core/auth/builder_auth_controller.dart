@@ -11,6 +11,7 @@ class BuilderAuthController extends ChangeNotifier {
   BuilderAuthStatus _status = BuilderAuthStatus.loading;
   BuilderSession? _session;
   String? _message;
+  BuilderAuthFailure? _failure;
   bool _submitting = false;
 
   BuilderAuthStatus get status => _status;
@@ -18,6 +19,7 @@ class BuilderAuthController extends ChangeNotifier {
   BuilderProfile? get profile => _session?.profile;
   String? get csrfToken => _session?.csrfToken;
   String? get message => _message;
+  BuilderAuthFailure? get failure => _failure;
   bool get isSubmitting => _submitting;
   bool get isAuthenticated => _status == BuilderAuthStatus.authenticated;
 
@@ -30,7 +32,7 @@ class BuilderAuthController extends ChangeNotifier {
       final session = await _repository.bootstrapSession();
       _setAuthenticated(session);
     } on BuilderAuthFailure catch (error) {
-      _setUnauthenticated(error.userMessage);
+      _setUnauthenticated(error.userMessage, failure: error);
     } catch (_) {
       _setUnauthenticated(
         'Não foi possível abrir o construtor agora. Faça login novamente.',
@@ -48,7 +50,7 @@ class BuilderAuthController extends ChangeNotifier {
       _setAuthenticated(session);
     } on BuilderAuthFailure catch (error) {
       _submitting = false;
-      _setUnauthenticated(error.userMessage, notify: true);
+      _setUnauthenticated(error.userMessage, notify: true, failure: error);
     } catch (_) {
       _submitting = false;
       _setUnauthenticated(
@@ -78,14 +80,20 @@ class BuilderAuthController extends ChangeNotifier {
     _session = session;
     _status = BuilderAuthStatus.authenticated;
     _message = null;
+    _failure = null;
     _submitting = false;
     notifyListeners();
   }
 
-  void _setUnauthenticated(String message, {bool notify = true}) {
+  void _setUnauthenticated(
+    String message, {
+    bool notify = true,
+    BuilderAuthFailure? failure,
+  }) {
     _session = null;
     _status = BuilderAuthStatus.unauthenticated;
     _message = message;
+    _failure = failure;
     _submitting = false;
     if (notify) {
       notifyListeners();

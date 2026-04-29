@@ -88,9 +88,7 @@ class AgentAccessPointRepository {
     if (decoded is Map) {
       return _mapDraft(Map<String, dynamic>.from(decoded));
     }
-    throw const FormatException(
-      'Resposta inesperada do ponto de acesso.',
-    );
+    throw const FormatException('Resposta inesperada do ponto de acesso.');
   }
 
   AgentAccessPointDraft _mapDraft(Map<String, dynamic> json) {

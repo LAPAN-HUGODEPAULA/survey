@@ -18,6 +18,8 @@ dependencies:
     path: ../../packages/runtime_app_config
   runtime_api_url:
     path: ../../packages/runtime_api_url
+  runtime_agent_access_points:
+    path: ../../packages/runtime_agent_access_points
   survey_backend_api:
     path: ../../packages/contracts/generated/dart
   shared_preferences: ^2.5.3

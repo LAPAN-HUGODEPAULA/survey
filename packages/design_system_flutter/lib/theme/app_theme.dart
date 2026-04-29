@@ -308,7 +308,6 @@ class AppTheme {
   static const Color _surfaceFocus = Color(0xFF6B6D70);
   static const Color _primary = Color(0xFFF38A2E);
   static const Color _primaryBright = Color(0xFFFFB783);
-  static const Color _primaryFixed = Color(0xFFFFDCC5);
   static const Color _onPrimary = Color(0xFF4F2500);
   static const Color _onSurface = Color(0xFFF0F0F3);
   static const Color _onSurfaceVariant = Color(0xFFE0D7D0);
@@ -344,6 +343,8 @@ class AppTheme {
       onSecondaryContainer: _onSurface,
       tertiaryContainer: const Color(0xFF173449),
       onTertiaryContainer: _onSurface,
+      errorContainer: const Color(0xFF93000A),
+      onErrorContainer: const Color(0xFFFFDAD6),
       surfaceContainerLowest: _floor,
       surfaceContainerLow: _surfaceLow,
       surfaceContainer: _surfaceBase,
@@ -380,7 +381,9 @@ class AppTheme {
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
-          side: BorderSide(color: _outlineVariant.withValues(alpha: 0.15)),
+          side: BorderSide(
+            color: _onSurfaceVariant.withValues(alpha: 0.12),
+          ),
         ),
       ),
       snackBarTheme: SnackBarThemeData(
@@ -462,15 +465,20 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(0, 48),
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-          side: BorderSide(
-            color: _outlineVariant.withValues(alpha: 0.15),
+          backgroundColor: Color.alphaBlend(
+            _primaryBright.withValues(alpha: 0.18),
+            _surfaceHigh,
           ),
-          foregroundColor: _primaryFixed,
+          side: BorderSide(
+            color: _primaryBright.withValues(alpha: 0.84),
+            width: 1.5,
+          ),
+          foregroundColor: _onSurface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
           textStyle: baseTextTheme.labelLarge?.copyWith(
-            color: _primaryFixed,
+            color: _onSurface,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -478,9 +486,17 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           minimumSize: const Size(0, 44),
-          foregroundColor: _primaryFixed,
+          foregroundColor: _onSurface,
+          backgroundColor: Color.alphaBlend(
+            _primaryBright.withValues(alpha: 0.12),
+            _surfaceBase,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
           textStyle: baseTextTheme.labelLarge?.copyWith(
-            color: _primaryFixed,
+            color: _onSurface,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -502,7 +518,9 @@ class AppTheme {
         secondaryLabelStyle: baseTextTheme.labelMedium?.copyWith(
           color: colorScheme.onSurface,
         ),
-        side: BorderSide(color: _outlineVariant.withValues(alpha: 0.15)),
+        side: BorderSide(
+          color: _onSurfaceVariant.withValues(alpha: 0.12),
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(999),
         ),
