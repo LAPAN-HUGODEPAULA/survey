@@ -1,4 +1,9 @@
-## ADDED Requirements
+# medication-api-endpoints Specification
+
+## Purpose
+Define the medication reference search API for the LAPAN Survey Platform.
+
+## Requirements
 
 ### Requirement: System MUST provide a medication search endpoint
 The API SHALL expose `GET /v1/medications/search?q={query}&limit={limit}` that returns matching medications from the `reference_medications` collection.

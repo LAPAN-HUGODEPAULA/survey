@@ -1,4 +1,9 @@
-## ADDED Requirements
+# medication-autocomplete-component Specification
+
+## Purpose
+Define the shared medication autocomplete widget for the Flutter design system.
+
+## Requirements
 
 ### Requirement: Shared package MUST provide a multi-select medication autocomplete widget
 `packages/design_system_flutter` SHALL export a `DsMedicationAutocompleteField` widget that combines a text input with chip display for selected medications.

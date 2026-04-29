@@ -1,4 +1,9 @@
-## ADDED Requirements
+# medication-reference-data Specification
+
+## Purpose
+Define the medication reference data storage and seeding strategy.
+
+## Requirements
 
 ### Requirement: Backend MUST store a reference medication catalog
 The system SHALL maintain a `reference_medications` MongoDB collection with documents containing `substance` (String), `category` (String), `trade_names` (List<String>), and `search_vector` (List<String>).
