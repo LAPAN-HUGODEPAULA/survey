@@ -1,0 +1,3 @@
+[submodule "tools/codex-claude-mobile-toolkit"]
+	path = tools/codex-claude-mobile-toolkit
+	url = https://github.com/dexter-cnx/codex-claude-mobile-toolkit.git
