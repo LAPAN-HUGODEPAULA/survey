@@ -12,20 +12,22 @@ class DsMedicationAutocompleteField extends StatefulWidget {
     required this.onMedicationAdded,
     required this.onMedicationRemoved,
     required this.searchMedications,
+    this.loadMedicationCatalog,
+    this.persistManualMedication,
     this.submitted = false,
     this.validator,
     this.labelText = 'Nome do(s) medicamento(s)',
-    this.debounceDuration = const Duration(milliseconds: 300),
   });
 
   final List<String> selectedMedications;
   final ValueChanged<String> onMedicationAdded;
   final ValueChanged<String> onMedicationRemoved;
   final DsMedicationSearchFn searchMedications;
+  final Future<List<String>> Function()? loadMedicationCatalog;
+  final Future<void> Function(String medication)? persistManualMedication;
   final bool submitted;
   final String? Function()? validator;
   final String labelText;
-  final Duration debounceDuration;
 
   @override
   State<DsMedicationAutocompleteField> createState() =>
@@ -40,11 +42,14 @@ class _DsMedicationAutocompleteFieldState
   final TextEditingController _queryController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final Set<String> _unverifiedMedications = <String>{};
+  final Set<String> _pendingManualPersist = <String>{};
 
-  Timer? _debounceTimer;
   List<String> _suggestions = const <String>[];
-  String _activeQuery = '';
-  bool _isLoading = false;
+  List<String> _catalog = const <String>[];
+  bool _isCatalogLoading = false;
+  bool _isSearchingRemote = false;
+  bool _catalogLoaded = false;
+  bool _hasPersistError = false;
 
   @override
   void didUpdateWidget(covariant DsMedicationAutocompleteField oldWidget) {
@@ -52,66 +57,145 @@ class _DsMedicationAutocompleteFieldState
     _unverifiedMedications.removeWhere(
       (item) => !widget.selectedMedications.contains(item),
     );
+    _pendingManualPersist.removeWhere(
+      (item) => !widget.selectedMedications.contains(item),
+    );
   }
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
+    unawaited(_flushPendingManualPersist());
     _queryController.dispose();
+    _focusNode.removeListener(_handleFocusChanged);
     _focusNode.dispose();
     super.dispose();
   }
 
-  void _handleQueryChanged(String value) {
-    final query = value.trim();
-    _activeQuery = query;
-    _debounceTimer?.cancel();
-    if (query.length < 3) {
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(_handleFocusChanged);
+  }
+
+  void _handleFocusChanged() {
+    if (_focusNode.hasFocus) {
+      unawaited(_ensureCatalogLoaded());
+      return;
+    }
+    unawaited(_flushPendingManualPersist());
+  }
+
+  Future<void> _ensureCatalogLoaded() async {
+    if (_catalogLoaded || _isCatalogLoading) {
+      return;
+    }
+    setState(() {
+      _isCatalogLoading = true;
+      _hasPersistError = false;
+    });
+    try {
+      final loader = widget.loadMedicationCatalog;
+      final catalog = loader != null
+          ? await loader()
+          : await widget.searchMedications('a');
+      if (!mounted) {
+        return;
+      }
+      final normalizedCatalog = catalog
+          .where((item) => item.trim().isNotEmpty)
+          .map((item) => item.trim())
+          .toList(growable: false);
       setState(() {
-        _isLoading = false;
+        _catalog = normalizedCatalog;
+        _catalogLoaded = true;
+        _isCatalogLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _catalog = const <String>[];
+        _catalogLoaded = true;
+        _isCatalogLoading = false;
+      });
+    }
+  }
+
+  void _handleQueryChanged(String value) {
+    final query = value.trim().toLowerCase();
+    if (query.isEmpty) {
+      setState(() {
         _suggestions = const <String>[];
       });
       return;
     }
-    _debounceTimer = Timer(widget.debounceDuration, () {
-      _loadSuggestions(query);
+
+    if (widget.loadMedicationCatalog == null) {
+      if (query.length < 3) {
+        setState(() {
+          _suggestions = const <String>[];
+          _isSearchingRemote = false;
+        });
+        return;
+      }
+      unawaited(_loadRemoteSuggestions(query));
+      return;
+    }
+
+    final localSuggestions = _catalog
+        .where(
+          (item) => item.toLowerCase().contains(query),
+        )
+        .where(
+          (item) => !widget.selectedMedications.any(
+            (selected) => selected.toLowerCase() == item.toLowerCase(),
+          ),
+        )
+        .toList(growable: false);
+
+    setState(() {
+      _suggestions = localSuggestions;
     });
   }
 
-  Future<void> _loadSuggestions(String query) async {
+  Future<void> _loadRemoteSuggestions(String query) async {
     setState(() {
-      _isLoading = true;
+      _isSearchingRemote = true;
     });
     try {
-      final results = await widget.searchMedications(query);
-      if (!mounted || query != _activeQuery) {
+      final response = await widget.searchMedications(query);
+      if (!mounted) {
         return;
       }
-      final filtered = results
-          .where((item) => item.trim().isNotEmpty)
-          .where((item) => !widget.selectedMedications.contains(item))
-          .toList(growable: false);
       setState(() {
-        _suggestions = filtered;
-        _isLoading = false;
+        _suggestions = response
+            .where((item) => item.trim().isNotEmpty)
+            .where(
+              (item) => !widget.selectedMedications.any(
+                (selected) => selected.toLowerCase() == item.toLowerCase(),
+              ),
+            )
+            .toList(growable: false);
+        _isSearchingRemote = false;
       });
     } catch (_) {
-      if (!mounted || query != _activeQuery) {
+      if (!mounted) {
         return;
       }
       setState(() {
         _suggestions = const <String>[];
-        _isLoading = false;
+        _isSearchingRemote = false;
       });
     }
   }
 
   Iterable<String> _buildOptions(TextEditingValue value) {
     final query = value.text.trim();
-    if (query.length < 3) {
+    if (query.isEmpty) {
       return const <String>[];
     }
-    if (_isLoading) {
+    if (_isCatalogLoading || _isSearchingRemote) {
       return const <String>[_loadingOption];
     }
     if (_suggestions.isNotEmpty) {
@@ -136,19 +220,47 @@ class _DsMedicationAutocompleteFieldState
       _unverifiedMedications.remove(value);
     } else {
       _unverifiedMedications.add(value);
+      _pendingManualPersist.add(value);
     }
     widget.onMedicationAdded(value);
     _queryController.clear();
     setState(() {
-      _activeQuery = '';
       _suggestions = const <String>[];
-      _isLoading = false;
+      _hasPersistError = false;
+      if (!_catalog.any((item) => item.toLowerCase() == value.toLowerCase())) {
+        _catalog = <String>[..._catalog, value];
+      }
     });
   }
 
   void _removeMedication(String medication) {
     _unverifiedMedications.remove(medication);
+    _pendingManualPersist.remove(medication);
     widget.onMedicationRemoved(medication);
+  }
+
+  Future<void> _flushPendingManualPersist() async {
+    if (_pendingManualPersist.isEmpty || widget.persistManualMedication == null) {
+      return;
+    }
+
+    final pending = List<String>.from(_pendingManualPersist);
+    var hasError = false;
+    for (final medication in pending) {
+      try {
+        await widget.persistManualMedication!(medication);
+        _pendingManualPersist.remove(medication);
+      } catch (_) {
+        hasError = true;
+      }
+    }
+
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _hasPersistError = hasError;
+    });
   }
 
   @override
@@ -209,7 +321,7 @@ class _DsMedicationAutocompleteFieldState
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                          title: Text('Buscando medicamentos...'),
+                          title: Text('Carregando catálogo de medicamentos...'),
                         );
                       }
                       if (option == _manualOption) {
@@ -272,6 +384,16 @@ class _DsMedicationAutocompleteFieldState
                     : theme.colorScheme.surface,
               );
             }).toList(growable: false),
+          ),
+        ],
+        if (_hasPersistError) ...[
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: _flushPendingManualPersist,
+            icon: const Icon(Icons.refresh),
+            label: const Text(
+              'Falha ao sincronizar medicação manual. Tocar para tentar novamente.',
+            ),
           ),
         ],
       ],

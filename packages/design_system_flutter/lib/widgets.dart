@@ -26,6 +26,7 @@ export 'components/respondent_flow/ds_survey_question_runner.dart';
 export 'components/respondent_flow/respondent_flow_models.dart';
 export 'widgets/survey_option_button.dart';
 export 'widgets/survey_progress_indicator.dart';
+export 'widgets/ds_flow_stepper.dart';
 export 'theme/ds_tone_tokens.dart';
 export 'widgets/ds_ambient_delight.dart';
 export 'widgets/ds_buttons.dart';
