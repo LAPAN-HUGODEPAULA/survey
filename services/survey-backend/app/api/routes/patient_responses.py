@@ -97,8 +97,6 @@ async def create_patient_response(
         inserted_id = str(created.get("_id"))
         logger.info("Successfully created patient response with MongoDB ID: %s", inserted_id)
 
-        background_tasks.add_task(send_patient_response_email, inserted_id)
-
         survey_response.id = inserted_id
         response_payload = survey_response.model_dump(by_alias=True)
         agent_response: Optional[AgentResponse] = None
@@ -122,6 +120,7 @@ async def create_patient_response(
                     output_profile=runtime_point.output_profile,
                     source_app="survey-patient",
                     patient_ref=survey_response.patient.email if survey_response.patient else None,
+                    read_timeout_seconds=float(settings.clinical_writer_inline_timeout_seconds),
                 )
                 artifact = AgentArtifactResponse(
                     accessPointKey=runtime_point.access_point_key,

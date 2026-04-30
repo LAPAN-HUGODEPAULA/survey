@@ -18,13 +18,16 @@ class AgentConfig:
     # API Configuration
     # ========================
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    GLM_API_KEY = os.getenv("GLM_API_KEY")
+    GLM_BASE_URL = os.getenv("GLM_BASE_URL", "https://api.z.ai/api/paas/v4/")
 
     # ========================
     # LLM Model Configuration
     # ========================
-    LLM_MODEL_NAME = "gemini-2.5-flash-lite"
-    PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", LLM_MODEL_NAME)
-    FALLBACK_MODEL = os.getenv("FALLBACK_MODEL")
+    LLM_MODEL_NAME = "gemini-2.0-flash-lite"
+    GLM_MODEL_NAME = "glm-4-flash"
+    PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", GLM_MODEL_NAME)
+    FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", LLM_MODEL_NAME)
     CRITIQUE_MODEL = os.getenv("CRITIQUE_MODEL", PRIMARY_MODEL)
     LLM_TEMPERATURE = 0.3
 

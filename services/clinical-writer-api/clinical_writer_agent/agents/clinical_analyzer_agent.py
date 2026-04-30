@@ -6,7 +6,12 @@ import json
 from datetime import datetime
 
 from .agent_state import AgentState
-from .layered_node_utils import LLMClient, parse_json_object, resolve_model_version
+from .layered_node_utils import (
+    LLMClient,
+    parse_json_object,
+    resolve_model_router,
+    resolve_model_version,
+)
 from ..model_router import ModelRouter
 
 
@@ -97,7 +102,8 @@ class ClinicalAnalyzerAgent:  # pylint: disable=too-few-public-methods
             return self._json_llm
         if self._conversation_llm is not None:
             return self._conversation_llm
-        return ModelRouter.from_env()
+        
+        return resolve_model_router(state)
 
     @staticmethod
     def _build_prompt(*, input_type: str, interpretation_prompt: str, content: str) -> str:

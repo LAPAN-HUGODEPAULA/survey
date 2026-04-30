@@ -18,6 +18,9 @@ class AccessPointSelection:
     prompt_key: str
     persona_skill_key: str | None
     output_profile: str | None
+    ai_provider: str | None = None
+    glm_model: str | None = None
+    gemini_model: str | None = None
 
 
 def _coerce_optional_string(value: object | None) -> str | None:
@@ -86,4 +89,7 @@ def resolve_access_point_selection(
         prompt_key=prompt_key,
         persona_skill_key=persona_skill_key,
         output_profile=output_profile,
+        ai_provider=_coerce_optional_string(access_point.get("aiProvider") if access_point else None),
+        glm_model=_coerce_optional_string(access_point.get("glmModel") if access_point else None),
+        gemini_model=_coerce_optional_string(access_point.get("geminiModel") if access_point else None),
     )

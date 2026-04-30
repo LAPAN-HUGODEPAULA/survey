@@ -17,6 +17,9 @@ class AgentAccessPointUpsert(BaseModel):
     prompt_key: str = Field(..., alias="promptKey", min_length=1)
     persona_skill_key: str = Field(..., alias="personaSkillKey", min_length=1)
     output_profile: str = Field(..., alias="outputProfile", min_length=1)
+    ai_provider: str | None = Field(default=None, alias="aiProvider")
+    glm_model: str | None = Field(default=None, alias="glmModel")
+    gemini_model: str | None = Field(default=None, alias="geminiModel")
     survey_id: str | None = Field(default=None, alias="surveyId")
     description: str | None = None
 
@@ -29,6 +32,9 @@ class AgentAccessPointUpsert(BaseModel):
         "prompt_key",
         "persona_skill_key",
         "output_profile",
+        "ai_provider",
+        "glm_model",
+        "gemini_model",
     )
     @classmethod
     def validate_key_fields(cls, value: str, info) -> str:

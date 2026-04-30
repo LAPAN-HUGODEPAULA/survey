@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict
 import uuid
 import time
+import re
 
 import httpx
 
@@ -25,6 +26,7 @@ DEFAULT_LOOPBACK_LANGGRAPH_URL = "http://127.0.0.1:9566/process"
 DEFAULT_LANGGRAPH_ANALYSIS_URL = "http://localhost:9566/analysis"
 DEFAULT_LANGGRAPH_TRANSCRIPTION_URL = "http://localhost:9566/transcriptions"
 LANGGRAPH_TOKEN = os.getenv("LANGGRAPH_API_TOKEN")
+HEALTH_PROBE_PATHS = ("/healthz", "/")
 
 
 def _candidate_process_endpoints() -> list[str]:
@@ -80,8 +82,54 @@ def _to_status_endpoint(process_endpoint: str, request_id: str) -> str:
     return f"{base}/status/{request_id}"
 
 
+def _to_base_endpoint(process_endpoint: str) -> str:
+    normalized = process_endpoint.rstrip("/")
+    if normalized.endswith("/process"):
+        base = normalized[: -len("/process")]
+    else:
+        base = normalized
+    return base
+
+
 def _candidate_status_endpoints(request_id: str) -> list[str]:
     return [_to_status_endpoint(endpoint, request_id) for endpoint in _candidate_process_endpoints()]
+
+
+async def _probe_clinical_writer_health(
+    *,
+    process_endpoint: str,
+    headers: Dict[str, str],
+) -> dict[str, Any]:
+    """Check whether the clinical writer service is reachable right now."""
+    base_endpoint = _to_base_endpoint(process_endpoint)
+    probe_timeout = httpx.Timeout(connect=2.0, read=2.0, write=2.0, pool=2.0)
+    last_request_error: httpx.RequestError | None = None
+
+    async with httpx.AsyncClient(timeout=probe_timeout) as probe_client:
+        for path in HEALTH_PROBE_PATHS:
+            probe_endpoint = f"{base_endpoint}{path}"
+            started_at = time.monotonic()
+            try:
+                response = await probe_client.get(probe_endpoint, headers=headers)
+                elapsed_ms = int((time.monotonic() - started_at) * 1000)
+                return {
+                    "reachable": True,
+                    "status_code": response.status_code,
+                    "latency_ms": elapsed_ms,
+                    "endpoint": probe_endpoint,
+                }
+            except httpx.RequestError as exc:
+                last_request_error = exc
+                continue
+
+    return {
+        "reachable": False,
+        "status_code": None,
+        "latency_ms": None,
+        "endpoint": f"{base_endpoint}{HEALTH_PROBE_PATHS[0]}",
+        "error_type": type(last_request_error).__name__ if last_request_error else None,
+        "error": str(last_request_error) if last_request_error else None,
+    }
 
 
 def _normalize_agent_response(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -101,6 +149,42 @@ def _normalize_agent_response(payload: Dict[str, Any]) -> Dict[str, Any]:
         if "stage_label" in progress and "stageLabel" not in progress:
             progress["stageLabel"] = progress["stage_label"]
     return payload
+
+
+def _extract_upstream_error_detail(exc: httpx.HTTPStatusError) -> str:
+    if exc.response is None:
+        return ""
+    try:
+        payload = exc.response.json()
+    except Exception:
+        payload = None
+    if isinstance(payload, dict):
+        detail = payload.get("detail")
+        if isinstance(detail, str):
+            return detail
+        error = payload.get("error")
+        if isinstance(error, dict):
+            message = error.get("message")
+            if isinstance(message, str):
+                return message
+    return exc.response.text if exc.response is not None else ""
+
+
+def _is_resource_exhausted_error(detail: str) -> bool:
+    normalized = detail.upper()
+    return "RESOURCE_EXHAUSTED" in normalized or "QUOTA EXCEEDED" in normalized
+
+
+def _extract_retry_after_seconds(detail: str) -> int | None:
+    if not detail:
+        return None
+    retry_delay_match = re.search(r"retryDelay['\"]?\s*[:=]\s*['\"]?(\d+)\s*s", detail)
+    if retry_delay_match:
+        return int(retry_delay_match.group(1))
+    human_match = re.search(r"Please retry in\s+(\d+(?:\.\d+)?)s", detail, flags=re.IGNORECASE)
+    if human_match:
+        return int(float(human_match.group(1)))
+    return None
 
 
 def _infer_input_type(payload: Any) -> str:
@@ -146,9 +230,13 @@ async def send_to_langgraph_agent(
     prompt_key: str | None = None,
     persona_skill_key: str | None = None,
     output_profile: str | None = None,
+    ai_provider: str | None = None,
+    glm_model: str | None = None,
+    gemini_model: str | None = None,
     source_app: str | None = None,
     patient_ref: str | None = None,
     request_id: str | None = None,
+    read_timeout_seconds: float | None = None,
 ) -> Dict[str, Any]:
     """
     Send a survey response payload to the LangGraph agent and return its result.
@@ -184,6 +272,9 @@ async def send_to_langgraph_agent(
         "prompt_key": resolved_prompt_key,
         "persona_skill_key": persona_skill_key,
         "output_profile": output_profile,
+        "ai_provider": ai_provider,
+        "glm_model": glm_model,
+        "gemini_model": gemini_model,
         "output_format": "report_json",
         "metadata": {
             "source_app": source_app,
@@ -192,12 +283,19 @@ async def send_to_langgraph_agent(
         },
     }
 
+    last_probe_result: dict[str, Any] | None = None
+    failed_endpoint: str | None = None
     try:
         endpoints = _candidate_process_endpoints()
         last_request_error: httpx.RequestError | None = None
+        resolved_read_timeout = (
+            float(read_timeout_seconds)
+            if read_timeout_seconds is not None
+            else float(settings.clinical_writer_http_timeout_seconds)
+        )
         request_timeout = httpx.Timeout(
             connect=10.0,
-            read=float(settings.clinical_writer_http_timeout_seconds),
+            read=resolved_read_timeout,
             write=10.0,
             pool=10.0,
         )
@@ -246,11 +344,33 @@ async def send_to_langgraph_agent(
                     return agent_result
                 except httpx.RequestError as exc:
                     last_request_error = exc
+                    failed_endpoint = endpoint
+                    last_probe_result = await _probe_clinical_writer_health(
+                        process_endpoint=endpoint,
+                        headers=headers,
+                    )
+                    request_error_type = type(exc).__name__
+                    failure_kind = (
+                        "reachable_slow"
+                        if isinstance(exc, httpx.ReadTimeout)
+                        and bool(last_probe_result.get("reachable"))
+                        else ("reachable_error" if last_probe_result.get("reachable") else "unreachable")
+                    )
                     logger.warning(
-                        "Failed to reach clinical writer request_id=%s endpoint=%s error=%s",
+                        (
+                            "Clinical writer request failed request_id=%s endpoint=%s failure_kind=%s "
+                            "error_type=%s error=%s probe_reachable=%s probe_status=%s "
+                            "probe_latency_ms=%s probe_endpoint=%s"
+                        ),
                         request_id,
                         endpoint,
+                        failure_kind,
+                        request_error_type,
                         exc,
+                        last_probe_result.get("reachable"),
+                        last_probe_result.get("status_code"),
+                        last_probe_result.get("latency_ms"),
+                        last_probe_result.get("endpoint"),
                     )
 
         if last_request_error is not None:
@@ -258,12 +378,17 @@ async def send_to_langgraph_agent(
     except httpx.HTTPStatusError as exc:
         duration = time.monotonic() - start_time
         status_code = exc.response.status_code if exc.response is not None else None
-        retryable = status_code in {408, 429, 500, 502, 503, 504}
+        upstream_detail = _extract_upstream_error_detail(exc)
+        quota_exhausted = _is_resource_exhausted_error(upstream_detail)
+        retryable = quota_exhausted or status_code in {408, 429, 500, 502, 503, 504}
+        retry_after_seconds = _extract_retry_after_seconds(upstream_detail)
         logger.error(
-            "Clinical writer returned error request_id=%s status=%s duration=%.3fs",
+            "Clinical writer returned error request_id=%s status=%s duration=%.3fs quota_exhausted=%s retry_after_seconds=%s",
             request_id,
             status_code if status_code is not None else "unknown",
             duration,
+            quota_exhausted,
+            retry_after_seconds,
         )
         _persist_run_log(
             request_id=request_id,
@@ -281,7 +406,11 @@ async def send_to_langgraph_agent(
             status="error",
         )
         return {
-            "error_message": "Agent error: upstream clinical writer rejected the request",
+            "error_message": (
+                "AI quota exceeded for clinical analysis"
+                if quota_exhausted
+                else "Agent error: upstream clinical writer rejected the request"
+            ),
             "ai_progress": {
                 "stage": "reviewing_content",
                 "stageLabel": "Revisando conteúdo",
@@ -290,19 +419,49 @@ async def send_to_langgraph_agent(
                 "severity": "warning" if retryable else "critical",
                 "retryable": retryable,
                 "userMessage": (
-                    "Não foi possível concluir agora. Tente novamente em alguns instantes."
-                    if retryable
-                    else "Não conseguimos gerar a análise automática para este caso."
+                    (
+                        "A cota de IA foi atingida. Tente novamente em alguns minutos."
+                        if retry_after_seconds is None
+                        else f"A cota de IA foi atingida. Tente novamente em cerca de {retry_after_seconds}s."
+                    )
+                    if quota_exhausted
+                    else (
+                        "Não foi possível concluir agora. Tente novamente em alguns instantes."
+                        if retryable
+                        else "Não conseguimos gerar a análise automática para este caso."
+                    )
                 ),
             },
         }
     except httpx.RequestError as exc:
         duration = time.monotonic() - start_time
+        request_error_type = type(exc).__name__
+        failure_kind = (
+            "reachable_slow"
+            if isinstance(exc, httpx.ReadTimeout)
+            and bool((last_probe_result or {}).get("reachable"))
+            else (
+                "reachable_error"
+                if bool((last_probe_result or {}).get("reachable"))
+                else "unreachable"
+            )
+        )
         logger.error(
-            "Failed to reach clinical writer request_id=%s duration=%.3fs error=%s",
+            (
+                "Failed to reach clinical writer request_id=%s duration=%.3fs endpoint=%s "
+                "failure_kind=%s error_type=%s error=%s probe_reachable=%s probe_status=%s "
+                "probe_latency_ms=%s probe_endpoint=%s"
+            ),
             request_id,
             duration,
+            failed_endpoint,
+            failure_kind,
+            request_error_type,
             exc,
+            (last_probe_result or {}).get("reachable"),
+            (last_probe_result or {}).get("status_code"),
+            (last_probe_result or {}).get("latency_ms"),
+            (last_probe_result or {}).get("endpoint"),
         )
         _persist_run_log(
             request_id=request_id,
@@ -320,7 +479,11 @@ async def send_to_langgraph_agent(
             status="error",
         )
         return {
-            "error_message": "Unable to reach AI agent",
+            "error_message": (
+                "AI analysis timed out before completion"
+                if failure_kind == "reachable_slow"
+                else "Unable to reach AI agent"
+            ),
             "ai_progress": {
                 "stage": "reviewing_content",
                 "stageLabel": "Revisando conteúdo",
@@ -329,7 +492,9 @@ async def send_to_langgraph_agent(
                 "severity": "warning",
                 "retryable": True,
                 "userMessage": (
-                    "Não foi possível concluir agora. Tente novamente em alguns instantes."
+                    "A análise está demorando mais que o esperado. Tente novamente em instantes."
+                    if failure_kind == "reachable_slow"
+                    else "Não foi possível concluir agora. Tente novamente em alguns instantes."
                 ),
             },
         }

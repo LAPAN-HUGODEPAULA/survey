@@ -10,6 +10,7 @@ from .layered_node_utils import (
     LLMClient,
     parse_json_object,
     report_to_markdown,
+    resolve_model_router,
     resolve_model_version,
 )
 from ..model_router import ModelRouter
@@ -113,7 +114,8 @@ class PersonaWriterAgent:  # pylint: disable=too-few-public-methods
             return self._conversation_llm
         if self._json_llm is not None:
             return self._json_llm
-        return ModelRouter.from_env()
+        
+        return resolve_model_router(state)
 
     @staticmethod
     def _build_prompt(

@@ -7,6 +7,7 @@ import re
 from typing import Any, Protocol
 
 from ..agent_config import AgentConfig
+from ..model_router import ModelRouter
 from ..report_models import ReportDocument
 
 
@@ -57,6 +58,27 @@ def resolve_model_version(llm_model: Any) -> str:
     if hasattr(llm_model, "name"):
         return getattr(llm_model, "name")
     return AgentConfig.PRIMARY_MODEL
+
+
+def resolve_model_router(state: Any) -> ModelRouter:
+    """Build a ModelRouter using configuration from state or environment defaults."""
+    primary_provider = state.get("ai_provider") or "glm"
+    primary_model = state.get("glm_model") if primary_provider == "glm" else state.get("gemini_model")
+    if not primary_model:
+        primary_model = AgentConfig.PRIMARY_MODEL if primary_provider == "glm" else AgentConfig.LLM_MODEL_NAME
+
+    fallback_provider = "gemini" if primary_provider == "glm" else "glm"
+    fallback_model = state.get("gemini_model") if fallback_provider == "gemini" else state.get("glm_model")
+    if not fallback_model:
+        fallback_model = AgentConfig.LLM_MODEL_NAME if fallback_provider == "gemini" else AgentConfig.GLM_MODEL_NAME
+
+    return ModelRouter(
+        primary_model=primary_model,
+        fallback_model=fallback_model,
+        primary_provider=primary_provider,
+        fallback_provider=fallback_provider,
+        temperature=AgentConfig.LLM_TEMPERATURE,
+    )
 
 
 def report_to_markdown(report_payload: dict[str, Any]) -> str:

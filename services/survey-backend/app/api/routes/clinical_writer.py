@@ -54,6 +54,9 @@ class ClinicalWriterRequest(BaseModel):
     prompt_key: str = Field(default="default")
     persona_skill_key: str | None = Field(default=None)
     output_profile: str | None = Field(default=None)
+    ai_provider: str | None = Field(default=None, alias="aiProvider")
+    glm_model: str | None = Field(default=None, alias="glmModel")
+    gemini_model: str | None = Field(default=None, alias="geminiModel")
     output_format: str = Field(default="report_json")
     metadata: dict = Field(default_factory=dict)
     async_mode: bool = Field(default=True, alias="asyncMode")
@@ -149,6 +152,9 @@ async def _run_background_task(task_id: str, request: ClinicalWriterRequest, req
             prompt_key=request.prompt_key,
             persona_skill_key=request.persona_skill_key,
             output_profile=request.output_profile,
+            ai_provider=request.ai_provider,
+            glm_model=request.glm_model,
+            gemini_model=request.gemini_model,
             source_app=request.metadata.get("source_app") or "clinical-writer",
             patient_ref=request.metadata.get("patient_ref"),
             request_id=request_id,
@@ -256,6 +262,9 @@ async def process_clinical_writer(request: ClinicalWriterRequest) -> AgentRespon
         prompt_key=request.prompt_key,
         persona_skill_key=request.persona_skill_key,
         output_profile=request.output_profile,
+        ai_provider=request.ai_provider,
+        glm_model=request.glm_model,
+        gemini_model=request.gemini_model,
         source_app=request.metadata.get("source_app") or "clinical-writer",
         patient_ref=request.metadata.get("patient_ref"),
         request_id=request.metadata.get("request_id"),
@@ -325,6 +334,9 @@ def _resolve_request_selection(request: ClinicalWriterRequest) -> ClinicalWriter
     payload.prompt_key = selection.prompt_key
     payload.persona_skill_key = selection.persona_skill_key
     payload.output_profile = selection.output_profile
+    payload.ai_provider = selection.ai_provider
+    payload.glm_model = selection.glm_model
+    payload.gemini_model = selection.gemini_model
     if survey_id:
         payload.metadata.setdefault("surveyId", str(survey_id))
     return payload

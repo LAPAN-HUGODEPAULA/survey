@@ -121,9 +121,6 @@ async def create_survey_response(
         inserted_id = str(created.get("_id"))
         logger.info("Successfully created survey response with MongoDB ID: %s", inserted_id)
 
-        logger.info("Adding email sending task to background for response ID: %s", inserted_id)
-        background_tasks.add_task(send_survey_response_email, inserted_id)
-
         survey_response.id = inserted_id
         response_payload = survey_response.model_dump(by_alias=True)
         agent_response: Optional[AgentResponse] = None

@@ -6,7 +6,12 @@ import json
 from datetime import datetime
 
 from .agent_state import AgentState
-from .layered_node_utils import LLMClient, parse_json_object, resolve_model_version
+from .layered_node_utils import (
+    LLMClient,
+    parse_json_object,
+    resolve_model_router,
+    resolve_model_version,
+)
 from ..agent_config import AgentConfig
 from ..model_router import ModelRouter
 
@@ -44,12 +49,7 @@ class ReflectorNode:  # pylint: disable=too-few-public-methods
             )
 
         try:
-            llm_model = self._critique_llm or ModelRouter(
-                primary_model=AgentConfig.CRITIQUE_MODEL,
-                fallback_model=AgentConfig.FALLBACK_MODEL,
-                api_key=AgentConfig.GEMINI_API_KEY,
-                temperature=0.1,
-            )
+            llm_model = self._critique_llm or resolve_model_router(state)
             prompt = self._build_prompt(state)
             response = llm_model.invoke(prompt)
             content = response.content if isinstance(response.content, str) else str(response.content)

@@ -89,6 +89,9 @@ class ProcessRequest(BaseModel):
     prompt_key: str = Field(default="default")
     persona_skill_key: Optional[str] = Field(default=None)
     output_profile: Optional[str] = Field(default=None)
+    ai_provider: Optional[str] = Field(default=None)
+    glm_model: Optional[str] = Field(default=None)
+    gemini_model: Optional[str] = Field(default=None)
     output_format: Literal["report_json"] = Field(default="report_json")
     metadata: RequestMetadata = Field(default_factory=RequestMetadata)
 
@@ -208,6 +211,16 @@ async def root():
     """Health check endpoint."""
     return {"message": "Clinical Writer AI Multiagent System is running."}
 
+
+@app.get("/healthz", summary="Health", tags=["Status"])
+async def healthz():
+    """Lightweight liveness probe for upstream callers."""
+    return {
+        "ok": True,
+        "service": "clinical_writer_agent",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
 @app.post("/process", response_model=ProcessResponse, dependencies=[Depends(verify_token)], tags=["Processing"])
 async def process_content(
     body: ProcessRequest,
@@ -240,6 +253,9 @@ async def process_content(
         "prompt_key": body.prompt_key,
         "persona_skill_key": body.persona_skill_key,
         "output_profile": body.output_profile,
+        "ai_provider": body.ai_provider,
+        "glm_model": body.glm_model,
+        "gemini_model": body.gemini_model,
         "prompt_registry": prompt_registry,
     }
     final_state = graph.invoke(initial_state)

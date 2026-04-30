@@ -7,6 +7,9 @@ class AgentAccessPointDraft {
     required this.promptKey,
     required this.personaSkillKey,
     required this.outputProfile,
+    this.aiProvider,
+    this.glmModel,
+    this.geminiModel,
     this.surveyId,
     this.description,
     this.createdAt,
@@ -20,6 +23,9 @@ class AgentAccessPointDraft {
   final String promptKey;
   final String personaSkillKey;
   final String outputProfile;
+  final String? aiProvider;
+  final String? glmModel;
+  final String? geminiModel;
   final String? surveyId;
   final String? description;
   final DateTime? createdAt;
@@ -34,6 +40,9 @@ class AgentAccessPointDraft {
       promptKey: promptKey,
       personaSkillKey: personaSkillKey,
       outputProfile: outputProfile,
+      aiProvider: aiProvider,
+      glmModel: glmModel,
+      geminiModel: geminiModel,
       surveyId: surveyId,
       description: description,
       createdAt: createdAt,

@@ -25,8 +25,8 @@
 - **Persona skill schema**: output persona documents live in the `PersonaSkills` collection and can be managed through `/api/v1/persona_skills`.
 - **Persistence**: repositories under `app/persistence/repositories` encapsulate MongoDB CRUD; injected via `app.persistence.deps` to keep handlers decoupled from storage.
 - **Integrations**:
-  - `app.integrations.clinical_writer.client` submits responses for AI enrichment.
-  - `app.integrations.email.service` dispatches response emails using FastAPI `BackgroundTasks` and exposes the shared `FastMail` client used by screener password recovery.
+  - `app.integrations.clinical_writer.client` submits responses for AI enrichment, resolving provider and model configuration from access points or system defaults.
+  - `app.integrations.email.service` exposes the shared `FastMail` client used by screener password recovery and manual administrative re-sends. Automatic response emails are disabled to ensure LGPD compliance.
 - **AI traceability minimization**: clinical writer run logs store
   pseudonymized `patient_ref` values instead of raw names or emails when
   correlation is needed.
@@ -49,6 +49,7 @@
   2. **ClinicalAnalyzer** — Processes response JSON with clinical rules; outputs structured clinical facts (no narrative text).
   3. **PersonaWriter** — Transforms clinical facts into audience-appropriate Markdown narrative following the persona's tone and format.
   4. **ReflectorNode** — Validates grounding, tone, and safety; loops back to PersonaWriter on failure (up to 2 retries).
+- **Multi-Provider Routing**: The service uses a `ModelRouter` with a **primary (GLM) and fallback (Gemini)** policy. It targets Zhipu AI (GLM) via the industry-standard `openai` SDK and falls back to Google Gemini on any error, ensuring high availability and cost optimization.
 - **Composable Prompts**: The final prompt is assembled at runtime from three layers: **Domain** (questionnaire-specific clinical rules), **Persona** (tone, vocabulary, output format), and **Contextual Data** (pseudonymized patient response JSON).
 - **PromptRegistry**: Composes survey-derived prompts from `QuestionnairePrompts` and `PersonaSkills` in MongoDB and exposes `prompt_version`, `questionnaire_prompt_version`, and `persona_skill_version`.
   - **Questionnaire prompt provider** resolves questionnaire clinical logic from `QuestionnairePrompts` and falls back to legacy `survey_prompts` during migration.

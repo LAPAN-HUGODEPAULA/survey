@@ -119,6 +119,9 @@ class AgentAccessPointRepository {
       promptKey: json['promptKey']?.toString() ?? '',
       personaSkillKey: json['personaSkillKey']?.toString() ?? '',
       outputProfile: json['outputProfile']?.toString() ?? '',
+      aiProvider: json['aiProvider']?.toString(),
+      glmModel: json['glmModel']?.toString(),
+      geminiModel: json['geminiModel']?.toString(),
       surveyId: json['surveyId']?.toString(),
       description: json['description']?.toString(),
       createdAt: _coerceDateTime(json['createdAt']),
@@ -135,6 +138,15 @@ class AgentAccessPointRepository {
       'promptKey': draft.promptKey.trim().toLowerCase(),
       'personaSkillKey': draft.personaSkillKey.trim().toLowerCase(),
       'outputProfile': draft.outputProfile.trim().toLowerCase(),
+      'aiProvider': draft.aiProvider?.trim().isEmpty ?? true
+          ? null
+          : draft.aiProvider!.trim(),
+      'glmModel': draft.glmModel?.trim().isEmpty ?? true
+          ? null
+          : draft.glmModel!.trim(),
+      'geminiModel': draft.geminiModel?.trim().isEmpty ?? true
+          ? null
+          : draft.geminiModel!.trim(),
       'surveyId': draft.surveyId?.trim().isEmpty ?? true
           ? null
           : draft.surveyId!.trim(),

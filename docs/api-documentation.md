@@ -47,7 +47,7 @@
   - `DELETE /agent_access_points/{access_point_key}` - delete an access-point definition.
 
 - **Survey Responses**
-  - `POST /survey_responses/` – create survey response; persists, triggers email background task, resolves runtime configuration through request overrides, access point, survey defaults, and legacy fallback, then optionally enriches with one or more Clinical Writer artifacts. Returns `SurveyResponseWithAgent`.
+  - `POST /survey_responses/` – create survey response; persists, resolves runtime configuration through request overrides, access point, survey defaults, and legacy fallback, then optionally enriches with one or more Clinical Writer artifacts. Returns `SurveyResponseWithAgent`.
   - `GET /survey_responses/` – list all survey responses.
   - `GET /survey_responses/{response_id}` – fetch a survey response by id (400 on bad ObjectId, 404 if missing).
   - `POST /survey_responses/{response_id}/send_email` – enqueue an email re-send for an existing response (202 Accepted on success).
@@ -61,7 +61,7 @@
 - `SurveyPrompt`: questionnaire prompt definition stored canonically in `QuestionnairePrompts`.
 - `PersonaSkill`: output-profile persona definition stored in `PersonaSkills`.
 - `Survey`: survey metadata and questions, stored in the `surveys` collection with an embedded `prompt` reference (`promptKey`, `name`).
-- `AgentAccessPoint`: builder-managed runtime mapping with `accessPointKey`, `sourceApp`, `flowKey`, optional `surveyId`, and bound `promptKey`, `personaSkillKey`, and `outputProfile`.
+- `AgentAccessPoint`: builder-managed runtime mapping with `accessPointKey`, `sourceApp`, `flowKey`, optional `surveyId`, and bound `promptKey`, `personaSkillKey`, and `outputProfile`, plus optional `aiProvider`, `glmModel`, and `geminiModel`.
 - `SurveyResponse`: answers plus patient details, stored in the `survey_responses` collection, with optional `accessPointKey`, `promptKey`, `personaSkillKey`, and `outputProfile`.
 - `PatientResponse`: answers plus patient details, stored in the `patient_responses` collection.
 - `SurveyResponseWithAgent`: response payload plus a legacy-compatible `agentResponse` field and the full `agentResponses` list for access-point fan-out results.
@@ -77,6 +77,9 @@ Request body (JSON):
 - `content`: raw consult text or JSON string payload
 - `locale`: defaults to `pt-BR`
 - `accessPointKey`: optional stable runtime entry-point identifier. When supplied, the backend requires `surveyId` in `metadata` or encoded in the JSON `content`.
+- `aiProvider`: optional primary AI provider (`glm` | `gemini`).
+- `glmModel`: optional override for GLM model string.
+- `geminiModel`: optional override for Gemini model string.
 - `prompt_key`: defaults to `default`
 - `persona_skill_key`: optional persona key for output tone/restrictions
 - `output_profile`: optional output profile used to derive a default persona skill
@@ -138,7 +141,7 @@ All non-2xx responses from the platform APIs return a standardized `ApiError` ob
 - Prefer SDKs generated from the OpenAPI contract over ad-hoc HTTP calls.
 - Clients should not attempt direct MongoDB or Clinical Writer access; all interactions go through the backend or worker.
 - Use access-point keys for survey-driven entry points instead of hard-coding prompt assumptions in clients. The current default thank-you keys are `survey_patient.thank_you.auto_analysis` and `survey_frontend.thank_you.auto_analysis`.
-- Screener password recovery uses the same SMTP/FastMail configuration as survey and patient response emails (`SMTP_*` or `MAIL_*` environment variables).
+- Screener password recovery uses the SMTP/FastMail configuration (`SMTP_*` or `MAIL_*` environment variables).
 - On a fresh local database migrated with `tools/migrations/survey-backend/003_populate_new_schema.py`, the seeded screeners are `lapan.hugodepaula@gmail.com` / `SystemPassword123!` and `maria.vale@holhos.com` / `SamplePassword123!` until those passwords are changed or recovered.
 - If an older database still uses `survey_results` or `patient_results`, run `tools/migrations/survey-backend/004_rename_response_collections.py` to move it to the canonical `survey_responses` and `patient_responses` collections.
 - For rollout sequencing and fallback guidance, follow [access-point-runtime.md](/home/hugo/Documents/LAPAN/dev/survey/docs/runbooks/access-point-runtime.md).

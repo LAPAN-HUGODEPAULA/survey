@@ -111,6 +111,9 @@ class AgentAccessPointRepository:
             "promptKey",
             "personaSkillKey",
             "outputProfile",
+            "aiProvider",
+            "glmModel",
+            "geminiModel",
             "createdAt",
             "modifiedAt",
         }

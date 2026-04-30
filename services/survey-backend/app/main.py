@@ -1,6 +1,7 @@
 """FastAPI application entrypoint for the survey backend."""
 
 from contextlib import asynccontextmanager
+import os
 import secrets
 import string
 
@@ -37,6 +38,7 @@ from app.persistence.repositories.screener_repo import (
     SYSTEM_SCREENER_ID,
     ScreenerRepository,
 )
+from app.persistence.repositories.system_settings_repo import SystemSettingsRepository
 
 
 def _build_security_headers() -> dict[str, str]:
@@ -82,6 +84,21 @@ def _ensure_reserved_system_screener(screener_repo: ScreenerRepository) -> None:
         )
 
 
+def _ensure_ai_model_defaults(settings_repo: SystemSettingsRepository) -> None:
+    """Ensure baseline AI provider/model defaults exist in system settings."""
+    # Gemini defaults
+    if not settings_repo.get_value("ai_default_gemini_model"):
+        gemini_default = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-lite")
+        settings_repo.set_value("ai_default_gemini_model", gemini_default)
+        logger.info("Seeded default Gemini model: %s", gemini_default)
+
+    # GLM defaults
+    if not settings_repo.get_value("ai_default_glm_model"):
+        glm_default = os.getenv("GLM_MODEL", "glm-4-flash")
+        settings_repo.set_value("ai_default_glm_model", glm_default)
+        logger.info("Seeded default GLM model: %s", glm_default)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize service-level dependencies when the API starts."""
@@ -91,11 +108,17 @@ async def lifespan(app: FastAPI):
     # Ensure the reserved system screener exists before handling requests.
     db = get_db()
     screener_repo = ScreenerRepository(db)
+    settings_repo = SystemSettingsRepository(db)
 
     try:
         _ensure_reserved_system_screener(screener_repo)
     except Exception as e:
         logger.error("Failed to create System Screener: %s", e)
+
+    try:
+        _ensure_ai_model_defaults(settings_repo)
+    except Exception as e:
+        logger.error("Failed to seed AI model defaults: %s", e)
 
     yield
     logger.info("Survey Application API stopped")

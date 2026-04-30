@@ -28,6 +28,7 @@ class AgentAccessPointFormPage extends StatefulWidget {
 class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
   static const String _routingSectionId = 'routing';
   static const String _assignmentSectionId = 'assignment';
+  static const String _aiSectionId = 'ai';
   static const List<(String, String)> _localPromptOptions = [
     ('default', 'Prompt local padrão'),
     ('consult', 'Prompt local de consulta'),
@@ -39,14 +40,18 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _routingSectionKey = GlobalKey();
   final GlobalKey _assignmentSectionKey = GlobalKey();
+  final GlobalKey _aiSectionKey = GlobalKey();
   late final AgentAccessPointRepository _repository;
   late final bool _isEditing;
   late final TextEditingController _nameController;
   late final TextEditingController _keyController;
   late final TextEditingController _flowKeyController;
   late final TextEditingController _descriptionController;
+  late final TextEditingController _glmModelController;
+  late final TextEditingController _geminiModelController;
   String? _selectedInjectionPointKey;
   String _sourceApp = 'survey-patient';
+  String? _aiProvider;
   String? _surveyId;
   String? _promptKey;
   String? _personaSkillKey;
@@ -87,6 +92,12 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
     _descriptionController = TextEditingController(
       text: draft.description ?? '',
     )..addListener(_handleMutation);
+    _glmModelController = TextEditingController(
+      text: draft.glmModel ?? '',
+    )..addListener(_handleMutation);
+    _geminiModelController = TextEditingController(
+      text: draft.geminiModel ?? '',
+    )..addListener(_handleMutation);
     final configuredPoint = RuntimeAccessPointCatalog.byKey(
       draft.accessPointKey,
     );
@@ -94,6 +105,7 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
         ? configuredPoint!.accessPointKey
         : null;
     _sourceApp = draft.sourceApp;
+    _aiProvider = draft.aiProvider;
     _surveyId = draft.surveyId;
     _promptKey = draft.promptKey.isEmpty ? null : draft.promptKey;
     _personaSkillKey = draft.personaSkillKey.isEmpty
@@ -111,6 +123,8 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
     _keyController.dispose();
     _flowKeyController.dispose();
     _descriptionController.dispose();
+    _glmModelController.dispose();
+    _geminiModelController.dispose();
     _repository.dispose();
     super.dispose();
   }
@@ -125,14 +139,27 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
   void _handleSectionScroll() {
     final activationOffset = 180.0;
     var nextSectionId = _routingSectionId;
-    final assignmentBox =
-        _assignmentSectionKey.currentContext?.findRenderObject() as RenderBox?;
-    if (assignmentBox != null) {
-      final top = assignmentBox.localToGlobal(Offset.zero).dy;
+
+    final aiBox =
+        _aiSectionKey.currentContext?.findRenderObject() as RenderBox?;
+    if (aiBox != null) {
+      final top = aiBox.localToGlobal(Offset.zero).dy;
       if (top <= activationOffset) {
-        nextSectionId = _assignmentSectionId;
+        nextSectionId = _aiSectionId;
       }
     }
+
+    if (nextSectionId == _routingSectionId) {
+      final assignmentBox =
+          _assignmentSectionKey.currentContext?.findRenderObject() as RenderBox?;
+      if (assignmentBox != null) {
+        final top = assignmentBox.localToGlobal(Offset.zero).dy;
+        if (top <= activationOffset) {
+          nextSectionId = _assignmentSectionId;
+        }
+      }
+    }
+
     if (nextSectionId != _currentSectionId && mounted) {
       setState(() => _currentSectionId = nextSectionId);
     }
@@ -141,7 +168,9 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
   void _jumpToSection(String sectionId) {
     final targetKey = sectionId == _routingSectionId
         ? _routingSectionKey
-        : _assignmentSectionKey;
+        : (sectionId == _assignmentSectionId
+            ? _assignmentSectionKey
+            : _aiSectionKey);
     final context = targetKey.currentContext;
     if (context != null) {
       setState(() => _currentSectionId = sectionId);
@@ -325,6 +354,13 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
       promptKey: _promptKey!,
       personaSkillKey: _personaSkillKey!,
       outputProfile: persona.outputProfile,
+      aiProvider: _aiProvider?.trim().isEmpty ?? true ? null : _aiProvider,
+      glmModel: _glmModelController.text.trim().isEmpty
+          ? null
+          : _glmModelController.text.trim(),
+      geminiModel: _geminiModelController.text.trim().isEmpty
+          ? null
+          : _geminiModelController.text.trim(),
       surveyId: _surveyId,
       description: _descriptionController.text.trim().isEmpty
           ? null
@@ -416,20 +452,31 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                       label: 'Vinculações',
                       targetKey: _assignmentSectionKey,
                     ),
+                    DsSectionalNavItem(
+                      label: 'Modelos e Provedores',
+                      targetKey: _aiSectionKey,
+                    ),
                   ],
                   activeItem: _currentSectionId == _routingSectionId
                       ? DsSectionalNavItem(
                           label: 'Roteamento',
                           targetKey: _routingSectionKey,
                         )
-                      : DsSectionalNavItem(
-                          label: 'Vinculações',
-                          targetKey: _assignmentSectionKey,
-                        ),
+                      : (_currentSectionId == _assignmentSectionId
+                          ? DsSectionalNavItem(
+                              label: 'Vinculações',
+                              targetKey: _assignmentSectionKey,
+                            )
+                          : DsSectionalNavItem(
+                              label: 'Modelos e Provedores',
+                              targetKey: _aiSectionKey,
+                            )),
                   onItemTap: (item) => _jumpToSection(
                     item.label == 'Roteamento'
                         ? _routingSectionId
-                        : _assignmentSectionId,
+                        : (item.label == 'Vinculações'
+                            ? _assignmentSectionId
+                            : _aiSectionId),
                   ),
                 ),
                 feedback: _feedback == null
@@ -716,6 +763,63 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                               labelText: 'Descrição operacional',
                             ),
                             maxLines: 3,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    DsSection(
+                      key: _aiSectionKey,
+                      title: 'Modelos e Provedores de IA',
+                      subtitle:
+                          'Configure a redundância e a escolha de modelos específicos para este ponto de acesso.',
+                      child: Column(
+                        children: [
+                          DropdownButtonFormField<String?>(
+                            initialValue: _aiProvider,
+                            decoration: const InputDecoration(
+                              labelText: 'Provedor primário',
+                              helperText:
+                                  'Escolha o provedor que será tentado primeiro.',
+                            ),
+                            items: const [
+                              DropdownMenuItem<String?>(
+                                value: null,
+                                child: Text('Padrão do Sistema'),
+                              ),
+                              DropdownMenuItem<String?>(
+                                value: 'glm',
+                                child: Text('Zhipu AI (GLM)'),
+                              ),
+                              DropdownMenuItem<String?>(
+                                value: 'gemini',
+                                child: Text('Google Gemini'),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              setState(() {
+                                _aiProvider = value;
+                                _isDirty = true;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _glmModelController,
+                            decoration: const InputDecoration(
+                              labelText: 'Modelo GLM customizado',
+                              helperText:
+                                  'Ex.: glm-4-flash. Deixe vazio para o padrão.',
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _geminiModelController,
+                            decoration: const InputDecoration(
+                              labelText: 'Modelo Gemini customizado',
+                              helperText:
+                                  'Ex.: gemini-2.0-flash-lite. Deixe vazio para o padrão.',
+                            ),
                           ),
                         ],
                       ),
