@@ -1,4 +1,4 @@
-# survey_backend_api.model.ClinicalWriterRequestMetadata
+# survey_backend_api.model.MedicationManualUpsertRequest
 
 ## Load the model package
 ```dart
@@ -8,10 +8,7 @@ import 'package:survey_backend_api/api.dart';
 ## Properties
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**sourceApp** | **String** |  | [optional] 
-**requestId** | **String** |  | [optional] 
-**patientRef** | **String** |  | [optional] 
-**surveyId** | **String** |  | [optional] 
+**substance** | **String** |  | 
 
 [[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
 
