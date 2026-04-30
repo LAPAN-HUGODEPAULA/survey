@@ -14,6 +14,7 @@ class SurveyRepository {
   SurveyRepository({api.DefaultApi? apiClient, Dio? rawClient})
     : _rawClient = rawClient ?? ApiConfig.createDio();
 
+  static const Duration _longRunningRequestTimeout = Duration(seconds: 180);
   final Dio _rawClient;
 
   /// Retrieves every survey available on the backend.
@@ -58,7 +59,14 @@ class SurveyRepository {
   /// Submits a survey response to the backend and returns the saved record.
   Future<ui.SurveyResponse> submitResponse(ui.SurveyResponse response) async {
     final payload = response.toJson();
-    final data = await _postJson('patient_responses/', payload);
+    final data = await _postJson(
+      'patient_responses/',
+      payload,
+      options: Options(
+        sendTimeout: _longRunningRequestTimeout,
+        receiveTimeout: _longRunningRequestTimeout,
+      ),
+    );
     return ui.SurveyResponse.fromJson(data);
   }
 
@@ -155,18 +163,25 @@ class SurveyRepository {
     required String responseId,
     required String reportText,
   }) async {
-    await _postJson('patient_responses/$responseId/send_report_email', {
-      'reportText': reportText,
-    });
+    await _postJson(
+      'patient_responses/$responseId/send_report_email',
+      {'reportText': reportText},
+      options: Options(
+        sendTimeout: _longRunningRequestTimeout,
+        receiveTimeout: _longRunningRequestTimeout,
+      ),
+    );
   }
 
   Future<Map<String, dynamic>> _postJson(
     String path,
     Map<String, dynamic> payload,
+    {Options? options}
   ) async {
     final response = await _rawClient.post<Object?>(
       ApiConfig.requestPath(path),
       data: payload,
+      options: options,
     );
     final data = response.data;
     if (data is Map<String, dynamic>) {
