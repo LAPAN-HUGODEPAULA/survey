@@ -21,19 +21,11 @@ class AssessmentFlowStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DsStepper(
+    return DsFlowStepper(
       padding: padding,
+      currentStepIndex: currentStep.index,
       steps: AssessmentFlowStep.values
-          .map((AssessmentFlowStep step) {
-            return DsStepData(
-              label: _label(step),
-              state: step.index < currentStep.index
-                  ? DsStepState.done
-                  : step == currentStep
-                  ? DsStepState.active
-                  : DsStepState.todo,
-            );
-          })
+          .map(_label)
           .toList(growable: false),
     );
   }

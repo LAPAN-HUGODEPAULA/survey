@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:survey_app/core/providers/app_settings.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,6 +19,12 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      context.read<AppSettings>().loadAvailableSurveys();
+    });
     _redirectTimer = Timer(
       const Duration(seconds: 3),
       () => context.go('/demographics'),

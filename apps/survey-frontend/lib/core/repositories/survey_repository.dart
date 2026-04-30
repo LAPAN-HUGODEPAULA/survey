@@ -73,6 +73,41 @@ class SurveyRepository {
         .toList(growable: false);
   }
 
+  /// Loads the full medication catalog for local in-memory filtering.
+  Future<List<String>> fetchAllMedications({int limit = 500}) async {
+    final response = await _rawClient.get<Object?>(
+      ApiConfig.requestPath('medications', <String, dynamic>{'limit': limit}),
+      options: Options(responseType: ResponseType.plain),
+    );
+    final data = _decodeJsonBody(response.data);
+    final rawResults = data is Map<String, dynamic> ? data['results'] : null;
+    if (rawResults is! List) {
+      return const <String>[];
+    }
+    return rawResults
+        .whereType<Map<String, dynamic>>()
+        .map((item) => item['substance']?.toString().trim() ?? '')
+        .where((item) => item.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  /// Persists a manual medication entry asynchronously.
+  Future<void> persistManualMedication(String medication) async {
+    final normalized = medication.trim();
+    if (normalized.isEmpty) {
+      return;
+    }
+    await _rawClient.post<Object?>(
+      ApiConfig.requestPath('medications/manual'),
+      data: {'substance': normalized},
+    );
+  }
+
+  /// Fetches screener-level settings, including the default questionnaire.
+  Future<Map<String, dynamic>> fetchScreenerSettings() {
+    return _getJson('settings/screener');
+  }
+
   /// Sends content to the Clinical Writer agent via backend proxy.
   Future<AgentResponse> processClinicalWriter(
     String content, {
@@ -107,11 +142,12 @@ class SurveyRepository {
     String? accessPointKey,
     String? promptKey,
     String? surveyId,
+    String flowKey = 'thank_you.auto_analysis',
   }) async {
     final requestId = _generateRequestId();
     final metadata = <String, dynamic>{
       'source_app': 'survey-frontend',
-      'flow_key': 'thank_you.auto_analysis',
+      'flow_key': flowKey,
       'request_id': requestId,
     };
     if (surveyId != null) {
@@ -132,6 +168,16 @@ class SurveyRepository {
 
   Future<Map<String, dynamic>> getClinicalWriterTaskStatus(String taskId) {
     return _getJson('clinical_writer/status/$taskId');
+  }
+
+  Future<void> sendReportEmail({
+    required String responseId,
+    required String reportText,
+  }) async {
+    await _postJson(
+      'survey_responses/$responseId/send_report_email',
+      {'reportText': reportText},
+    );
   }
 
   ui.Survey _mapSurvey(api.Survey source) {
