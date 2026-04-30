@@ -22,6 +22,7 @@ from app.api.routes.patient_responses import router as patient_responses_router
 from app.api.routes.medications import router as medications_router
 from app.api.routes.privacy import router as privacy_router
 from app.api.routes.screener_access_links import router as screener_access_links_router
+from app.api.routes.screener_settings import router as screener_settings_router
 from app.api.routes.screener_routes import router as screeners_router
 from app.api.routes.survey import router as surveys_router
 from app.api.routes.survey_prompts import router as survey_prompts_router
@@ -156,6 +157,7 @@ app.include_router(clinical_writer_router, prefix="/api/v1", tags=["clinical_wri
 app.include_router(screeners_router, prefix="/api/v1", tags=["screeners"])
 app.include_router(builder_auth_router, prefix="/api/v1", tags=["builder_auth"])
 app.include_router(screener_access_links_router, prefix="/api/v1", tags=["screener_access_links"])
+app.include_router(screener_settings_router, prefix="/api/v1", tags=["screener_settings"])
 app.include_router(chat_sessions_router, prefix="/api/v1", tags=["chat_sessions"])
 app.include_router(chat_messages_router, prefix="/api/v1", tags=["chat_messages"])
 app.include_router(documents_router, prefix="/api/v1", tags=["documents"])

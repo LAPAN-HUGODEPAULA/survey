@@ -1,18 +1,25 @@
 """FastAPI router for survey responses."""
 
+from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import List, Optional
+from typing import Any
 
 from bson.objectid import InvalidId, ObjectId
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
-from pydantic import ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from app.config.settings import settings
 from app.config.logging_config import logger
 from app.domain.models.agent_response_model import AgentResponse
 from app.domain.models.survey_response_model import SurveyResponse
 from app.domain.models.survey_response_with_agent import SurveyResponseWithAgent
 from app.integrations.clinical_writer.client import send_to_langgraph_agent
-from app.integrations.email.service import send_survey_response_email
+from app.integrations.email.service import (
+    send_patient_report_email,
+    send_survey_response_email,
+)
 from app.persistence.deps import (
     get_agent_access_point_repo,
     get_persona_skill_repo,
@@ -34,6 +41,13 @@ from app.services.survey_prompt_selection import (
 )
 
 router = APIRouter()
+
+
+class SendReportEmailRequest(BaseModel):
+    """Payload for report email delivery."""
+
+    report_text: str | None = Field(default=None, alias="reportText")
+    model_config = ConfigDict(populate_by_name=True)
 
 
 @router.post("/survey_responses/", response_model=SurveyResponseWithAgent, status_code=status.HTTP_201_CREATED)
@@ -200,6 +214,174 @@ def _resolve_runtime_access_points(
             )
         )
     return runtime_points
+
+
+@router.post("/survey_responses/{response_id}/send_report_email", status_code=status.HTTP_200_OK)
+async def send_report_email(
+    response_id: str,
+    payload: SendReportEmailRequest | None = None,
+    repo: SurveyResponseRepository = Depends(get_survey_response_repo),
+):
+    """Generate a report PDF and send it to the patient email."""
+    response = repo.get_raw_by_id(response_id)
+    if not response:
+        raise HTTPException(status_code=404, detail="Survey response not found.")
+
+    patient_email = (
+        response.get("patient", {}).get("email", "").strip()
+        if isinstance(response.get("patient"), dict)
+        else ""
+    )
+    if not patient_email:
+        raise HTTPException(
+            status_code=422,
+            detail="Survey response does not contain an email address.",
+        )
+
+    report_text = _resolve_report_text(response, payload.report_text if payload else None)
+    if not report_text:
+        raise HTTPException(
+            status_code=422,
+            detail="No report data available to generate PDF.",
+        )
+
+    pdf_bytes = _generate_report_pdf(report_text)
+    recipients = _resolve_report_recipients(patient_email)
+    temp_file_path = _write_temp_pdf(pdf_bytes, response_id)
+    try:
+        await send_patient_report_email(
+            response_id=response_id,
+            recipients=recipients,
+            attachment_paths=[temp_file_path],
+        )
+    except Exception as exc:
+        logger.error(
+            "Failed to send report email for survey response %s: %s",
+            response_id,
+            exc,
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to send report email.",
+        ) from exc
+    finally:
+        Path(temp_file_path).unlink(missing_ok=True)
+
+    return {
+        "status": "sent",
+        "responseId": response_id,
+        "recipients": recipients,
+    }
+
+
+def _resolve_report_recipients(patient_email: str) -> list[str]:
+    recipients = [patient_email]
+    lapan_copy_email = settings.smtp_user or "lapan.hugodepaula@gmail.com"
+    if lapan_copy_email and lapan_copy_email.lower() != patient_email.lower():
+        recipients.append(lapan_copy_email)
+    return recipients
+
+
+def _resolve_report_text(response: dict[str, Any], override_text: str | None) -> str:
+    if override_text and override_text.strip():
+        return override_text.strip()
+
+    candidate_payloads: list[dict[str, Any]] = []
+    primary = response.get("agentResponse")
+    if isinstance(primary, dict):
+        candidate_payloads.append(primary)
+    alternatives = response.get("agentResponses")
+    if isinstance(alternatives, list):
+        candidate_payloads.extend(
+            item for item in alternatives if isinstance(item, dict)
+        )
+
+    for payload in candidate_payloads:
+        report = payload.get("report")
+        if isinstance(report, dict):
+            serialized = _report_dict_to_text(report)
+            if serialized.strip():
+                return serialized
+        medical_record = payload.get("medical_record")
+        if isinstance(medical_record, str) and medical_record.strip():
+            return medical_record.strip()
+        error_message = payload.get("error_message")
+        if isinstance(error_message, str) and error_message.strip():
+            return error_message.strip()
+
+    return ""
+
+
+def _report_dict_to_text(report: dict[str, Any]) -> str:
+    title = str(report.get("title") or "").strip()
+    subtitle = str(report.get("subtitle") or "").strip()
+    sections = report.get("sections")
+    lines: list[str] = []
+    if title:
+        lines.append(title)
+    if subtitle:
+        lines.append(subtitle)
+    if isinstance(sections, list):
+        for section in sections:
+            if not isinstance(section, dict):
+                continue
+            heading = str(section.get("heading") or "").strip()
+            body = str(section.get("body") or "").strip()
+            if heading:
+                lines.append("")
+                lines.append(heading)
+            if body:
+                lines.append(body)
+    return "\n".join(lines).strip()
+
+
+def _generate_report_pdf(report_text: str) -> bytes:
+    try:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
+    except Exception as exc:  # pragma: no cover - dependency guard
+        raise HTTPException(
+            status_code=500,
+            detail="PDF generation dependency is unavailable.",
+        ) from exc
+
+    story = []
+    styles = getSampleStyleSheet()
+    body_style = styles["BodyText"]
+    for raw_line in report_text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            story.append(Spacer(1, 8))
+            continue
+        story.append(Paragraph(line.replace("&", "&amp;"), body_style))
+        story.append(Spacer(1, 6))
+
+    with NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
+        temp_path = tmp_file.name
+
+    doc = SimpleDocTemplate(
+        temp_path,
+        pagesize=A4,
+        leftMargin=36,
+        rightMargin=36,
+        topMargin=42,
+        bottomMargin=42,
+    )
+    doc.build(story)
+    pdf_bytes = Path(temp_path).read_bytes()
+    Path(temp_path).unlink(missing_ok=True)
+    return pdf_bytes
+
+
+def _write_temp_pdf(pdf_bytes: bytes, response_id: str) -> str:
+    with NamedTemporaryFile(
+        suffix=f"_{response_id}_report.pdf",
+        delete=False,
+    ) as tmp_file:
+        tmp_file.write(pdf_bytes)
+        return tmp_file.name
 
 
 @router.post("/survey_responses/{response_id}/send_email", status_code=status.HTTP_202_ACCEPTED)

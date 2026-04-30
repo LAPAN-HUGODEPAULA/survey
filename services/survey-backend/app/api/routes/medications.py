@@ -25,6 +25,31 @@ class MedicationSearchResponse(BaseModel):
     results: list[MedicationSearchItem] = Field(default_factory=list)
 
 
+class MedicationManualUpsertRequest(BaseModel):
+    """Payload for adding a manual medication to the catalog."""
+
+    substance: str = Field(..., min_length=1)
+
+
+@router.get("/medications", response_model=MedicationSearchResponse)
+async def list_medications(
+    limit: int = Query(500, ge=1, le=2000),
+    repo: ReferenceMedicationRepository = Depends(get_reference_medication_repo),
+):
+    """List medications for local in-memory autocomplete."""
+    matches = repo.list_all(limit=limit)
+    return MedicationSearchResponse(
+        results=[
+            MedicationSearchItem(
+                substance=item.substance,
+                category=item.category,
+                trade_names=item.trade_names,
+            )
+            for item in matches
+        ]
+    )
+
+
 @router.get("/medications/search", response_model=MedicationSearchResponse)
 async def search_medications(
     q: str = Query(..., description="Medication query text"),
@@ -45,4 +70,18 @@ async def search_medications(
             )
             for item in matches
         ]
+    )
+
+
+@router.post("/medications/manual", response_model=MedicationSearchItem)
+async def upsert_manual_medication(
+    payload: MedicationManualUpsertRequest,
+    repo: ReferenceMedicationRepository = Depends(get_reference_medication_repo),
+):
+    """Upsert a user-provided medication entry."""
+    item = repo.upsert_manual(payload.substance)
+    return MedicationSearchItem(
+        substance=item.substance,
+        category=item.category,
+        trade_names=item.trade_names,
     )
