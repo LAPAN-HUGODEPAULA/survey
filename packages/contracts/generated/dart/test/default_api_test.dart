@@ -203,6 +203,13 @@ void main() {
       // TODO
     });
 
+    // Get screener global settings
+    //
+    //Future<ScreenerSettings> getScreenerSettings() async
+    test('test getScreenerSettings', () async {
+      // TODO
+    });
+
     // Get survey by id
     //
     //Future<Survey> getSurvey(String surveyId) async
@@ -249,6 +256,13 @@ void main() {
     //
     //Future<BuiltList<ChatSession>> listChatSessions({ String status }) async
     test('test listChatSessions', () async {
+      // TODO
+    });
+
+    // List full medication catalog for in-memory autocomplete
+    //
+    //Future<MedicationSearchResponse> listMedications({ int limit }) async
+    test('test listMedications', () async {
       // TODO
     });
 
@@ -371,6 +385,20 @@ void main() {
       // TODO
     });
 
+    // Search medications by query
+    //
+    //Future<MedicationSearchResponse> searchMedications(String q, { int limit }) async
+    test('test searchMedications', () async {
+      // TODO
+    });
+
+    // Send report email with PDF attachment for screener response
+    //
+    //Future sendScreenerReportEmail(String responseId, { SendReportEmailRequest sendReportEmailRequest }) async
+    test('test sendScreenerReportEmail', () async {
+      // TODO
+    });
+
     // Transcribe voice audio
     //
     //Future<TranscriptionResponse> transcribeVoiceAudio(TranscriptionRequest transcriptionRequest) async
@@ -406,6 +434,13 @@ void main() {
       // TODO
     });
 
+    // Update screener global settings
+    //
+    //Future<ScreenerSettings> updateScreenerSettings(ScreenerSettingsUpdate screenerSettingsUpdate) async
+    test('test updateScreenerSettings', () async {
+      // TODO
+    });
+
     // Update survey
     //
     //Future<Survey> updateSurvey(String surveyId, Survey survey) async
@@ -424,6 +459,13 @@ void main() {
     //
     //Future<TemplateRecord> updateTemplate(String templateId, TemplateUpdateRequest templateUpdateRequest) async
     test('test updateTemplate', () async {
+      // TODO
+    });
+
+    // Upsert manual medication
+    //
+    //Future<MedicationSearchItem> upsertManualMedication(MedicationManualUpsertRequest medicationManualUpsertRequest) async
+    test('test upsertManualMedication', () async {
       // TODO
     });
 

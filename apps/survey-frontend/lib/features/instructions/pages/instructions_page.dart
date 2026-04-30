@@ -76,6 +76,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
               'Leia as orientações e confirme o entendimento antes de iniciar.',
           onBack: () => Navigator.of(context).pop(),
           backLabel: 'Voltar para o contexto clínico',
+          scrollable: true,
           body: error != null && friendlyError != null
               ? _buildLoadErrorState(settings, friendlyError)
               : survey == null
@@ -84,6 +85,7 @@ class _InstructionsPageState extends State<InstructionsPage> {
                   builder: (context) {
                     final activeInstructions = survey.instructions;
                     return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         const AssessmentFlowStepper(
                           currentStep: AssessmentFlowStep.instrucoes,

@@ -17,16 +17,6 @@ import 'package:provider/provider.dart';
 import 'package:runtime_agent_access_points/runtime_agent_access_points.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-const _radarPalette = <Color>[
-  Color(0xFFEF5350),
-  Color(0xFFFFA726),
-  Color(0xFF66BB6A),
-  Color(0xFF42A5F5),
-  Color(0xFF7E57C2),
-  Color(0xFF26A69A),
-  Color(0xFFFFEB3B),
-];
-
 const _radarOptionScores = <String, double>{
   'quase nunca': 0.0,
   'ocasionalmente': 1.0,
@@ -37,12 +27,6 @@ const _radarOptionScores = <String, double>{
 Color _withOpacity(Color base, double opacity) {
   final alpha = (opacity.clamp(0.0, 1.0) * 255).clamp(0.0, 255.0);
   return base.withValues(alpha: alpha);
-}
-
-Color _darken(Color color, [double amount = 0.42]) {
-  final hsl = HSLColor.fromColor(color);
-  final lightness = (hsl.lightness - amount).clamp(0.0, 1.0);
-  return hsl.withLightness(lightness).toColor();
 }
 
 class ThankYouPage extends StatefulWidget {
@@ -420,20 +404,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
                           labels: labels,
                         ),
                 ),
-                if (labels.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: List.generate(labels.length, (index) {
-                      final color = _radarPalette[index % _radarPalette.length];
-                      return _RadarLegendChip(
-                        label: labels[index],
-                        color: color,
-                      );
-                    }),
-                  ),
-                ],
               ],
             ),
           ),
@@ -677,41 +647,6 @@ class _ThankYouPageState extends State<ThankYouPage> {
               label: 'Iniciar nova avaliação',
               onPressed: _restartSurveyFlow,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RadarLegendChip extends StatelessWidget {
-  const _RadarLegendChip({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final badgeColor = _darken(color, 0.44);
-    return DsPanel(
-      tone: DsPanelTone.high,
-      backgroundColor: badgeColor,
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      borderRadius: BorderRadius.circular(16),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Colors.white),
           ),
         ],
       ),

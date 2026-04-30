@@ -37,6 +37,7 @@ Method | HTTP request | Description
 [**getCurrentScreener**](DefaultApi.md#getcurrentscreener) | **GET** /screeners/me | Get the current screener profile
 [**getDocument**](DefaultApi.md#getdocument) | **GET** /documents/{documentId} | Get document record
 [**getPersonaSkill**](DefaultApi.md#getpersonaskill) | **GET** /persona_skills/{personaSkillKey} | Get persona skill by key
+[**getScreenerSettings**](DefaultApi.md#getscreenersettings) | **GET** /settings/screener | Get screener global settings
 [**getSurvey**](DefaultApi.md#getsurvey) | **GET** /surveys/{surveyId} | Get survey by id
 [**getSurveyPrompt**](DefaultApi.md#getsurveyprompt) | **GET** /survey_prompts/{promptKey} | Get reusable survey prompt by key
 [**getSurveyResponse**](DefaultApi.md#getsurveyresponse) | **GET** /survey_responses/{responseId} | Get survey response by id
@@ -44,6 +45,7 @@ Method | HTTP request | Description
 [**listAgentAccessPoints**](DefaultApi.md#listagentaccesspoints) | **GET** /agent_access_points/ | List agent access points
 [**listChatMessages**](DefaultApi.md#listchatmessages) | **GET** /chat/sessions/{sessionId}/messages | List chat messages
 [**listChatSessions**](DefaultApi.md#listchatsessions) | **GET** /chat/sessions | List chat sessions
+[**listMedications**](DefaultApi.md#listmedications) | **GET** /medications | List full medication catalog for in-memory autocomplete
 [**listPersonaSkills**](DefaultApi.md#listpersonaskills) | **GET** /persona_skills/ | List persona skills
 [**listSurveyPrompts**](DefaultApi.md#listsurveyprompts) | **GET** /survey_prompts/ | List reusable survey prompts
 [**listSurveyResponses**](DefaultApi.md#listsurveyresponses) | **GET** /survey_responses/ | List survey responses
@@ -61,14 +63,18 @@ Method | HTTP request | Description
 [**registerScreener**](DefaultApi.md#registerscreener) | **POST** /screeners/register | Register a new screener
 [**resendSurveyEmail**](DefaultApi.md#resendsurveyemail) | **POST** /survey_responses/{responseId}/send_email | Resend survey response email
 [**resolveScreenerAccessLink**](DefaultApi.md#resolvescreeneraccesslink) | **GET** /screener_access_links/{token} | Resolve a prepared screener access link
+[**searchMedications**](DefaultApi.md#searchmedications) | **GET** /medications/search | Search medications by query
+[**sendScreenerReportEmail**](DefaultApi.md#sendscreenerreportemail) | **POST** /survey_responses/{responseId}/send_report_email | Send report email with PDF attachment for screener response
 [**transcribeVoiceAudio**](DefaultApi.md#transcribevoiceaudio) | **POST** /voice/transcriptions | Transcribe voice audio
 [**updateAgentAccessPoint**](DefaultApi.md#updateagentaccesspoint) | **PUT** /agent_access_points/{accessPointKey} | Update agent access point
 [**updateChatMessage**](DefaultApi.md#updatechatmessage) | **PATCH** /chat/messages/{messageId} | Update chat message
 [**updateChatSession**](DefaultApi.md#updatechatsession) | **PATCH** /chat/sessions/{sessionId} | Update chat session
 [**updatePersonaSkill**](DefaultApi.md#updatepersonaskill) | **PUT** /persona_skills/{personaSkillKey} | Update persona skill
+[**updateScreenerSettings**](DefaultApi.md#updatescreenersettings) | **PUT** /settings/screener | Update screener global settings
 [**updateSurvey**](DefaultApi.md#updatesurvey) | **PUT** /surveys/{surveyId} | Update survey
 [**updateSurveyPrompt**](DefaultApi.md#updatesurveyprompt) | **PUT** /survey_prompts/{promptKey} | Update reusable survey prompt
 [**updateTemplate**](DefaultApi.md#updatetemplate) | **PUT** /templates/{templateId} | Update template (new version)
+[**upsertManualMedication**](DefaultApi.md#upsertmanualmedication) | **POST** /medications/manual | Upsert manual medication
 
 
 # **acceptScreenerInitialNoticeAgreement**
@@ -1211,6 +1217,43 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getScreenerSettings**
+> ScreenerSettings getScreenerSettings()
+
+Get screener global settings
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+
+try {
+    final response = api.getScreenerSettings();
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->getScreenerSettings: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**ScreenerSettings**](ScreenerSettings.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getSurvey**
 > Survey getSurvey(surveyId)
 
@@ -1482,6 +1525,47 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**BuiltList&lt;ChatSession&gt;**](ChatSession.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **listMedications**
+> MedicationSearchResponse listMedications(limit)
+
+List full medication catalog for in-memory autocomplete
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final int limit = 56; // int | 
+
+try {
+    final response = api.listMedications(limit);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->listMedications: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **limit** | **int**|  | [optional] [default to 500]
+
+### Return type
+
+[**MedicationSearchResponse**](MedicationSearchResponse.md)
 
 ### Authorization
 
@@ -2170,6 +2254,91 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **searchMedications**
+> MedicationSearchResponse searchMedications(q, limit)
+
+Search medications by query
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String q = q_example; // String | 
+final int limit = 56; // int | 
+
+try {
+    final response = api.searchMedications(q, limit);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->searchMedications: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **q** | **String**|  | 
+ **limit** | **int**|  | [optional] [default to 10]
+
+### Return type
+
+[**MedicationSearchResponse**](MedicationSearchResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **sendScreenerReportEmail**
+> sendScreenerReportEmail(responseId, sendReportEmailRequest)
+
+Send report email with PDF attachment for screener response
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String responseId = responseId_example; // String | 
+final SendReportEmailRequest sendReportEmailRequest = ; // SendReportEmailRequest | 
+
+try {
+    api.sendScreenerReportEmail(responseId, sendReportEmailRequest);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->sendScreenerReportEmail: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **responseId** | **String**|  | 
+ **sendReportEmailRequest** | [**SendReportEmailRequest**](SendReportEmailRequest.md)|  | [optional] 
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **transcribeVoiceAudio**
 > TranscriptionResponse transcribeVoiceAudio(transcriptionRequest)
 
@@ -2383,6 +2552,47 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **updateScreenerSettings**
+> ScreenerSettings updateScreenerSettings(screenerSettingsUpdate)
+
+Update screener global settings
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final ScreenerSettingsUpdate screenerSettingsUpdate = ; // ScreenerSettingsUpdate | 
+
+try {
+    final response = api.updateScreenerSettings(screenerSettingsUpdate);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->updateScreenerSettings: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **screenerSettingsUpdate** | [**ScreenerSettingsUpdate**](ScreenerSettingsUpdate.md)|  | 
+
+### Return type
+
+[**ScreenerSettings**](ScreenerSettings.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **updateSurvey**
 > Survey updateSurvey(surveyId, survey)
 
@@ -2500,6 +2710,47 @@ Name | Type | Description  | Notes
 ### Return type
 
 [**TemplateRecord**](TemplateRecord.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **upsertManualMedication**
+> MedicationSearchItem upsertManualMedication(medicationManualUpsertRequest)
+
+Upsert manual medication
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final MedicationManualUpsertRequest medicationManualUpsertRequest = ; // MedicationManualUpsertRequest | 
+
+try {
+    final response = api.upsertManualMedication(medicationManualUpsertRequest);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->upsertManualMedication: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **medicationManualUpsertRequest** | [**MedicationManualUpsertRequest**](MedicationManualUpsertRequest.md)|  | 
+
+### Return type
+
+[**MedicationSearchItem**](MedicationSearchItem.md)
 
 ### Authorization
 

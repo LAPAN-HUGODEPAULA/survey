@@ -35,7 +35,7 @@ class RuntimeAccessPointCatalog {
     flowKey: 'thank_you.auto_analysis',
     surfaceLabel: 'survey-frontend · Questionários · Tela final',
     description:
-        'Gera automaticamente o relatório final após o envio do questionário pelo profissional.',
+        'Gera automaticamente o relatório final após o envio do questionário pelo profissional usando a base de triagem de pacientes.',
     availability: RuntimeAccessPointAvailability.configurable,
   );
 
@@ -58,6 +58,50 @@ class RuntimeAccessPointCatalog {
     surfaceLabel: 'survey-patient · Questionários · Gerar relatório',
     description:
         'Gera o relatório clínico detalhado a partir das respostas do questionário do paciente.',
+    availability: RuntimeAccessPointAvailability.configurable,
+  );
+
+  static const screenerReportDetailedAnalysis = RuntimeAccessPointDescriptor(
+    accessPointKey: 'screener.report.detailed_analysis',
+    name: 'Relatório clínico detalhado do paciente',
+    sourceApp: 'survey-frontend',
+    flowKey: 'report.detailed_analysis',
+    surfaceLabel: 'survey-frontend · Questionários · Gerar relatório',
+    description:
+        'Gera um relatório clínico detalhado a partir das respostas registradas pelo profissional.',
+    availability: RuntimeAccessPointAvailability.configurable,
+  );
+
+  static const screenerDocumentClinicalReferral = RuntimeAccessPointDescriptor(
+    accessPointKey: 'screener.document.clinical_referral',
+    name: 'Geração de carta de encaminhamento clínico',
+    sourceApp: 'survey-frontend',
+    flowKey: 'report.clinical_referral',
+    surfaceLabel: 'survey-frontend · Relatório · Encaminhamento clínico',
+    description:
+        'Gera uma carta de encaminhamento clínico para continuidade do cuidado.',
+    availability: RuntimeAccessPointAvailability.configurable,
+  );
+
+  static const screenerDocumentSchoolReferral = RuntimeAccessPointDescriptor(
+    accessPointKey: 'screener.document.school_referral',
+    name: 'Geração de carta de encaminhamento escolar',
+    sourceApp: 'survey-frontend',
+    flowKey: 'report.school_referral',
+    surfaceLabel: 'survey-frontend · Relatório · Encaminhamento escolar',
+    description:
+        'Gera uma carta de encaminhamento escolar com foco em ajustes pedagógicos.',
+    availability: RuntimeAccessPointAvailability.configurable,
+  );
+
+  static const screenerDocumentParentOrientation = RuntimeAccessPointDescriptor(
+    accessPointKey: 'screener.document.parent_orientation',
+    name: 'Geração de carta de orientação aos pais',
+    sourceApp: 'survey-frontend',
+    flowKey: 'report.parent_orientation',
+    surfaceLabel: 'survey-frontend · Relatório · Orientação aos pais',
+    description:
+        'Gera uma carta de orientação para cuidadores com recomendações práticas.',
     availability: RuntimeAccessPointAvailability.configurable,
   );
 
@@ -102,6 +146,10 @@ class RuntimeAccessPointCatalog {
     surveyFrontendThankYouAutoAnalysis,
     surveyPatientThankYouAutoAnalysis,
     surveyPatientReportDetailedAnalysis,
+    screenerReportDetailedAnalysis,
+    screenerDocumentClinicalReferral,
+    screenerDocumentSchoolReferral,
+    screenerDocumentParentOrientation,
     clinicalNarrativeGenerateReport,
   ];
 
@@ -114,6 +162,10 @@ class RuntimeAccessPointCatalog {
     surveyFrontendThankYouAutoAnalysis,
     surveyPatientThankYouAutoAnalysis,
     surveyPatientReportDetailedAnalysis,
+    screenerReportDetailedAnalysis,
+    screenerDocumentClinicalReferral,
+    screenerDocumentSchoolReferral,
+    screenerDocumentParentOrientation,
     clinicalNarrativeGenerateReport,
     clinicalNarrativeChatAnalysis,
     clinicalNarrativeVoiceTranscription,

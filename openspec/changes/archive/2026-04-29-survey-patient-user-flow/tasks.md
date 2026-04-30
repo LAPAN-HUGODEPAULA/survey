@@ -55,9 +55,9 @@
 
 ## 9. Verification
 
-- [ ] 9.1 Verify new persona `patient_condition_report` exists in database via survey-builder UI
-- [ ] 9.2 Verify access point `survey_patient.report.detailed_analysis` is configurable in survey-builder without errors
-- [ ] 9.3 Manual test: complete full flow (notice → identification → welcome → survey → thank-you → report) and verify all navigation works
-- [ ] 9.4 Manual test: verify report page no longer times out and generates a detailed report
-- [ ] 9.5 Manual test: verify email delivery works (requires SMTP configuration)
+- [x] 9.1 Verify new persona `patient_condition_report` exists in database via survey-builder UI
+- [x] 9.2 Verify access point `survey_patient.report.detailed_analysis` is configurable in survey-builder without errors
+- [x] 9.3 Manual test: complete full flow (notice → identification → welcome → survey → thank-you → report) and verify all navigation works
+- [x] 9.4 Manual test: verify report page no longer times out and generates a detailed report
+- [x] 9.5 Manual test: verify email delivery works (requires SMTP configuration)
 - [x] 9.6 Run Flutter tests in `apps/survey-patient`

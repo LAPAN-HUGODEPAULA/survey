@@ -442,6 +442,29 @@ paths:
       responses:
         '202':
           description: Email dispatch started
+  /survey_responses/{responseId}/send_report_email:
+    post:
+      summary: Send report email with PDF attachment for screener response
+      operationId: sendScreenerReportEmail
+      parameters:
+        - in: path
+          name: responseId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendReportEmailRequest'
+      responses:
+        '200':
+          description: Report email sent
+        '404':
+          description: Survey response not found
+        '422':
+          description: Missing patient email or report data
   /patient_responses/:
     post:
       summary: Create patient response
@@ -450,8 +473,8 @@ paths:
         required: true
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/SurveyResponse'
+              schema:
+                $ref: '#/components/schemas/SurveyResponse'
       responses:
         '201':
           description: Created patient response with optional agent output
@@ -459,6 +482,66 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SurveyResponseWithAgent'
+  /medications:
+    get:
+      summary: List full medication catalog for in-memory autocomplete
+      operationId: listMedications
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 2000
+            default: 500
+      responses:
+        '200':
+          description: Medication catalog
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicationSearchResponse'
+  /medications/search:
+    get:
+      summary: Search medications by query
+      operationId: searchMedications
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Medication search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicationSearchResponse'
+  /medications/manual:
+    post:
+      summary: Upsert manual medication
+      operationId: upsertManualMedication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicationManualUpsertRequest'
+      responses:
+        '200':
+          description: Stored manual medication entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicationSearchItem'
   /clinical_writer/process:
     post:
       summary: Forward content to Clinical Writer
@@ -701,6 +784,35 @@ paths:
                 $ref: '#/components/schemas/ScreenerAccessLink'
         '404':
           description: Prepared assessment is no longer available
+  /settings/screener:
+    get:
+      summary: Get screener global settings
+      operationId: getScreenerSettings
+      responses:
+        '200':
+          description: Screener settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenerSettings'
+    put:
+      summary: Update screener global settings
+      operationId: updateScreenerSettings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScreenerSettingsUpdate'
+      responses:
+        '200':
+          description: Updated screener settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScreenerSettings'
+        '422':
+          description: Invalid questionnaire id
   /chat/sessions:
     post:
       summary: Create chat session
@@ -1645,6 +1757,59 @@ components:
         createdAt:
           type: string
           format: date-time
+    ScreenerSettings:
+      type: object
+      properties:
+        defaultQuestionnaireId:
+          type: string
+          nullable: true
+        defaultQuestionnaireName:
+          type: string
+          nullable: true
+    ScreenerSettingsUpdate:
+      type: object
+      required:
+        - defaultQuestionnaireId
+      properties:
+        defaultQuestionnaireId:
+          type: string
+    MedicationSearchItem:
+      type: object
+      required:
+        - substance
+        - category
+        - trade_names
+      properties:
+        substance:
+          type: string
+        category:
+          type: string
+        trade_names:
+          type: array
+          items:
+            type: string
+    MedicationSearchResponse:
+      type: object
+      required:
+        - results
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MedicationSearchItem'
+    MedicationManualUpsertRequest:
+      type: object
+      required:
+        - substance
+      properties:
+        substance:
+          type: string
+    SendReportEmailRequest:
+      type: object
+      properties:
+        reportText:
+          type: string
+          nullable: true
     AgentResponse:
       type: object
       properties:

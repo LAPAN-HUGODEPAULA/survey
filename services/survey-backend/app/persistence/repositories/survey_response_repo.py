@@ -32,13 +32,31 @@ class SurveyResponseRepository:
             return None
         return self._normalize(self._col.find_one({"_id": object_id}))
 
-    def _normalize(self, doc: dict | None) -> dict:
+    def get_raw_by_id(self, response_id: str) -> dict | None:
+        """Return one response including internal enrichment metadata."""
+        try:
+            object_id = ObjectId(response_id)
+        except Exception:
+            return None
+        return self._normalize(
+            self._col.find_one({"_id": object_id}),
+            include_internal_fields=True,
+        )
+
+    def _normalize(
+        self,
+        doc: dict | None,
+        *,
+        include_internal_fields: bool = False,
+    ) -> dict:
         """Convert Mongo IDs and strip internal enrichment fields for plain API reads."""
         if not doc:
             return {}
         normalized = dict(doc)
         if "_id" in normalized and isinstance(normalized["_id"], ObjectId):
             normalized["_id"] = str(normalized["_id"])
+        if include_internal_fields:
+            return normalized
         return {
             key: value
             for key, value in normalized.items()

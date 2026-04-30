@@ -21,6 +21,7 @@ from app.persistence.repositories.security_audit_repo import SecurityAuditReposi
 from app.persistence.repositories.data_lifecycle_repo import DataLifecycleRepository
 from app.persistence.repositories.agent_access_point_repo import AgentAccessPointRepository
 from app.persistence.repositories.reference_medication_repo import ReferenceMedicationRepository
+from app.persistence.repositories.system_settings_repo import SystemSettingsRepository
 
 def get_database() -> Database:
     """Return the shared MongoDB database handle."""
@@ -101,3 +102,10 @@ def get_reference_medication_repo(
 ) -> ReferenceMedicationRepository:
     """Build a reference medication repository for the current request."""
     return ReferenceMedicationRepository(db)
+
+
+def get_system_settings_repo(
+    db: Database = Depends(get_database),
+) -> SystemSettingsRepository:
+    """Build a system settings repository for the current request."""
+    return SystemSettingsRepository(db)

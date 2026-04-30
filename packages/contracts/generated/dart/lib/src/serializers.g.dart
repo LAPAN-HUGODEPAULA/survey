@@ -48,6 +48,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(DocumentRecord.serializer)
       ..add(Instructions.serializer)
       ..add(ListTemplateDocumentTypes200ResponseInner.serializer)
+      ..add(MedicationManualUpsertRequest.serializer)
+      ..add(MedicationSearchItem.serializer)
+      ..add(MedicationSearchResponse.serializer)
       ..add(Patient.serializer)
       ..add(PersonaSkill.serializer)
       ..add(ProcessClinicalWriter200Response.serializer)
@@ -60,6 +63,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(ScreenerPasswordRecoveryRequest.serializer)
       ..add(ScreenerProfile.serializer)
       ..add(ScreenerRegister.serializer)
+      ..add(ScreenerSettings.serializer)
+      ..add(ScreenerSettingsUpdate.serializer)
+      ..add(SendReportEmailRequest.serializer)
       ..add(Survey.serializer)
       ..add(SurveyPrompt.serializer)
       ..add(SurveyPromptReference.serializer)
@@ -115,8 +121,15 @@ Serializers _$serializers = (Serializers().toBuilder()
           const FullType(BuiltList, const [const FullType(JsonObject)]),
           () => ListBuilder<JsonObject>())
       ..addBuilderFactory(
+          const FullType(
+              BuiltList, const [const FullType(MedicationSearchItem)]),
+          () => ListBuilder<MedicationSearchItem>())
+      ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(Question)]),
           () => ListBuilder<Question>())
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(String)]),
+          () => ListBuilder<String>())
       ..addBuilderFactory(
           const FullType(BuiltList, const [const FullType(String)]),
           () => ListBuilder<String>())

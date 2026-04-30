@@ -48,6 +48,9 @@ import 'package:survey_backend_api/src/model/document_preview_request.dart';
 import 'package:survey_backend_api/src/model/document_record.dart';
 import 'package:survey_backend_api/src/model/instructions.dart';
 import 'package:survey_backend_api/src/model/list_template_document_types200_response_inner.dart';
+import 'package:survey_backend_api/src/model/medication_manual_upsert_request.dart';
+import 'package:survey_backend_api/src/model/medication_search_item.dart';
+import 'package:survey_backend_api/src/model/medication_search_response.dart';
 import 'package:survey_backend_api/src/model/patient.dart';
 import 'package:survey_backend_api/src/model/persona_skill.dart';
 import 'package:survey_backend_api/src/model/persona_skill_upsert.dart';
@@ -60,6 +63,9 @@ import 'package:survey_backend_api/src/model/screener_model.dart';
 import 'package:survey_backend_api/src/model/screener_password_recovery_request.dart';
 import 'package:survey_backend_api/src/model/screener_profile.dart';
 import 'package:survey_backend_api/src/model/screener_register.dart';
+import 'package:survey_backend_api/src/model/screener_settings.dart';
+import 'package:survey_backend_api/src/model/screener_settings_update.dart';
+import 'package:survey_backend_api/src/model/send_report_email_request.dart';
 import 'package:survey_backend_api/src/model/survey.dart';
 import 'package:survey_backend_api/src/model/survey_prompt.dart';
 import 'package:survey_backend_api/src/model/survey_prompt_reference.dart';
@@ -114,6 +120,9 @@ part 'serializers.g.dart';
   DocumentRecord,
   Instructions,
   ListTemplateDocumentTypes200ResponseInner,
+  MedicationManualUpsertRequest,
+  MedicationSearchItem,
+  MedicationSearchResponse,
   Patient,
   PersonaSkill,
   PersonaSkillUpsert,$PersonaSkillUpsert,
@@ -126,6 +135,9 @@ part 'serializers.g.dart';
   ScreenerPasswordRecoveryRequest,
   ScreenerProfile,
   ScreenerRegister,
+  ScreenerSettings,
+  ScreenerSettingsUpdate,
+  SendReportEmailRequest,
   Survey,
   SurveyPrompt,
   SurveyPromptReference,

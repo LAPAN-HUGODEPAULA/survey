@@ -21,10 +21,7 @@ class _$ClinicalWriterRequestMetadata extends ClinicalWriterRequestMetadata {
       (ClinicalWriterRequestMetadataBuilder()..update(updates))._build();
 
   _$ClinicalWriterRequestMetadata._(
-      {this.sourceApp,
-      this.requestId,
-      this.patientRef,
-      this.surveyId})
+      {this.sourceApp, this.requestId, this.patientRef, this.surveyId})
       : super._();
   @override
   ClinicalWriterRequestMetadata rebuild(

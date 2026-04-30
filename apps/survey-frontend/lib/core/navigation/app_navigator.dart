@@ -3,6 +3,7 @@ import 'package:survey_app/core/models/survey/question.dart';
 import 'package:survey_app/core/models/survey/survey.dart';
 import 'package:survey_app/features/clinical/pages/clinical_page.dart';
 import 'package:survey_app/features/instructions/pages/instructions_page.dart';
+import 'package:survey_app/features/report/pages/report_page.dart';
 import 'package:survey_app/features/survey/pages/survey_page.dart';
 import 'package:survey_app/features/survey/pages/thank_you_page.dart';
 
@@ -45,6 +46,24 @@ class AppNavigator {
         survey: survey,
         surveyAnswers: surveyAnswers,
         surveyQuestions: surveyQuestions,
+      ),
+    );
+  }
+
+  static Future<void> toReport(
+    BuildContext context, {
+    required Survey survey,
+    required List<String> surveyAnswers,
+    required List<Question> surveyQuestions,
+    required Future<void> Function() onRestartSurvey,
+  }) {
+    return push(
+      context,
+      ReportPage(
+        survey: survey,
+        surveyAnswers: surveyAnswers,
+        surveyQuestions: surveyQuestions,
+        onRestartSurvey: onRestartSurvey,
       ),
     );
   }

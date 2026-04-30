@@ -382,7 +382,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Status das configurações',
+                                'Sessão profissional ativa',
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.w700,
                                   color: theme.colorScheme.onPrimaryContainer,
@@ -392,7 +392,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           const SizedBox(height: 8),
                           _buildStatusItem(
-                            'Questionário selecionado:',
+                            'Questionário em uso:',
                             settings.selectedSurvey != null
                                 ? settings.selectedSurveyName
                                 : 'Nenhum selecionado',

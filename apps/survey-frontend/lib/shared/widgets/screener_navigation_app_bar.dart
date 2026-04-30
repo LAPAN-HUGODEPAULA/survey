@@ -34,6 +34,7 @@ class ScreenerNavigationAppBar extends StatelessWidget
 
     return AppBar(
       automaticallyImplyLeading: false,
+      centerTitle: true,
       leading: showHomeButton
           ? IconButton(
               icon: const Icon(Icons.home_outlined),

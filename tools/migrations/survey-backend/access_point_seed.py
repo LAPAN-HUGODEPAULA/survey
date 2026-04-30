@@ -18,7 +18,7 @@ DEFAULT_AGENT_ACCESS_POINT_SEEDS = [
         "outputProfile": "patient_condition_overview",
         "description": (
             "Gera automaticamente o relatório final após o envio do "
-            "questionário pelo profissional."
+            "questionário pelo profissional usando a base de triagem de pacientes."
         ),
     },
     {
@@ -45,6 +45,55 @@ DEFAULT_AGENT_ACCESS_POINT_SEEDS = [
         "description": (
             "Gera o relatório clínico detalhado a partir das respostas "
             "do questionário do paciente."
+        ),
+    },
+    {
+        "accessPointKey": "screener.report.detailed_analysis",
+        "name": "Relatório clínico detalhado do paciente",
+        "sourceApp": "survey-frontend",
+        "flowKey": "report.detailed_analysis",
+        "promptKey": "full_intake",
+        "personaSkillKey": "clinical_diagnostic_report",
+        "outputProfile": "clinical_diagnostic_report",
+        "description": (
+            "Gera um relatório clínico detalhado do paciente a partir das "
+            "respostas registradas pelo profissional."
+        ),
+    },
+    {
+        "accessPointKey": "screener.document.clinical_referral",
+        "name": "Geração de carta de encaminhamento clínico",
+        "sourceApp": "survey-frontend",
+        "flowKey": "report.clinical_referral",
+        "promptKey": "full_intake",
+        "personaSkillKey": "clinical_referral_letter",
+        "outputProfile": "clinical_referral_letter",
+        "description": (
+            "Gera uma carta de encaminhamento clínico para especialista."
+        ),
+    },
+    {
+        "accessPointKey": "screener.document.school_referral",
+        "name": "Geração de carta de encaminhamento escolar",
+        "sourceApp": "survey-frontend",
+        "flowKey": "report.school_referral",
+        "promptKey": "full_intake",
+        "personaSkillKey": "school_report",
+        "outputProfile": "school_report",
+        "description": (
+            "Gera uma carta de encaminhamento escolar para equipe pedagógica."
+        ),
+    },
+    {
+        "accessPointKey": "screener.document.parent_orientation",
+        "name": "Geração de carta de orientação aos pais",
+        "sourceApp": "survey-frontend",
+        "flowKey": "report.parent_orientation",
+        "promptKey": "full_intake",
+        "personaSkillKey": "parental_guidance",
+        "outputProfile": "parental_guidance",
+        "description": (
+            "Gera uma carta de orientação aos pais com recomendações práticas."
         ),
     },
     {

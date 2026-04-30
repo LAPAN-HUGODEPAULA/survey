@@ -31,6 +31,8 @@ class AppSettings extends ChangeNotifier {
 
   List<Survey> _surveys = const [];
   String? _selectedSurveyId;
+  String? _defaultSurveyId;
+  String? _defaultSurveyName;
   String? _preparedAccessLinkToken;
   String? _preparedScreenerId;
   String? _preparedScreenerName;
@@ -77,6 +79,8 @@ class AppSettings extends ChangeNotifier {
   }
 
   String? get selectedSurveyId => _selectedSurveyId;
+  String? get defaultSurveyId => _defaultSurveyId;
+  String? get defaultSurveyName => _defaultSurveyName;
 
   String get selectedSurveyName {
     final survey = selectedSurvey;
@@ -98,12 +102,35 @@ class AppSettings extends ChangeNotifier {
 
     try {
       final surveys = await _surveyRepository.fetchAll();
+      String? resolvedDefaultSurveyId;
+      String? resolvedDefaultSurveyName;
+      try {
+        final screenerSettings = await _surveyRepository.fetchScreenerSettings();
+        resolvedDefaultSurveyId =
+            screenerSettings['defaultQuestionnaireId']?.toString();
+        resolvedDefaultSurveyName =
+            screenerSettings['defaultQuestionnaireName']?.toString();
+      } catch (_) {
+        // Keep the flow resilient even when the settings API is temporarily unavailable.
+      }
+
       _surveys = surveys;
+      _defaultSurveyId = resolvedDefaultSurveyId;
+      _defaultSurveyName = resolvedDefaultSurveyName;
+
+      String? resolveCandidateSurveyId() {
+        if (resolvedDefaultSurveyId != null &&
+            _surveys.any((survey) => survey.id == resolvedDefaultSurveyId)) {
+          return resolvedDefaultSurveyId;
+        }
+        return _surveys.isEmpty ? null : _surveys.first.id;
+      }
+
       if (_selectedSurveyId == null) {
-        _selectedSurveyId = surveys.isEmpty ? null : surveys.first.id;
+        _selectedSurveyId = resolveCandidateSurveyId();
       } else if (!isLockedAssessmentMode &&
           !_surveys.any((survey) => survey.id == _selectedSurveyId)) {
-        _selectedSurveyId = surveys.isEmpty ? null : surveys.first.id;
+        _selectedSurveyId = resolveCandidateSurveyId();
       }
     } catch (error) {
       _loadError = error.toString();

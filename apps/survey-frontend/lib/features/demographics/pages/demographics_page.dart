@@ -95,6 +95,14 @@ class _DemographicsPageState extends State<DemographicsPage> {
     return _surveyRepository.searchMedications(query);
   }
 
+  Future<List<String>> _loadMedicationCatalog() {
+    return _surveyRepository.fetchAllMedications();
+  }
+
+  Future<void> _persistManualMedication(String medication) {
+    return _surveyRepository.persistManualMedication(medication);
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<AppSettings>();
@@ -108,10 +116,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
           error: _demographicsController.catalogError,
           appBar: ScreenerNavigationAppBar(
             currentRoute: '/demographics',
-            title: Image.asset(
-              'assets/images/lapan_logo_reduced.png',
-              height: 40,
-            ),
+            title: const Text('Avaliação do paciente'),
           ),
           child: Center(
             child: Container(
@@ -131,7 +136,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
                           severity: DsStatusType.info,
                           title: 'Sessão profissional ativa',
                           message:
-                              'Você pode revisar os dados do paciente e seguir quando estiver pronto. ${tone.waitingSupportMessage}',
+                              'Questionário em uso: ${settings.selectedSurveyName}. Você pode revisar os dados do paciente e seguir quando estiver pronto. ${tone.waitingSupportMessage}',
                           userName: settings.screenerDisplayName,
                           includeGreeting: true,
                         ),
@@ -174,6 +179,8 @@ class _DemographicsPageState extends State<DemographicsPage> {
                         selectedMedications:
                             _demographicsController.selectedMedications,
                         searchMedications: _searchMedications,
+                        loadMedicationCatalog: _loadMedicationCatalog,
+                        persistManualMedication: _persistManualMedication,
                         onMedicationAdded:
                             _demographicsController.addMedication,
                         onMedicationRemoved:

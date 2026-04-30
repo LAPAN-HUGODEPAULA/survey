@@ -80,13 +80,6 @@ class _$ClinicalWriterRequestMetadataSerializer implements PrimitiveSerializer<C
         specifiedType: const FullType(String),
       );
     }
-    if (object.surveyId != null) {
-      yield r'survey_id';
-      yield serializers.serialize(
-        object.surveyId,
-        specifiedType: const FullType(String),
-      );
-    }
   }
 
   @override
@@ -138,13 +131,6 @@ class _$ClinicalWriterRequestMetadataSerializer implements PrimitiveSerializer<C
           ) as String;
           result.surveyId = valueDes;
           break;
-        case r'survey_id':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.surveyId = valueDes;
-          break;
         default:
           unhandled.add(key);
           unhandled.add(value);
@@ -173,3 +159,4 @@ class _$ClinicalWriterRequestMetadataSerializer implements PrimitiveSerializer<C
     return result.build();
   }
 }
+

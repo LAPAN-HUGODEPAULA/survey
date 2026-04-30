@@ -27,10 +27,5 @@ void main() {
       // TODO
     });
 
-    // String surveyId
-    test('to test the property `surveyId`', () async {
-      // TODO
-    });
-
   });
 }

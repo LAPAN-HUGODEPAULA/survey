@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:survey_builder/core/auth/builder_auth_controller.dart';
 import 'package:survey_builder/features/survey/pages/agent_access_point_list_page.dart';
 import 'package:survey_builder/features/survey/pages/persona_skill_list_page.dart';
+import 'package:survey_builder/features/survey/pages/screener_settings_page.dart';
 import 'package:survey_builder/features/survey/pages/survey_list_page.dart';
 import 'package:survey_builder/features/survey/pages/survey_prompt_list_page.dart';
 import 'package:survey_builder/features/survey/pages/task_dashboard_page.dart';
@@ -22,6 +23,7 @@ class _BuilderShellPageState extends State<BuilderShellPage> {
   static const _promptsSection = 'prompts';
   static const _personasSection = 'personas';
   static const _accessPointsSection = 'access-points';
+  static const _screenerSettingsSection = 'screener-settings';
 
   String _currentSection = _dashboardSection;
   int _refreshVersion = 0;
@@ -52,6 +54,11 @@ class _BuilderShellPageState extends State<BuilderShellPage> {
       label: 'Acessos',
       icon: Icons.hub_outlined,
     ),
+    NavigationItem(
+      key: _screenerSettingsSection,
+      label: 'Configurações',
+      icon: Icons.settings_outlined,
+    ),
   ];
 
   void _handleNavigateToSection(String section) {
@@ -81,6 +88,8 @@ class _BuilderShellPageState extends State<BuilderShellPage> {
         return PersonaSkillListPage(key: sectionKey, embedded: true);
       case _accessPointsSection:
         return AgentAccessPointListPage(key: sectionKey, embedded: true);
+      case _screenerSettingsSection:
+        return ScreenerSettingsPage(key: sectionKey, embedded: true);
       case _dashboardSection:
         return TaskDashboardPage(
           key: sectionKey,

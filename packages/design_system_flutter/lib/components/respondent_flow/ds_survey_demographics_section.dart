@@ -14,6 +14,8 @@ class DsSurveyDemographicsSection extends StatelessWidget {
     required this.professionController,
     required this.selectedMedications,
     required this.searchMedications,
+    this.loadMedicationCatalog,
+    this.persistManualMedication,
     required this.onMedicationAdded,
     required this.onMedicationRemoved,
     required this.selectedDiagnoses,
@@ -39,6 +41,8 @@ class DsSurveyDemographicsSection extends StatelessWidget {
   final TextEditingController professionController;
   final List<String> selectedMedications;
   final DsMedicationSearchFn searchMedications;
+  final Future<List<String>> Function()? loadMedicationCatalog;
+  final Future<void> Function(String medication)? persistManualMedication;
   final ValueChanged<String> onMedicationAdded;
   final ValueChanged<String> onMedicationRemoved;
   final Map<String, bool> selectedDiagnoses;
@@ -235,6 +239,8 @@ class DsSurveyDemographicsSection extends StatelessWidget {
           DsMedicationAutocompleteField(
             selectedMedications: selectedMedications,
             searchMedications: searchMedications,
+            loadMedicationCatalog: loadMedicationCatalog,
+            persistManualMedication: persistManualMedication,
             onMedicationAdded: onMedicationAdded,
             onMedicationRemoved: onMedicationRemoved,
             submitted: submitted,
