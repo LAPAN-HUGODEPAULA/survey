@@ -60,6 +60,20 @@ def resolve_model_version(llm_model: Any) -> str:
     return AgentConfig.PRIMARY_MODEL
 
 
+def resolve_model_routing_metadata(llm_model: Any, state: Any) -> dict[str, Any]:
+    """Expose routing metadata for telemetry dashboards."""
+    model_version = resolve_model_version(llm_model)
+    provider, _, model = model_version.partition(":")
+    primary_provider = state.get("ai_provider") or "glm"
+    return {
+        "model_version": model_version,
+        "provider": provider if provider else "unknown",
+        "model": model if model else model_version,
+        "primary_provider": primary_provider,
+        "fallback_used": bool(provider) and provider != primary_provider,
+    }
+
+
 def resolve_model_router(state: Any) -> ModelRouter:
     """Build a ModelRouter using configuration from state or environment defaults."""
     primary_provider = state.get("ai_provider") or "glm"
@@ -72,12 +86,19 @@ def resolve_model_router(state: Any) -> ModelRouter:
     if not fallback_model:
         fallback_model = AgentConfig.LLM_MODEL_NAME if fallback_provider == "gemini" else AgentConfig.GLM_MODEL_NAME
 
+    temperature = state.get("temperature")
+    if temperature is None:
+        temperature = AgentConfig.LLM_TEMPERATURE
+
     return ModelRouter(
         primary_model=primary_model,
         fallback_model=fallback_model,
         primary_provider=primary_provider,
         fallback_provider=fallback_provider,
-        temperature=AgentConfig.LLM_TEMPERATURE,
+        temperature=temperature,
+        do_sample=state.get("do_sample"),
+        thinking_mode=state.get("thinking_mode"),
+        enable_caching=state.get("enable_caching"),
     )
 
 

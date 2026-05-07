@@ -10,10 +10,10 @@ from .layered_node_utils import (
     LLMClient,
     parse_json_object,
     report_to_markdown,
+    resolve_model_routing_metadata,
     resolve_model_router,
     resolve_model_version,
 )
-from ..model_router import ModelRouter
 from ..report_models import ReportDocument
 
 
@@ -53,8 +53,7 @@ class PersonaWriterAgent:  # pylint: disable=too-few-public-methods
             prompt = self._build_prompt(
                 persona_prompt=state.get("persona_prompt", ""),
                 clinical_facts=state.get("clinical_facts", {}),
-                reflection_feedback=state.get("reflection_feedback"),
-                reflection_retries_used=state.get("reflection_retries_used", 0),
+                format_override=state.get("format_prompt_override"),
             )
             response = llm_model.invoke(prompt)
             content = (
@@ -70,14 +69,16 @@ class PersonaWriterAgent:  # pylint: disable=too-few-public-methods
             new_state["validation_status"] = "written"
             new_state.pop("error_kind", None)
             new_state.pop("error_message", None)
-            new_state.pop("reflection_status", None)
-            new_state.pop("reflection_issues", None)
+            routing_metadata = resolve_model_routing_metadata(llm_model, state)
 
             if observer:
                 observer.on_event(
                     "report_generated",
                     datetime.now(),
-                    {"response_length": len(content)},
+                    {
+                        "response_length": len(content),
+                        **routing_metadata,
+                    },
                     request_id,
                 )
         except Exception as error:  # pylint: disable=broad-exception-caught
@@ -122,19 +123,14 @@ class PersonaWriterAgent:  # pylint: disable=too-few-public-methods
         *,
         persona_prompt: str,
         clinical_facts: dict,
-        reflection_feedback: str | None = None,
-        reflection_retries_used: int = 0,
+        format_override: str | None = None,
     ) -> str:
         schema = json.dumps(ReportDocument.model_json_schema(), ensure_ascii=False, indent=2)
         facts = json.dumps(clinical_facts, ensure_ascii=False, indent=2)
-        correction_block = ""
-        if reflection_feedback:
-            correction_block = (
-                "\nREFLECTOR CORRECTION FEEDBACK:\n"
-                f"Rewrite attempt #{reflection_retries_used}.\n"
-                f"{reflection_feedback}\n"
-                "Revise the report to satisfy every reflector issue while preserving the provided clinical facts.\n"
-            )
+        format_instructions = format_override or (
+            "REPORTDOCUMENT JSON SCHEMA:\n"
+            f"{schema}\n"
+        )
         return (
             "You are a clinical persona writer.\n"
             "Use only the provided clinical facts and persona instructions.\n"
@@ -142,9 +138,7 @@ class PersonaWriterAgent:  # pylint: disable=too-few-public-methods
             "Do not add markdown fences or commentary.\n\n"
             "PERSONA STYLE AND RESTRICTIONS:\n"
             f"{persona_prompt}\n\n"
+            f"{format_instructions}\n"
             "CLINICAL FACTS:\n"
-            f"{facts}\n\n"
-            f"{correction_block}"
-            "REPORTDOCUMENT JSON SCHEMA:\n"
-            f"{schema}\n"
+            f"{facts}\n"
         )
