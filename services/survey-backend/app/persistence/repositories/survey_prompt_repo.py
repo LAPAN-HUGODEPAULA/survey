@@ -68,9 +68,10 @@ class SurveyPromptRepository:
         return self._normalize(updated) if updated else None
 
     def delete(self, prompt_key: str) -> bool:
-        """Delete a prompt by key."""
-        result = self._col.delete_one({"promptKey": prompt_key})
-        return result.deleted_count > 0
+        """Delete a prompt by key from both primary and legacy collections."""
+        res1 = self._col.delete_one({"promptKey": prompt_key})
+        res2 = self._legacy_col.delete_one({"promptKey": prompt_key})
+        return res1.deleted_count > 0 or res2.deleted_count > 0
 
     def is_in_use(self, prompt_key: str) -> bool:
         """Check whether any survey still references the prompt."""

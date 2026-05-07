@@ -40,4 +40,4 @@ if not logger.handlers:
     handler.setFormatter(formatter)
     handler.addFilter(_SensitiveDataFilter())
     logger.addHandler(handler)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
