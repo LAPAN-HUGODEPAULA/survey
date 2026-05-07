@@ -6,9 +6,18 @@ import logging
 from typing import Optional
 
 from openai import OpenAI
+from starlette_context import context
 from .agent_config import AgentConfig
 
 logger = logging.getLogger("clinical_writer.model_router")
+
+
+def _resolve_request_id() -> str | None:
+    """Best-effort request id extraction from request context."""
+    try:
+        return context.get("request_id")
+    except Exception:  # pragma: no cover - defensive path for offline/test calls
+        return None
 
 
 class ModelResponse:
@@ -107,23 +116,40 @@ class ModelRouter:
         )
 
     def invoke(self, prompt: str):
+        request_id = _resolve_request_id()
         try:
-            logger.info("Attempting primary LLM: %s (%s)", self._primary_model, self._primary_provider)
+            logger.info(
+                "stage=model_invoke_start request_id=%s primary_provider=%s primary_model=%s fallback_provider=%s fallback_model=%s",
+                request_id,
+                self._primary_provider,
+                self._primary_model,
+                self._fallback_provider,
+                self._fallback_model,
+            )
             response = self._get_primary_llm().invoke(prompt)
             self.model_version = f"{self._primary_provider}:{self._primary_model}"
             logger.info(
-                "Primary LLM succeeded: provider=%s model=%s",
+                "stage=model_invoke_primary_success request_id=%s provider=%s model=%s",
+                request_id,
                 self._primary_provider,
                 self._primary_model,
             )
             return response
         except Exception as exc:  # pylint: disable=broad-exception-caught
             if not self._fallback_model:
-                logger.error("Primary LLM failed and no fallback configured: %s", exc)
+                logger.error(
+                    "stage=model_invoke_primary_failure request_id=%s primary_provider=%s primary_model=%s fallback_configured=false error_type=%s error=%s",
+                    request_id,
+                    self._primary_provider,
+                    self._primary_model,
+                    type(exc).__name__,
+                    exc,
+                )
                 raise
             
             logger.warning(
-                "Primary LLM failed, attempting fallback: primary_provider=%s primary_model=%s fallback_provider=%s fallback_model=%s error_type=%s error=%s",
+                "stage=model_invoke_fallback_attempt request_id=%s primary_provider=%s primary_model=%s fallback_provider=%s fallback_model=%s error_type=%s error=%s",
+                request_id,
                 self._primary_provider,
                 self._primary_model,
                 self._fallback_provider,
@@ -135,14 +161,16 @@ class ModelRouter:
                 response = self._get_fallback_llm().invoke(prompt)
                 self.model_version = f"{self._fallback_provider}:{self._fallback_model}"
                 logger.info(
-                    "Fallback LLM succeeded: provider=%s model=%s",
+                    "stage=model_invoke_fallback_success request_id=%s provider=%s model=%s",
+                    request_id,
                     self._fallback_provider,
                     self._fallback_model,
                 )
                 return response
             except Exception as fallback_exc:
                 logger.error(
-                    "Fallback LLM also failed: fallback_provider=%s fallback_model=%s error_type=%s error=%s",
+                    "stage=model_invoke_fallback_failure request_id=%s fallback_provider=%s fallback_model=%s error_type=%s error=%s",
+                    request_id,
                     self._fallback_provider,
                     self._fallback_model,
                     type(fallback_exc).__name__,

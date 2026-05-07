@@ -7,7 +7,7 @@ from typing import Optional, Protocol, Any
 
 from .agent_state import AgentState
 from ..agent_config import AgentConfig
-from ..model_router import ModelRouter
+from .layered_node_utils import resolve_model_router
 from ..prompts import ConversationPrompts, JsonPrompts
 from ..report_models import ReportDocument
 
@@ -53,7 +53,7 @@ class _BaseWriterNode:  # pylint: disable=too-few-public-methods
                 )
 
             if self._llm_model is None:
-                self._llm_model = ModelRouter.from_env()
+                self._llm_model = resolve_model_router(state)
 
             prompt_template = state.get("prompt_text") or self._fallback_prompt
             prompt = self._build_prompt(prompt_template, state.get("input_content", ""))

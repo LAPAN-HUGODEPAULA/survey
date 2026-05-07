@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from typing import Any, Protocol
 
 from ..agent_config import AgentConfig
 from ..model_router import ModelRouter
 from ..report_models import ReportDocument
+
+
+logger = logging.getLogger("clinical_writer.routing")
 
 
 class LLMClient(Protocol):
@@ -64,7 +68,8 @@ def resolve_model_routing_metadata(llm_model: Any, state: Any) -> dict[str, Any]
     """Expose routing metadata for telemetry dashboards."""
     model_version = resolve_model_version(llm_model)
     provider, _, model = model_version.partition(":")
-    primary_provider = state.get("ai_provider") or "glm"
+    ai_config = state.get("ai_config") or {}
+    primary_provider = ai_config.get("primaryProvider") or "glm"
     return {
         "model_version": model_version,
         "provider": provider if provider else "unknown",
@@ -76,19 +81,44 @@ def resolve_model_routing_metadata(llm_model: Any, state: Any) -> dict[str, Any]
 
 def resolve_model_router(state: Any) -> ModelRouter:
     """Build a ModelRouter using configuration from state or environment defaults."""
-    primary_provider = state.get("ai_provider") or "glm"
-    primary_model = state.get("glm_model") if primary_provider == "glm" else state.get("gemini_model")
-    if not primary_model:
-        primary_model = AgentConfig.PRIMARY_MODEL if primary_provider == "glm" else AgentConfig.LLM_MODEL_NAME
+    ai_config = state.get("ai_config") or {}
+    primary_provider = ai_config.get("primaryProvider") or ("glm" if AgentConfig.GLM_MODEL_NAME else "gemini")
+    primary_model = ai_config.get("primaryModel")
+    fallback_provider = ai_config.get("fallbackProvider")
+    fallback_model = ai_config.get("fallbackModel")
 
-    fallback_provider = "gemini" if primary_provider == "glm" else "glm"
-    fallback_model = state.get("gemini_model") if fallback_provider == "gemini" else state.get("glm_model")
+    if not primary_model:
+        primary_model = (
+            AgentConfig.GLM_MODEL_NAME if primary_provider == "glm" else AgentConfig.LLM_MODEL_NAME
+        )
+    if not fallback_provider:
+        fallback_provider = "gemini" if primary_provider == "glm" else "glm"
     if not fallback_model:
-        fallback_model = AgentConfig.LLM_MODEL_NAME if fallback_provider == "gemini" else AgentConfig.GLM_MODEL_NAME
+        fallback_model = (
+            AgentConfig.LLM_MODEL_NAME if fallback_provider == "gemini" else AgentConfig.GLM_MODEL_NAME
+        )
+
+    if not primary_model:
+        raise ValueError("Missing primary model in aiConfig and environment fallback")
 
     temperature = state.get("temperature")
     if temperature is None:
+        temperature = ai_config.get("temperature")
+    if temperature is None:
         temperature = AgentConfig.LLM_TEMPERATURE
+
+    logger.info(
+        "stage=model_router_resolved request_id=%s input_type=%s primary_provider=%s primary_model=%s fallback_provider=%s fallback_model=%s temperature=%s thinking_mode=%s enable_caching=%s",
+        state.get("request_id"),
+        state.get("input_type"),
+        primary_provider,
+        primary_model,
+        fallback_provider,
+        fallback_model,
+        temperature,
+        state.get("thinking_mode") or ai_config.get("reasoningEffort"),
+        state.get("enable_caching") if state.get("enable_caching") is not None else ai_config.get("enableCaching"),
+    )
 
     return ModelRouter(
         primary_model=primary_model,
@@ -96,9 +126,13 @@ def resolve_model_router(state: Any) -> ModelRouter:
         primary_provider=primary_provider,
         fallback_provider=fallback_provider,
         temperature=temperature,
-        do_sample=state.get("do_sample"),
-        thinking_mode=state.get("thinking_mode"),
-        enable_caching=state.get("enable_caching"),
+        do_sample=state.get("do_sample") if state.get("do_sample") is not None else ai_config.get("doSample"),
+        thinking_mode=state.get("thinking_mode") or ai_config.get("reasoningEffort"),
+        enable_caching=(
+            state.get("enable_caching")
+            if state.get("enable_caching") is not None
+            else ai_config.get("enableCaching")
+        ),
     )
 
 
