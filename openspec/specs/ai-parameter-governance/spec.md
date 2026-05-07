@@ -1,4 +1,9 @@
-## ADDED Requirements
+# ai-parameter-governance Specification
+
+## Purpose
+Define the governance framework for managing core AI parameters (temperature, reasoning effort) at both global and access-point levels, ensuring configurable and consistent clinical AI behavior across all runtime contexts.
+
+## Requirements
 
 ### Requirement: AI parameter governance framework
 The system SHALL provide a centralized mechanism for managing core AI parameters (temperature, reasoning) at both global and access-point levels.
