@@ -23,6 +23,7 @@ docker run --rm \
   --additional-properties=pubName=survey_backend_api,nullableFields=true,basePath=
 
 cd "${OUT_DIR}"
-dart pub run build_runner build --delete-conflicting-outputs
+dart pub get
+dart run build_runner build
 
 echo "Done. Generated client at ${OUT_DIR}"

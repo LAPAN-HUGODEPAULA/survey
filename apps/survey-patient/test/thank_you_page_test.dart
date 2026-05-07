@@ -2,6 +2,7 @@ import 'package:design_system_flutter/theme/app_theme.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:patient_app/core/models/agent_response.dart';
 import 'package:patient_app/core/models/survey/instructions.dart';
 import 'package:patient_app/core/models/survey/question.dart';
 import 'package:patient_app/core/models/survey/survey.dart';
@@ -82,6 +83,122 @@ class _FakeSurveyRepository extends SurveyRepository {
 class _IdleSurveyRepository extends SurveyRepository {
   _IdleSurveyRepository()
     : super(rawClient: Dio(BaseOptions(baseUrl: 'http://localhost')));
+}
+
+class _RetryableInlineErrorSurveyRepository extends _FakeSurveyRepository {
+  @override
+  Future<survey_ui.SurveyResponse> submitResponse(
+    survey_ui.SurveyResponse response,
+  ) async {
+    return survey_ui.SurveyResponse(
+      id: 'PROTO-123',
+      surveyId: response.surveyId,
+      creatorId: response.creatorId,
+      testDate: response.testDate,
+      screenerId: response.screenerId,
+      promptKey: response.promptKey,
+      patient: response.patient,
+      answers: response.answers,
+      agentResponse: const AgentResponse(
+        errorMessage: 'Unable to reach AI agent',
+        aiProgress: AIProgress(
+          stage: 'reviewing_content',
+          status: 'failed',
+          retryable: true,
+          stageLabel: 'Revisando conteúdo',
+          userMessage: 'Não foi possível concluir agora.',
+        ),
+      ),
+    );
+  }
+}
+
+class _ArtifactOnlySurveyRepository extends SurveyRepository {
+  _ArtifactOnlySurveyRepository()
+    : super(rawClient: Dio(BaseOptions(baseUrl: 'http://localhost')));
+
+  @override
+  Future<survey_ui.SurveyResponse> submitResponse(
+    survey_ui.SurveyResponse response,
+  ) async {
+    return survey_ui.SurveyResponse(
+      id: 'PROTO-123',
+      surveyId: response.surveyId,
+      creatorId: response.creatorId,
+      testDate: response.testDate,
+      screenerId: response.screenerId,
+      promptKey: response.promptKey,
+      patient: response.patient,
+      answers: response.answers,
+      agentResponse: const AgentResponse(
+        errorMessage: 'Inline artifact failed',
+        aiProgress: AIProgress(
+          stage: 'failed',
+          status: 'failed',
+          retryable: true,
+        ),
+      ),
+      agentResponses: const [
+        AgentResponse(
+          medicalRecord:
+              'Síntese disponível nos artefatos: sinais compatíveis com desconforto visual.',
+        ),
+      ],
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> startClinicalWriterTask(
+    String content, {
+    String? accessPointKey,
+    String flowKey = 'thank_you.auto_analysis',
+    String? promptKey,
+    String? surveyId,
+  }) {
+    throw StateError('The artifact response should be rendered without retry.');
+  }
+}
+
+class _LegacyReflectionResponseRepository extends SurveyRepository {
+  _LegacyReflectionResponseRepository()
+    : super(rawClient: Dio(BaseOptions(baseUrl: 'http://localhost')));
+
+  @override
+  Future<survey_ui.SurveyResponse> submitResponse(
+    survey_ui.SurveyResponse response,
+  ) async {
+    return survey_ui.SurveyResponse(
+      id: 'PROTO-123',
+      surveyId: response.surveyId,
+      creatorId: response.creatorId,
+      testDate: response.testDate,
+      screenerId: response.screenerId,
+      promptKey: response.promptKey,
+      patient: response.patient,
+      answers: response.answers,
+      agentResponse: const AgentResponse(
+        medicalRecord:
+            'Síntese prévia revisada: conteúdo legado com reflexão continua utilizável.',
+        errorMessage: 'Legacy reflection status should not hide report text',
+        aiProgress: AIProgress(
+          stage: 'reviewing_content',
+          status: 'failed',
+          retryable: true,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Future<Map<String, dynamic>> startClinicalWriterTask(
+    String content, {
+    String? accessPointKey,
+    String flowKey = 'thank_you.auto_analysis',
+    String? promptKey,
+    String? surveyId,
+  }) {
+    throw StateError('Legacy reviewed content should be rendered as usable.');
+  }
 }
 
 void main() {
@@ -195,6 +312,155 @@ void main() {
         find.textContaining('Síntese inicial: os sinais sugerem atenção'),
         findsOneWidget,
       );
+    },
+  );
+
+  testWidgets(
+    'ThankYouPage falls back to async polling when inline agent payload is retryable',
+    (tester) async {
+      final survey = Survey(
+        id: 'survey-1',
+        surveyDisplayName: 'Survey Demo',
+        surveyName: 'Survey Demo',
+        surveyDescription: '',
+        creatorId: 'Creator',
+        createdAt: DateTime(2024, 1, 1),
+        modifiedAt: DateTime(2024, 1, 2),
+        instructions: Instructions(
+          preamble: '<p>Intro</p>',
+          questionText: 'Q',
+          answers: const ['A', 'B'],
+        ),
+        questions: [
+          Question(id: 1, questionText: 'Pergunta 1', answers: ['A', 'B']),
+        ],
+        prompt: null,
+        finalNotes: null,
+      );
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => AppSettings(surveyRepository: _IdleSurveyRepository()),
+          child: MaterialApp(
+            theme: AppTheme.dark(),
+            home: ThankYouPage(
+              survey: survey,
+              surveyAnswers: const ['A'],
+              surveyQuestions: survey.questions,
+              surveyRepository: _RetryableInlineErrorSurveyRepository(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Relatório disponível'), findsWidgets);
+      expect(
+        find.textContaining('Síntese inicial: os sinais sugerem atenção'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'ThankYouPage renders a successful agent artifact without starting a retry',
+    (tester) async {
+      final survey = Survey(
+        id: 'survey-1',
+        surveyDisplayName: 'Survey Demo',
+        surveyName: 'Survey Demo',
+        surveyDescription: '',
+        creatorId: 'Creator',
+        createdAt: DateTime(2024, 1, 1),
+        modifiedAt: DateTime(2024, 1, 2),
+        instructions: Instructions(
+          preamble: '<p>Intro</p>',
+          questionText: 'Q',
+          answers: const ['A', 'B'],
+        ),
+        questions: [
+          Question(id: 1, questionText: 'Pergunta 1', answers: ['A', 'B']),
+        ],
+        prompt: null,
+        finalNotes: null,
+      );
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => AppSettings(surveyRepository: _IdleSurveyRepository()),
+          child: MaterialApp(
+            theme: AppTheme.dark(),
+            home: ThankYouPage(
+              survey: survey,
+              surveyAnswers: const ['A'],
+              surveyQuestions: survey.questions,
+              surveyRepository: _ArtifactOnlySurveyRepository(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Relatório disponível'), findsWidgets);
+      expect(
+        find.textContaining('Síntese disponível nos artefatos'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'ThankYouPage accepts legacy reflected content when report text exists',
+    (tester) async {
+      final survey = Survey(
+        id: 'survey-1',
+        surveyDisplayName: 'Survey Demo',
+        surveyName: 'Survey Demo',
+        surveyDescription: '',
+        creatorId: 'Creator',
+        createdAt: DateTime(2024, 1, 1),
+        modifiedAt: DateTime(2024, 1, 2),
+        instructions: Instructions(
+          preamble: '<p>Intro</p>',
+          questionText: 'Q',
+          answers: const ['A', 'B'],
+        ),
+        questions: [
+          Question(id: 1, questionText: 'Pergunta 1', answers: ['A', 'B']),
+        ],
+        prompt: null,
+        finalNotes: null,
+      );
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider(
+          create: (_) => AppSettings(surveyRepository: _IdleSurveyRepository()),
+          child: MaterialApp(
+            theme: AppTheme.dark(),
+            home: ThankYouPage(
+              survey: survey,
+              surveyAnswers: const ['A'],
+              surveyQuestions: survey.questions,
+              surveyRepository: _LegacyReflectionResponseRepository(),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Relatório disponível'), findsWidgets);
+      expect(find.textContaining('Síntese prévia revisada'), findsOneWidget);
     },
   );
 }

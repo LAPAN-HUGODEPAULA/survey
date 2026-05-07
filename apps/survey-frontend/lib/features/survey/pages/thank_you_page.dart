@@ -178,8 +178,11 @@ class _ThankYouPageState extends State<ThankYouPage> {
       });
     }
 
-    for (var attempt = 0; attempt < 120; attempt++) {
-      await Future<void>.delayed(const Duration(seconds: 1));
+    // Aguarda o atraso inicial para modelos de alto raciocínio
+    await Future<void>.delayed(const Duration(seconds: 15));
+
+    for (var attempt = 0; attempt < 60; attempt++) {
+      await Future<void>.delayed(const Duration(seconds: 10));
       final statusPayload = await repository.getClinicalWriterTaskStatus(taskId);
       final progressPayload =
           statusPayload['aiProgress'] ?? statusPayload['ai_progress'];

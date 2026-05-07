@@ -39,8 +39,9 @@ class ReportPage extends StatefulWidget {
 }
 
 class _ReportPageState extends State<ReportPage> {
-  static const int _maxPollingAttempts = 120;
-  static const Duration _pollingDelay = Duration(seconds: 1);
+  static const int _maxPollingAttempts = 60; // 60 attempts * 10s = 600s
+  static const Duration _initialDelay = Duration(seconds: 15);
+  static const Duration _pollingDelay = Duration(seconds: 10);
 
   bool _isSaving = false;
   bool _saveSuccess = false;
@@ -204,6 +205,9 @@ class _ReportPageState extends State<ReportPage> {
         'Não foi possível iniciar a geração assíncrona do relatório.',
       );
     }
+
+    // Aguarda o atraso inicial para modelos de alto raciocínio
+    await Future<void>.delayed(_initialDelay);
 
     for (var attempt = 0; attempt < _maxPollingAttempts; attempt++) {
       await Future<void>.delayed(_pollingDelay);

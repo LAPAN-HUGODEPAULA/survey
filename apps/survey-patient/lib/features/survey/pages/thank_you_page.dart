@@ -130,8 +130,10 @@ class _ThankYouPageState extends State<ThankYouPage> {
         _savedResponseId = savedResponse.id;
       });
       await _showRegisteredStep();
-      AgentResponse? response = savedResponse.agentResponse;
-      response ??= await _startAndPollAgentResponse(repository, surveyResponse);
+      AgentResponse? response = _resolveSavedAgentResponse(savedResponse);
+      if (response == null || _shouldFetchAsyncAgentResponse(response)) {
+        response = await _startAndPollAgentResponse(repository, surveyResponse);
+      }
       if (!mounted) return;
       setState(() {
         _agentResponse = response;
@@ -140,7 +142,11 @@ class _ThankYouPageState extends State<ThankYouPage> {
           _handoffState = HandoffState.ready;
         }
       });
-    } catch (error) {
+    } catch (error, stackTrace) {
+      debugPrint(
+        'ThankYouPage: failed to load preliminary evaluation: $error\n'
+        '$stackTrace',
+      );
       if (!mounted) return;
       setState(() {
         _handoffState = _savedResponseId != null
@@ -173,35 +179,39 @@ class _ThankYouPageState extends State<ThankYouPage> {
       );
     }
 
-    final startProgress = taskStart['aiProgress'] ?? taskStart['ai_progress'];
-    if (startProgress is Map<String, dynamic> && mounted) {
+    final startProgress = _asStringKeyedMap(
+      taskStart['aiProgress'] ?? taskStart['ai_progress'],
+    );
+    if (startProgress != null && mounted) {
       setState(() {
         _aiProgress = AIProgress.fromJson(startProgress);
       });
     }
 
-    for (var attempt = 0; attempt < 120; attempt++) {
-      await Future<void>.delayed(const Duration(seconds: 1));
+    // Aguarda o atraso inicial para modelos de alto raciocínio
+    await Future<void>.delayed(const Duration(seconds: 15));
+
+    for (var attempt = 0; attempt < 60; attempt++) {
+      await Future<void>.delayed(const Duration(seconds: 10));
       final statusPayload = await repository.getClinicalWriterTaskStatus(
         taskId,
       );
-      final progressPayload =
-          statusPayload['aiProgress'] ?? statusPayload['ai_progress'];
-      if (progressPayload is Map<String, dynamic> && mounted) {
+      final progressPayload = _asStringKeyedMap(
+        statusPayload['aiProgress'] ?? statusPayload['ai_progress'],
+      );
+      if (progressPayload != null && mounted) {
         setState(() {
           _aiProgress = AIProgress.fromJson(progressPayload);
         });
       }
       final status = statusPayload['status']?.toString() ?? '';
-      if (status == 'completed' &&
-          statusPayload['result'] is Map<String, dynamic>) {
-        return AgentResponse.fromJson(
-          statusPayload['result'] as Map<String, dynamic>,
-        );
+      final resultPayload = _asStringKeyedMap(statusPayload['result']);
+      if (status == 'completed' && resultPayload != null) {
+        return AgentResponse.fromJson(resultPayload);
       }
       if (status == 'failed') {
-        final errorPayload = statusPayload['error'];
-        if (errorPayload is Map<String, dynamic>) {
+        final errorPayload = _asStringKeyedMap(statusPayload['error']);
+        if (errorPayload != null) {
           _agentRetryable = errorPayload['retryable'] as bool? ?? false;
           _agentError =
               errorPayload['userMessage']?.toString() ??
@@ -215,6 +225,58 @@ class _ThankYouPageState extends State<ThankYouPage> {
     _agentError =
         'A análise está demorando mais que o esperado. Tente novamente em instantes.';
     return null;
+  }
+
+  AgentResponse? _resolveSavedAgentResponse(SurveyResponse savedResponse) {
+    final candidates = <AgentResponse>[
+      if (savedResponse.agentResponse != null) savedResponse.agentResponse!,
+      ...savedResponse.agentResponses,
+    ];
+    if (candidates.isEmpty) {
+      return null;
+    }
+
+    for (final response in candidates) {
+      if (!_shouldFetchAsyncAgentResponse(response) &&
+          _hasDisplayableAgentContent(response)) {
+        return response;
+      }
+    }
+    for (final response in candidates) {
+      if (!_shouldFetchAsyncAgentResponse(response)) {
+        return response;
+      }
+    }
+    return candidates.first;
+  }
+
+  Map<String, dynamic>? _asStringKeyedMap(Object? payload) {
+    if (payload is! Map) {
+      return null;
+    }
+    return payload.map((key, value) => MapEntry(key.toString(), value));
+  }
+
+  bool _hasDisplayableAgentContent(AgentResponse response) {
+    final document = response.report;
+    if (document != null && document.toPlainText().trim().isNotEmpty) {
+      return true;
+    }
+    return response.medicalRecord?.trim().isNotEmpty == true;
+  }
+
+  bool _shouldFetchAsyncAgentResponse(AgentResponse response) {
+    if (_hasDisplayableAgentContent(response)) {
+      return false;
+    }
+    if (response.errorMessage?.trim().isNotEmpty == true) {
+      return true;
+    }
+    final progress = response.aiProgress;
+    if (progress == null) {
+      return false;
+    }
+    return progress.status == 'failed' || progress.retryable;
   }
 
   SurveyResponse _composeSurveyResponse(AppSettings settings) {
