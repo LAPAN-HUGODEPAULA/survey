@@ -82,7 +82,14 @@ class ClinicalWriterJob:
             "$or": [
                 {"agentResponse": {"$exists": False}},
                 {"agentResponse": None},
-                {"agentResponseStatus": {"$in": [None, "pending", "failed"]}},
+                {"agentResponseStatus": {"$in": [None, "pending"]}},
+                {
+                    "agentResponseStatus": "failed",
+                    "$or": [
+                        {"retryCount": {"$exists": False}},
+                        {"retryCount": {"$lt": settings.worker_max_retries}},
+                    ],
+                },
                 {
                     "agentResponseStatus": "processing",
                     "agentResponseUpdatedAt": {"$lt": stale_before},
@@ -92,6 +99,7 @@ class ClinicalWriterJob:
 
     async def _process_document(self, doc: Dict[str, Any]) -> None:
         doc_id = str(doc.get("_id"))
+        retry_count = int(doc.get("retryCount") or 0)
         logger.info("Submitting survey response %s to Clinical Writer.", doc_id)
         col = self._get_collection()
 
@@ -106,14 +114,24 @@ class ClinicalWriterJob:
         )
 
         payload = self._serialize_document(doc)
+        request_payload = self._build_request_payload(payload)
+        if settings.log_payload_enabled:
+            logger.info(
+                "Clinical writer payload request_id=%s response_id=%s payload=%s",
+                request_payload.get("metadata", {}).get("request_id"),
+                doc_id,
+                request_payload,
+            )
         try:
-            agent_response = await self._call_clinical_writer(payload)
+            agent_response = await self._call_clinical_writer(request_payload)
             col.update_one(
                 {"_id": doc.get("_id")},
                 {
                     "$set": {
                         "agentResponse": agent_response,
                         "agentResponseStatus": "succeeded",
+                        "retryCount": 0,
+                        "lastError": None,
                         "agentResponseUpdatedAt": datetime.now(timezone.utc),
                     }
                 },
@@ -121,16 +139,28 @@ class ClinicalWriterJob:
             logger.info("Updated survey response %s with agent output.", doc_id)
         except Exception as exc:  # pragma: no cover - safeguard
             logger.error("Failed to process survey response %s: %s", doc_id, exc)
+            next_retry_count = retry_count + 1
+            permanently_failed = next_retry_count >= settings.worker_max_retries
             col.update_one(
                 {"_id": doc.get("_id")},
                 {
                     "$set": {
                         "agentResponse": {"errorMessage": str(exc)},
-                        "agentResponseStatus": "failed",
+                        "agentResponseStatus": (
+                            "permanently_failed" if permanently_failed else "failed"
+                        ),
+                        "retryCount": next_retry_count,
+                        "lastError": str(exc),
                         "agentResponseUpdatedAt": datetime.now(timezone.utc),
                     }
                 },
             )
+            if permanently_failed:
+                logger.warning(
+                    "Marked survey response %s as permanently_failed after %d attempt(s).",
+                    doc_id,
+                    next_retry_count,
+                )
 
     def _serialize_document(self, value: Any) -> Any:
         """Convert Mongo-specific values into JSON-safe primitives."""
@@ -172,16 +202,29 @@ class ClinicalWriterJob:
             },
         }
 
-    async def _call_clinical_writer(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    async def _call_clinical_writer(self, request_payload: Dict[str, Any]) -> Dict[str, Any]:
         """Invoke the Clinical Writer agent and normalize its response."""
         client = await self._get_http_client()
         response = await client.post(
             settings.clinical_writer_url,
-            json=self._build_request_payload(payload),
+            json=request_payload,
         )
         response.raise_for_status()
         data = response.json()
-        return self._normalize_agent_response(data)
+        if settings.log_response_enabled:
+            logger.info(
+                "Clinical writer raw response request_id=%s response=%s",
+                request_payload.get("metadata", {}).get("request_id"),
+                data,
+            )
+        normalized = self._normalize_agent_response(data)
+        if settings.log_response_enabled:
+            logger.info(
+                "Clinical writer normalized response request_id=%s response=%s",
+                request_payload.get("metadata", {}).get("request_id"),
+                normalized,
+            )
+        return normalized
 
     def _report_to_text(self, report: Dict[str, Any]) -> str | None:
         """Flatten the report JSON into readable text for legacy consumers."""
