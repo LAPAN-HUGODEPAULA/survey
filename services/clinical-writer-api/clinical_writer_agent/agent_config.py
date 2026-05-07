@@ -24,8 +24,8 @@ class AgentConfig:
     # ========================
     # LLM Model Configuration
     # ========================
-    LLM_MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
-    GLM_MODEL_NAME = os.getenv("GLM_MODEL", "glm-4.5-flash")
+    LLM_MODEL_NAME = os.getenv("GEMINI_MODEL")
+    GLM_MODEL_NAME = os.getenv("GLM_MODEL")
     PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", GLM_MODEL_NAME)
     FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", LLM_MODEL_NAME)
     CRITIQUE_MODEL = os.getenv("CRITIQUE_MODEL", PRIMARY_MODEL)
