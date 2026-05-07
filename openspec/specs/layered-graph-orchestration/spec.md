@@ -5,31 +5,22 @@ TBD - created by archiving change refactor-layered-orchestration. Update Purpose
 ## Requirements
 ### Requirement: Clinical Writer MUST use a modular state graph for document generation.
 
-The LangGraph orchestration MUST be composed of distinct phases that operate on a shared, strictly typed `AgentState` defined with `TypedDict`. For supported report-generation flows, the graph MUST execute the phases in the following order: Context Loading, Clinical Analysis, Persona Writing, and Reflection. The state contract MUST make intermediate artifacts such as hydrated prompts, `clinical_facts`, generated report payloads, reflection feedback, and reflection iteration counters independently inspectable without relying on implicit keys or monolithic writer nodes.
+The LangGraph orchestration MUST be composed of distinct phases that operate on a shared, strictly typed `AgentState` defined with `TypedDict`. For the short-term optimized report-generation flow, the graph MUST execute phases in the following default order: Context Loading, Clinical Analysis, and Persona Writing, then terminate. The state contract MUST keep intermediate artifacts such as hydrated prompts, `clinical_facts`, generated report payloads, and model metadata independently inspectable.
 
-#### Scenario: Orchestrating a clinical report generation
-- **Given** a valid generation request mapped to a specific questionnaire and persona
-- **WHEN** the state graph executes
-- **THEN** the request MUST sequentially pass through the `ContextLoader`, `ClinicalAnalyzer`, `PersonaWriter`, and `ReflectorNode`
-- **AND** intermediate states such as hydrated prompts, extracted clinical facts, and reflection outcomes MUST be independently verifiable in the typed agent state
+#### Scenario: Orchestrating a clinical report generation in optimized mode
+- **WHEN** a valid generation request is processed
+- **THEN** the request MUST sequentially pass through `ContextLoader`, `ClinicalAnalyzer`, and `PersonaWriter`
+- **AND** the graph MUST terminate after `PersonaWriter` in default mode
 
-#### Scenario: Reflection requests a controlled rewrite
-- **Given** the `ReflectorNode` rejects the generated draft
-- **WHEN** the current reflection iteration count is below the configured maximum
-- **THEN** the graph MUST route execution back to the `PersonaWriter`
-- **AND** it MUST preserve the reflector feedback in state so the writer can revise the report
+#### Scenario: Reflection stage is bypassed by default
+- **WHEN** the optimized flow is active
+- **THEN** the graph MUST NOT invoke `ReflectorNode` for that request path
+- **AND** it MUST avoid rewrite loops that depend on reflection iteration counters
 
 #### Scenario: Preserving the graph factory used by FastAPI services
-- **Given** FastAPI dependencies currently construct or consume the graph through `create_graph(...)` and `clinical_writer_graph`
-- **WHEN** the orchestration is refactored to include the reflection stage
-- **THEN** the graph factory surface MUST remain compatible with the existing dependency injection flow
+- **WHEN** the orchestration is updated to bypass reflection in default mode
+- **THEN** the graph factory surface MUST remain compatible with existing `create_graph(...)` and `clinical_writer_graph` usage
 - **AND** callers MUST NOT be required to change how they obtain or invoke the compiled graph
-
-#### Scenario: Preserving FastAPI compatibility during graph refactor
-- **Given** the FastAPI service invokes the compiled graph from the existing `/process` flow
-- **WHEN** the internal graph implementation adds reflection and retry logic
-- **THEN** the graph MUST continue to accept the same request-derived state fields and injected dependencies used today
-- **AND** the refactor MUST NOT require changes to the external `ProcessRequest` and `ProcessResponse` contract
 
 ### Requirement: Clinical Analyzer MUST produce structured facts without narrative prose.
 
@@ -47,9 +38,25 @@ The analysis node MUST process input data strictly using clinical logic and MUST
 The writing node MUST rely on the `clinical_facts` produced by the Analyzer together with the hydrated persona instructions. It MUST generate the final report output from those structured facts and MUST NOT depend on monolithic prompt text or direct clinical reinterpretation of the raw request content as its primary source of truth.
 
 #### Scenario: Writing a school report from facts
-- **Given** a `clinical_facts` object indicating moderate visual distress
-- **And** a persona configured for pedagogical (school) tone
-- **When** the `PersonaWriter` generates the report
-- **Then** the resulting output MUST use accessible language appropriate for educators
-- **And** it MUST NOT contradict the severity facts provided by the Analyzer.
+-   **Given** a `clinical_facts` object indicating moderate visual distress
+-   **And** a persona configured for pedagogical (school) tone
+-   **When** the `PersonaWriter` generates the report
+-   **Then** the resulting output MUST use accessible language appropriate for educators
+-   **And** it MUST NOT contradict the severity facts provided by the Analyzer.
+
+### Requirement: Layered graph nodes MUST use provider-aware routing consistently
+The active LLM stages in the optimized layered flow MUST use the same provider-aware routing policy so primary/fallback behavior is consistent across clinical analysis and persona writing.
+
+#### Scenario: Request runs through active graph stages
+- **WHEN** a clinical writer request passes through analyzer and writer stages
+- **THEN** each active stage MUST resolve LLM invocations through provider-aware primary/fallback routing
+
+### Requirement: Reflection stage MUST use the same provider chain policy
+When reflection is explicitly enabled in a future or rollback path, the reflection stage MUST apply the same primary/fallback provider behavior as report generation stages.
+
+#### Scenario: Reflector primary provider fails when reflection is enabled
+- **WHEN** reflection is enabled and the reflector primary provider invocation fails
+- **THEN** the reflector MUST invoke the fallback provider
+- **AND** it MUST continue evaluation using the fallback response when valid
+
 
