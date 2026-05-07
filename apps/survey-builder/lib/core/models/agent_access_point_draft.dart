@@ -1,3 +1,35 @@
+class AIConfigDraft {
+  AIConfigDraft({
+    required this.primaryProvider,
+    required this.primaryModel,
+    this.fallbackProvider,
+    this.fallbackModel,
+    this.temperature = 0.0,
+    this.reasoningEffort = 'low',
+    this.enableCaching = true,
+  });
+
+  final String primaryProvider;
+  final String primaryModel;
+  final String? fallbackProvider;
+  final String? fallbackModel;
+  final double temperature;
+  final String? reasoningEffort;
+  final bool enableCaching;
+
+  AIConfigDraft copy() {
+    return AIConfigDraft(
+      primaryProvider: primaryProvider,
+      primaryModel: primaryModel,
+      fallbackProvider: fallbackProvider,
+      fallbackModel: fallbackModel,
+      temperature: temperature,
+      reasoningEffort: reasoningEffort,
+      enableCaching: enableCaching,
+    );
+  }
+}
+
 class AgentAccessPointDraft {
   AgentAccessPointDraft({
     required this.accessPointKey,
@@ -7,9 +39,12 @@ class AgentAccessPointDraft {
     required this.promptKey,
     required this.personaSkillKey,
     required this.outputProfile,
+    this.aiConfig,
     this.aiProvider,
     this.glmModel,
     this.geminiModel,
+    this.systemPromptOverride,
+    this.formatPromptOverride,
     this.surveyId,
     this.description,
     this.createdAt,
@@ -23,9 +58,12 @@ class AgentAccessPointDraft {
   final String promptKey;
   final String personaSkillKey;
   final String outputProfile;
+  final AIConfigDraft? aiConfig;
   final String? aiProvider;
   final String? glmModel;
   final String? geminiModel;
+  final String? systemPromptOverride;
+  final String? formatPromptOverride;
   final String? surveyId;
   final String? description;
   final DateTime? createdAt;
@@ -40,9 +78,12 @@ class AgentAccessPointDraft {
       promptKey: promptKey,
       personaSkillKey: personaSkillKey,
       outputProfile: outputProfile,
+      aiConfig: aiConfig?.copy(),
       aiProvider: aiProvider,
       glmModel: glmModel,
       geminiModel: geminiModel,
+      systemPromptOverride: systemPromptOverride,
+      formatPromptOverride: formatPromptOverride,
       surveyId: surveyId,
       description: description,
       createdAt: createdAt,
