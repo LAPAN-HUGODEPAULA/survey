@@ -189,12 +189,10 @@ async def send_patient_report_email(
         attachments=attachment_paths,
     )
     if message is None:
-        logger.warning("Email client unavailable; skipping report send for %s", response_id)
-        return
+        raise RuntimeError(f"Email client unavailable; cannot send report for {response_id}")
 
     mail_client = get_mail_client()
     if mail_client is None:
-        logger.warning("Email client unavailable; skipping report send for %s", response_id)
-        return
+        raise RuntimeError(f"Email client unavailable; cannot send report for {response_id}")
 
     await mail_client.send_message(message)
