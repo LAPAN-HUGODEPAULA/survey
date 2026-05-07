@@ -24,12 +24,15 @@ class AgentConfig:
     # ========================
     # LLM Model Configuration
     # ========================
-    LLM_MODEL_NAME = "gemini-2.0-flash-lite"
-    GLM_MODEL_NAME = "glm-4-flash"
+    LLM_MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+    GLM_MODEL_NAME = os.getenv("GLM_MODEL", "glm-4.5-flash")
     PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", GLM_MODEL_NAME)
     FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", LLM_MODEL_NAME)
     CRITIQUE_MODEL = os.getenv("CRITIQUE_MODEL", PRIMARY_MODEL)
-    LLM_TEMPERATURE = 0.3
+    LLM_TEMPERATURE = 0.0
+    LLM_DO_SAMPLE = False
+    LLM_THINKING_MODE = "disabled"
+    LLM_ENABLE_CACHING = True
 
     # ========================
     # File Paths Configuration
@@ -139,4 +142,5 @@ class AgentConfig:
             model=resolved_model,
             temperature=resolved_temperature,
             api_key=resolved_api_key,
+            request_timeout=300.0,
         )

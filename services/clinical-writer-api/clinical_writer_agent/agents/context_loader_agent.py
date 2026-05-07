@@ -45,6 +45,8 @@ class ContextLoaderAgent:  # pylint: disable=too-few-public-methods
                 prompt_key=state.get("prompt_key", "default"),
                 persona_skill_key=state.get("persona_skill_key"),
                 output_profile=state.get("output_profile"),
+                system_prompt_override=state.get("system_prompt_override"),
+                format_prompt_override=state.get("format_prompt_override"),
             )
             new_state["prompt_version"] = resolved.prompt_version
             new_state["questionnaire_prompt_version"] = (
