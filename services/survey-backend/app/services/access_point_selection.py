@@ -1,5 +1,6 @@
 """Helpers for resolving runtime selection through access points."""
 
+import os
 from collections.abc import Callable
 from dataclasses import dataclass
 
@@ -19,11 +20,75 @@ class AccessPointSelection:
     persona_skill_key: str | None
     output_profile: str | None
     ai_config: dict | None = None
-    ai_provider: str | None = None
-    glm_model: str | None = None
-    gemini_model: str | None = None
     system_prompt_override: str | None = None
     format_prompt_override: str | None = None
+
+
+def _parse_bool(value: str | None, *, default: bool) -> bool:
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _default_ai_config_from_env() -> dict | None:
+    glm_model = _coerce_optional_string(os.getenv("GLM_MODEL"))
+    gemini_model = _coerce_optional_string(os.getenv("GEMINI_MODEL"))
+    primary_provider = _coerce_optional_string(os.getenv("AI_DEFAULT_PRIMARY_PROVIDER"))
+    if primary_provider not in {"glm", "gemini"}:
+        primary_provider = "glm" if glm_model else "gemini"
+    if primary_provider not in {"glm", "gemini"}:
+        return None
+
+    primary_model = glm_model if primary_provider == "glm" else gemini_model
+    fallback_provider = "gemini" if primary_provider == "glm" else "glm"
+    fallback_model = gemini_model if fallback_provider == "gemini" else glm_model
+    if not primary_model:
+        return None
+
+    return {
+        "primaryProvider": primary_provider,
+        "primaryModel": primary_model,
+        "fallbackProvider": fallback_provider if fallback_model else None,
+        "fallbackModel": fallback_model,
+        "temperature": float(os.getenv("AI_DEFAULT_TEMPERATURE", "0")),
+        "reasoningEffort": _coerce_optional_string(os.getenv("AI_DEFAULT_REASONING_EFFORT")) or "low",
+        "enableCaching": _parse_bool(os.getenv("AI_DEFAULT_ENABLE_CACHING"), default=True),
+    }
+
+
+def _normalize_ai_config(value: dict | None) -> dict | None:
+    if not isinstance(value, dict):
+        return None
+    primary_provider = _coerce_optional_string(value.get("primaryProvider"))
+    primary_model = _coerce_optional_string(value.get("primaryModel"))
+    if not primary_provider or not primary_model:
+        return None
+    fallback_provider = _coerce_optional_string(value.get("fallbackProvider"))
+    fallback_model = _coerce_optional_string(value.get("fallbackModel"))
+    return {
+        "primaryProvider": primary_provider,
+        "primaryModel": primary_model,
+        "fallbackProvider": fallback_provider,
+        "fallbackModel": fallback_model,
+        "temperature": value.get("temperature", 0.0),
+        "reasoningEffort": _coerce_optional_string(value.get("reasoningEffort")) or "low",
+        "enableCaching": bool(value.get("enableCaching", True)),
+    }
+
+
+def _resolve_effective_ai_config(
+    *,
+    request_ai_config: dict | None,
+    access_point_ai_config: dict | None,
+    global_ai_config: dict | None,
+) -> dict | None:
+    env_ai_config = _default_ai_config_from_env()
+    return (
+        _normalize_ai_config(request_ai_config)
+        or _normalize_ai_config(access_point_ai_config)
+        or _normalize_ai_config(global_ai_config)
+        or env_ai_config
+    )
 
 
 def _coerce_optional_string(value: object | None) -> str | None:
@@ -42,6 +107,8 @@ def resolve_access_point_selection(
     requested_prompt_key: str | None,
     requested_persona_skill_key: str | None,
     requested_output_profile: str | None,
+    requested_ai_config: dict | None,
+    global_ai_config: dict | None,
     input_type: str,
     get_access_point_by_key: Callable[[str], dict | None] | None = None,
 ) -> AccessPointSelection:
@@ -85,6 +152,12 @@ def resolve_access_point_selection(
     if not persona_skill_key and output_profile:
         persona_skill_key = DEFAULT_PERSONA_BY_OUTPUT_PROFILE.get(output_profile, output_profile)
 
+    effective_ai_config = _resolve_effective_ai_config(
+        request_ai_config=requested_ai_config,
+        access_point_ai_config=access_point.get("aiConfig") if access_point else None,
+        global_ai_config=global_ai_config,
+    )
+
     return AccessPointSelection(
         access_point_key=_coerce_optional_string(
             access_point.get("accessPointKey") if access_point else requested_access_point_key
@@ -92,10 +165,7 @@ def resolve_access_point_selection(
         prompt_key=prompt_key,
         persona_skill_key=persona_skill_key,
         output_profile=output_profile,
-        ai_config=access_point.get("aiConfig") if access_point else None,
-        ai_provider=_coerce_optional_string(access_point.get("aiProvider") if access_point else None),
-        glm_model=_coerce_optional_string(access_point.get("glmModel") if access_point else None),
-        gemini_model=_coerce_optional_string(access_point.get("geminiModel") if access_point else None),
+        ai_config=effective_ai_config,
         system_prompt_override=_coerce_optional_string(
             access_point.get("systemPromptOverride") if access_point else None
         ),

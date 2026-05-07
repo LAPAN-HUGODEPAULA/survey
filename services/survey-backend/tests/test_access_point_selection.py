@@ -20,6 +20,8 @@ def test_resolve_access_point_selection_prefers_request_overrides():
         requested_prompt_key="request_prompt",
         requested_persona_skill_key="request_persona",
         requested_output_profile="request_profile",
+        requested_ai_config=None,
+        global_ai_config=None,
         input_type="survey7",
         get_access_point_by_key=lambda _key: access_point,
     )
@@ -48,6 +50,8 @@ def test_resolve_access_point_selection_uses_access_point_before_survey_defaults
         requested_prompt_key=None,
         requested_persona_skill_key=None,
         requested_output_profile=None,
+        requested_ai_config=None,
+        global_ai_config=None,
         input_type="survey7",
         get_access_point_by_key=lambda _key: access_point,
     )
@@ -75,6 +79,8 @@ def test_resolve_access_point_selection_falls_back_to_survey_defaults_when_bindi
         requested_prompt_key=None,
         requested_persona_skill_key=None,
         requested_output_profile=None,
+        requested_ai_config=None,
+        global_ai_config=None,
         input_type="survey7",
         get_access_point_by_key=lambda _key: access_point,
     )

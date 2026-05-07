@@ -231,9 +231,6 @@ async def send_to_langgraph_agent(
     persona_skill_key: str | None = None,
     output_profile: str | None = None,
     ai_config: Dict[str, Any] | None = None,
-    ai_provider: str | None = None,
-    glm_model: str | None = None,
-    gemini_model: str | None = None,
     system_prompt_override: str | None = None,
     format_prompt_override: str | None = None,
     source_app: str | None = None,
@@ -269,10 +266,10 @@ async def send_to_langgraph_agent(
     start_time = time.monotonic()
     headers["x-request-id"] = request_id
 
-    # Resolve AI parameters from ai_config if provided
-    resolved_ai_provider = ai_provider
-    resolved_glm_model = glm_model
-    resolved_gemini_model = gemini_model
+    # Resolve AI parameters from aiConfig only.
+    resolved_ai_provider = None
+    resolved_glm_model = None
+    resolved_gemini_model = None
     temperature = None
     do_sample = None
     thinking_mode = None
@@ -297,6 +294,7 @@ async def send_to_langgraph_agent(
         "prompt_key": resolved_prompt_key,
         "persona_skill_key": persona_skill_key,
         "output_profile": output_profile,
+        "ai_config": ai_config,
         "ai_provider": resolved_ai_provider,
         "glm_model": resolved_glm_model,
         "gemini_model": resolved_gemini_model,
