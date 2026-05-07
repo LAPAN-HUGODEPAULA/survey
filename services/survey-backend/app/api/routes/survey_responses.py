@@ -142,6 +142,7 @@ async def create_survey_response(
                     prompt_key=runtime_point.prompt_key,
                     persona_skill_key=runtime_point.persona_skill_key,
                     output_profile=runtime_point.output_profile,
+                    ai_config=runtime_point.ai_config,
                     source_app="survey-frontend",
                     patient_ref=survey_response.patient.email if survey_response.patient else None,
                 )
@@ -203,11 +204,15 @@ def _resolve_runtime_access_points(
             continue
         seen_keys.add(access_point_key)
         runtime_points.append(
-            type(primary_selection)(
+            AccessPointSelection(
                 access_point_key=access_point_key,
                 prompt_key=item["promptKey"],
                 persona_skill_key=item.get("personaSkillKey"),
                 output_profile=item.get("outputProfile"),
+                ai_config=item.get("aiConfig"),
+                ai_provider=item.get("aiProvider"),
+                glm_model=item.get("glmModel"),
+                gemini_model=item.get("geminiModel"),
             )
         )
     return runtime_points
