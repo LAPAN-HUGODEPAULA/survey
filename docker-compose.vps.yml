@@ -18,7 +18,7 @@ services:
       - survey_network
 
   contracts-dart-build-runner:
-    image: ghcr.io/cirruslabs/flutter:3.41.6
+    image: ghcr.io/cirruslabs/flutter:3.41.9
     container_name: contracts_dart_build_runner
     working_dir: /work/packages/contracts/generated/dart
     entrypoint: ["/bin/sh", "-lc"]
@@ -73,12 +73,16 @@ services:
 
   survey-backend:
     build: ./services/survey-backend
-    container_name: survey_backend
+    container_name: survey-backend
     restart: always
     expose:
       - "8000"
     env_file:
       - ./config/runtime/generated/private/survey-backend.env
+    environment:
+      - CLINICAL_WRITER_HTTP_TIMEOUT_SECONDS=300
+      - CLINICAL_WRITER_INLINE_TIMEOUT_SECONDS=180
+      - CLINICAL_WRITER_URL=http://clinical-writer-agent:8000/process
     depends_on:
       - mongodb
       - clinical-writer-api
@@ -89,7 +93,7 @@ services:
     build:
       context: .
       dockerfile: ./apps/survey-frontend/Dockerfile
-    container_name: survey_frontend
+    container_name: survey-frontend
     restart: always
     expose:
       - "80"
@@ -111,7 +115,7 @@ services:
     build:
       context: .
       dockerfile: ./apps/survey-patient/Dockerfile
-    container_name: survey_patient
+    container_name: survey-patient
     restart: always
     expose:
       - "80"
@@ -133,7 +137,7 @@ services:
     build:
       context: .
       dockerfile: ./apps/survey-builder/Dockerfile
-    container_name: survey_builder
+    container_name: survey-builder
     restart: always
     expose:
       - "80"
@@ -153,7 +157,7 @@ services:
 
   survey-worker:
     build: ./services/survey-worker
-    container_name: survey_worker
+    container_name: survey-worker
     restart: always
     env_file:
       - ./config/runtime/generated/private/survey-worker.env
@@ -166,8 +170,8 @@ services:
     build:
       context: ./services/clinical-writer-api/clinical_writer_agent
       dockerfile: Dockerfile
-    command: uvicorn clinical_writer_agent.main:app --host 0.0.0.0 --port 8000
-    container_name: clinical_writer_agent
+    command: uvicorn clinical_writer_agent.main:app --host 0.0.0.0 --port 8000 --workers 4 --timeout-keep-alive 300
+    container_name: clinical-writer-agent
     env_file:
       - services/clinical-writer-api/clinical_writer_agent/.env
       - ./config/runtime/generated/private/clinical-writer.env
@@ -181,7 +185,7 @@ services:
     build:
       context: .
       dockerfile: ./apps/clinical-narrative/Dockerfile
-    container_name: clinical_narrative
+    container_name: clinical-narrative
     restart: always
     expose:
       - "80"

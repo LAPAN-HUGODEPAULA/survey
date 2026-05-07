@@ -31,22 +31,22 @@ case "$MODE" in
     REMOTE_DEPLOY_CMD="python3 tools/scripts/render_runtime_config.py && docker compose up -d --no-build --force-recreate traefik mongodb survey-backend survey-worker"
     ;;
   frontend-only)
-    REMOTE_DEPLOY_CMD="python3 tools/scripts/render_runtime_config.py && docker compose --parallel 1 build survey-frontend && docker compose up -d --no-deps survey-frontend"
+    REMOTE_DEPLOY_CMD="python3 tools/scripts/render_runtime_config.py && docker compose up -d --no-deps --no-build survey-frontend"
     ;;
   patient-only)
-    REMOTE_DEPLOY_CMD="python3 tools/scripts/render_runtime_config.py && docker compose --parallel 1 build survey-patient && docker compose up -d --no-deps survey-patient"
+    REMOTE_DEPLOY_CMD="python3 tools/scripts/render_runtime_config.py && docker compose up -d --no-deps --no-build survey-patient"
     ;;
   builder-only)
-    REMOTE_DEPLOY_CMD="python3 tools/scripts/render_runtime_config.py && docker compose --parallel 1 build survey-builder && docker compose up -d --no-deps survey-builder"
+    REMOTE_DEPLOY_CMD="python3 tools/scripts/render_runtime_config.py && docker compose up -d --no-deps --no-build survey-builder"
     ;;
   narrative-only)
-    REMOTE_DEPLOY_CMD="python3 tools/scripts/render_runtime_config.py && docker compose --parallel 1 build clinical-narrative && docker compose up -d --no-deps clinical-narrative"
+    REMOTE_DEPLOY_CMD="python3 tools/scripts/render_runtime_config.py && docker compose up -d --no-deps --no-build clinical-narrative"
     ;;
   backend-only)
-    REMOTE_DEPLOY_CMD="python3 tools/scripts/render_runtime_config.py && docker compose --parallel 1 build survey-backend survey-worker && docker compose up -d survey-backend survey-worker"
+    REMOTE_DEPLOY_CMD="python3 tools/scripts/render_runtime_config.py && docker compose build survey-backend survey-worker && docker compose up -d survey-backend survey-worker"
     ;;
   full-build)
-    REMOTE_DEPLOY_CMD="python3 tools/scripts/render_runtime_config.py && docker compose --parallel 1 up -d --build"
+    REMOTE_DEPLOY_CMD="python3 tools/scripts/render_runtime_config.py && docker compose up -d --build"
     ;;
   *)
     usage
@@ -54,11 +54,10 @@ case "$MODE" in
     ;;
 esac
 
-rsync -vrupthlgo --delete --no-whole-file --bwlimit=150 \
+rsync -vrupthlgo --delete --no-whole-file --bwlimit=2000 \
   --exclude='venv/' \
   --exclude='.venv/' \
   --exclude='android/' \
-  --exclude='build/' \
   --exclude='__pycache__' \
   --exclude='.dart_tool/' \
   -e "$RSYNC_SSH" \

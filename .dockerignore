@@ -1,0 +1,18 @@
+.git
+.dart_tool/
+**/node_modules/
+venv/
+.venv/
+__pycache__/
+*.log
+_legacy/
+**/android/
+**/ios/
+**/windows/
+**/linux/
+**/macos/
+
+# Build artifacts
+**/build/
+# Allow the specific web artifacts we need for the Docker COPY
+!**/build/web/
