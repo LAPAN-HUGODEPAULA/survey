@@ -50,6 +50,7 @@ class _DsMedicationAutocompleteFieldState
   bool _isSearchingRemote = false;
   bool _catalogLoaded = false;
   bool _hasPersistError = false;
+  String? _currentRemoteQuery;
 
   @override
   void didUpdateWidget(covariant DsMedicationAutocompleteField oldWidget) {
@@ -160,12 +161,13 @@ class _DsMedicationAutocompleteFieldState
   }
 
   Future<void> _loadRemoteSuggestions(String query) async {
+    _currentRemoteQuery = query;
     setState(() {
       _isSearchingRemote = true;
     });
     try {
       final response = await widget.searchMedications(query);
-      if (!mounted) {
+      if (!mounted || _currentRemoteQuery != query) {
         return;
       }
       setState(() {
@@ -180,7 +182,7 @@ class _DsMedicationAutocompleteFieldState
         _isSearchingRemote = false;
       });
     } catch (_) {
-      if (!mounted) {
+      if (!mounted || _currentRemoteQuery != query) {
         return;
       }
       setState(() {
