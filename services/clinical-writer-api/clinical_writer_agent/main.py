@@ -116,9 +116,7 @@ class ProcessRequest(BaseModel):
     prompt_key: str = Field(default="default")
     persona_skill_key: Optional[str] = Field(default=None)
     output_profile: Optional[str] = Field(default=None)
-    ai_provider: Optional[str] = Field(default=None)
-    glm_model: Optional[str] = Field(default=None)
-    gemini_model: Optional[str] = Field(default=None)
+    ai_config: Optional[dict] = Field(default=None, alias="aiConfig")
     system_prompt_override: Optional[str] = Field(default=None)
     format_prompt_override: Optional[str] = Field(default=None)
     temperature: Optional[float] = Field(default=None, ge=0.0, le=1.0)
@@ -322,9 +320,7 @@ async def process_content(
         "prompt_key": body.prompt_key,
         "persona_skill_key": body.persona_skill_key,
         "output_profile": body.output_profile,
-        "ai_provider": body.ai_provider,
-        "glm_model": body.glm_model,
-        "gemini_model": body.gemini_model,
+        "ai_config": body.ai_config,
         "system_prompt_override": body.system_prompt_override,
         "format_prompt_override": body.format_prompt_override,
         "temperature": body.temperature,

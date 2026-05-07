@@ -14,10 +14,23 @@ class Settings(BaseModel):
     processing_stale_after_seconds: int = int(
         os.getenv("PROCESSING_STALE_AFTER_SECONDS", "60")
     )
+    worker_max_retries: int = int(os.getenv("WORKER_MAX_RETRIES", "1"))
 
     clinical_writer_url: str = os.getenv("CLINICAL_WRITER_URL", "http://clinical_writer_agent:8000/process")
     clinical_writer_token: str | None = os.getenv("CLINICAL_WRITER_API_TOKEN")
     http_timeout_seconds: int = int(os.getenv("HTTP_TIMEOUT_SECONDS", "15"))
+    log_payload_enabled: bool = os.getenv("WORKER_LOG_PAYLOAD", "false").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    log_response_enabled: bool = os.getenv("WORKER_LOG_RESPONSE", "false").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
 
 
 settings = Settings()

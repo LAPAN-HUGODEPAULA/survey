@@ -11,6 +11,7 @@ from typing import Any
 _STAGE_MESSAGES: dict[str, str] = {
     "loading_context": "Estamos reunindo as respostas do questionário e as instruções clínicas para o caso.",
     "analyzing": "Estamos analisando os sinais principais do caso para uma leitura inicial mais cuidadosa.",
+    "thinking": "Estamos raciocinando profundamente sobre o caso clínico para garantir precisão diagnóstica.",
     "drafting": "Estamos escrevendo a primeira versão do documento com o tom adequado ao público-alvo.",
     "reviewing": "Estamos revisando o conteúdo para garantir que as informações sejam claras e confiáveis.",
     "completed": "A geração foi concluída com sucesso.",
@@ -18,9 +19,9 @@ _STAGE_MESSAGES: dict[str, str] = {
 
 _AGENT_STAGE_MAP: dict[str, tuple[str, int]] = {
     "ContextLoader": ("loading_context", 15),
-    "ClinicalAnalyzer": ("analyzing", 45),
-    "PersonaWriter": ("drafting", 75),
-    "ReflectorNode": ("reviewing", 90),
+    "ClinicalAnalyzer": ("analyzing", 40),
+    "Thinking": ("thinking", 65),
+    "PersonaWriter": ("drafting", 85),
 }
 
 
@@ -123,9 +124,9 @@ def _human_stage_label(stage: str) -> str:
         "queued": "Na fila",
         "loading_context": "Carregando contexto",
         "analyzing": "Analisando sinais",
+        "thinking": "Raciocinando",
         "drafting": "Escrevendo rascunho",
         "reviewing": "Revisando conteúdo",
         "completed": "Concluído",
     }
     return labels.get(stage, stage)
-

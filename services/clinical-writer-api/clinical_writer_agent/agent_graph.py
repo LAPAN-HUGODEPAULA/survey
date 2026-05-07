@@ -9,7 +9,6 @@ from .agents.deterministic_router_agent import DeterministicRouterAgent
 from .agents.context_loader_agent import ContextLoaderAgent
 from .agents.clinical_analyzer_agent import ClinicalAnalyzerAgent
 from .agents.persona_writer_agent import PersonaWriterAgent
-from .agents.reflector_node import ReflectorNode
 from .agents.other_inputs_handler_agent import OtherInputHandlerAgent
 from .monitoring.base_monitors import CompositeMonitor, ProcessingMonitor
 from .monitoring.logging_monitor import LoggingMonitor
@@ -26,7 +25,6 @@ def create_graph(
     *,
     conversation_llm=None,
     json_llm=None,
-    critique_llm=None,
     prompt_registry=None,
 ):
     """
@@ -36,7 +34,6 @@ def create_graph(
         observer: Optional observer for monitoring and logging to attach to the compiled graph.
         conversation_llm: Optional LLM instance to inject into the conversation processor.
         json_llm: Optional LLM instance to inject into the JSON processor.
-        critique_llm: Optional higher-order LLM instance to inject into the reflection processor.
     
     Returns:
         Compiled LangGraph workflow
@@ -65,12 +62,6 @@ def create_graph(
             conversation_llm=conversation_llm,
             json_llm=json_llm,
         ).write,
-    )
-    workflow.add_node(
-        "reflector",
-        ReflectorNode(
-            critique_llm=critique_llm,
-        ).reflect,
     )
     workflow.add_node("handle_other", OtherInputHandlerAgent().handle)
 
@@ -119,16 +110,7 @@ def create_graph(
         "persona_writer",
         lambda state: "error" if state.get("error_message") else "ok",
         {
-            "ok": "reflector",
-            "error": "handle_other",
-        },
-    )
-    workflow.add_conditional_edges(
-        "reflector",
-        lambda state: _resolve_reflection_route(state),
-        {
-            "pass": END,
-            "retry": "persona_writer",
+            "ok": END,
             "error": "handle_other",
         },
     )
@@ -142,17 +124,6 @@ def create_graph(
         setattr(compiled_graph, "observer", observer)
 
     return compiled_graph
-
-
-def _resolve_reflection_route(state: AgentState) -> str:
-    """Return the next workflow step after reflection."""
-    if state.get("error_message"):
-        return "error"
-    if state.get("reflection_status") == "passed":
-        return "pass"
-    if state.get("reflection_status") == "failed":
-        return "retry"
-    return "error"
 
 
 def create_default_observer() -> CompositeMonitor:

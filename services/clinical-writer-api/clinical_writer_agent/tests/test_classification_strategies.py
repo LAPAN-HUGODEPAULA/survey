@@ -139,7 +139,7 @@ class TestIndividualStrategies(unittest.TestCase):
     def test_json_strategy_valid_json(self):
         """Test JSON strategy with valid JSON"""
         strategy = JsonClassificationStrategy()
-        json_text = json.dumps({"patient": "John"})
+        json_text = json.dumps({"surveyId": "test_survey", "patient": "John"})
         classification, is_valid = strategy.classify(json_text)
         self.assertTrue(is_valid)
         self.assertEqual(classification, AgentConfig.CLASSIFICATION_JSON)

@@ -22,7 +22,7 @@ class _StubJudge:
 
 def test_integration():
     """Test that validation + classification cooperate to route inputs correctly."""
-    validator = InputValidatorAgent(llm_judge=_StubJudge(1.0))
+    validator = InputValidatorAgent()
     classifier = ClassificationAgent()
 
     print("Testing Strategy Pattern Integration...")
@@ -37,7 +37,7 @@ def test_integration():
 
     # Test 1: JSON input
     print("\n1. Testing JSON classification:")
-    result = _run_pipeline('{"patient": "John Doe", "age": 30}')
+    result = _run_pipeline('{"surveyId": "test", "patient": "John Doe", "age": 30}')
     print(f"   Input: JSON with patient key")
     print(f"   Result: {result.get('classification')}")
     assert result.get('classification') == AgentConfig.CLASSIFICATION_JSON, "JSON classification failed"

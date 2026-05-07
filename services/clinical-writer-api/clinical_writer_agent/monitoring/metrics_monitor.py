@@ -27,6 +27,10 @@ class MetricsMonitor(ProcessingMonitor):
             'processing_times': defaultdict(list),
             'processing_counts': defaultdict(int),
             'errors': defaultdict(int),
+            'events': defaultdict(int),
+            'provider_usage': defaultdict(int),
+            'fallback_count': 0,
+            'quota_pressure_signals': 0,
             'validation_results': {'passed': 0, 'failed': 0},
             'validation_times': [],
             'total_requests': 0,
@@ -47,8 +51,12 @@ class MetricsMonitor(ProcessingMonitor):
     
     def on_error(self, error: Exception, context: Dict[str, Any], timestamp: datetime, request_id: Optional[str] = None):
         """Record error metrics."""
+        del context, timestamp, request_id
         error_type = type(error).__name__
         self.metrics['errors'][error_type] += 1
+        lowered = str(error).lower()
+        if any(token in lowered for token in ("429", "rate limit", "resource_exhausted", "quota")):
+            self.metrics['quota_pressure_signals'] += 1
     
     def on_validation_start(self, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
         """Validation start increments total requests."""
@@ -64,8 +72,16 @@ class MetricsMonitor(ProcessingMonitor):
         self.metrics['validation_times'].append(duration)
 
     def on_event(self, event_name: str, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
-        """Generic events are not tracked by this monitor."""
-        pass
+        """Track event volume and provider routing metadata."""
+        del timestamp, request_id
+        self.metrics['events'][event_name] += 1
+        if not metadata:
+            return
+        provider = metadata.get("provider")
+        if provider:
+            self.metrics['provider_usage'][str(provider)] += 1
+        if metadata.get("fallback_used") is True:
+            self.metrics['fallback_count'] += 1
     
     def get_metrics_summary(self) -> Dict[str, Any]:
         """
@@ -101,8 +117,12 @@ class MetricsMonitor(ProcessingMonitor):
             'runtime_seconds': runtime,
             'total_requests': self.metrics['total_requests'],
             'classifications': dict(self.metrics['classifications']),
+            'events': dict(self.metrics['events']),
             'processing_times': avg_processing_times,
             'processing_counts': dict(self.metrics['processing_counts']),
+            'provider_usage': dict(self.metrics['provider_usage']),
+            'fallback_count': self.metrics['fallback_count'],
+            'quota_pressure_signals': self.metrics['quota_pressure_signals'],
             'errors': dict(self.metrics['errors']),
             'validation_results': dict(self.metrics['validation_results']),
             'validation_stats': validation_stats,
@@ -127,9 +147,12 @@ class MetricsMonitor(ProcessingMonitor):
             'processing_times': defaultdict(list),
             'processing_counts': defaultdict(int),
             'errors': defaultdict(int),
+            'events': defaultdict(int),
+            'provider_usage': defaultdict(int),
+            'fallback_count': 0,
+            'quota_pressure_signals': 0,
             'validation_results': {'passed': 0, 'failed': 0},
             'validation_times': [],
             'total_requests': 0,
             'start_time': datetime.now()
         }
-

@@ -28,7 +28,9 @@ from app.persistence.repositories.agent_access_point_repo import AgentAccessPoin
 from app.persistence.repositories.patient_response_repo import PatientResponseRepository
 from app.persistence.repositories.persona_skill_repo import PersonaSkillRepository
 from app.persistence.repositories.survey_repo import SurveyRepository
-from app.services.access_point_selection import resolve_access_point_selection
+from app.persistence.repositories.system_settings_repo import SystemSettingsRepository
+from app.persistence.mongo.client import get_db
+from app.services.access_point_selection import AccessPointSelection, resolve_access_point_selection
 from app.services.survey_prompt_selection import (
     hydrate_survey_persona_defaults,
 )
@@ -73,12 +75,15 @@ async def create_patient_response(
             get_persona_by_key=persona_repo.get_by_key,
             get_persona_by_output_profile=persona_repo.get_by_output_profile,
         )
+        global_ai_config = SystemSettingsRepository(get_db()).get_json("global_ai_config")
         selection = resolve_access_point_selection(
             survey=resolved_survey,
             requested_access_point_key=survey_response.access_point_key,
             requested_prompt_key=survey_response.prompt_key,
             requested_persona_skill_key=survey_response.persona_skill_key,
             requested_output_profile=survey_response.output_profile,
+            requested_ai_config=None,
+            global_ai_config=global_ai_config,
             input_type="survey7",
             get_access_point_by_key=access_point_repo.get_by_key,
         )
@@ -126,6 +131,7 @@ async def create_patient_response(
                     survey_id=survey_response.survey_id,
                     source_app="survey-patient",
                     flow_key="thank_you.auto_analysis",
+                    global_ai_config=global_ai_config,
                 )
                 for runtime_point in runtime_points:
                     agent_result = await send_to_langgraph_agent(
@@ -255,6 +261,7 @@ def _resolve_runtime_access_points(
     survey_id: str,
     source_app: str,
     flow_key: str,
+    global_ai_config: dict | None,
 ):
     runtime_points = [primary_selection]
     configured = access_point_repo.list_for_runtime(
@@ -274,10 +281,7 @@ def _resolve_runtime_access_points(
                 prompt_key=item["promptKey"],
                 persona_skill_key=item.get("personaSkillKey"),
                 output_profile=item.get("outputProfile"),
-                ai_config=item.get("aiConfig"),
-                ai_provider=item.get("aiProvider"),
-                glm_model=item.get("glmModel"),
-                gemini_model=item.get("geminiModel"),
+                ai_config=item.get("aiConfig") or global_ai_config,
             )
         )
     return runtime_points

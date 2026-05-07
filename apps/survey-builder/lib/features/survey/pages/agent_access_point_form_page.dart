@@ -57,6 +57,7 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
   String _sourceApp = 'survey-patient';
   String _primaryProvider = 'glm';
   String? _fallbackProvider = 'gemini';
+  bool _useGlobalAiSettings = false;
   double _temperature = 0.0;
   String _reasoningEffort = 'low';
   bool _enableCaching = true;
@@ -101,10 +102,10 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
       text: draft.description ?? '',
     )..addListener(_handleMutation);
     _primaryModelController = TextEditingController(
-      text: draft.aiConfig?.primaryModel ?? draft.glmModel ?? '',
+      text: draft.aiConfig?.primaryModel ?? '',
     )..addListener(_handleMutation);
     _fallbackModelController = TextEditingController(
-      text: draft.aiConfig?.fallbackModel ?? draft.geminiModel ?? '',
+      text: draft.aiConfig?.fallbackModel ?? '',
     )..addListener(_handleMutation);
     _systemPromptController = TextEditingController(
       text: draft.systemPromptOverride ?? '',
@@ -114,8 +115,9 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
     )..addListener(_handleMutation);
 
     _sourceApp = draft.sourceApp;
-    _primaryProvider = draft.aiConfig?.primaryProvider ?? draft.aiProvider ?? 'glm';
+    _primaryProvider = draft.aiConfig?.primaryProvider ?? 'glm';
     _fallbackProvider = draft.aiConfig?.fallbackProvider ?? (draft.aiConfig == null ? 'gemini' : null);
+    _useGlobalAiSettings = draft.aiConfig == null;
     _temperature = draft.aiConfig?.temperature ?? 0.0;
     _reasoningEffort = draft.aiConfig?.reasoningEffort ?? 'low';
     _enableCaching = draft.aiConfig?.enableCaching ?? true;
@@ -393,28 +395,19 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
       promptKey: _promptKey ?? '',
       personaSkillKey: _personaSkillKey ?? '',
       outputProfile: persona?.outputProfile ?? '',
-      aiConfig: AIConfigDraft(
-        primaryProvider: _primaryProvider,
-        primaryModel: _primaryModelController.text.trim(),
-        fallbackProvider: _fallbackProvider,
-        fallbackModel: _fallbackModelController.text.trim().isEmpty
-            ? null
-            : _fallbackModelController.text.trim(),
-        temperature: _temperature,
-        reasoningEffort: _reasoningEffort,
-        enableCaching: _enableCaching,
-      ),
-      aiProvider: _primaryProvider,
-      glmModel: _primaryProvider == 'glm'
-          ? _primaryModelController.text.trim()
-          : (_fallbackProvider == 'glm'
-              ? _fallbackModelController.text.trim()
-              : null),
-      geminiModel: _primaryProvider == 'gemini'
-          ? _primaryModelController.text.trim()
-          : (_fallbackProvider == 'gemini'
-              ? _fallbackModelController.text.trim()
-              : null),
+      aiConfig: _useGlobalAiSettings
+          ? null
+          : AIConfigDraft(
+              primaryProvider: _primaryProvider,
+              primaryModel: _primaryModelController.text.trim(),
+              fallbackProvider: _fallbackProvider,
+              fallbackModel: _fallbackModelController.text.trim().isEmpty
+                  ? null
+                  : _fallbackModelController.text.trim(),
+              temperature: _temperature,
+              reasoningEffort: _reasoningEffort,
+              enableCaching: _enableCaching,
+            ),
       systemPromptOverride: _systemPromptController.text.trim().isEmpty
           ? null
           : _systemPromptController.text.trim(),
@@ -717,9 +710,7 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                                 // Se mudar para Global, não pode mais herdar. 
                                 // Resetamos para o primeiro item válido se estiver nulo.
                                 if (value == null) {
-                                  if (_promptKey == null) {
-                                    _promptKey = _localPromptOptions.first.$1;
-                                  }
+                                  _promptKey ??= _localPromptOptions.first.$1;
                                   if (_personaSkillKey == null &&
                                       _personas.isNotEmpty) {
                                     _personaSkillKey =
@@ -859,8 +850,23 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text('Usar Global AI Settings'),
+                            subtitle: const Text(
+                              'Quando habilitado, este access point herda aiConfig global sem override local.',
+                            ),
+                            value: _useGlobalAiSettings,
+                            onChanged: (value) {
+                              setState(() {
+                                _useGlobalAiSettings = value;
+                                _isDirty = true;
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 12),
                           DropdownButtonFormField<String>(
-                            value: _primaryProvider,
+                            initialValue: _primaryProvider,
                             decoration: const InputDecoration(
                               labelText: 'Provedor primário *',
                             ),
@@ -874,7 +880,9 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                                 child: Text('Google Gemini'),
                               ),
                             ],
-                            onChanged: (value) {
+                            onChanged: _useGlobalAiSettings
+                                ? null
+                                : (value) {
                               if (value != null) {
                                 setState(() {
                                   _primaryProvider = value;
@@ -886,16 +894,19 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                           const SizedBox(height: 12),
                           TextFormField(
                             controller: _primaryModelController,
+                            readOnly: _useGlobalAiSettings,
                             decoration: const InputDecoration(
                               labelText: 'Modelo primário *',
                               helperText:
                                   'Ex.: glm-4.5-flash ou gemini-2.0-flash',
                             ),
-                            validator: DsKeyFieldSupport.validateRequired,
+                            validator: _useGlobalAiSettings
+                                ? null
+                                : DsKeyFieldSupport.validateRequired,
                           ),
                           const SizedBox(height: 24),
                           DropdownButtonFormField<String?>(
-                            value: _fallbackProvider,
+                            initialValue: _fallbackProvider,
                             decoration: const InputDecoration(
                               labelText: 'Provedor de fallback',
                               helperText:
@@ -915,7 +926,9 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                                 child: Text('Google Gemini'),
                               ),
                             ],
-                            onChanged: (value) {
+                            onChanged: _useGlobalAiSettings
+                                ? null
+                                : (value) {
                               setState(() {
                                 _fallbackProvider = value;
                                 _isDirty = true;
@@ -925,6 +938,7 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                           const SizedBox(height: 12),
                           TextFormField(
                             controller: _fallbackModelController,
+                            readOnly: _useGlobalAiSettings,
                             decoration: const InputDecoration(
                               labelText: 'Modelo de fallback',
                               helperText: 'Opcional. Ex.: gemini-2.0-flash',
@@ -941,7 +955,9 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                             max: 1.0,
                             divisions: 10,
                             label: _temperature.toStringAsFixed(1),
-                            onChanged: (value) {
+                            onChanged: _useGlobalAiSettings
+                                ? null
+                                : (value) {
                               setState(() {
                                 _temperature = value;
                                 _isDirty = true;
@@ -950,7 +966,7 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                           ),
                           const SizedBox(height: 12),
                           DropdownButtonFormField<String>(
-                            value: _reasoningEffort,
+                            initialValue: _reasoningEffort,
                             decoration: const InputDecoration(
                               labelText: 'Esforço de raciocínio (Reasoning)',
                             ),
@@ -968,7 +984,9 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                                 child: Text('Alto (Reasoning)'),
                               ),
                             ],
-                            onChanged: (value) {
+                            onChanged: _useGlobalAiSettings
+                                ? null
+                                : (value) {
                               if (value != null) {
                                 setState(() {
                                   _reasoningEffort = value;
@@ -985,7 +1003,9 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                               'Otimiza custos para prompts repetitivos.',
                             ),
                             value: _enableCaching,
-                            onChanged: (value) {
+                            onChanged: _useGlobalAiSettings
+                                ? null
+                                : (value) {
                               setState(() {
                                 _enableCaching = value;
                                 _isDirty = true;

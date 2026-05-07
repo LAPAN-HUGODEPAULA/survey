@@ -135,9 +135,6 @@ class AgentAccessPointRepository {
       personaSkillKey: json['personaSkillKey']?.toString() ?? '',
       outputProfile: json['outputProfile']?.toString() ?? '',
       aiConfig: aiConfig,
-      aiProvider: json['aiProvider']?.toString(),
-      glmModel: json['glmModel']?.toString(),
-      geminiModel: json['geminiModel']?.toString(),
       systemPromptOverride: json['systemPromptOverride']?.toString(),
       formatPromptOverride: json['formatPromptOverride']?.toString(),
       surveyId: json['surveyId']?.toString(),
@@ -156,15 +153,6 @@ class AgentAccessPointRepository {
       'promptKey': draft.promptKey.trim().toLowerCase(),
       'personaSkillKey': draft.personaSkillKey.trim().toLowerCase(),
       'outputProfile': draft.outputProfile.trim().toLowerCase(),
-      'aiProvider': draft.aiProvider?.trim().isEmpty ?? true
-          ? null
-          : draft.aiProvider!.trim(),
-      'glmModel': draft.glmModel?.trim().isEmpty ?? true
-          ? null
-          : draft.glmModel!.trim(),
-      'geminiModel': draft.geminiModel?.trim().isEmpty ?? true
-          ? null
-          : draft.geminiModel!.trim(),
       'systemPromptOverride': draft.systemPromptOverride?.trim().isEmpty ?? true
           ? null
           : draft.systemPromptOverride!.trim(),

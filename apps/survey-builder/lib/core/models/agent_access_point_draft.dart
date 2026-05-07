@@ -40,9 +40,6 @@ class AgentAccessPointDraft {
     required this.personaSkillKey,
     required this.outputProfile,
     this.aiConfig,
-    this.aiProvider,
-    this.glmModel,
-    this.geminiModel,
     this.systemPromptOverride,
     this.formatPromptOverride,
     this.surveyId,
@@ -59,9 +56,6 @@ class AgentAccessPointDraft {
   final String personaSkillKey;
   final String outputProfile;
   final AIConfigDraft? aiConfig;
-  final String? aiProvider;
-  final String? glmModel;
-  final String? geminiModel;
   final String? systemPromptOverride;
   final String? formatPromptOverride;
   final String? surveyId;
@@ -79,9 +73,6 @@ class AgentAccessPointDraft {
       personaSkillKey: personaSkillKey,
       outputProfile: outputProfile,
       aiConfig: aiConfig?.copy(),
-      aiProvider: aiProvider,
-      glmModel: glmModel,
-      geminiModel: geminiModel,
       systemPromptOverride: systemPromptOverride,
       formatPromptOverride: formatPromptOverride,
       surveyId: surveyId,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime
 
 from .agent_state import AgentState
@@ -35,6 +36,7 @@ class PersonaWriterAgent:  # pylint: disable=too-few-public-methods
         observer = state.get("observer")
         request_id = state.get("request_id")
         agent_type = "PersonaWriter"
+        logger = logging.getLogger("clinical_writer.stages")
 
         start_time = datetime.now()
         if observer:
@@ -49,6 +51,11 @@ class PersonaWriterAgent:  # pylint: disable=too-few-public-methods
             )
 
         try:
+            logger.info(
+                "stage=persona_writer_start request_id=%s input_type=%s",
+                request_id,
+                state.get("input_type"),
+            )
             llm_model = self._select_llm(state)
             prompt = self._build_prompt(
                 persona_prompt=state.get("persona_prompt", ""),
@@ -81,9 +88,20 @@ class PersonaWriterAgent:  # pylint: disable=too-few-public-methods
                     },
                     request_id,
                 )
+            logger.info(
+                "stage=persona_writer_complete request_id=%s model_version=%s",
+                request_id,
+                new_state.get("model_version"),
+            )
         except Exception as error:  # pylint: disable=broad-exception-caught
             new_state["error_kind"] = "persona_write_failed"
             new_state["error_message"] = f"Persona writing failed: {error}"
+            logger.error(
+                "stage=persona_writer_error request_id=%s error_kind=%s error=%s",
+                request_id,
+                new_state.get("error_kind"),
+                error,
+            )
             if observer:
                 observer.on_error(
                     error,

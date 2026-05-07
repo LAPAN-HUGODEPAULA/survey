@@ -41,3 +41,30 @@ class SystemSettingsRepository:
             },
             upsert=True,
         )
+
+    def get_json(self, key: str) -> dict | None:
+        """Return the raw JSON-like object value for a key."""
+        found = self._col.find_one({"key": key})
+        if not found:
+            return None
+        value = found.get("value")
+        if not isinstance(value, dict):
+            return None
+        return dict(value)
+
+    def set_json(self, key: str, value: dict) -> None:
+        """Create or update a global JSON-like setting value."""
+        now = datetime.now(timezone.utc)
+        payload = {
+            "key": key,
+            "value": value,
+            "modifiedAt": now,
+        }
+        self._col.update_one(
+            {"key": key},
+            {
+                "$set": payload,
+                "$setOnInsert": {"createdAt": now},
+            },
+            upsert=True,
+        )

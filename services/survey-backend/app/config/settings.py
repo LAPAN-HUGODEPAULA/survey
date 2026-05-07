@@ -19,11 +19,14 @@ class Settings(BaseModel):
     mongo_db_name: str = os.getenv("MONGO_DB_NAME", "survey_db")
 
     # Clinical Writer integration settings.
-    clinical_writer_url: str = os.getenv("CLINICAL_WRITER_URL", "http://clinical_writer_agent:8000/process")
+    clinical_writer_url: str = os.getenv("CLINICAL_WRITER_URL", "http://clinical-writer-agent:8000/process")
     clinical_writer_token: str | None = os.getenv("CLINICAL_WRITER_API_TOKEN")
     clinical_writer_transcription_url: str | None = os.getenv("CLINICAL_WRITER_TRANSCRIPTION_URL")
     clinical_writer_http_timeout_seconds: int = int(
-        os.getenv("CLINICAL_WRITER_HTTP_TIMEOUT_SECONDS", "120")
+        os.getenv("CLINICAL_WRITER_HTTP_TIMEOUT_SECONDS", "300")
+    )
+    clinical_writer_inline_timeout_seconds: int = int(
+        os.getenv("CLINICAL_WRITER_INLINE_TIMEOUT_SECONDS", "180")
     )
 
     # Email delivery settings.

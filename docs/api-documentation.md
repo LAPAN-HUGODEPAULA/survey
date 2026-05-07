@@ -46,6 +46,10 @@
   - `PUT /agent_access_points/{access_point_key}` - update an access-point definition.
   - `DELETE /agent_access_points/{access_point_key}` - delete an access-point definition.
 
+- **Global AI Settings**
+  - `GET /settings/ai` - return the singleton global `aiConfig` used as system-level default.
+  - `PUT /settings/ai` - update the singleton global `aiConfig` (builder admin + CSRF required).
+
 - **Survey Responses**
   - `POST /survey_responses/` – create survey response; persists, resolves runtime configuration through request overrides, access point, survey defaults, and legacy fallback, then optionally enriches with one or more Clinical Writer artifacts. Returns `SurveyResponseWithAgent`.
   - `GET /survey_responses/` – list all survey responses.
@@ -61,7 +65,7 @@
 - `SurveyPrompt`: questionnaire prompt definition stored canonically in `QuestionnairePrompts`.
 - `PersonaSkill`: output-profile persona definition stored in `PersonaSkills`.
 - `Survey`: survey metadata and questions, stored in the `surveys` collection with an embedded `prompt` reference (`promptKey`, `name`).
-- `AgentAccessPoint`: builder-managed runtime mapping with `accessPointKey`, `sourceApp`, `flowKey`, optional `surveyId`, and bound `promptKey`, `personaSkillKey`, and `outputProfile`, plus optional `aiProvider`, `glmModel`, and `geminiModel`.
+- `AgentAccessPoint`: builder-managed runtime mapping with `accessPointKey`, `sourceApp`, `flowKey`, optional `surveyId`, bound `promptKey`, `personaSkillKey`, `outputProfile`, and optional `aiConfig` (`primaryProvider`, `primaryModel`, `fallbackProvider`, `fallbackModel`, `temperature`, `reasoningEffort`, `enableCaching`).
 - `SurveyResponse`: answers plus patient details, stored in the `survey_responses` collection, with optional `accessPointKey`, `promptKey`, `personaSkillKey`, and `outputProfile`.
 - `PatientResponse`: answers plus patient details, stored in the `patient_responses` collection.
 - `SurveyResponseWithAgent`: response payload plus a legacy-compatible `agentResponse` field and the full `agentResponses` list for access-point fan-out results.
@@ -77,9 +81,7 @@ Request body (JSON):
 - `content`: raw consult text or JSON string payload
 - `locale`: defaults to `pt-BR`
 - `accessPointKey`: optional stable runtime entry-point identifier. When supplied, the backend requires `surveyId` in `metadata` or encoded in the JSON `content`.
-- `aiProvider`: optional primary AI provider (`glm` | `gemini`).
-- `glmModel`: optional override for GLM model string.
-- `geminiModel`: optional override for Gemini model string.
+- `aiConfig`: optional AI settings object in canonical schema (`primaryProvider`, `primaryModel`, `fallbackProvider`, `fallbackModel`, `temperature`, `reasoningEffort`, `enableCaching`).
 - `prompt_key`: defaults to `default`
 - `persona_skill_key`: optional persona key for output tone/restrictions
 - `output_profile`: optional output profile used to derive a default persona skill
@@ -105,10 +107,12 @@ Asynchronous Status (/clinical_writer/status/{task_id}):
 
 Survey-driven Clinical Writer resolution now follows this order:
 
-1. Explicit request overrides: `promptKey`, `personaSkillKey`, `outputProfile`
-2. Access-point bindings resolved from `accessPointKey`
-3. Survey defaults stored on the survey document
-4. Legacy fallback from the historical prompt-selection path for non-migrated flows
+1. Prompt/persona/output selection: explicit request overrides, then access-point bindings, then survey defaults.
+2. AI model selection: explicit request `aiConfig`, then access-point `aiConfig`, then global singleton `aiConfig` (`/settings/ai`), then environment fallback.
+
+For AI model governance, retired flat fields (`aiProvider`, `glmModel`, `geminiModel`) are no longer part of runtime contracts.
+
+The Clinical Writer service runs as an executor-only component: provider/model policy is resolved upstream and passed in payload.
 
 For survey completion endpoints, the backend may fan out to multiple access points for the same `sourceApp`, `flowKey`, and `surveyId`. The first artifact is mirrored into `agentResponse` for backward compatibility, and every generated artifact is returned in `agentResponses`.
 

@@ -43,8 +43,22 @@ class LoggingMonitor(ProcessingMonitor):
     def _get_extra(self, base_extra: Dict[str, Any], request_id: Optional[str] = None) -> Dict[str, Any]:
         """Merges base extra data with the request ID from context."""
         extra = {"metadata": base_extra.get("metadata", {})}
-        # Prioritize explicit request_id, then context, then from metadata
-        req_id = request_id or context.get("request_id") or extra["metadata"].get("request_id")
+        # Prioritize explicit request_id
+        req_id = request_id
+        
+        # Then context (safely)
+        if not req_id:
+            try:
+                # context is a proxy that might raise ContextDoesNotExistError if accessed
+                # outside of a request-response cycle.
+                req_id = context.get("request_id")
+            except Exception:
+                pass
+        
+        # Then from metadata
+        if not req_id:
+            req_id = extra["metadata"].get("request_id")
+            
         extra["request_id"] = req_id or "not-set"
         return extra
 

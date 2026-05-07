@@ -42,9 +42,6 @@ class AgentAccessPointUpsert(BaseModel):
     persona_skill_key: str | None = Field(default=None, alias="personaSkillKey")
     output_profile: str | None = Field(default=None, alias="outputProfile")
     ai_config: AIConfig | None = Field(default=None, alias="aiConfig")
-    ai_provider: str | None = Field(default=None, alias="aiProvider")
-    glm_model: str | None = Field(default=None, alias="glmModel")
-    gemini_model: str | None = Field(default=None, alias="geminiModel")
     system_prompt_override: str | None = Field(default=None, alias="systemPromptOverride")
     format_prompt_override: str | None = Field(default=None, alias="formatPromptOverride")
     survey_id: str | None = Field(default=None, alias="surveyId")
@@ -59,9 +56,6 @@ class AgentAccessPointUpsert(BaseModel):
         "prompt_key",
         "persona_skill_key",
         "output_profile",
-        "ai_provider",
-        "glm_model",
-        "gemini_model",
     )
     @classmethod
     def validate_key_fields(cls, value: str | None, info) -> str | None:

@@ -57,9 +57,7 @@ class AgentState(TypedDict, total=False):
     model_version: str
 
     # Error and runtime metadata
-    ai_provider: Optional[str]
-    glm_model: Optional[str]
-    gemini_model: Optional[str]
+    ai_config: Optional[dict[str, Any]]
     system_prompt_override: Optional[str]
     format_prompt_override: Optional[str]
     temperature: Optional[float]

@@ -113,8 +113,11 @@ class TestMetricsmonitor(unittest.TestCase):
     
     def test_classification_counting(self):
         """Test that classifications are counted correctly"""
+        self.monitor.on_validation_start(self.test_timestamp)
         self.monitor.on_classification("conversation", self.test_timestamp)
+        self.monitor.on_validation_start(self.test_timestamp)
         self.monitor.on_classification("json", self.test_timestamp)
+        self.monitor.on_validation_start(self.test_timestamp)
         self.monitor.on_classification("conversation", self.test_timestamp)
         
         summary = self.monitor.get_metrics_summary()
@@ -163,6 +166,7 @@ class TestMetricsmonitor(unittest.TestCase):
     
     def test_reset_metrics(self):
         """Test that metrics can be reset"""
+        self.monitor.on_validation_start(self.test_timestamp)
         self.monitor.on_classification("conversation", self.test_timestamp)
         self.monitor.on_error(ValueError("Test"), {}, self.test_timestamp)
         
@@ -178,6 +182,7 @@ class TestMetricsmonitor(unittest.TestCase):
         import tempfile
         import json
         
+        self.monitor.on_validation_start(self.test_timestamp)
         self.monitor.on_classification("conversation", self.test_timestamp)
         
         with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
@@ -226,10 +231,10 @@ class TestCompositemonitor(unittest.TestCase):
         self.composite.on_classification("conversation", self.test_timestamp)
         
         self.monitor1.on_classification.assert_called_once_with(
-            "conversation", self.test_timestamp, None
+            "conversation", self.test_timestamp, None, None
         )
         self.monitor2.on_classification.assert_called_once_with(
-            "conversation", self.test_timestamp, None
+            "conversation", self.test_timestamp, None, None
         )
     
     def test_processing_start_delegates_to_all(self):
@@ -238,10 +243,10 @@ class TestCompositemonitor(unittest.TestCase):
         self.composite.on_processing_start("Agent1", self.test_timestamp, metadata)
         
         self.monitor1.on_processing_start.assert_called_once_with(
-            "Agent1", self.test_timestamp, metadata
+            "Agent1", self.test_timestamp, metadata, None
         )
         self.monitor2.on_processing_start.assert_called_once_with(
-            "Agent1", self.test_timestamp, metadata
+            "Agent1", self.test_timestamp, metadata, None
         )
     
     def test_processing_complete_delegates_to_all(self):
@@ -258,8 +263,8 @@ class TestCompositemonitor(unittest.TestCase):
         
         self.composite.on_error(error, context, self.test_timestamp)
         
-        self.monitor1.on_error.assert_called_once_with(error, context, self.test_timestamp)
-        self.monitor2.on_error.assert_called_once_with(error, context, self.test_timestamp)
+        self.monitor1.on_error.assert_called_once_with(error, context, self.test_timestamp, None)
+        self.monitor2.on_error.assert_called_once_with(error, context, self.test_timestamp, None)
     
     def test_monitor_failure_doesnt_break_others(self):
         """Test that if one monitor fails, others still get notified"""

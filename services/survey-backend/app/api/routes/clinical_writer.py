@@ -14,6 +14,7 @@ from app.api.task_manager import task_manager
 from app.persistence.mongo.client import get_db
 from app.persistence.repositories.agent_access_point_repo import AgentAccessPointRepository
 from app.persistence.repositories.survey_repo import SurveyRepository
+from app.persistence.repositories.system_settings_repo import SystemSettingsRepository
 from app.services.access_point_selection import resolve_access_point_selection
 from app.integrations.clinical_writer.client import (
     fetch_langgraph_status,
@@ -55,9 +56,6 @@ class ClinicalWriterRequest(BaseModel):
     persona_skill_key: str | None = Field(default=None)
     output_profile: str | None = Field(default=None)
     ai_config: dict | None = Field(default=None, alias="aiConfig")
-    ai_provider: str | None = Field(default=None, alias="aiProvider")
-    glm_model: str | None = Field(default=None, alias="glmModel")
-    gemini_model: str | None = Field(default=None, alias="geminiModel")
     system_prompt_override: str | None = Field(default=None, alias="systemPromptOverride")
     format_prompt_override: str | None = Field(default=None, alias="formatPromptOverride")
     output_format: str = Field(default="report_json")
@@ -161,9 +159,6 @@ async def _run_background_task(task_id: str, request: ClinicalWriterRequest, req
             persona_skill_key=request.persona_skill_key,
             output_profile=request.output_profile,
             ai_config=request.ai_config,
-            ai_provider=request.ai_provider,
-            glm_model=request.glm_model,
-            gemini_model=request.gemini_model,
             system_prompt_override=request.system_prompt_override,
             format_prompt_override=request.format_prompt_override,
             source_app=request.metadata.get("source_app") or "clinical-writer",
@@ -274,9 +269,6 @@ async def process_clinical_writer(request: ClinicalWriterRequest) -> AgentRespon
         persona_skill_key=request.persona_skill_key,
         output_profile=request.output_profile,
         ai_config=request.ai_config,
-        ai_provider=request.ai_provider,
-        glm_model=request.glm_model,
-        gemini_model=request.gemini_model,
         system_prompt_override=request.system_prompt_override,
         format_prompt_override=request.format_prompt_override,
         source_app=request.metadata.get("source_app") or "clinical-writer",
@@ -292,11 +284,15 @@ async def process_clinical_writer(request: ClinicalWriterRequest) -> AgentRespon
 
 def _resolve_request_selection(request: ClinicalWriterRequest) -> ClinicalWriterRequest:
     """Resolve access-point-backed runtime configuration for direct proxy calls."""
-    if not request.access_point_key:
-        return request
-
     db = get_db()
     access_point_repo = AgentAccessPointRepository(db)
+    settings_repo = SystemSettingsRepository(db)
+    global_ai_config = settings_repo.get_json("global_ai_config")
+    if not request.access_point_key:
+        payload = request.model_copy(deep=True)
+        if payload.ai_config is None:
+            payload.ai_config = global_ai_config
+        return payload
 
     survey_id = request.metadata.get("surveyId") or request.metadata.get("survey_id")
     if not survey_id:
@@ -330,6 +326,8 @@ def _resolve_request_selection(request: ClinicalWriterRequest) -> ClinicalWriter
             requested_prompt_key=requested_prompt_key,
             requested_persona_skill_key=request.persona_skill_key,
             requested_output_profile=request.output_profile,
+            requested_ai_config=request.ai_config,
+            global_ai_config=global_ai_config,
             input_type=request.input_type,
             get_access_point_by_key=access_point_repo.get_by_key,
         )
@@ -349,9 +347,6 @@ def _resolve_request_selection(request: ClinicalWriterRequest) -> ClinicalWriter
     payload.persona_skill_key = selection.persona_skill_key
     payload.output_profile = selection.output_profile
     payload.ai_config = selection.ai_config
-    payload.ai_provider = selection.ai_provider
-    payload.glm_model = selection.glm_model
-    payload.gemini_model = selection.gemini_model
     payload.system_prompt_override = selection.system_prompt_override
     payload.format_prompt_override = selection.format_prompt_override
     if survey_id:
