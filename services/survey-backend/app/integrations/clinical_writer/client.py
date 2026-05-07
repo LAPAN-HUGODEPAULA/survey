@@ -294,7 +294,7 @@ async def send_to_langgraph_agent(
         "prompt_key": resolved_prompt_key,
         "persona_skill_key": persona_skill_key,
         "output_profile": output_profile,
-        "ai_config": ai_config,
+        "aiConfig": ai_config,
         "ai_provider": resolved_ai_provider,
         "glm_model": resolved_glm_model,
         "gemini_model": resolved_gemini_model,
