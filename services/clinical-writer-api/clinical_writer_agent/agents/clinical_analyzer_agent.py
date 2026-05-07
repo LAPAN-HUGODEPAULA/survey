@@ -9,10 +9,10 @@ from .agent_state import AgentState
 from .layered_node_utils import (
     LLMClient,
     parse_json_object,
+    resolve_model_routing_metadata,
     resolve_model_router,
     resolve_model_version,
 )
-from ..model_router import ModelRouter
 
 
 class ClinicalAnalyzerAgent:  # pylint: disable=too-few-public-methods
@@ -45,10 +45,21 @@ class ClinicalAnalyzerAgent:  # pylint: disable=too-few-public-methods
 
         try:
             llm_model = self._select_llm(state)
+            
+            # Emit high-visibility thinking event if reasoning is active
+            if state.get("thinking_mode") in {"medium", "high"} and observer:
+                observer.on_processing_start(
+                    "Thinking",
+                    datetime.now(),
+                    {"thinking_mode": state.get("thinking_mode")},
+                    request_id,
+                )
+
             prompt = self._build_prompt(
                 input_type=state.get("input_type", ""),
                 interpretation_prompt=state.get("interpretation_prompt", ""),
                 content=state.get("input_content", ""),
+                format_override=state.get("format_prompt_override"),
             )
             response = llm_model.invoke(prompt)
             content = (
@@ -57,6 +68,7 @@ class ClinicalAnalyzerAgent:  # pylint: disable=too-few-public-methods
             new_state["clinical_facts"] = parse_json_object(content)
             new_state["model_version"] = resolve_model_version(llm_model)
             new_state["validation_status"] = "analyzed"
+            routing_metadata = resolve_model_routing_metadata(llm_model, state)
 
             if observer:
                 observer.on_event(
@@ -65,6 +77,7 @@ class ClinicalAnalyzerAgent:  # pylint: disable=too-few-public-methods
                     {
                         "response_length": len(content),
                         "fact_keys": sorted(new_state["clinical_facts"].keys()),
+                        **routing_metadata,
                     },
                     request_id,
                 )
@@ -106,13 +119,21 @@ class ClinicalAnalyzerAgent:  # pylint: disable=too-few-public-methods
         return resolve_model_router(state)
 
     @staticmethod
-    def _build_prompt(*, input_type: str, interpretation_prompt: str, content: str) -> str:
+    def _build_prompt(*, input_type: str, interpretation_prompt: str, content: str, format_override: str | None = None) -> str:
         response_schema = {
             "summary": "short factual summary",
             "clinical_findings": ["list of grounded findings"],
             "scores": {"optional_score_name": "value"},
             "alerts": ["optional alert"],
         }
+        format_instructions = format_override or (
+            "REQUIRED OUTPUT STYLE:\n"
+            "- JSON object only\n"
+            "- Ground every fact in the source input\n"
+            "- Use arrays and nested objects when helpful\n"
+            "- If information is missing, omit it or use null\n\n"
+            f"EXAMPLE SHAPE:\n{json.dumps(response_schema, ensure_ascii=False, indent=2)}\n\n"
+        )
         return (
             "You are a clinical analysis engine.\n"
             "Return exactly one JSON object and no markdown or explanatory prose.\n"
@@ -120,11 +141,6 @@ class ClinicalAnalyzerAgent:  # pylint: disable=too-few-public-methods
             f"INPUT_TYPE:\n{input_type}\n\n"
             "CLINICAL INTERPRETATION RULES:\n"
             f"{interpretation_prompt}\n\n"
-            "REQUIRED OUTPUT STYLE:\n"
-            "- JSON object only\n"
-            "- Ground every fact in the source input\n"
-            "- Use arrays and nested objects when helpful\n"
-            "- If information is missing, omit it or use null\n\n"
-            f"EXAMPLE SHAPE:\n{json.dumps(response_schema, ensure_ascii=False, indent=2)}\n\n"
+            f"{format_instructions}"
             f"SOURCE INPUT:\n{content}\n"
         )

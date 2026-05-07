@@ -5,7 +5,17 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 
-ACCESS_POINT_SEED_SOURCE = "default_agent_access_points_v1"
+ACCESS_POINT_SEED_SOURCE = "default_agent_access_points_v5"
+
+DEFAULT_AI_CONFIG = {
+    "primaryProvider": "glm",
+    "primaryModel": "glm-4.5-flash",
+    "fallbackProvider": "gemini",
+    "fallbackModel": "gemini-1.5-flash",
+    "temperature": 0.0,
+    "reasoningEffort": "low",
+    "enableCaching": True,
+}
 
 DEFAULT_AGENT_ACCESS_POINT_SEEDS = [
     {
@@ -20,6 +30,7 @@ DEFAULT_AGENT_ACCESS_POINT_SEEDS = [
             "Gera automaticamente o relatório final após o envio do "
             "questionário pelo profissional usando a base de triagem de pacientes."
         ),
+        "aiConfig": DEFAULT_AI_CONFIG,
     },
     {
         "accessPointKey": "survey_patient.thank_you.auto_analysis",
@@ -33,6 +44,7 @@ DEFAULT_AGENT_ACCESS_POINT_SEEDS = [
             "Gera automaticamente a avaliação preliminar após o envio do "
             "questionário pelo paciente."
         ),
+        "aiConfig": DEFAULT_AI_CONFIG,
     },
     {
         "accessPointKey": "survey_patient.report.detailed_analysis",
@@ -46,6 +58,7 @@ DEFAULT_AGENT_ACCESS_POINT_SEEDS = [
             "Gera o relatório clínico detalhado a partir das respostas "
             "do questionário do paciente."
         ),
+        "aiConfig": DEFAULT_AI_CONFIG,
     },
     {
         "accessPointKey": "screener.report.detailed_analysis",
@@ -59,6 +72,7 @@ DEFAULT_AGENT_ACCESS_POINT_SEEDS = [
             "Gera um relatório clínico detalhado do paciente a partir das "
             "respostas registradas pelo profissional."
         ),
+        "aiConfig": DEFAULT_AI_CONFIG,
     },
     {
         "accessPointKey": "screener.document.clinical_referral",
@@ -71,6 +85,7 @@ DEFAULT_AGENT_ACCESS_POINT_SEEDS = [
         "description": (
             "Gera uma carta de encaminhamento clínico para especialista."
         ),
+        "aiConfig": DEFAULT_AI_CONFIG,
     },
     {
         "accessPointKey": "screener.document.school_referral",
@@ -83,6 +98,7 @@ DEFAULT_AGENT_ACCESS_POINT_SEEDS = [
         "description": (
             "Gera uma carta de encaminhamento escolar para equipe pedagógica."
         ),
+        "aiConfig": DEFAULT_AI_CONFIG,
     },
     {
         "accessPointKey": "screener.document.parent_orientation",
@@ -95,6 +111,7 @@ DEFAULT_AGENT_ACCESS_POINT_SEEDS = [
         "description": (
             "Gera uma carta de orientação aos pais com recomendações práticas."
         ),
+        "aiConfig": DEFAULT_AI_CONFIG,
     },
     {
         "accessPointKey": "clinical_narrative.narrative.generate_report",
@@ -108,6 +125,7 @@ DEFAULT_AGENT_ACCESS_POINT_SEEDS = [
             "Gera o prontuário final a partir do rascunho clínico "
             "preparado pelo profissional."
         ),
+        "aiConfig": DEFAULT_AI_CONFIG,
     },
 ]
 

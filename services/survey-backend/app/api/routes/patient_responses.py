@@ -35,6 +35,8 @@ from app.services.survey_prompt_selection import (
 
 router = APIRouter()
 
+SURVEY_PATIENT_THANK_YOU_ACCESS_POINT = "survey_patient.thank_you.auto_analysis"
+
 
 class SendReportEmailRequest(BaseModel):
     """Payload for report email delivery."""
@@ -53,7 +55,11 @@ async def create_patient_response(
     access_point_repo: AgentAccessPointRepository = Depends(get_agent_access_point_repo),
 ):
     """
-    Create a patient survey response, persist it, trigger an email, and enrich with AI agent output.
+    Create a patient survey response and persist it.
+
+    The patient thank-you flow starts Clinical Writer through the async task API
+    after the save succeeds. Keeping this endpoint persistence-only for that
+    flow avoids reverse-proxy timeouts while GLM finishes the multi-stage graph.
     """
     logger.info("--- Received request to create patient response ---")
     patient_name = survey_response.patient.name if survey_response.patient else "Anonymous"
@@ -102,41 +108,52 @@ async def create_patient_response(
         agent_response: Optional[AgentResponse] = None
         agent_responses: list[AgentArtifactResponse] = []
 
-        try:
-            logger.info("Sending patient response to LangGraph agent for processing...")
-            runtime_points = _resolve_runtime_access_points(
-                selection,
-                access_point_repo=access_point_repo,
-                survey_id=survey_response.survey_id,
-                source_app="survey-patient",
-                flow_key="thank_you.auto_analysis",
+        should_defer_agent = (
+            selection.access_point_key == SURVEY_PATIENT_THANK_YOU_ACCESS_POINT
+        )
+        if should_defer_agent:
+            logger.info(
+                "Deferring patient response agent processing for async flow response_id=%s access_point=%s",
+                inserted_id,
+                selection.access_point_key,
             )
-            for runtime_point in runtime_points:
-                agent_result = await send_to_langgraph_agent(
-                    response_payload,
-                    input_type="survey7",
-                    prompt_key=runtime_point.prompt_key,
-                    persona_skill_key=runtime_point.persona_skill_key,
-                    output_profile=runtime_point.output_profile,
+        else:
+            logger.info("Sending patient response to LangGraph agent for processing...")
+            try:
+                runtime_points = _resolve_runtime_access_points(
+                    selection,
+                    access_point_repo=access_point_repo,
+                    survey_id=survey_response.survey_id,
                     source_app="survey-patient",
-                    patient_ref=survey_response.patient.email if survey_response.patient else None,
-                    read_timeout_seconds=float(settings.clinical_writer_inline_timeout_seconds),
+                    flow_key="thank_you.auto_analysis",
                 )
-                artifact = AgentArtifactResponse(
-                    accessPointKey=runtime_point.access_point_key,
-                    **agent_result,
-                )
-                agent_responses.append(artifact)
-            agent_response = agent_responses[0] if agent_responses else None
-            logger.info("Received agent response for patient response %s.", inserted_id)
-        except ValueError as exc:
-            logger.warning("Invalid prompt selection for patient response %s: %s", inserted_id, exc)
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-        except ValidationError as exc:
-            logger.error("Invalid data returned by agent for patient response %s: %s", inserted_id, exc)
-            agent_response = AgentResponse(error_message="Invalid agent response format")
-        except Exception as exc:
-            logger.error("Failed to enrich patient response %s with agent output: %s", inserted_id, exc)
+                for runtime_point in runtime_points:
+                    agent_result = await send_to_langgraph_agent(
+                        response_payload,
+                        input_type="survey7",
+                        prompt_key=runtime_point.prompt_key,
+                        persona_skill_key=runtime_point.persona_skill_key,
+                        output_profile=runtime_point.output_profile,
+                        ai_config=runtime_point.ai_config,
+                        source_app="survey-patient",
+                        patient_ref=survey_response.patient.email if survey_response.patient else None,
+                        read_timeout_seconds=float(settings.clinical_writer_inline_timeout_seconds),
+                    )
+                    artifact = AgentArtifactResponse(
+                        accessPointKey=runtime_point.access_point_key,
+                        **agent_result,
+                    )
+                    agent_responses.append(artifact)
+                agent_response = agent_responses[0] if agent_responses else None
+                logger.info("Received agent response for patient response %s.", inserted_id)
+            except ValueError as exc:
+                logger.warning("Invalid prompt selection for patient response %s: %s", inserted_id, exc)
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
+            except ValidationError as exc:
+                logger.error("Invalid data returned by agent for patient response %s: %s", inserted_id, exc)
+                agent_response = AgentResponse(error_message="Invalid agent response format")
+            except Exception as exc:
+                logger.error("Failed to enrich patient response %s with agent output: %s", inserted_id, exc)
 
         if agent_responses:
             repo.update_fields(
@@ -252,11 +269,15 @@ def _resolve_runtime_access_points(
             continue
         seen_keys.add(access_point_key)
         runtime_points.append(
-            type(primary_selection)(
+            AccessPointSelection(
                 access_point_key=access_point_key,
                 prompt_key=item["promptKey"],
                 persona_skill_key=item.get("personaSkillKey"),
                 output_profile=item.get("outputProfile"),
+                ai_config=item.get("aiConfig"),
+                ai_provider=item.get("aiProvider"),
+                glm_model=item.get("glmModel"),
+                gemini_model=item.get("geminiModel"),
             )
         )
     return runtime_points

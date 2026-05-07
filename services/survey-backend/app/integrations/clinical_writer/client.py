@@ -230,9 +230,12 @@ async def send_to_langgraph_agent(
     prompt_key: str | None = None,
     persona_skill_key: str | None = None,
     output_profile: str | None = None,
+    ai_config: Dict[str, Any] | None = None,
     ai_provider: str | None = None,
     glm_model: str | None = None,
     gemini_model: str | None = None,
+    system_prompt_override: str | None = None,
+    format_prompt_override: str | None = None,
     source_app: str | None = None,
     patient_ref: str | None = None,
     request_id: str | None = None,
@@ -264,6 +267,28 @@ async def send_to_langgraph_agent(
     request_id = request_id or str(uuid.uuid4())
     timestamp = datetime.now(timezone.utc)
     start_time = time.monotonic()
+    headers["x-request-id"] = request_id
+
+    # Resolve AI parameters from ai_config if provided
+    resolved_ai_provider = ai_provider
+    resolved_glm_model = glm_model
+    resolved_gemini_model = gemini_model
+    temperature = None
+    do_sample = None
+    thinking_mode = None
+    enable_caching = None
+
+    if ai_config:
+        resolved_ai_provider = ai_config.get("primaryProvider") or resolved_ai_provider
+        if resolved_ai_provider == "glm":
+            resolved_glm_model = ai_config.get("primaryModel") or resolved_glm_model
+        elif resolved_ai_provider == "gemini":
+            resolved_gemini_model = ai_config.get("primaryModel") or resolved_gemini_model
+        
+        temperature = ai_config.get("temperature")
+        do_sample = ai_config.get("doSample")
+        thinking_mode = ai_config.get("reasoningEffort")
+        enable_caching = ai_config.get("enableCaching")
 
     request_body = {
         "input_type": resolved_input_type,
@@ -272,9 +297,15 @@ async def send_to_langgraph_agent(
         "prompt_key": resolved_prompt_key,
         "persona_skill_key": persona_skill_key,
         "output_profile": output_profile,
-        "ai_provider": ai_provider,
-        "glm_model": glm_model,
-        "gemini_model": gemini_model,
+        "ai_provider": resolved_ai_provider,
+        "glm_model": resolved_glm_model,
+        "gemini_model": resolved_gemini_model,
+        "system_prompt_override": system_prompt_override,
+        "format_prompt_override": format_prompt_override,
+        "temperature": temperature,
+        "do_sample": do_sample,
+        "thinking_mode": thinking_mode,
+        "enable_caching": enable_caching,
         "output_format": "report_json",
         "metadata": {
             "source_app": source_app,
@@ -294,10 +325,10 @@ async def send_to_langgraph_agent(
             else float(settings.clinical_writer_http_timeout_seconds)
         )
         request_timeout = httpx.Timeout(
-            connect=10.0,
+            connect=30.0,
             read=resolved_read_timeout,
-            write=10.0,
-            pool=10.0,
+            write=30.0,
+            pool=30.0,
         )
 
         async with httpx.AsyncClient(timeout=request_timeout) as client:

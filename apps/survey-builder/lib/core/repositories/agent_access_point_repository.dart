@@ -111,6 +111,21 @@ class AgentAccessPointRepository {
   }
 
   AgentAccessPointDraft _mapDraft(Map<String, dynamic> json) {
+    final aiConfigJson = json['aiConfig'];
+    AIConfigDraft? aiConfig;
+    if (aiConfigJson is Map) {
+      final map = Map<String, dynamic>.from(aiConfigJson);
+      aiConfig = AIConfigDraft(
+        primaryProvider: map['primaryProvider']?.toString() ?? '',
+        primaryModel: map['primaryModel']?.toString() ?? '',
+        fallbackProvider: map['fallbackProvider']?.toString(),
+        fallbackModel: map['fallbackModel']?.toString(),
+        temperature: (map['temperature'] as num?)?.toDouble() ?? 0.0,
+        reasoningEffort: map['reasoningEffort']?.toString(),
+        enableCaching: map['enableCaching'] as bool? ?? true,
+      );
+    }
+
     return AgentAccessPointDraft(
       accessPointKey: json['accessPointKey']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
@@ -119,9 +134,12 @@ class AgentAccessPointRepository {
       promptKey: json['promptKey']?.toString() ?? '',
       personaSkillKey: json['personaSkillKey']?.toString() ?? '',
       outputProfile: json['outputProfile']?.toString() ?? '',
+      aiConfig: aiConfig,
       aiProvider: json['aiProvider']?.toString(),
       glmModel: json['glmModel']?.toString(),
       geminiModel: json['geminiModel']?.toString(),
+      systemPromptOverride: json['systemPromptOverride']?.toString(),
+      formatPromptOverride: json['formatPromptOverride']?.toString(),
       surveyId: json['surveyId']?.toString(),
       description: json['description']?.toString(),
       createdAt: _coerceDateTime(json['createdAt']),
@@ -130,7 +148,7 @@ class AgentAccessPointRepository {
   }
 
   Map<String, dynamic> _toJson(AgentAccessPointDraft draft) {
-    return {
+    final Map<String, dynamic> data = {
       'accessPointKey': draft.accessPointKey.trim().toLowerCase(),
       'name': draft.name.trim(),
       'sourceApp': draft.sourceApp.trim().toLowerCase(),
@@ -147,6 +165,12 @@ class AgentAccessPointRepository {
       'geminiModel': draft.geminiModel?.trim().isEmpty ?? true
           ? null
           : draft.geminiModel!.trim(),
+      'systemPromptOverride': draft.systemPromptOverride?.trim().isEmpty ?? true
+          ? null
+          : draft.systemPromptOverride!.trim(),
+      'formatPromptOverride': draft.formatPromptOverride?.trim().isEmpty ?? true
+          ? null
+          : draft.formatPromptOverride!.trim(),
       'surveyId': draft.surveyId?.trim().isEmpty ?? true
           ? null
           : draft.surveyId!.trim(),
@@ -154,6 +178,20 @@ class AgentAccessPointRepository {
           ? null
           : draft.description!.trim(),
     };
+
+    if (draft.aiConfig != null) {
+      data['aiConfig'] = {
+        'primaryProvider': draft.aiConfig!.primaryProvider,
+        'primaryModel': draft.aiConfig!.primaryModel,
+        'fallbackProvider': draft.aiConfig!.fallbackProvider,
+        'fallbackModel': draft.aiConfig!.fallbackModel,
+        'temperature': draft.aiConfig!.temperature,
+        'reasoningEffort': draft.aiConfig!.reasoningEffort,
+        'enableCaching': draft.aiConfig!.enableCaching,
+      };
+    }
+
+    return data;
   }
 
   DateTime? _coerceDateTime(dynamic value) {

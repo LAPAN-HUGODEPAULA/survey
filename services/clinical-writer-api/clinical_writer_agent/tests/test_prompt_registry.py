@@ -85,6 +85,33 @@ def test_clinical_prompt_registry_composes_questionnaire_and_persona():
     assert resolved.persona_skill_version == "persona_modifiedAt:2026-03-26T10:05:00+00:00"
 
 
+def test_clinical_prompt_registry_applies_system_override_to_split_prompts():
+    registry = ClinicalPromptRegistry(
+        fallback_provider=_WorkingProvider(),
+        questionnaire_provider=_QuestionnaireProvider(
+            "Interpret the questionnaire conservatively.",
+            "questionnaire_modifiedAt:2026-03-26T10:00:00+00:00",
+        ),
+        persona_provider=_PersonaProvider(
+            "Write for a school team with formal tone.",
+            "persona_modifiedAt:2026-03-26T10:05:00+00:00",
+        ),
+    )
+
+    resolved = registry.resolve_process_prompt(
+        input_type="survey7",
+        prompt_key="survey7",
+        persona_skill_key="school_report",
+        output_profile="school_report",
+        system_prompt_override="Use the access point override instructions.",
+    )
+
+    assert resolved.prompt_text == "Use the access point override instructions."
+    assert resolved.interpretation_prompt == "Use the access point override instructions."
+    assert resolved.persona_prompt == "Use the access point override instructions."
+    assert resolved.prompt_version.startswith("override:")
+
+
 def test_clinical_prompt_registry_uses_updated_persona_on_next_request():
     persona_provider = _PersonaProvider(
         "Write for a school team with formal tone.",

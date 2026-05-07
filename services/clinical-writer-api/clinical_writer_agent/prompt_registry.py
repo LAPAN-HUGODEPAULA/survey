@@ -52,13 +52,15 @@ class PromptRegistry:
         prompt_key: str,
         persona_skill_key: str | None = None,
         output_profile: str | None = None,
+        system_prompt_override: str | None = None,
+        format_prompt_override: str | None = None,
     ) -> ResolvedPrompt:
         prompt_text, prompt_version = self.get_prompt(prompt_key)
         return ResolvedPrompt(
-            prompt_text=prompt_text,
-            prompt_version=prompt_version,
-            interpretation_prompt=prompt_text,
-            persona_prompt=prompt_text,
+            prompt_text=system_prompt_override or prompt_text,
+            prompt_version=f"override:{hash(system_prompt_override)}" if system_prompt_override else prompt_version,
+            interpretation_prompt=system_prompt_override or prompt_text,
+            persona_prompt=system_prompt_override or prompt_text,
         )
 
 
@@ -383,6 +385,8 @@ class ClinicalPromptRegistry(PromptRegistry):
         prompt_key: str,
         persona_skill_key: str | None = None,
         output_profile: str | None = None,
+        system_prompt_override: str | None = None,
+        format_prompt_override: str | None = None,
     ) -> ResolvedPrompt:
         if input_type not in SURVEY_INPUT_TYPES:
             return super().resolve_process_prompt(
@@ -390,6 +394,8 @@ class ClinicalPromptRegistry(PromptRegistry):
                 prompt_key=prompt_key,
                 persona_skill_key=persona_skill_key,
                 output_profile=output_profile,
+                system_prompt_override=system_prompt_override,
+                format_prompt_override=format_prompt_override,
             )
 
         if self._questionnaire_provider is None or self._persona_provider is None:
@@ -398,6 +404,8 @@ class ClinicalPromptRegistry(PromptRegistry):
                 prompt_key=prompt_key,
                 persona_skill_key=persona_skill_key,
                 output_profile=output_profile,
+                system_prompt_override=system_prompt_override,
+                format_prompt_override=format_prompt_override,
             )
 
         try:
@@ -410,6 +418,8 @@ class ClinicalPromptRegistry(PromptRegistry):
                 prompt_key=prompt_key,
                 persona_skill_key=persona_skill_key,
                 output_profile=output_profile,
+                system_prompt_override=system_prompt_override,
+                format_prompt_override=format_prompt_override,
             )
 
         resolved_output_profile = output_profile or DEFAULT_OUTPUT_PROFILE_BY_INPUT_TYPE.get(input_type)
@@ -426,6 +436,8 @@ class ClinicalPromptRegistry(PromptRegistry):
                 prompt_key=prompt_key,
                 persona_skill_key=persona_skill_key,
                 output_profile=output_profile,
+                system_prompt_override=system_prompt_override,
+                format_prompt_override=format_prompt_override,
             )
 
         try:
@@ -443,15 +455,27 @@ class ClinicalPromptRegistry(PromptRegistry):
                 prompt_key=prompt_key,
                 persona_skill_key=persona_skill_key,
                 output_profile=output_profile,
+                system_prompt_override=system_prompt_override,
+                format_prompt_override=format_prompt_override,
             )
 
         prompt_text = _compose_prompt(questionnaire_text, persona_text)
         prompt_version = f"{questionnaire_version};{persona_version}"
+        interpretation_prompt = questionnaire_text
+        persona_prompt = persona_text
+        
+        # Priority 1: System Prompt Override
+        if system_prompt_override:
+            prompt_text = system_prompt_override
+            interpretation_prompt = system_prompt_override
+            persona_prompt = system_prompt_override
+            prompt_version = f"override:{hash(system_prompt_override)};{prompt_version}"
+
         return ResolvedPrompt(
             prompt_text=prompt_text,
             prompt_version=prompt_version,
-            interpretation_prompt=questionnaire_text,
-            persona_prompt=persona_text,
+            interpretation_prompt=interpretation_prompt,
+            persona_prompt=persona_prompt,
             questionnaire_prompt_version=questionnaire_version,
             persona_skill_version=persona_version,
             persona_skill_key=resolved_persona_skill_key,

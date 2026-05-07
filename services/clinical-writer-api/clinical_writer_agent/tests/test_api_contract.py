@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from clinical_writer_agent.agent_graph import create_graph, create_default_observer
+from clinical_writer_agent.agent_graph import create_graph, create_default_observer, get_progress_tracker
 from clinical_writer_agent.main import ProcessRequest, process_content
 from clinical_writer_agent.prompt_registry import create_prompt_registry
 
@@ -17,9 +17,11 @@ class _StubLLM:
     def __init__(self, name: str):
         self.name = name
         self.calls = 0
+        self.prompts: list[str] = []
 
     def invoke(self, prompt: str):
         self.calls += 1
+        self.prompts.append(prompt)
 
         class Response:
             def __init__(self, content: str):
@@ -48,34 +50,15 @@ class _StubLLM:
         return Response(json.dumps(report))
 
 
-class _StubCritiqueLLM:
-    def __init__(self, payloads: list[dict] | None = None, name: str = "judge"):
-        self.name = name
-        self.payloads = payloads or [{"decision": "pass", "issues": [], "feedback": ""}]
-        self.calls = 0
-
-    def invoke(self, prompt: str):
-        self.calls += 1
-        index = min(self.calls - 1, len(self.payloads) - 1)
-
-        class Response:
-            def __init__(self, content: str):
-                self.content = content
-
-        return Response(json.dumps(self.payloads[index]))
-
-
-def _build_graph(observer, critique_llm=None):
+def _build_graph(observer):
     conv_llm = _StubLLM("conversation")
     json_llm = _StubLLM("json")
-    judge_llm = critique_llm or _StubCritiqueLLM()
     graph = create_graph(
         observer=observer,
         conversation_llm=conv_llm,
         json_llm=json_llm,
-        critique_llm=judge_llm,
     )
-    return graph, conv_llm, json_llm, judge_llm
+    return graph, conv_llm, json_llm
 
 
 async def test_schema_validation_rejects_blank_input():
@@ -104,6 +87,7 @@ async def test_sanitized_inputs_flow_to_writer():
     observer = create_default_observer()
     graph, *_ = _build_graph(observer)
     registry = create_prompt_registry()
+    tracker = get_progress_tracker()
     inputs = [
         "Hello there! 👋",
         "This is <b>html</b>",
@@ -116,6 +100,7 @@ async def test_sanitized_inputs_flow_to_writer():
             graph=graph,
             observer=observer,
             prompt_registry=registry,
+            tracker=tracker,
         )
         report_text = _collect_report_text(result.report)
         assert "conversation-response" in report_text
@@ -123,8 +108,9 @@ async def test_sanitized_inputs_flow_to_writer():
 
 async def test_json_and_conversation_paths_use_injected_llms():
     observer = create_default_observer()
-    graph, conv_llm, json_llm, judge_llm = _build_graph(observer)
+    graph, conv_llm, json_llm = _build_graph(observer)
     registry = create_prompt_registry()
+    tracker = get_progress_tracker()
 
     conv_result = await process_content(
         ProcessRequest(input_type="consult", content="Doutor: tudo bem? Paciente: sim."),
@@ -132,6 +118,7 @@ async def test_json_and_conversation_paths_use_injected_llms():
         graph=graph,
         observer=observer,
         prompt_registry=registry,
+        tracker=tracker,
     )
     json_result = await process_content(
         ProcessRequest(input_type="survey7", content='{"patient": {"name": "Ana"}}'),
@@ -139,17 +126,44 @@ async def test_json_and_conversation_paths_use_injected_llms():
         graph=graph,
         observer=observer,
         prompt_registry=registry,
+        tracker=tracker,
     )
 
     assert conv_llm.calls == 2
     assert json_llm.calls == 2
-    assert judge_llm.calls == 2
     assert "conversation-response" in _collect_report_text(conv_result.report)
     assert "json-response" in _collect_report_text(json_result.report)
 
 
-async def test_reflection_requests_rewrite_before_success():
+async def test_request_prompt_overrides_reach_graph_nodes():
     observer = create_default_observer()
+    graph, _, json_llm = _build_graph(observer)
+    registry = create_prompt_registry()
+    tracker = get_progress_tracker()
+
+    await process_content(
+        ProcessRequest(
+            input_type="survey7",
+            content='{"patient": {"name": "Ana"}}',
+            system_prompt_override="ACCESS_POINT_SYSTEM_OVERRIDE",
+            format_prompt_override="ACCESS_POINT_FORMAT_OVERRIDE",
+        ),
+        request=_RequestStub(),
+        graph=graph,
+        observer=observer,
+        prompt_registry=registry,
+        tracker=tracker,
+    )
+
+    assert "ACCESS_POINT_SYSTEM_OVERRIDE" in json_llm.prompts[0]
+    assert "ACCESS_POINT_SYSTEM_OVERRIDE" in json_llm.prompts[1]
+    assert "ACCESS_POINT_FORMAT_OVERRIDE" in json_llm.prompts[0]
+    assert "ACCESS_POINT_FORMAT_OVERRIDE" in json_llm.prompts[1]
+
+
+async def test_default_flow_finishes_after_persona_writer():
+    observer = create_default_observer()
+    tracker = get_progress_tracker()
 
     class _RewriteAwareWriterLLM(_StubLLM):
         def invoke(self, prompt: str):
@@ -162,15 +176,9 @@ async def test_reflection_requests_rewrite_before_success():
             if "clinical analysis engine" in prompt.lower():
                 return Response(json.dumps({"summary": "json-facts"}))
 
-            subtitle = "Initial Draft"
-            text = "json-response"
-            if "REFLECTOR CORRECTION FEEDBACK" in prompt:
-                subtitle = "Corrected Draft"
-                text = "json-response-corrected"
-
             report = {
                 "title": "Relatorio Clinico",
-                "subtitle": subtitle,
+                "subtitle": "Initial Draft",
                 "created_at": "2026-01-14T18:42:03Z",
                 "patient": {},
                 "sections": [
@@ -179,7 +187,7 @@ async def test_reflection_requests_rewrite_before_success():
                         "blocks": [
                             {
                                 "type": "paragraph",
-                                "spans": [{"text": text, "bold": False, "italic": False}],
+                                "spans": [{"text": "json-response", "bold": False, "italic": False}],
                             }
                         ],
                     }
@@ -189,21 +197,10 @@ async def test_reflection_requests_rewrite_before_success():
 
     conv_llm = _StubLLM("conversation")
     json_llm = _RewriteAwareWriterLLM("json")
-    judge_llm = _StubCritiqueLLM(
-        payloads=[
-            {
-                "decision": "fail",
-                "issues": ["Contains a prescription for school staff."],
-                "feedback": "Remove the prescription and use educational language.",
-            },
-            {"decision": "pass", "issues": [], "feedback": ""},
-        ]
-    )
     graph = create_graph(
         observer=observer,
         conversation_llm=conv_llm,
         json_llm=json_llm,
-        critique_llm=judge_llm,
     )
     registry = create_prompt_registry()
 
@@ -217,8 +214,8 @@ async def test_reflection_requests_rewrite_before_success():
         graph=graph,
         observer=observer,
         prompt_registry=registry,
+        tracker=tracker,
     )
 
-    assert judge_llm.calls == 2
-    assert json_llm.calls == 3
-    assert "json-response-corrected" in _collect_report_text(result.report)
+    assert json_llm.calls == 2
+    assert "json-response" in _collect_report_text(result.report)

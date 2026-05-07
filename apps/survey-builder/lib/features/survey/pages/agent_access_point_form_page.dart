@@ -29,6 +29,7 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
   static const String _routingSectionId = 'routing';
   static const String _assignmentSectionId = 'assignment';
   static const String _aiSectionId = 'ai';
+  static const String _orchestratorSectionId = 'orchestrator';
   static const List<(String, String)> _localPromptOptions = [
     ('default', 'Prompt local padrão'),
     ('consult', 'Prompt local de consulta'),
@@ -41,17 +42,24 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
   final GlobalKey _routingSectionKey = GlobalKey();
   final GlobalKey _assignmentSectionKey = GlobalKey();
   final GlobalKey _aiSectionKey = GlobalKey();
+  final GlobalKey _orchestratorSectionKey = GlobalKey();
   late final AgentAccessPointRepository _repository;
   late final bool _isEditing;
   late final TextEditingController _nameController;
   late final TextEditingController _keyController;
   late final TextEditingController _flowKeyController;
   late final TextEditingController _descriptionController;
-  late final TextEditingController _glmModelController;
-  late final TextEditingController _geminiModelController;
+  late final TextEditingController _primaryModelController;
+  late final TextEditingController _fallbackModelController;
+  late final TextEditingController _systemPromptController;
+  late final TextEditingController _formatPromptController;
   String? _selectedInjectionPointKey;
   String _sourceApp = 'survey-patient';
-  String? _aiProvider;
+  String _primaryProvider = 'glm';
+  String? _fallbackProvider = 'gemini';
+  double _temperature = 0.0;
+  String _reasoningEffort = 'low';
+  bool _enableCaching = true;
   String? _surveyId;
   String? _promptKey;
   String? _personaSkillKey;
@@ -92,20 +100,33 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
     _descriptionController = TextEditingController(
       text: draft.description ?? '',
     )..addListener(_handleMutation);
-    _glmModelController = TextEditingController(
-      text: draft.glmModel ?? '',
+    _primaryModelController = TextEditingController(
+      text: draft.aiConfig?.primaryModel ?? draft.glmModel ?? '',
     )..addListener(_handleMutation);
-    _geminiModelController = TextEditingController(
-      text: draft.geminiModel ?? '',
+    _fallbackModelController = TextEditingController(
+      text: draft.aiConfig?.fallbackModel ?? draft.geminiModel ?? '',
     )..addListener(_handleMutation);
+    _systemPromptController = TextEditingController(
+      text: draft.systemPromptOverride ?? '',
+    )..addListener(_handleMutation);
+    _formatPromptController = TextEditingController(
+      text: draft.formatPromptOverride ?? '',
+    )..addListener(_handleMutation);
+
+    _sourceApp = draft.sourceApp;
+    _primaryProvider = draft.aiConfig?.primaryProvider ?? draft.aiProvider ?? 'glm';
+    _fallbackProvider = draft.aiConfig?.fallbackProvider ?? (draft.aiConfig == null ? 'gemini' : null);
+    _temperature = draft.aiConfig?.temperature ?? 0.0;
+    _reasoningEffort = draft.aiConfig?.reasoningEffort ?? 'low';
+    _enableCaching = draft.aiConfig?.enableCaching ?? true;
+
     final configuredPoint = RuntimeAccessPointCatalog.byKey(
       draft.accessPointKey,
     );
     _selectedInjectionPointKey = configuredPoint?.isConfigurable == true
         ? configuredPoint!.accessPointKey
         : null;
-    _sourceApp = draft.sourceApp;
-    _aiProvider = draft.aiProvider;
+
     _surveyId = draft.surveyId;
     _promptKey = draft.promptKey.isEmpty ? null : draft.promptKey;
     _personaSkillKey = draft.personaSkillKey.isEmpty
@@ -123,8 +144,10 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
     _keyController.dispose();
     _flowKeyController.dispose();
     _descriptionController.dispose();
-    _glmModelController.dispose();
-    _geminiModelController.dispose();
+    _primaryModelController.dispose();
+    _fallbackModelController.dispose();
+    _systemPromptController.dispose();
+    _formatPromptController.dispose();
     _repository.dispose();
     super.dispose();
   }
@@ -140,12 +163,23 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
     final activationOffset = 180.0;
     var nextSectionId = _routingSectionId;
 
-    final aiBox =
-        _aiSectionKey.currentContext?.findRenderObject() as RenderBox?;
-    if (aiBox != null) {
-      final top = aiBox.localToGlobal(Offset.zero).dy;
+    final orchestratorBox =
+        _orchestratorSectionKey.currentContext?.findRenderObject() as RenderBox?;
+    if (orchestratorBox != null) {
+      final top = orchestratorBox.localToGlobal(Offset.zero).dy;
       if (top <= activationOffset) {
-        nextSectionId = _aiSectionId;
+        nextSectionId = _orchestratorSectionId;
+      }
+    }
+
+    if (nextSectionId == _routingSectionId) {
+      final aiBox =
+          _aiSectionKey.currentContext?.findRenderObject() as RenderBox?;
+      if (aiBox != null) {
+        final top = aiBox.localToGlobal(Offset.zero).dy;
+        if (top <= activationOffset) {
+          nextSectionId = _aiSectionId;
+        }
       }
     }
 
@@ -170,7 +204,7 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
         ? _routingSectionKey
         : (sectionId == _assignmentSectionId
             ? _assignmentSectionKey
-            : _aiSectionKey);
+            : (sectionId == _aiSectionId ? _aiSectionKey : _orchestratorSectionKey));
     final context = targetKey.currentContext;
     if (context != null) {
       setState(() => _currentSectionId = sectionId);
@@ -265,12 +299,16 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
     );
     addItem(
       'Prompt',
-      _promptKey == null ? 'Selecione um prompt válido.' : null,
+      (_promptKey == null && _surveyId == null)
+          ? 'Selecione um prompt ou associe um questionário para herança.'
+          : null,
       _assignmentSectionKey,
     );
     addItem(
       'Persona',
-      _personaSkillKey == null ? 'Selecione uma persona válida.' : null,
+      (_personaSkillKey == null && _surveyId == null)
+          ? 'Selecione uma persona ou associe um questionário para herança.'
+          : null,
       _assignmentSectionKey,
     );
     return items;
@@ -343,24 +381,43 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
       return;
     }
 
-    final persona = _personas.firstWhere(
-      (item) => item.personaSkillKey == _personaSkillKey,
+    final persona = _personas.cast<PersonaSkillDraft?>().firstWhere(
+      (item) => item?.personaSkillKey == _personaSkillKey,
+      orElse: () => null,
     );
     final draft = AgentAccessPointDraft(
       accessPointKey: _keyController.text.trim().toLowerCase(),
       name: _nameController.text.trim(),
       sourceApp: _sourceApp,
       flowKey: _flowKeyController.text.trim().toLowerCase(),
-      promptKey: _promptKey!,
-      personaSkillKey: _personaSkillKey!,
-      outputProfile: persona.outputProfile,
-      aiProvider: _aiProvider?.trim().isEmpty ?? true ? null : _aiProvider,
-      glmModel: _glmModelController.text.trim().isEmpty
+      promptKey: _promptKey ?? '',
+      personaSkillKey: _personaSkillKey ?? '',
+      outputProfile: persona?.outputProfile ?? '',
+      aiConfig: AIConfigDraft(
+        primaryProvider: _primaryProvider,
+        primaryModel: _primaryModelController.text.trim(),
+        fallbackProvider: _fallbackProvider,
+        fallbackModel: _fallbackModelController.text.trim().isEmpty
+            ? null
+            : _fallbackModelController.text.trim(),
+        temperature: _temperature,
+        reasoningEffort: _reasoningEffort,
+        enableCaching: _enableCaching,
+      ),
+      aiProvider: _primaryProvider,
+      glmModel: _primaryProvider == 'glm'
+          ? _primaryModelController.text.trim()
+          : (_fallbackProvider == 'glm'
+              ? _fallbackModelController.text.trim()
+              : null),
+      geminiModel: _primaryProvider == 'gemini'
+          ? _primaryModelController.text.trim()
+          : (_fallbackProvider == 'gemini'
+              ? _fallbackModelController.text.trim()
+              : null),
+      systemPromptOverride: _systemPromptController.text.trim().isEmpty
           ? null
-          : _glmModelController.text.trim(),
-      geminiModel: _geminiModelController.text.trim().isEmpty
-          ? null
-          : _geminiModelController.text.trim(),
+          : _systemPromptController.text.trim(),
       surveyId: _surveyId,
       description: _descriptionController.text.trim().isEmpty
           ? null
@@ -456,6 +513,10 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                       label: 'Modelos e Provedores',
                       targetKey: _aiSectionKey,
                     ),
+                    DsSectionalNavItem(
+                      label: 'Prompts do Orchestrator',
+                      targetKey: _orchestratorSectionKey,
+                    ),
                   ],
                   activeItem: _currentSectionId == _routingSectionId
                       ? DsSectionalNavItem(
@@ -467,16 +528,23 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                               label: 'Vinculações',
                               targetKey: _assignmentSectionKey,
                             )
-                          : DsSectionalNavItem(
-                              label: 'Modelos e Provedores',
-                              targetKey: _aiSectionKey,
-                            )),
+                          : (_currentSectionId == _aiSectionId
+                              ? DsSectionalNavItem(
+                                  label: 'Modelos e Provedores',
+                                  targetKey: _aiSectionKey,
+                                )
+                              : DsSectionalNavItem(
+                                  label: 'Prompts do Orchestrator',
+                                  targetKey: _orchestratorSectionKey,
+                                ))),
                   onItemTap: (item) => _jumpToSection(
                     item.label == 'Roteamento'
                         ? _routingSectionId
                         : (item.label == 'Vinculações'
                             ? _assignmentSectionId
-                            : _aiSectionId),
+                            : (item.label == 'Modelos e Provedores'
+                                ? _aiSectionId
+                                : _orchestratorSectionId)),
                   ),
                 ),
                 feedback: _feedback == null
@@ -628,7 +696,7 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                             decoration: const InputDecoration(
                               labelText: 'Survey associado',
                               helperText:
-                                  'Opcional. Deixe vazio para uso global.',
+                                  'Selecione "Global" para uso independente de um questionário específico.',
                             ),
                             items: [
                               const DropdownMenuItem<String?>(
@@ -643,16 +711,21 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                               ),
                             ],
                             onChanged: (value) {
-                              if (value == null) {
-                                setState(() {
-                                  _surveyId = null;
-                                  _isDirty = true;
-                                });
-                                return;
-                              }
                               setState(() {
                                 _surveyId = value;
                                 _isDirty = true;
+                                // Se mudar para Global, não pode mais herdar. 
+                                // Resetamos para o primeiro item válido se estiver nulo.
+                                if (value == null) {
+                                  if (_promptKey == null) {
+                                    _promptKey = _localPromptOptions.first.$1;
+                                  }
+                                  if (_personaSkillKey == null &&
+                                      _personas.isNotEmpty) {
+                                    _personaSkillKey =
+                                        _personas.first.personaSkillKey;
+                                  }
+                                }
                               });
                             },
                           ),
@@ -667,21 +740,26 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                           'Associe o prompt e a persona usados por este ponto de acesso para produzir a saída esperada.',
                       child: Column(
                         children: [
-                          DropdownButtonFormField<String>(
+                          DropdownButtonFormField<String?>(
                             initialValue: _promptKey,
                             decoration: const InputDecoration(
                               labelText: 'Prompt do questionário *',
                             ),
                             items: [
+                              if (_surveyId != null)
+                                const DropdownMenuItem<String?>(
+                                  value: null,
+                                  child: Text('Herdar do questionário'),
+                                ),
                               ..._localPromptOptions.map(
-                                (option) => DropdownMenuItem<String>(
+                                (option) => DropdownMenuItem<String?>(
                                   value: option.$1,
                                   child: Text('${option.$2} · ${option.$1}'),
                                 ),
                               ),
                               ..._prompts
                                   .map(
-                                    (prompt) => DropdownMenuItem<String>(
+                                    (prompt) => DropdownMenuItem<String?>(
                                       value: prompt.promptKey,
                                       child: Text(prompt.name),
                                     ),
@@ -717,21 +795,26 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                               ),
                             ),
                           const SizedBox(height: 12),
-                          DropdownButtonFormField<String>(
+                          DropdownButtonFormField<String?>(
                             initialValue: _personaSkillKey,
                             decoration: const InputDecoration(
                               labelText: 'Persona *',
                             ),
-                            items: _personas
-                                .map(
-                                  (persona) => DropdownMenuItem<String>(
-                                    value: persona.personaSkillKey,
-                                    child: Text(
-                                      '${persona.name} · ${persona.outputProfile}',
-                                    ),
+                            items: [
+                              if (_surveyId != null)
+                                const DropdownMenuItem<String?>(
+                                  value: null,
+                                  child: Text('Herdar do questionário'),
+                                ),
+                              ..._personas.map(
+                                (persona) => DropdownMenuItem<String?>(
+                                  value: persona.personaSkillKey,
+                                  child: Text(
+                                    '${persona.name} · ${persona.outputProfile}',
                                   ),
-                                )
-                                .toList(growable: false),
+                                ),
+                              ),
+                            ],
                             onChanged: (value) {
                               setState(() {
                                 _personaSkillKey = value;
@@ -770,56 +853,164 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
                     const SizedBox(height: 24),
                     DsSection(
                       key: _aiSectionKey,
-                      title: 'Modelos e Provedores de IA',
+                      title: 'Configuração de IA',
                       subtitle:
-                          'Configure a redundância e a escolha de modelos específicos para este ponto de acesso.',
+                          'Configure a redundância, escolha de modelos, temperatura e comportamento de raciocínio para este ponto de acesso.',
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          DropdownButtonFormField<String?>(
-                            initialValue: _aiProvider,
+                          DropdownButtonFormField<String>(
+                            value: _primaryProvider,
                             decoration: const InputDecoration(
-                              labelText: 'Provedor primário',
-                              helperText:
-                                  'Escolha o provedor que será tentado primeiro.',
+                              labelText: 'Provedor primário *',
                             ),
                             items: const [
-                              DropdownMenuItem<String?>(
-                                value: null,
-                                child: Text('Padrão do Sistema'),
-                              ),
-                              DropdownMenuItem<String?>(
+                              DropdownMenuItem(
                                 value: 'glm',
                                 child: Text('Zhipu AI (GLM)'),
                               ),
-                              DropdownMenuItem<String?>(
+                              DropdownMenuItem(
+                                value: 'gemini',
+                                child: Text('Google Gemini'),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _primaryProvider = value;
+                                  _isDirty = true;
+                                });
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _primaryModelController,
+                            decoration: const InputDecoration(
+                              labelText: 'Modelo primário *',
+                              helperText:
+                                  'Ex.: glm-4.5-flash ou gemini-2.0-flash',
+                            ),
+                            validator: DsKeyFieldSupport.validateRequired,
+                          ),
+                          const SizedBox(height: 24),
+                          DropdownButtonFormField<String?>(
+                            value: _fallbackProvider,
+                            decoration: const InputDecoration(
+                              labelText: 'Provedor de fallback',
+                              helperText:
+                                  'Opcional. Usado se o primário falhar.',
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: null,
+                                child: Text('Nenhum'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'glm',
+                                child: Text('Zhipu AI (GLM)'),
+                              ),
+                              DropdownMenuItem(
                                 value: 'gemini',
                                 child: Text('Google Gemini'),
                               ),
                             ],
                             onChanged: (value) {
                               setState(() {
-                                _aiProvider = value;
+                                _fallbackProvider = value;
                                 _isDirty = true;
                               });
                             },
                           ),
                           const SizedBox(height: 12),
                           TextFormField(
-                            controller: _glmModelController,
+                            controller: _fallbackModelController,
                             decoration: const InputDecoration(
-                              labelText: 'Modelo GLM customizado',
-                              helperText:
-                                  'Ex.: glm-4-flash. Deixe vazio para o padrão.',
+                              labelText: 'Modelo de fallback',
+                              helperText: 'Opcional. Ex.: gemini-2.0-flash',
                             ),
                           ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'Temperatura: ${_temperature.toStringAsFixed(1)}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          Slider(
+                            value: _temperature,
+                            min: 0.0,
+                            max: 1.0,
+                            divisions: 10,
+                            label: _temperature.toStringAsFixed(1),
+                            onChanged: (value) {
+                              setState(() {
+                                _temperature = value;
+                                _isDirty = true;
+                              });
+                            },
+                          ),
                           const SizedBox(height: 12),
-                          TextFormField(
-                            controller: _geminiModelController,
+                          DropdownButtonFormField<String>(
+                            value: _reasoningEffort,
                             decoration: const InputDecoration(
-                              labelText: 'Modelo Gemini customizado',
-                              helperText:
-                                  'Ex.: gemini-2.0-flash-lite. Deixe vazio para o padrão.',
+                              labelText: 'Esforço de raciocínio (Reasoning)',
                             ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'low',
+                                child: Text('Baixo (Flash)'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'medium',
+                                child: Text('Médio'),
+                              ),
+                              DropdownMenuItem(
+                                value: 'high',
+                                child: Text('Alto (Reasoning)'),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() {
+                                  _reasoningEffort = value;
+                                  _isDirty = true;
+                                });
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          SwitchListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: const Text('Habilitar cache de entrada'),
+                            subtitle: const Text(
+                              'Otimiza custos para prompts repetitivos.',
+                            ),
+                            value: _enableCaching,
+                            onChanged: (value) {
+                              setState(() {
+                                _enableCaching = value;
+                                _isDirty = true;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    DsSection(
+                      key: _orchestratorSectionKey,
+                      title: 'Prompts do Orchestrator',
+                      subtitle:
+                          'Sobrescreva as instruções de lógica clínica base do sistema para este ponto de acesso.',
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: _systemPromptController,
+                            decoration: const InputDecoration(
+                              labelText: 'Sobrescrita do Prompt de Sistema (Lógica Clínica)',
+                              helperText:
+                                  'Opcional. Substitui a lógica de interpretação clínica deste ponto.',
+                            ),
+                            maxLines: 12,
                           ),
                         ],
                       ),

@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Literal, Optional
 
 from fastapi import FastAPI, Depends, HTTPException, Security, status, Request
+from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field, field_validator
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
@@ -49,7 +50,10 @@ app = FastAPI(
     description="An AI agent that processes clinical conversations and survey data to generate structured reports.",
     version="0.2.0",
 )
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger("pymongo").setLevel(logging.WARNING)
 logger = logging.getLogger("clinical_writer")
+logger.setLevel(logging.DEBUG)
 
 # ======================================================================================
 # Constants and Configuration
@@ -63,26 +67,49 @@ API_TOKEN = os.getenv("API_TOKEN")
 # Middleware
 # ======================================================================================
 
+@app.middleware("http")
+async def diagnostic_logging_middleware(request: Request, call_next):
+    """Log raw request details to debug low-level 400 errors."""
+    if request.url.path == "/process":
+        body = await request.body()
+        logger.debug("DIAGNOSTIC: Method=%s Path=%s Headers=%s Body=%s",
+                     request.method, request.url.path, dict(request.headers), body.decode(errors='replace'))
+        
+        # Reposicionar o corpo para que o FastAPI possa lê-lo novamente
+        async def receive():
+            return {"type": "http.request", "body": body}
+        request._receive = receive
+        
+    return await call_next(request)
+
 
 # The order of middleware is important. RawContextMiddleware should be first.
+# Temporarily disabled to debug 400 Bad Request
+"""
 if RawContextMiddleware is not None and plugins is not None:
     app.add_middleware(
         RawContextMiddleware,
         plugins=(plugins.RequestIdPlugin(),)
     )
+"""
 
+
+from fastapi.exceptions import RequestValidationError
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 # ======================================================================================
 # API Models
 # ======================================================================================
 
 class RequestMetadata(BaseModel):
+    model_config = ConfigDict(extra="ignore")
     source_app: Optional[str] = None
     request_id: Optional[str] = None
     patient_ref: Optional[str] = None
 
 
 class ProcessRequest(BaseModel):
+    model_config = ConfigDict(extra="ignore")
     input_type: Literal["consult", "survey7", "full_intake"]
     content: str = Field(..., description="Conversation text or JSON string")
     locale: str = Field(default=DEFAULT_LOCALE)
@@ -92,6 +119,12 @@ class ProcessRequest(BaseModel):
     ai_provider: Optional[str] = Field(default=None)
     glm_model: Optional[str] = Field(default=None)
     gemini_model: Optional[str] = Field(default=None)
+    system_prompt_override: Optional[str] = Field(default=None)
+    format_prompt_override: Optional[str] = Field(default=None)
+    temperature: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    do_sample: Optional[bool] = Field(default=None)
+    thinking_mode: Optional[str] = Field(default=None)
+    enable_caching: Optional[bool] = Field(default=None)
     output_format: Literal["report_json"] = Field(default="report_json")
     metadata: RequestMetadata = Field(default_factory=RequestMetadata)
 
@@ -144,15 +177,31 @@ def verify_token(api_key: Optional[str] = Security(api_key_header)) -> bool:
     opt into unauthenticated access for controlled environments.
     """
     configured_token = os.getenv("API_TOKEN")
+    
+    # Debug log to help identify 401 issues (redacted for safety but showing presence)
+    if configured_token:
+        logger.debug("Auth: API_TOKEN is configured (length=%d)", len(configured_token))
+    else:
+        logger.debug("Auth: API_TOKEN is NOT configured")
+
     if not configured_token:
         if _is_production_environment() and not _allows_unauthenticated_access():
+            logger.error("Auth failure: API_TOKEN missing in production")
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="API token is not configured",
             )
         return True
 
-    if not api_key or api_key != f"Bearer {configured_token}":
+    if _allows_unauthenticated_access():
+        logger.debug("Auth: Unauthenticated access allowed by configuration")
+        return True
+
+    expected = f"Bearer {configured_token}"
+    if not api_key or api_key != expected:
+        logger.warning("Auth failure: Received %s, expected Bearer length=%d", 
+                       "missing" if not api_key else "invalid token", 
+                       len(expected))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or missing API token",
@@ -202,9 +251,29 @@ def _store_request_id(request_id: str) -> None:
         # through explicit state, so request-scoped storage is optional here.
         return
 
+
+def _resolve_process_request_id(body: ProcessRequest, request: Request) -> str:
+    """Use caller-provided request ids so status polling targets the active run."""
+    header_request_id = request.headers.get("x-request-id")
+    if header_request_id:
+        return header_request_id
+    if body.metadata.request_id:
+        return body.metadata.request_id
+    return str(uuid.uuid4())
+
 # ======================================================================================
 # API Endpoints
 # ======================================================================================
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Log validation errors to help debug 400 Bad Request responses."""
+    logger.error("Validation error for %s: %s", request.url, exc.errors())
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": exc.errors(), "body": exc.body},
+    )
+
 
 @app.get("/", summary="Root", tags=["Status"])
 async def root():
@@ -233,7 +302,7 @@ async def process_content(
     """
     Process clinical content (conversation or JSON) to generate a structured report.
     """
-    request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
+    request_id = _resolve_process_request_id(body, request)
     _store_request_id(request_id)
     logger.info(
         "Process request received: input_type=%s, prompt_key=%s, persona_skill_key=%s, output_profile=%s, request_id=%s, content_length=%s",
@@ -256,6 +325,12 @@ async def process_content(
         "ai_provider": body.ai_provider,
         "glm_model": body.glm_model,
         "gemini_model": body.gemini_model,
+        "system_prompt_override": body.system_prompt_override,
+        "format_prompt_override": body.format_prompt_override,
+        "temperature": body.temperature,
+        "do_sample": body.do_sample,
+        "thinking_mode": body.thinking_mode,
+        "enable_caching": body.enable_caching,
         "prompt_registry": prompt_registry,
     }
     final_state = graph.invoke(initial_state)

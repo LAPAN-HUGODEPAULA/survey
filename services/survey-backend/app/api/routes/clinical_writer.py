@@ -54,9 +54,12 @@ class ClinicalWriterRequest(BaseModel):
     prompt_key: str = Field(default="default")
     persona_skill_key: str | None = Field(default=None)
     output_profile: str | None = Field(default=None)
+    ai_config: dict | None = Field(default=None, alias="aiConfig")
     ai_provider: str | None = Field(default=None, alias="aiProvider")
     glm_model: str | None = Field(default=None, alias="glmModel")
     gemini_model: str | None = Field(default=None, alias="geminiModel")
+    system_prompt_override: str | None = Field(default=None, alias="systemPromptOverride")
+    format_prompt_override: str | None = Field(default=None, alias="formatPromptOverride")
     output_format: str = Field(default="report_json")
     metadata: dict = Field(default_factory=dict)
     async_mode: bool = Field(default=True, alias="asyncMode")
@@ -112,6 +115,9 @@ def _initial_progress() -> AIProgressPayload:
 
 
 async def _poll_upstream_progress(task_id: str, request_id: str, stop_event: asyncio.Event) -> None:
+    # 15s initial delay to account for reasoning-capable models high latency
+    await asyncio.sleep(15.0)
+    
     while not stop_event.is_set():
         try:
             progress = await fetch_langgraph_status(request_id)
@@ -119,7 +125,9 @@ async def _poll_upstream_progress(task_id: str, request_id: str, stop_event: asy
                 await task_manager.set_task(task_id, {"ai_progress": progress})
         except Exception as exc:  # pragma: no cover - polling failures should not fail tasks
             logger.debug("Unable to poll clinical writer status for task %s: %s", task_id, exc)
-        await asyncio.sleep(1.0)
+        
+        # 10s intervals to reduce load on the backend and database
+        await asyncio.sleep(10.0)
 
 
 def _error_payload(agent_result: dict[str, Any]) -> ClinicalWriterTaskError:
@@ -152,9 +160,12 @@ async def _run_background_task(task_id: str, request: ClinicalWriterRequest, req
             prompt_key=request.prompt_key,
             persona_skill_key=request.persona_skill_key,
             output_profile=request.output_profile,
+            ai_config=request.ai_config,
             ai_provider=request.ai_provider,
             glm_model=request.glm_model,
             gemini_model=request.gemini_model,
+            system_prompt_override=request.system_prompt_override,
+            format_prompt_override=request.format_prompt_override,
             source_app=request.metadata.get("source_app") or "clinical-writer",
             patient_ref=request.metadata.get("patient_ref"),
             request_id=request_id,
@@ -262,9 +273,12 @@ async def process_clinical_writer(request: ClinicalWriterRequest) -> AgentRespon
         prompt_key=request.prompt_key,
         persona_skill_key=request.persona_skill_key,
         output_profile=request.output_profile,
+        ai_config=request.ai_config,
         ai_provider=request.ai_provider,
         glm_model=request.glm_model,
         gemini_model=request.gemini_model,
+        system_prompt_override=request.system_prompt_override,
+        format_prompt_override=request.format_prompt_override,
         source_app=request.metadata.get("source_app") or "clinical-writer",
         patient_ref=request.metadata.get("patient_ref"),
         request_id=request.metadata.get("request_id"),
@@ -334,9 +348,12 @@ def _resolve_request_selection(request: ClinicalWriterRequest) -> ClinicalWriter
     payload.prompt_key = selection.prompt_key
     payload.persona_skill_key = selection.persona_skill_key
     payload.output_profile = selection.output_profile
+    payload.ai_config = selection.ai_config
     payload.ai_provider = selection.ai_provider
     payload.glm_model = selection.glm_model
     payload.gemini_model = selection.gemini_model
+    payload.system_prompt_override = selection.system_prompt_override
+    payload.format_prompt_override = selection.format_prompt_override
     if survey_id:
         payload.metadata.setdefault("surveyId", str(survey_id))
     return payload

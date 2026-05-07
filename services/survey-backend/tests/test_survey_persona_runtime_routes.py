@@ -122,7 +122,7 @@ def test_create_patient_response_uses_access_point_bindings(monkeypatch):
     patient_response_repo.create.return_value = {"_id": "response-1"}
     access_point_repo = MagicMock()
     access_point_repo.get_by_key.return_value = {
-        "accessPointKey": "survey_patient.thank_you.auto_analysis",
+        "accessPointKey": "survey_patient.inline.analysis",
         "promptKey": "resolved-prompt",
         "personaSkillKey": "patient_condition_overview",
         "outputProfile": "patient_condition_overview",
@@ -144,13 +144,63 @@ def test_create_patient_response_uses_access_point_bindings(monkeypatch):
     app.dependency_overrides[get_agent_access_point_repo] = lambda: access_point_repo
 
     payload = _response_payload()
+    payload["accessPointKey"] = "survey_patient.inline.analysis"
+    response = client.post("/api/v1/patient_responses/", json=payload)
+
+    assert response.status_code == 201
+    assert response.json()["promptKey"] == "resolved-prompt"
+    assert response.json()["accessPointKey"] == "survey_patient.inline.analysis"
+    assert response.json()["agentResponse"]["medicalRecord"] == "ok"
+    app.dependency_overrides = {}
+
+
+def test_create_patient_response_defers_thank_you_agent_processing(monkeypatch):
+    survey_repo = MagicMock()
+    survey_repo.get_by_id.return_value = {
+        "_id": "survey-1",
+        "prompt": {"promptKey": "survey-default", "name": "Default"},
+    }
+    persona_repo = MagicMock()
+    persona_repo.get_by_key.return_value = {
+        "personaSkillKey": "patient_condition_overview",
+        "outputProfile": "patient_condition_overview",
+    }
+    persona_repo.get_by_output_profile.return_value = {
+        "personaSkillKey": "patient_condition_overview",
+        "outputProfile": "patient_condition_overview",
+    }
+    patient_response_repo = MagicMock()
+    patient_response_repo.create.return_value = {"_id": "response-1"}
+    access_point_repo = MagicMock()
+    access_point_repo.get_by_key.return_value = {
+        "accessPointKey": "survey_patient.thank_you.auto_analysis",
+        "promptKey": "resolved-prompt",
+        "personaSkillKey": "patient_condition_overview",
+        "outputProfile": "patient_condition_overview",
+    }
+    access_point_repo.list_for_runtime.return_value = []
+
+    async def _unexpected_agent(*args, **kwargs):
+        raise AssertionError("Thank-you patient response save must not call AI inline")
+
+    monkeypatch.setattr(
+        "app.api.routes.patient_responses.send_to_langgraph_agent",
+        _unexpected_agent,
+    )
+
+    app.dependency_overrides[get_survey_repo] = lambda: survey_repo
+    app.dependency_overrides[get_persona_skill_repo] = lambda: persona_repo
+    app.dependency_overrides[get_patient_response_repo] = lambda: patient_response_repo
+    app.dependency_overrides[get_agent_access_point_repo] = lambda: access_point_repo
+
+    payload = _response_payload()
     payload["accessPointKey"] = "survey_patient.thank_you.auto_analysis"
     response = client.post("/api/v1/patient_responses/", json=payload)
 
     assert response.status_code == 201
     assert response.json()["promptKey"] == "resolved-prompt"
-    assert response.json()["accessPointKey"] == "survey_patient.thank_you.auto_analysis"
-    assert response.json()["agentResponse"]["medicalRecord"] == "ok"
+    assert response.json()["agentResponse"] is None
+    assert response.json()["agentResponses"] == []
     app.dependency_overrides = {}
 
 

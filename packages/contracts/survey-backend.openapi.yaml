@@ -1582,12 +1582,55 @@ components:
           type: string
         outputProfile:
           type: string
+        aiConfig:
+          $ref: '#/components/schemas/AIConfig'
+        aiProvider:
+          type: string
+          nullable: true
+        glmModel:
+          type: string
+          nullable: true
+        geminiModel:
+          type: string
+          nullable: true
         surveyId:
           type: string
           nullable: true
         description:
           type: string
           nullable: true
+    AIConfig:
+      type: object
+      required:
+        - primaryProvider
+        - primaryModel
+      properties:
+        primaryProvider:
+          type: string
+          enum: [glm, gemini]
+        primaryModel:
+          type: string
+        fallbackProvider:
+          type: string
+          enum: [glm, gemini]
+          nullable: true
+        fallbackModel:
+          type: string
+          nullable: true
+        temperature:
+          type: number
+          format: float
+          default: 0.0
+          minimum: 0.0
+          maximum: 1.0
+        reasoningEffort:
+          type: string
+          enum: [low, medium, high]
+          default: low
+          nullable: true
+        enableCaching:
+          type: boolean
+          default: true
     AgentAccessPoint:
       allOf:
         - $ref: '#/components/schemas/AgentAccessPointUpsert'
