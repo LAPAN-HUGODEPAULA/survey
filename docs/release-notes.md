@@ -28,6 +28,14 @@
 
 ## Unreleased
 
+- 2026-05-07: completed AI governance hard cut to canonical `aiConfig` across backend, worker, clinical-writer, and builder, retiring runtime usage of legacy flat AI fields.
+- 2026-05-07: added global AI settings endpoints (`GET/PUT /settings/ai`) and enforced runtime precedence chain (`Request > Access Point > Global > Environment fallback`).
+- 2026-05-07: finalized clinical-writer executor-only routing behavior with structured stage/routing logs and request correlation identifiers.
+- 2026-05-07: implemented survey-worker bounded retries (`WORKER_MAX_RETRIES`) with terminal `permanently_failed` state and persisted diagnostics (`retryCount`, `lastError`, `agentResponseUpdatedAt`).
+- 2026-05-07: completed survey-builder global AI settings UX and explicit inheritance controls for access points.
+- 2026-05-07: synchronized API/architecture/runbook/admin documentation to the aiConfig-only governance model and worker operational knobs.
+- 2026-05-07: validated rollout with passing targeted backend/worker/clinical-writer tests, passing clinical-writer lint, and clean `flutter analyze` for survey-builder.
+
 - 2026-04-16: secured `survey-builder` administrative access with backend-managed builder admin authorization, dedicated builder login and logout endpoints, signed session cookies, CSRF enforcement for write operations, and protected Flutter admin-shell session bootstrap and recovery flows.
 - 2026-04-16: added builder-admin operational support materials, including administrator promotion and revocation guidance and the `tools/scripts/set_builder_admin.sh` helper.
 - 2026-04-17: documented the Clinical Writer prompt-catalog governance model, including taxonomy boundaries for questionnaire prompts, persona skills, output profiles, and planned agent access points.

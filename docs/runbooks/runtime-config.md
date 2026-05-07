@@ -74,6 +74,20 @@ The private JSON currently renders values for:
 - Clinical Writer API auth/runtime settings
 - Traefik Let's Encrypt email
 
+## Survey Worker AI Resilience Knobs
+
+The worker includes runtime controls for bounded retries and debug diagnostics.
+
+- `WORKER_MAX_RETRIES`
+  - Limits automatic retries for failed AI processing per document.
+  - When limit is reached, status transitions to `permanently_failed` and auto polling stops for that document.
+- `WORKER_LOG_PAYLOAD`
+  - Enables logging of outbound request payload sent to the Clinical Writer.
+- `WORKER_LOG_RESPONSE`
+  - Enables logging of raw and normalized Clinical Writer responses.
+
+These toggles are intended for incident investigation and should remain disabled in normal production operation unless debugging is needed.
+
 ## Production Security Requirements
 
 - `survey-backend`

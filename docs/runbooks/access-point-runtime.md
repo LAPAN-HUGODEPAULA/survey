@@ -25,6 +25,8 @@ An agent access point is a builder-managed record that binds one runtime entry p
 
 This lets the frontend identify intent with a stable key while the backend resolves the effective prompt stack.
 
+AI model/provider parameters are governed by the canonical `aiConfig` schema only.
+
 ## Precedence Order
 
 The backend resolves runtime configuration in this order:
@@ -48,6 +50,25 @@ The concrete fields are:
    - `survey.outputProfile`
 4. Legacy fallback
    - historical prompt-selection fallback for non-migrated survey flows
+
+## AI Configuration Authority Chain
+
+AI runtime parameters are resolved in this strict order:
+
+1. Request-level `aiConfig` override
+2. Access-point `aiConfig`
+3. Global singleton `aiConfig` (`GET /settings/ai`)
+4. Environment fallback (last resort)
+
+Retired flat fields (`aiProvider`, `glmModel`, `geminiModel`) are not part of the runtime model.
+
+## Clinical Writer Execution Boundary
+
+`clinical-writer-api` is an executor-only service for provider/model policy:
+
+- it consumes resolved payload settings
+- it does not define independent provider/model policy
+- fallback behavior is emergency-only when payload or upstream settings are absent
 
 ## Fan-Out Behavior
 

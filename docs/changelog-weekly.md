@@ -1,5 +1,28 @@
 # Weekly Change Log
 
+## Week of 2026-05-07
+
+### Features
+
+- **AI Governance Stability (Hard Cut to aiConfig)**: Completed the governance cutover to a single AI settings schema (`aiConfig`) across backend, worker, clinical-writer, and survey-builder, including global singleton AI settings endpoints and explicit runtime precedence (`Request > Access Point > Global > Env fallback`).
+- **Clinical Writer Executor-Only Routing**: Refactored clinical-writer runtime behavior so provider/model policy is resolved upstream and consumed from payload, with emergency fallback only.
+- **Worker Retry Resilience**: Added bounded retry controls in survey-worker with `WORKER_MAX_RETRIES`, terminal `permanently_failed` status, and persisted failure diagnostics (`retryCount`, `lastError`, `agentResponseUpdatedAt`).
+- **Builder Global AI Controls**: Added global AI settings management and explicit inheritance behavior in survey-builder (`Use Global AI Settings` vs access-point override).
+
+### Validation
+
+- Backend targeted tests for access-point and aiConfig resolution passed.
+- Worker retry tests passed.
+- Clinical writer targeted tests passed.
+- Clinical writer lint check passed (`pylint`, score 9.43/10).
+- Survey-builder static analysis passed (`flutter analyze`, no issues).
+
+### Documentation
+
+- Updated API, architecture, and runbook docs to reflect executor-only clinical-writer behavior and aiConfig-only governance.
+- Added operational notes for worker retry and diagnostic logging toggles.
+- Updated builder admin guidance for global AI settings and explicit inheritance semantics.
+
 ## Week of 2026-04-17
 
 ### Features

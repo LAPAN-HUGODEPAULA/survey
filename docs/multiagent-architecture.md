@@ -4,7 +4,7 @@
 
 The integration of large language models (LLMs) into the LAPAN healthcare platform — focused on digitizing and validating the Cardiff Hypersensitivity Scale (CHYPS-Br) for neurodevelopmental disorders in Brazil — demands an architecture that goes far beyond simple text generation. The system must produce multiple diagnostic report profiles (clinician, school, patient) from the same questionnaire data, each with distinct tone, vocabulary, and structural requirements.
 
-This document captures the architectural decisions behind the transition from monolithic prompts to a **stateful multi-agent graph** orchestrated by LangGraph. The approach separates clinical interpretation from narrative generation, introduces reflection-based safety cycles, and treats clinical expertise as modular, versionable skills.
+This document captures the architectural decisions behind the transition from monolithic prompts to a **stateful multi-agent graph** orchestrated by LangGraph. The approach separates clinical interpretation from narrative generation, enforces executor-oriented runtime boundaries, and treats clinical expertise as modular, versionable skills.
 
 ## State Graph Orchestration with LangGraph
 
@@ -21,7 +21,7 @@ Unlike linear pipelines, a state graph isolates diagnostic interpretation logic 
 | **Classification Node** | Identifies the questionnaire type (e.g., CHYPS-V) and requested report profiles | Dynamic routing; avoids context overload |
 | **Interpretation Node** | Applies questionnaire-specific clinical logic to raw patient scores | Centralizes domain knowledge in a modular way |
 | **Generation Node (Profile)** | Transforms clinical interpretation into the target audience's tone and structure | Enables parallel generation of multiple reports |
-| **Reflection Node** | Self-critiques the generated report against the raw questionnaire data | Drastically reduces extrinsic hallucinations |
+| **Routing/Telemetry Layer** | Emits structured routing and execution-stage metadata | Improves observability and operational debugging |
 
 By preventing a single "mega-agent" from handling both clinical interpretation and school-friendly formatting simultaneously, the system reduces the probability of omitting critical details or mixing technical terminology with accessible language.
 
@@ -96,13 +96,13 @@ After careful evaluation, the LAPAN project has decided **not to adopt LoRA** fo
 
 If the project scales to the point where prompt-based persona control becomes insufficient — for instance, if dozens of highly specialized output profiles are needed — LoRA can be revisited as a future enhancement.
 
-## Hallucination Mitigation via Reflection Cycles
+## Hallucination Mitigation (Future Reflection Extension)
 
-Medical report generation demands factual rigor with zero tolerance for errors. The Reflexion architecture in LangGraph transforms report generation into an iterative self-critique and correction process.
+Medical report generation demands factual rigor with zero tolerance for errors. A Reflexion-style cycle remains a future extension path; the current production flow relies on strict schema validation, prompt governance, and stage-level telemetry.
 
 ### Clinical Critique Node
 
-Within the state graph, the initially generated report is not delivered to the user but is instead passed to a "Critique" node. This node acts as an "AI Judge" or "Guardian Agent" that evaluates the draft against a medical quality rubric.
+In a future graph variant, the initially generated report could be passed to a dedicated "Critique" node acting as an "AI Judge" or "Guardian Agent".
 
 | Reflection Criterion | Verification Question | Correction Mechanism |
 |:---|:---|:---|
@@ -114,7 +114,7 @@ Research shows that "directed" reflection — where the critic specifically poin
 
 ### Grounded Verification
 
-To ensure "Intrinsic Truth," reflection must be complemented by rigorous re-reading of the provided context. The MEGA-RAG framework demonstrates that cross-referencing model claims against a curated clinical knowledge base can reduce hallucination rates by over 40%. In the LAPAN context, every assertion in the report (e.g., "The patient presents a score indicative of photophobia") must be explicitly validated against the input JSON in the reflection node before finalization.
+To ensure "Intrinsic Truth," any future reflection loop should be complemented by rigorous re-reading of the provided context. The MEGA-RAG framework demonstrates that cross-referencing model claims against a curated clinical knowledge base can reduce hallucination rates by over 40%.
 
 ## Data Governance and LGPD Compliance
 
@@ -132,7 +132,7 @@ The system implements a "Data Sanitization" layer (PII Masking) before data leav
 
 The integration of "Guardian Agents" in LangGraph acts not only as clinical reviewers but also as compliance monitors, blocking report generation that contains stigmatizing language or data not explicitly authorized by the patient's legal guardian.
 
-## The 4-Stage Orchestration Graph (Implementation Design)
+## The 3-Stage Orchestration Graph (Current Implementation)
 
 The transition from monolithic prompts to a system based on **Decoupled Expertise** is the fundamental step for the LAPAN platform's growth. By separating **Clinical Interpretation Logic** (Questionnaire Rules) from **Communication Logic** (Persona/Skill), clinical specialists can manage knowledge without depending on software deployment cycles.
 
@@ -143,7 +143,8 @@ The transition from monolithic prompts to a system based on **Decoupled Expertis
 | **1. Context** | ContextLoader | Retrieves the `interpretation_prompt` for the questionnaire and the persona SKILL from MongoDB | Questionnaire ID, Profile ID | Interpretation Prompt, Persona Prompt |
 | **2. Analysis** | ClinicalAnalyzer | Processes the response JSON applying only clinical rules (e.g., CHYPS scoring) | Response JSON, Interpretation Prompt | **Structured Analysis JSON** (Clinical Facts) |
 | **3. Writing** | PersonaWriter | Transforms clinical facts into a Markdown narrative following the Persona's tone | Analysis JSON, Persona Prompt | Report Draft (Markdown) |
-| **4. Critique** | ReflectorNode | The "Judge." Validates tone adequacy and checks for invasive recommendations | Draft, Original Responses, Safety Criteria | **PASS** (End) or **FAIL** (Return to Writing) |
+
+Model/provider resolution for these stages follows upstream payload authority (`aiConfig`) with backend governance chain and emergency environment fallback only.
 
 ### Why Skills in MongoDB?
 
@@ -156,7 +157,7 @@ Agent Skills (Personas) are stored in MongoDB collections so that the survey-bui
 
 The solution uses only standard API calls, eliminating the complexity of self-hosted GPU infrastructure.
 
-1. **Asymmetric Models:** Lightweight models for stages 1-3; high-reasoning models only for the Reflection Node.
+1. **Asymmetric Models:** Lightweight or lower-cost models for common paths; stronger models can be configured in `aiConfig` where needed.
 2. **Context Hygiene:** By separating interpretation from writing, prompts sent at each step are smaller and more focused, reducing the model's "attention tax" and the probability of hallucinations.
 
 ## Implementation Roadmap
@@ -181,10 +182,10 @@ Following a **Spec-Driven Design** methodology, the implementation is divided in
 - Implement `PersonaWriter` node consuming Phase 2 output.
 - Integrate support for multiple models via MongoDB configuration.
 
-### Phase 4: Safety Layer (Reflection)
+### Phase 4: Safety and Validation Hardening
 
-- Implement `ReflectorNode` with a specialized prompt for detecting "invasive medical recommendations" (Safety Guardrail).
-- Configure the conditional edge (`conditional_edge`) to perform correction loops up to 2 times on failure.
+- Expand structured routing logs with request correlation and stage metadata.
+- Add stronger validation gates and targeted tests for clinical output integrity.
 
 ### Phase 5: Integration and CI/CD
 
@@ -199,7 +200,7 @@ The following strategic guidelines are recommended:
 
 - **Migrate to a Stateful Multi-Agent Architecture:** Implement LangGraph to manage the separation between diagnostic interpretation and persona generation, ensuring persistence and auditability.
 - **Standardize Clinical Skills:** Encapsulate each questionnaire's logic (e.g., CHYPS-Br) in file-based modular Skills, facilitating decentralized maintenance by different clinical teams.
-- **Institutionalize Reflection Cycles:** Implement reflection and clinical critique nodes in the graph to mitigate hallucinations and ensure all reports are strictly grounded in questionnaire data.
+- **Institutionalize Validation Gates:** Maintain strict schema validation, stage-level telemetry, and grounded prompt governance to mitigate hallucinations and keep reports traceable.
 - **Out-of-Code Prompt Governance:** Use a Prompt CMS to manage the lifecycle and versioning of instructions, enabling rapid iterations without complex deployments.
 - **Use API-Based Inference with Composable Prompts:** Leverage the composable prompt system (Domain + Persona + Context) for style differentiation rather than fine-tuning, keeping infrastructure simple and costs predictable.
 
