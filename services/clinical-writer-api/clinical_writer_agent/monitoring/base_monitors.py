@@ -57,30 +57,55 @@ class CompositeMonitor(ProcessingMonitor):
     def add_monitor(self, monitor: ProcessingMonitor):
         self.monitors.append(monitor)
     
+    def remove_monitor(self, monitor: ProcessingMonitor):
+        if monitor in self.monitors:
+            self.monitors.remove(monitor)
+    
     def on_classification(self, classification: str, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
         for monitor in self.monitors:
-            monitor.on_classification(classification, timestamp, metadata, request_id)
-    
+            try:
+                monitor.on_classification(classification, timestamp, metadata, request_id)
+            except Exception:
+                pass
+
     def on_processing_start(self, agent_type: str, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
         for monitor in self.monitors:
-            monitor.on_processing_start(agent_type, timestamp, metadata, request_id)
-    
+            try:
+                monitor.on_processing_start(agent_type, timestamp, metadata, request_id)
+            except Exception:
+                pass
+
     def on_processing_complete(self, agent_type: str, duration: float, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
         for monitor in self.monitors:
-            monitor.on_processing_complete(agent_type, duration, timestamp, metadata, request_id)
-    
+            try:
+                monitor.on_processing_complete(agent_type, duration, timestamp, metadata, request_id)
+            except Exception:
+                pass
+
     def on_error(self, error: Exception, context: Dict[str, Any], timestamp: datetime, request_id: Optional[str] = None):
         for monitor in self.monitors:
-            monitor.on_error(error, context, timestamp, request_id)
-    
+            try:
+                monitor.on_error(error, context, timestamp, request_id)
+            except Exception:
+                pass
+
     def on_validation_start(self, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
         for monitor in self.monitors:
-            monitor.on_validation_start(timestamp, metadata, request_id)
-    
+            try:
+                monitor.on_validation_start(timestamp, metadata, request_id)
+            except Exception:
+                pass
+
     def on_validation_complete(self, is_valid: bool, duration: float, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
         for monitor in self.monitors:
-            monitor.on_validation_complete(is_valid, duration, timestamp, metadata, request_id)
+            try:
+                monitor.on_validation_complete(is_valid, duration, timestamp, metadata, request_id)
+            except Exception:
+                pass
 
     def on_event(self, event_name: str, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
         for monitor in self.monitors:
-            monitor.on_event(event_name, timestamp, metadata, request_id)
+            try:
+                monitor.on_event(event_name, timestamp, metadata, request_id)
+            except Exception:
+                pass
