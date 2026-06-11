@@ -5,14 +5,23 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 
-ACCESS_POINT_SEED_SOURCE = "default_agent_access_points_v5"
+ACCESS_POINT_SEED_SOURCE = "default_agent_access_points_v6"
 
 DEFAULT_AI_CONFIG = {
-    "primaryProvider": "glm",
-    "primaryModel": "glm-4.5-flash",
-    "fallbackProvider": "gemini",
-    "fallbackModel": "gemini-1.5-flash",
-    "temperature": 0.0,
+    "agentRefs": [
+        {
+            "agentKey": "local_qwen",
+            "model": "qwen2.5-coder:7b",
+            "temperature": 0.3,
+            "enabled": True,
+        },
+        {
+            "agentKey": "gemini",
+            "temperature": 0.3,
+            "enabled": True,
+        },
+    ],
+    "temperature": 0.3,
     "reasoningEffort": "low",
     "enableCaching": True,
 }

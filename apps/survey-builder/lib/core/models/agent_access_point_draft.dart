@@ -1,9 +1,36 @@
+class AIAgentRouteRefDraft {
+  AIAgentRouteRefDraft({
+    required this.agentKey,
+    this.model,
+    this.temperature,
+    this.maxTokens,
+    this.enabled = true,
+  });
+
+  final String agentKey;
+  final String? model;
+  final double? temperature;
+  final int? maxTokens;
+  final bool enabled;
+
+  AIAgentRouteRefDraft copy() {
+    return AIAgentRouteRefDraft(
+      agentKey: agentKey,
+      model: model,
+      temperature: temperature,
+      maxTokens: maxTokens,
+      enabled: enabled,
+    );
+  }
+}
+
 class AIConfigDraft {
   AIConfigDraft({
     required this.primaryProvider,
     required this.primaryModel,
     this.fallbackProvider,
     this.fallbackModel,
+    this.agentRefs = const <AIAgentRouteRefDraft>[],
     this.temperature = 0.0,
     this.reasoningEffort = 'low',
     this.enableCaching = true,
@@ -13,6 +40,7 @@ class AIConfigDraft {
   final String primaryModel;
   final String? fallbackProvider;
   final String? fallbackModel;
+  final List<AIAgentRouteRefDraft> agentRefs;
   final double temperature;
   final String? reasoningEffort;
   final bool enableCaching;
@@ -23,6 +51,7 @@ class AIConfigDraft {
       primaryModel: primaryModel,
       fallbackProvider: fallbackProvider,
       fallbackModel: fallbackModel,
+      agentRefs: agentRefs.map((item) => item.copy()).toList(growable: false),
       temperature: temperature,
       reasoningEffort: reasoningEffort,
       enableCaching: enableCaching,

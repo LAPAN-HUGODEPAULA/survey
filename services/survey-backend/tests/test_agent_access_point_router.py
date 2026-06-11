@@ -7,6 +7,7 @@ from app.api.dependencies.builder_auth import require_builder_admin, require_bui
 from app.main import app
 from app.persistence.deps import (
     get_agent_access_point_repo,
+    get_ai_agent_repo,
     get_persona_skill_repo,
     get_survey_prompt_repo,
     get_survey_repo,
@@ -19,6 +20,7 @@ client = TestClient(app)
 def _override_dependencies(
     *,
     access_point_repo: MagicMock,
+    ai_agent_repo: MagicMock | None = None,
     survey_repo: MagicMock | None = None,
     prompt_repo: MagicMock | None = None,
     persona_repo: MagicMock | None = None,
@@ -26,6 +28,7 @@ def _override_dependencies(
     app.dependency_overrides[require_builder_admin] = lambda: None
     app.dependency_overrides[require_builder_csrf] = lambda: None
     app.dependency_overrides[get_agent_access_point_repo] = lambda: access_point_repo
+    app.dependency_overrides[get_ai_agent_repo] = lambda: ai_agent_repo or MagicMock()
     app.dependency_overrides[get_survey_repo] = lambda: survey_repo or MagicMock()
     app.dependency_overrides[get_survey_prompt_repo] = lambda: prompt_repo or MagicMock()
     app.dependency_overrides[get_persona_skill_repo] = lambda: persona_repo or MagicMock()

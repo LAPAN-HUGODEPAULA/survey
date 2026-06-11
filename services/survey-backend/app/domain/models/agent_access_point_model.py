@@ -2,16 +2,42 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.domain.models._key_validation import normalize_key
+
+
+class AIAgentRouteRef(BaseModel):
+    """Ordered reference to a configured AI agent for an access point."""
+
+    agent_key: str = Field(..., alias="agentKey")
+    model: str | None = None
+    temperature: float | None = Field(default=None, ge=0.0, le=1.0)
+    max_tokens: int | None = Field(default=None, alias="maxTokens", gt=0)
+    enabled: bool = True
+
+    model_config = ConfigDict(populate_by_name=True)
+
+    @field_validator("agent_key")
+    @classmethod
+    def validate_agent_key(cls, value: str) -> str:
+        return normalize_key(value, field_name="agent_key", allowed_extra_chars=".")
+
+    @field_validator("model")
+    @classmethod
+    def trim_optional_model(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        return normalized or None
 
 
 class AIConfig(BaseModel):
     """Configuration for the AI model used by the access point."""
 
-    primary_provider: str = Field(..., alias="primaryProvider")
-    primary_model: str = Field(..., alias="primaryModel")
+    agent_refs: list[AIAgentRouteRef] | None = Field(default=None, alias="agentRefs")
+    primary_provider: str | None = Field(default=None, alias="primaryProvider")
+    primary_model: str | None = Field(default=None, alias="primaryModel")
     fallback_provider: str | None = Field(default=None, alias="fallbackProvider")
     fallback_model: str | None = Field(default=None, alias="fallbackModel")
     temperature: float = Field(default=0.0, ge=0.0, le=1.0)
@@ -19,6 +45,14 @@ class AIConfig(BaseModel):
     enable_caching: bool = Field(default=True, alias="enableCaching")
 
     model_config = ConfigDict(populate_by_name=True)
+
+    @model_validator(mode="after")
+    def validate_route_or_legacy_model(self) -> "AIConfig":
+        has_enabled_agent_ref = any(ref.enabled for ref in self.agent_refs or [])
+        has_legacy_primary = bool(self.primary_provider and self.primary_model)
+        if not has_enabled_agent_ref and not has_legacy_primary:
+            raise ValueError("aiConfig must define agentRefs or primaryProvider/primaryModel")
+        return self
 
     @field_validator("reasoning_effort")
     @classmethod
@@ -98,4 +132,3 @@ class AgentAccessPoint(AgentAccessPointUpsert):
 
     created_at: datetime = Field(..., alias="createdAt")
     modified_at: datetime = Field(..., alias="modifiedAt")
-

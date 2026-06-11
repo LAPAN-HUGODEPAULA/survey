@@ -12,11 +12,13 @@ from app.domain.models.agent_access_point_model import (
 )
 from app.persistence.deps import (
     get_agent_access_point_repo,
+    get_ai_agent_repo,
     get_persona_skill_repo,
     get_survey_prompt_repo,
     get_survey_repo,
 )
 from app.persistence.repositories.agent_access_point_repo import AgentAccessPointRepository
+from app.persistence.repositories.ai_agent_repo import AIAgentRepository
 from app.persistence.repositories.persona_skill_repo import PersonaSkillRepository
 from app.persistence.repositories.survey_prompt_repo import SurveyPromptRepository
 from app.persistence.repositories.survey_repo import SurveyRepository
@@ -28,10 +30,13 @@ _LOCAL_PROMPT_KEYS = {"default", "consult", "survey7", "full_intake"}
 def _validate_access_point_bindings(
     access_point: AgentAccessPointUpsert,
     *,
+    ai_agent_repo: AIAgentRepository,
     survey_repo: SurveyRepository,
     prompt_repo: SurveyPromptRepository,
     persona_repo: PersonaSkillRepository,
 ) -> None:
+    _validate_ai_config(access_point, ai_agent_repo=ai_agent_repo)
+
     if access_point.survey_id and not survey_repo.get_by_id(access_point.survey_id):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
@@ -66,6 +71,36 @@ def _validate_access_point_bindings(
         )
 
 
+def _validate_ai_config(
+    access_point: AgentAccessPointUpsert,
+    *,
+    ai_agent_repo: AIAgentRepository,
+) -> None:
+    ai_config = access_point.ai_config
+    if ai_config is None or not ai_config.agent_refs:
+        return
+
+    enabled_refs = [ref for ref in ai_config.agent_refs if ref.enabled]
+    if not enabled_refs:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail="aiConfig.agentRefs must include at least one enabled route",
+        )
+
+    for route_ref in ai_config.agent_refs:
+        agent = ai_agent_repo.get_by_key(route_ref.agent_key)
+        if not agent:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=f"Unknown AI agent: {route_ref.agent_key}",
+            )
+        if route_ref.enabled and not agent.get("enabled", True):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+                detail=f"Disabled AI agent cannot be used in an enabled route: {route_ref.agent_key}",
+            )
+
+
 @router.get("/agent_access_points/", response_model=List[AgentAccessPoint])
 async def list_agent_access_points(
     repo: AgentAccessPointRepository = Depends(get_agent_access_point_repo),
@@ -96,12 +131,14 @@ async def get_agent_access_point(
 async def create_agent_access_point(
     access_point: AgentAccessPointUpsert,
     repo: AgentAccessPointRepository = Depends(get_agent_access_point_repo),
+    ai_agent_repo: AIAgentRepository = Depends(get_ai_agent_repo),
     survey_repo: SurveyRepository = Depends(get_survey_repo),
     prompt_repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
     persona_repo: PersonaSkillRepository = Depends(get_persona_skill_repo),
 ):
     _validate_access_point_bindings(
         access_point,
+        ai_agent_repo=ai_agent_repo,
         survey_repo=survey_repo,
         prompt_repo=prompt_repo,
         persona_repo=persona_repo,
@@ -125,6 +162,7 @@ async def update_agent_access_point(
     access_point_key: str,
     access_point: AgentAccessPointUpsert,
     repo: AgentAccessPointRepository = Depends(get_agent_access_point_repo),
+    ai_agent_repo: AIAgentRepository = Depends(get_ai_agent_repo),
     survey_repo: SurveyRepository = Depends(get_survey_repo),
     prompt_repo: SurveyPromptRepository = Depends(get_survey_prompt_repo),
     persona_repo: PersonaSkillRepository = Depends(get_persona_skill_repo),
@@ -136,6 +174,7 @@ async def update_agent_access_point(
         )
     _validate_access_point_bindings(
         access_point,
+        ai_agent_repo=ai_agent_repo,
         survey_repo=survey_repo,
         prompt_repo=prompt_repo,
         persona_repo=persona_repo,

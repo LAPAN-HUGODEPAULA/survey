@@ -59,6 +59,19 @@ def _default_ai_config_from_env() -> dict | None:
 def _normalize_ai_config(value: dict | None) -> dict | None:
     if not isinstance(value, dict):
         return None
+    agent_refs = value.get("agentRefs")
+    if isinstance(agent_refs, list) and any(
+        isinstance(item, dict) and item.get("enabled", True) for item in agent_refs
+    ):
+        normalized = dict(value)
+        normalized["agentRefs"] = [dict(item) for item in agent_refs if isinstance(item, dict)]
+        normalized.setdefault("temperature", value.get("temperature", 0.0))
+        normalized.setdefault(
+            "reasoningEffort",
+            _coerce_optional_string(value.get("reasoningEffort")) or "low",
+        )
+        normalized.setdefault("enableCaching", bool(value.get("enableCaching", True)))
+        return normalized
     primary_provider = _coerce_optional_string(value.get("primaryProvider"))
     primary_model = _coerce_optional_string(value.get("primaryModel"))
     if not primary_provider or not primary_model:

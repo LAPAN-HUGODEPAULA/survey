@@ -36,3 +36,20 @@ def test_ai_config_validation():
     # Invalid temperature
     with pytest.raises(ValueError):
         AIConfig(primaryProvider="glm", primaryModel="glm-4", temperature=1.5)
+
+
+def test_ai_config_accepts_agent_refs_without_legacy_provider():
+    model = AIConfig(
+        agentRefs=[
+            {
+                "agentKey": "local_qwen",
+                "model": "qwen2.5-coder:7b",
+                "temperature": 0.3,
+                "enabled": True,
+            }
+        ]
+    )
+
+    assert model.agent_refs is not None
+    assert model.agent_refs[0].agent_key == "local_qwen"
+    assert model.agent_refs[0].temperature == 0.3

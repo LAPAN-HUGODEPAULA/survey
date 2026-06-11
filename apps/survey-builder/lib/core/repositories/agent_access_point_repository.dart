@@ -115,11 +115,32 @@ class AgentAccessPointRepository {
     AIConfigDraft? aiConfig;
     if (aiConfigJson is Map) {
       final map = Map<String, dynamic>.from(aiConfigJson);
+      final agentRefs = (map['agentRefs'] is List)
+          ? (map['agentRefs'] as List)
+                .whereType<Map<Object?, Object?>>()
+                .map((entry) {
+                  final route = Map<String, dynamic>.from(entry);
+                  return AIAgentRouteRefDraft(
+                    agentKey: route['agentKey']?.toString() ?? '',
+                    model: route['model']?.toString(),
+                    temperature: (route['temperature'] as num?)?.toDouble(),
+                    maxTokens: (route['maxTokens'] as num?)?.toInt(),
+                    enabled: route['enabled'] as bool? ?? true,
+                  );
+                })
+                .toList(growable: false)
+          : <AIAgentRouteRefDraft>[];
+      final primaryRoute = agentRefs.isNotEmpty ? agentRefs.first : null;
+      final fallbackRoute = agentRefs.length > 1 ? agentRefs[1] : null;
       aiConfig = AIConfigDraft(
-        primaryProvider: map['primaryProvider']?.toString() ?? '',
-        primaryModel: map['primaryModel']?.toString() ?? '',
-        fallbackProvider: map['fallbackProvider']?.toString(),
-        fallbackModel: map['fallbackModel']?.toString(),
+        primaryProvider:
+            map['primaryProvider']?.toString() ?? primaryRoute?.agentKey ?? '',
+        primaryModel:
+            map['primaryModel']?.toString() ?? primaryRoute?.model ?? '',
+        fallbackProvider:
+            map['fallbackProvider']?.toString() ?? fallbackRoute?.agentKey,
+        fallbackModel: map['fallbackModel']?.toString() ?? fallbackRoute?.model,
+        agentRefs: agentRefs,
         temperature: (map['temperature'] as num?)?.toDouble() ?? 0.0,
         reasoningEffort: map['reasoningEffort']?.toString(),
         enableCaching: map['enableCaching'] as bool? ?? true,
@@ -168,7 +189,20 @@ class AgentAccessPointRepository {
     };
 
     if (draft.aiConfig != null) {
+      final agentRefs = draft.aiConfig!.agentRefs;
       data['aiConfig'] = {
+        if (agentRefs.isNotEmpty)
+          'agentRefs': agentRefs
+              .map(
+                (item) => {
+                  'agentKey': item.agentKey,
+                  'model': item.model,
+                  'temperature': item.temperature,
+                  'maxTokens': item.maxTokens,
+                  'enabled': item.enabled,
+                },
+              )
+              .toList(growable: false),
         'primaryProvider': draft.aiConfig!.primaryProvider,
         'primaryModel': draft.aiConfig!.primaryModel,
         'fallbackProvider': draft.aiConfig!.fallbackProvider,
