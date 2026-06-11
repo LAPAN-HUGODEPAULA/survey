@@ -22,7 +22,28 @@ dependencies = [
     "google-auth-httplib2>=0.2.0",
     "google-auth-oauthlib>=1.2.0",
     "pymongo>=4.16.0",
+    "pytest-cov>=5.0.0",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = "--cov=. --cov-report=term-missing --cov-report=html:coverage_report"
+
+[tool.coverage.run]
+source = ["."]
+omit = ["tests/*", "**/__init__.py", "examples_observer_pattern.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+show_missing = true
+fail_under = 80
 
 [tool.uv]
 upgrade = true

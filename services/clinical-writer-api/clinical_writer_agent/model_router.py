@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Optional
 
 from openai import OpenAI
@@ -68,6 +69,7 @@ class GLMClient:
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=self._temperature,
+                do_sample=self._do_sample,
                 extra_body={"thinking": thinking_config},
             )
             content = response.choices[0].message.content or ""
@@ -76,6 +78,43 @@ class GLMClient:
         except Exception as exc:
             logger.error("GLM invocation failed: %s", exc)
             raise
+
+
+class OpenAICompatibleClient:
+    """OpenAI chat-completions compatible client for local or gateway models."""
+
+    def __init__(
+        self,
+        *,
+        model: str,
+        api_key: str,
+        base_url: str,
+        temperature: Optional[float] = None,
+        max_tokens: Optional[int] = None,
+    ):
+        self.model = model
+        self._temperature = temperature if temperature is not None else AgentConfig.LLM_TEMPERATURE
+        self._max_tokens = max_tokens
+        self._client = OpenAI(
+            api_key=api_key,
+            base_url=base_url,
+            timeout=120.0,
+        )
+
+    def invoke(self, prompt: str) -> ModelResponse:
+        """Execute a chat completion through an OpenAI-compatible endpoint."""
+        request = {
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "temperature": self._temperature,
+            "stream": False,
+        }
+        if self._max_tokens is not None:
+            request["max_tokens"] = self._max_tokens
+
+        response = self._client.chat.completions.create(**request)
+        content = response.choices[0].message.content or ""
+        return ModelResponse(content)
 
 
 class ModelRouter:
@@ -93,6 +132,7 @@ class ModelRouter:
         do_sample: Optional[bool] = None,
         thinking_mode: Optional[str] = None,
         enable_caching: Optional[bool] = None,
+        agent_routes: Optional[list[dict]] = None,
     ):
         self._primary_model = primary_model
         self._fallback_model = fallback_model
@@ -103,8 +143,10 @@ class ModelRouter:
         self._do_sample = do_sample if do_sample is not None else AgentConfig.LLM_DO_SAMPLE
         self._thinking_mode = thinking_mode or AgentConfig.LLM_THINKING_MODE
         self._enable_caching = enable_caching if enable_caching is not None else AgentConfig.LLM_ENABLE_CACHING
+        self._agent_routes = [route for route in agent_routes or [] if route.get("enabled", True)]
         self._primary_llm = None
         self._fallback_llm = None
+        self._route_llms: dict[int, object] = {}
         self.model_version: Optional[str] = None
 
     @classmethod
@@ -116,6 +158,9 @@ class ModelRouter:
         )
 
     def invoke(self, prompt: str):
+        if self._agent_routes:
+            return self._invoke_agent_routes(prompt)
+
         request_id = _resolve_request_id()
         try:
             logger.info(
@@ -177,6 +222,105 @@ class ModelRouter:
                     fallback_exc,
                 )
                 raise fallback_exc from exc
+
+    def _invoke_agent_routes(self, prompt: str):
+        request_id = _resolve_request_id()
+        first_error: Exception | None = None
+        for index, route in enumerate(self._agent_routes):
+            agent_key = str(route.get("agentKey") or route.get("agent_key") or "unknown")
+            model = str(route.get("model") or route.get("defaultModel") or "")
+            try:
+                logger.info(
+                    "stage=model_invoke_route_attempt request_id=%s route_index=%s agent_key=%s model=%s",
+                    request_id,
+                    index,
+                    agent_key,
+                    model,
+                )
+                response = self._get_route_llm(index, route).invoke(prompt)
+                self.model_version = f"{agent_key}:{model}"
+                logger.info(
+                    "stage=model_invoke_route_success request_id=%s route_index=%s agent_key=%s model=%s",
+                    request_id,
+                    index,
+                    agent_key,
+                    model,
+                )
+                return response
+            except Exception as exc:  # pylint: disable=broad-exception-caught
+                if first_error is None:
+                    first_error = exc
+                logger.warning(
+                    "stage=model_invoke_route_failure request_id=%s route_index=%s agent_key=%s model=%s error_type=%s error=%s",
+                    request_id,
+                    index,
+                    agent_key,
+                    model,
+                    type(exc).__name__,
+                    exc,
+                )
+        if first_error is not None:
+            raise first_error
+        raise ValueError("No enabled AI agent routes configured")
+
+    def _get_route_llm(self, index: int, route: dict):
+        if index not in self._route_llms:
+            self._route_llms[index] = self._create_client_from_route(route)
+        return self._route_llms[index]
+
+    def _create_client_from_route(self, route: dict):
+        provider_type = route.get("providerType") or route.get("provider")
+        model = route.get("model") or route.get("defaultModel")
+        if not model:
+            raise ValueError("AI agent route is missing model")
+        api_key = self._resolve_route_api_key(route)
+        temperature = (
+            route.get("temperature")
+            if route.get("temperature") is not None
+            else self._temperature
+        )
+        if provider_type == "openai_compatible":
+            base_url = route.get("baseUrl")
+            if not base_url:
+                raise ValueError("OpenAI-compatible AI agent route is missing baseUrl")
+            return OpenAICompatibleClient(
+                model=model,
+                api_key=api_key,
+                base_url=base_url,
+                temperature=temperature,
+                max_tokens=route.get("maxTokens"),
+            )
+        if provider_type == "glm":
+            return GLMClient(
+                model=model,
+                api_key=api_key,
+                base_url=route.get("baseUrl"),
+                temperature=temperature,
+                do_sample=self._do_sample,
+                thinking_mode=self._thinking_mode,
+            )
+        if provider_type == "gemini":
+            return AgentConfig.create_llm_instance(
+                api_key=api_key,
+                model=model,
+                temperature=temperature,
+            )
+        raise ValueError(f"Unsupported AI agent providerType: {provider_type}")
+
+    def _resolve_route_api_key(self, route: dict) -> str:
+        env_var = route.get("apiKeyEnvVar")
+        if env_var:
+            api_key = os.getenv(str(env_var))
+            if not api_key:
+                raise ValueError(f"Missing API key environment variable: {env_var}")
+            return api_key
+        if route.get("providerType") == "gemini":
+            api_key = AgentConfig.GEMINI_API_KEY
+        else:
+            api_key = AgentConfig.GLM_API_KEY
+        if not api_key:
+            raise ValueError("Missing API key for AI agent route")
+        return api_key
 
     def _get_primary_llm(self):
         if self._primary_llm is None:
