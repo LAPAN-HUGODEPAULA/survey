@@ -4,6 +4,7 @@
 
 // ignore_for_file: unused_element
 import 'package:survey_backend_api/src/model/agent_access_point_upsert.dart';
+import 'package:survey_backend_api/src/model/ai_config.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -12,17 +13,21 @@ part 'agent_access_point.g.dart';
 /// AgentAccessPoint
 ///
 /// Properties:
-/// * [accessPointKey] 
-/// * [name] 
-/// * [sourceApp] 
-/// * [flowKey] 
-/// * [promptKey] 
-/// * [personaSkillKey] 
-/// * [outputProfile] 
-/// * [surveyId] 
-/// * [description] 
-/// * [createdAt] 
-/// * [modifiedAt] 
+/// * [accessPointKey]
+/// * [name]
+/// * [sourceApp]
+/// * [flowKey]
+/// * [promptKey]
+/// * [personaSkillKey]
+/// * [outputProfile]
+/// * [aiConfig]
+/// * [aiProvider]
+/// * [glmModel]
+/// * [geminiModel]
+/// * [surveyId]
+/// * [description]
+/// * [createdAt]
+/// * [modifiedAt]
 @BuiltValue()
 abstract class AgentAccessPoint implements AgentAccessPointUpsert, Built<AgentAccessPoint, AgentAccessPointBuilder> {
   @BuiltValueField(wireName: r'createdAt')
@@ -54,6 +59,54 @@ class _$AgentAccessPointSerializer implements PrimitiveSerializer<AgentAccessPoi
     AgentAccessPoint object, {
     FullType specifiedType = FullType.unspecified,
   }) sync* {
+    yield r'personaSkillKey';
+    yield serializers.serialize(
+      object.personaSkillKey,
+      specifiedType: const FullType(String),
+    );
+    if (object.surveyId != null) {
+      yield r'surveyId';
+      yield serializers.serialize(
+        object.surveyId,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    yield r'sourceApp';
+    yield serializers.serialize(
+      object.sourceApp,
+      specifiedType: const FullType(String),
+    );
+    yield r'modifiedAt';
+    yield serializers.serialize(
+      object.modifiedAt,
+      specifiedType: const FullType(DateTime),
+    );
+    if (object.description != null) {
+      yield r'description';
+      yield serializers.serialize(
+        object.description,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.glmModel != null) {
+      yield r'glmModel';
+      yield serializers.serialize(
+        object.glmModel,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    yield r'flowKey';
+    yield serializers.serialize(
+      object.flowKey,
+      specifiedType: const FullType(String),
+    );
+    if (object.aiConfig != null) {
+      yield r'aiConfig';
+      yield serializers.serialize(
+        object.aiConfig,
+        specifiedType: const FullType(AIConfig),
+      );
+    }
     yield r'createdAt';
     yield serializers.serialize(
       object.createdAt,
@@ -69,50 +122,30 @@ class _$AgentAccessPointSerializer implements PrimitiveSerializer<AgentAccessPoi
       object.outputProfile,
       specifiedType: const FullType(String),
     );
-    yield r'personaSkillKey';
-    yield serializers.serialize(
-      object.personaSkillKey,
-      specifiedType: const FullType(String),
-    );
-    if (object.surveyId != null) {
-      yield r'surveyId';
-      yield serializers.serialize(
-        object.surveyId,
-        specifiedType: const FullType.nullable(String),
-      );
-    }
     yield r'accessPointKey';
     yield serializers.serialize(
       object.accessPointKey,
       specifiedType: const FullType(String),
     );
-    yield r'sourceApp';
-    yield serializers.serialize(
-      object.sourceApp,
-      specifiedType: const FullType(String),
-    );
-    yield r'modifiedAt';
-    yield serializers.serialize(
-      object.modifiedAt,
-      specifiedType: const FullType(DateTime),
-    );
+    if (object.geminiModel != null) {
+      yield r'geminiModel';
+      yield serializers.serialize(
+        object.geminiModel,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
     yield r'name';
     yield serializers.serialize(
       object.name,
       specifiedType: const FullType(String),
     );
-    if (object.description != null) {
-      yield r'description';
+    if (object.aiProvider != null) {
+      yield r'aiProvider';
       yield serializers.serialize(
-        object.description,
+        object.aiProvider,
         specifiedType: const FullType.nullable(String),
       );
     }
-    yield r'flowKey';
-    yield serializers.serialize(
-      object.flowKey,
-      specifiedType: const FullType(String),
-    );
   }
 
   @override
@@ -136,6 +169,65 @@ class _$AgentAccessPointSerializer implements PrimitiveSerializer<AgentAccessPoi
       final key = serializedList[i] as String;
       final value = serializedList[i + 1];
       switch (key) {
+        case r'personaSkillKey':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.personaSkillKey = valueDes;
+          break;
+        case r'surveyId':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.surveyId = valueDes;
+          break;
+        case r'sourceApp':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.sourceApp = valueDes;
+          break;
+        case r'modifiedAt':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(DateTime),
+          ) as DateTime;
+          result.modifiedAt = valueDes;
+          break;
+        case r'description':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.description = valueDes;
+          break;
+        case r'glmModel':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.glmModel = valueDes;
+          break;
+        case r'flowKey':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.flowKey = valueDes;
+          break;
+        case r'aiConfig':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(AIConfig),
+          ) as AIConfig;
+          result.aiConfig.replace(valueDes);
+          break;
         case r'createdAt':
           final valueDes = serializers.deserialize(
             value,
@@ -157,21 +249,6 @@ class _$AgentAccessPointSerializer implements PrimitiveSerializer<AgentAccessPoi
           ) as String;
           result.outputProfile = valueDes;
           break;
-        case r'personaSkillKey':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.personaSkillKey = valueDes;
-          break;
-        case r'surveyId':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType.nullable(String),
-          ) as String?;
-          if (valueDes == null) continue;
-          result.surveyId = valueDes;
-          break;
         case r'accessPointKey':
           final valueDes = serializers.deserialize(
             value,
@@ -179,19 +256,13 @@ class _$AgentAccessPointSerializer implements PrimitiveSerializer<AgentAccessPoi
           ) as String;
           result.accessPointKey = valueDes;
           break;
-        case r'sourceApp':
+        case r'geminiModel':
           final valueDes = serializers.deserialize(
             value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.sourceApp = valueDes;
-          break;
-        case r'modifiedAt':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(DateTime),
-          ) as DateTime;
-          result.modifiedAt = valueDes;
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.geminiModel = valueDes;
           break;
         case r'name':
           final valueDes = serializers.deserialize(
@@ -200,20 +271,13 @@ class _$AgentAccessPointSerializer implements PrimitiveSerializer<AgentAccessPoi
           ) as String;
           result.name = valueDes;
           break;
-        case r'description':
+        case r'aiProvider':
           final valueDes = serializers.deserialize(
             value,
             specifiedType: const FullType.nullable(String),
           ) as String?;
           if (valueDes == null) continue;
-          result.description = valueDes;
-          break;
-        case r'flowKey':
-          final valueDes = serializers.deserialize(
-            value,
-            specifiedType: const FullType(String),
-          ) as String;
-          result.flowKey = valueDes;
+          result.aiProvider = valueDes;
           break;
         default:
           unhandled.add(key);

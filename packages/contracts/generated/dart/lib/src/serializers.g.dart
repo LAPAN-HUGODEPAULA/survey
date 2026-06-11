@@ -7,11 +7,17 @@ part of 'serializers.dart';
 // **************************************************************************
 
 Serializers _$serializers = (Serializers().toBuilder()
+      ..add($AIAgentUpsert.serializer)
       ..add($AgentAccessPointUpsert.serializer)
       ..add($AgentResponse.serializer)
       ..add($PersonaSkillUpsert.serializer)
       ..add($SurveyPromptUpsert.serializer)
       ..add($SurveyResponse.serializer)
+      ..add(AIAgent.serializer)
+      ..add(AIAgentRouteRef.serializer)
+      ..add(AIAgentUpsertProviderTypeEnum.serializer)
+      ..add(AIConfig.serializer)
+      ..add(AIConfigReasoningEffortEnum.serializer)
       ..add(AIProgress.serializer)
       ..add(AIProgressSeverityEnum.serializer)
       ..add(Address.serializer)
@@ -80,6 +86,9 @@ Serializers _$serializers = (Serializers().toBuilder()
       ..add(TranscriptionRequest.serializer)
       ..add(TranscriptionResponse.serializer)
       ..add(TranscriptionSegment.serializer)
+      ..addBuilderFactory(
+          const FullType(BuiltList, const [const FullType(AIAgentRouteRef)]),
+          () => ListBuilder<AIAgentRouteRef>())
       ..addBuilderFactory(
           const FullType(
               BuiltList, const [const FullType(AgentArtifactResponse)]),

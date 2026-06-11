@@ -49,6 +49,13 @@ void main() {
       // TODO
     });
 
+    // Create AI agent
+    //
+    //Future<AIAgent> createAiAgent(AIAgentUpsert aIAgentUpsert) async
+    test('test createAiAgent', () async {
+      // TODO
+    });
+
     // Create chat message
     //
     //Future<ChatMessage> createChatMessage(String sessionId, ChatMessageCreate chatMessageCreate) async
@@ -119,6 +126,13 @@ void main() {
       // TODO
     });
 
+    // Delete AI agent
+    //
+    //Future deleteAiAgent(String agentKey) async
+    test('test deleteAiAgent', () async {
+      // TODO
+    });
+
     // Delete persona skill
     //
     //Future deletePersonaSkill(String personaSkillKey) async
@@ -158,6 +172,13 @@ void main() {
     //
     //Future<AgentAccessPoint> getAgentAccessPoint(String accessPointKey) async
     test('test getAgentAccessPoint', () async {
+      // TODO
+    });
+
+    // Get AI agent by key
+    //
+    //Future<AIAgent> getAiAgent(String agentKey) async
+    test('test getAiAgent', () async {
       // TODO
     });
 
@@ -242,6 +263,13 @@ void main() {
     //
     //Future<BuiltList<AgentAccessPoint>> listAgentAccessPoints() async
     test('test listAgentAccessPoints', () async {
+      // TODO
+    });
+
+    // List AI agents
+    //
+    //Future<BuiltList<AIAgent>> listAiAgents() async
+    test('test listAiAgents', () async {
       // TODO
     });
 
@@ -410,6 +438,13 @@ void main() {
     //
     //Future<AgentAccessPoint> updateAgentAccessPoint(String accessPointKey, AgentAccessPointUpsert agentAccessPointUpsert) async
     test('test updateAgentAccessPoint', () async {
+      // TODO
+    });
+
+    // Update AI agent
+    //
+    //Future<AIAgent> updateAiAgent(String agentKey, AIAgentUpsert aIAgentUpsert) async
+    test('test updateAiAgent', () async {
       // TODO
     });
 

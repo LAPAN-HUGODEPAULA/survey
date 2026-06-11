@@ -15,6 +15,7 @@ Method | HTTP request | Description
 [**archiveTemplate**](DefaultApi.md#archivetemplate) | **POST** /templates/{templateId}/archive | Archive template
 [**completeChatSession**](DefaultApi.md#completechatsession) | **POST** /chat/sessions/{sessionId}/complete | Complete chat session
 [**createAgentAccessPoint**](DefaultApi.md#createagentaccesspoint) | **POST** /agent_access_points/ | Create agent access point
+[**createAiAgent**](DefaultApi.md#createaiagent) | **POST** /ai_agents/ | Create AI agent
 [**createChatMessage**](DefaultApi.md#createchatmessage) | **POST** /chat/sessions/{sessionId}/messages | Create chat message
 [**createChatSession**](DefaultApi.md#createchatsession) | **POST** /chat/sessions | Create chat session
 [**createPatientResponse**](DefaultApi.md#createpatientresponse) | **POST** /patient_responses/ | Create patient response
@@ -25,12 +26,14 @@ Method | HTTP request | Description
 [**createSurveyResponse**](DefaultApi.md#createsurveyresponse) | **POST** /survey_responses/ | Create survey response
 [**createTemplate**](DefaultApi.md#createtemplate) | **POST** /templates | Create template
 [**deleteAgentAccessPoint**](DefaultApi.md#deleteagentaccesspoint) | **DELETE** /agent_access_points/{accessPointKey} | Delete agent access point
+[**deleteAiAgent**](DefaultApi.md#deleteaiagent) | **DELETE** /ai_agents/{agentKey} | Delete AI agent
 [**deletePersonaSkill**](DefaultApi.md#deletepersonaskill) | **DELETE** /persona_skills/{personaSkillKey} | Delete persona skill
 [**deleteSurvey**](DefaultApi.md#deletesurvey) | **DELETE** /surveys/{surveyId} | Delete survey
 [**deleteSurveyPrompt**](DefaultApi.md#deletesurveyprompt) | **DELETE** /survey_prompts/{promptKey} | Delete reusable survey prompt
 [**exportDocument**](DefaultApi.md#exportdocument) | **POST** /documents/export | Export document
 [**exportSurveys**](DefaultApi.md#exportsurveys) | **GET** /surveys/export | Export surveys
 [**getAgentAccessPoint**](DefaultApi.md#getagentaccesspoint) | **GET** /agent_access_points/{accessPointKey} | Get agent access point by key
+[**getAiAgent**](DefaultApi.md#getaiagent) | **GET** /ai_agents/{agentKey} | Get AI agent by key
 [**getBuilderSession**](DefaultApi.md#getbuildersession) | **GET** /builder/session | Resolve the current builder administrator session
 [**getChatSession**](DefaultApi.md#getchatsession) | **GET** /chat/sessions/{sessionId} | Get chat session
 [**getClinicalWriterStatus**](DefaultApi.md#getclinicalwriterstatus) | **GET** /clinical_writer/status/{task_id} | Get asynchronous Clinical Writer task status
@@ -43,6 +46,7 @@ Method | HTTP request | Description
 [**getSurveyResponse**](DefaultApi.md#getsurveyresponse) | **GET** /survey_responses/{responseId} | Get survey response by id
 [**getTemplate**](DefaultApi.md#gettemplate) | **GET** /templates/{templateId} | Get template
 [**listAgentAccessPoints**](DefaultApi.md#listagentaccesspoints) | **GET** /agent_access_points/ | List agent access points
+[**listAiAgents**](DefaultApi.md#listaiagents) | **GET** /ai_agents/ | List AI agents
 [**listChatMessages**](DefaultApi.md#listchatmessages) | **GET** /chat/sessions/{sessionId}/messages | List chat messages
 [**listChatSessions**](DefaultApi.md#listchatsessions) | **GET** /chat/sessions | List chat sessions
 [**listMedications**](DefaultApi.md#listmedications) | **GET** /medications | List full medication catalog for in-memory autocomplete
@@ -67,6 +71,7 @@ Method | HTTP request | Description
 [**sendScreenerReportEmail**](DefaultApi.md#sendscreenerreportemail) | **POST** /survey_responses/{responseId}/send_report_email | Send report email with PDF attachment for screener response
 [**transcribeVoiceAudio**](DefaultApi.md#transcribevoiceaudio) | **POST** /voice/transcriptions | Transcribe voice audio
 [**updateAgentAccessPoint**](DefaultApi.md#updateagentaccesspoint) | **PUT** /agent_access_points/{accessPointKey} | Update agent access point
+[**updateAiAgent**](DefaultApi.md#updateaiagent) | **PUT** /ai_agents/{agentKey} | Update AI agent
 [**updateChatMessage**](DefaultApi.md#updatechatmessage) | **PATCH** /chat/messages/{messageId} | Update chat message
 [**updateChatSession**](DefaultApi.md#updatechatsession) | **PATCH** /chat/sessions/{sessionId} | Update chat session
 [**updatePersonaSkill**](DefaultApi.md#updatepersonaskill) | **PUT** /persona_skills/{personaSkillKey} | Update persona skill
@@ -101,7 +106,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **authorization** | **String**| Bearer token in the format `Bearer <token>` | 
+ **authorization** | **String**| Bearer token in the format `Bearer <token>` |
 
 ### Return type
 
@@ -128,7 +133,7 @@ Analyze conversation context with Clinical Writer
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final ClinicalWriterAnalysisRequest clinicalWriterAnalysisRequest = ; // ClinicalWriterAnalysisRequest | 
+final ClinicalWriterAnalysisRequest clinicalWriterAnalysisRequest = ; // ClinicalWriterAnalysisRequest |
 
 try {
     final response = api.analyzeClinicalWriter(clinicalWriterAnalysisRequest);
@@ -142,7 +147,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **clinicalWriterAnalysisRequest** | [**ClinicalWriterAnalysisRequest**](ClinicalWriterAnalysisRequest.md)|  | 
+ **clinicalWriterAnalysisRequest** | [**ClinicalWriterAnalysisRequest**](ClinicalWriterAnalysisRequest.md)|  |
 
 ### Return type
 
@@ -169,7 +174,7 @@ Approve template
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String templateId = templateId_example; // String | 
+final String templateId = templateId_example; // String |
 
 try {
     final response = api.approveTemplate(templateId);
@@ -183,7 +188,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **templateId** | **String**|  | 
+ **templateId** | **String**|  |
 
 ### Return type
 
@@ -210,7 +215,7 @@ Archive template
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String templateId = templateId_example; // String | 
+final String templateId = templateId_example; // String |
 
 try {
     final response = api.archiveTemplate(templateId);
@@ -224,7 +229,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **templateId** | **String**|  | 
+ **templateId** | **String**|  |
 
 ### Return type
 
@@ -251,7 +256,7 @@ Complete chat session
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String sessionId = sessionId_example; // String | 
+final String sessionId = sessionId_example; // String |
 
 try {
     final response = api.completeChatSession(sessionId);
@@ -265,7 +270,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **sessionId** | **String**|  | 
+ **sessionId** | **String**|  |
 
 ### Return type
 
@@ -292,7 +297,7 @@ Create agent access point
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final AgentAccessPointUpsert agentAccessPointUpsert = ; // AgentAccessPointUpsert | 
+final AgentAccessPointUpsert agentAccessPointUpsert = ; // AgentAccessPointUpsert |
 
 try {
     final response = api.createAgentAccessPoint(agentAccessPointUpsert);
@@ -306,11 +311,52 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **agentAccessPointUpsert** | [**AgentAccessPointUpsert**](AgentAccessPointUpsert.md)|  | 
+ **agentAccessPointUpsert** | [**AgentAccessPointUpsert**](AgentAccessPointUpsert.md)|  |
 
 ### Return type
 
 [**AgentAccessPoint**](AgentAccessPoint.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **createAiAgent**
+> AIAgent createAiAgent(aIAgentUpsert)
+
+Create AI agent
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final AIAgentUpsert aIAgentUpsert = ; // AIAgentUpsert |
+
+try {
+    final response = api.createAiAgent(aIAgentUpsert);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->createAiAgent: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **aIAgentUpsert** | [**AIAgentUpsert**](AIAgentUpsert.md)|  |
+
+### Return type
+
+[**AIAgent**](AIAgent.md)
 
 ### Authorization
 
@@ -333,8 +379,8 @@ Create chat message
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String sessionId = sessionId_example; // String | 
-final ChatMessageCreate chatMessageCreate = ; // ChatMessageCreate | 
+final String sessionId = sessionId_example; // String |
+final ChatMessageCreate chatMessageCreate = ; // ChatMessageCreate |
 
 try {
     final response = api.createChatMessage(sessionId, chatMessageCreate);
@@ -348,8 +394,8 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **sessionId** | **String**|  | 
- **chatMessageCreate** | [**ChatMessageCreate**](ChatMessageCreate.md)|  | 
+ **sessionId** | **String**|  |
+ **chatMessageCreate** | [**ChatMessageCreate**](ChatMessageCreate.md)|  |
 
 ### Return type
 
@@ -376,7 +422,7 @@ Create chat session
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final ChatSessionCreate chatSessionCreate = ; // ChatSessionCreate | 
+final ChatSessionCreate chatSessionCreate = ; // ChatSessionCreate |
 
 try {
     final response = api.createChatSession(chatSessionCreate);
@@ -390,7 +436,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **chatSessionCreate** | [**ChatSessionCreate**](ChatSessionCreate.md)|  | 
+ **chatSessionCreate** | [**ChatSessionCreate**](ChatSessionCreate.md)|  |
 
 ### Return type
 
@@ -417,7 +463,7 @@ Create patient response
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final SurveyResponse surveyResponse = ; // SurveyResponse | 
+final SurveyResponse surveyResponse = ; // SurveyResponse |
 
 try {
     final response = api.createPatientResponse(surveyResponse);
@@ -431,7 +477,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **surveyResponse** | [**SurveyResponse**](SurveyResponse.md)|  | 
+ **surveyResponse** | [**SurveyResponse**](SurveyResponse.md)|  |
 
 ### Return type
 
@@ -458,7 +504,7 @@ Create persona skill
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final PersonaSkillUpsert personaSkillUpsert = ; // PersonaSkillUpsert | 
+final PersonaSkillUpsert personaSkillUpsert = ; // PersonaSkillUpsert |
 
 try {
     final response = api.createPersonaSkill(personaSkillUpsert);
@@ -472,7 +518,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **personaSkillUpsert** | [**PersonaSkillUpsert**](PersonaSkillUpsert.md)|  | 
+ **personaSkillUpsert** | [**PersonaSkillUpsert**](PersonaSkillUpsert.md)|  |
 
 ### Return type
 
@@ -500,7 +546,7 @@ import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
 final String authorization = authorization_example; // String | Bearer token in the format `Bearer <token>`
-final CreateScreenerAccessLinkRequest createScreenerAccessLinkRequest = ; // CreateScreenerAccessLinkRequest | 
+final CreateScreenerAccessLinkRequest createScreenerAccessLinkRequest = ; // CreateScreenerAccessLinkRequest |
 
 try {
     final response = api.createScreenerAccessLink(authorization, createScreenerAccessLinkRequest);
@@ -514,8 +560,8 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **authorization** | **String**| Bearer token in the format `Bearer <token>` | 
- **createScreenerAccessLinkRequest** | [**CreateScreenerAccessLinkRequest**](CreateScreenerAccessLinkRequest.md)|  | 
+ **authorization** | **String**| Bearer token in the format `Bearer <token>` |
+ **createScreenerAccessLinkRequest** | [**CreateScreenerAccessLinkRequest**](CreateScreenerAccessLinkRequest.md)|  |
 
 ### Return type
 
@@ -542,7 +588,7 @@ Create survey
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final Survey survey = ; // Survey | 
+final Survey survey = ; // Survey |
 
 try {
     final response = api.createSurvey(survey);
@@ -556,7 +602,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **survey** | [**Survey**](Survey.md)|  | 
+ **survey** | [**Survey**](Survey.md)|  |
 
 ### Return type
 
@@ -583,7 +629,7 @@ Create reusable survey prompt
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final SurveyPromptUpsert surveyPromptUpsert = ; // SurveyPromptUpsert | 
+final SurveyPromptUpsert surveyPromptUpsert = ; // SurveyPromptUpsert |
 
 try {
     final response = api.createSurveyPrompt(surveyPromptUpsert);
@@ -597,7 +643,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **surveyPromptUpsert** | [**SurveyPromptUpsert**](SurveyPromptUpsert.md)|  | 
+ **surveyPromptUpsert** | [**SurveyPromptUpsert**](SurveyPromptUpsert.md)|  |
 
 ### Return type
 
@@ -624,7 +670,7 @@ Create survey response
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final SurveyResponse surveyResponse = ; // SurveyResponse | 
+final SurveyResponse surveyResponse = ; // SurveyResponse |
 
 try {
     final response = api.createSurveyResponse(surveyResponse);
@@ -638,7 +684,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **surveyResponse** | [**SurveyResponse**](SurveyResponse.md)|  | 
+ **surveyResponse** | [**SurveyResponse**](SurveyResponse.md)|  |
 
 ### Return type
 
@@ -665,7 +711,7 @@ Create template
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final TemplateCreateRequest templateCreateRequest = ; // TemplateCreateRequest | 
+final TemplateCreateRequest templateCreateRequest = ; // TemplateCreateRequest |
 
 try {
     final response = api.createTemplate(templateCreateRequest);
@@ -679,7 +725,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **templateCreateRequest** | [**TemplateCreateRequest**](TemplateCreateRequest.md)|  | 
+ **templateCreateRequest** | [**TemplateCreateRequest**](TemplateCreateRequest.md)|  |
 
 ### Return type
 
@@ -706,7 +752,7 @@ Delete agent access point
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String accessPointKey = accessPointKey_example; // String | 
+final String accessPointKey = accessPointKey_example; // String |
 
 try {
     api.deleteAgentAccessPoint(accessPointKey);
@@ -719,7 +765,47 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **accessPointKey** | **String**|  | 
+ **accessPointKey** | **String**|  |
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **deleteAiAgent**
+> deleteAiAgent(agentKey)
+
+Delete AI agent
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String agentKey = agentKey_example; // String |
+
+try {
+    api.deleteAiAgent(agentKey);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->deleteAiAgent: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **agentKey** | **String**|  |
 
 ### Return type
 
@@ -746,7 +832,7 @@ Delete persona skill
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String personaSkillKey = personaSkillKey_example; // String | 
+final String personaSkillKey = personaSkillKey_example; // String |
 
 try {
     api.deletePersonaSkill(personaSkillKey);
@@ -759,7 +845,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **personaSkillKey** | **String**|  | 
+ **personaSkillKey** | **String**|  |
 
 ### Return type
 
@@ -786,7 +872,7 @@ Delete survey
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String surveyId = surveyId_example; // String | 
+final String surveyId = surveyId_example; // String |
 
 try {
     api.deleteSurvey(surveyId);
@@ -799,7 +885,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **surveyId** | **String**|  | 
+ **surveyId** | **String**|  |
 
 ### Return type
 
@@ -826,7 +912,7 @@ Delete reusable survey prompt
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String promptKey = promptKey_example; // String | 
+final String promptKey = promptKey_example; // String |
 
 try {
     api.deleteSurveyPrompt(promptKey);
@@ -839,7 +925,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **promptKey** | **String**|  | 
+ **promptKey** | **String**|  |
 
 ### Return type
 
@@ -866,7 +952,7 @@ Export document
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final DocumentExportRequest documentExportRequest = ; // DocumentExportRequest | 
+final DocumentExportRequest documentExportRequest = ; // DocumentExportRequest |
 
 try {
     final response = api.exportDocument(documentExportRequest);
@@ -880,7 +966,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **documentExportRequest** | [**DocumentExportRequest**](DocumentExportRequest.md)|  | 
+ **documentExportRequest** | [**DocumentExportRequest**](DocumentExportRequest.md)|  |
 
 ### Return type
 
@@ -944,7 +1030,7 @@ Get agent access point by key
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String accessPointKey = accessPointKey_example; // String | 
+final String accessPointKey = accessPointKey_example; // String |
 
 try {
     final response = api.getAgentAccessPoint(accessPointKey);
@@ -958,11 +1044,52 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **accessPointKey** | **String**|  | 
+ **accessPointKey** | **String**|  |
 
 ### Return type
 
 [**AgentAccessPoint**](AgentAccessPoint.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getAiAgent**
+> AIAgent getAiAgent(agentKey)
+
+Get AI agent by key
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String agentKey = agentKey_example; // String |
+
+try {
+    final response = api.getAiAgent(agentKey);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->getAiAgent: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **agentKey** | **String**|  |
+
+### Return type
+
+[**AIAgent**](AIAgent.md)
 
 ### Authorization
 
@@ -1022,7 +1149,7 @@ Get chat session
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String sessionId = sessionId_example; // String | 
+final String sessionId = sessionId_example; // String |
 
 try {
     final response = api.getChatSession(sessionId);
@@ -1036,7 +1163,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **sessionId** | **String**|  | 
+ **sessionId** | **String**|  |
 
 ### Return type
 
@@ -1063,7 +1190,7 @@ Get asynchronous Clinical Writer task status
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String taskId = taskId_example; // String | 
+final String taskId = taskId_example; // String |
 
 try {
     final response = api.getClinicalWriterStatus(taskId);
@@ -1077,7 +1204,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **taskId** | **String**|  | 
+ **taskId** | **String**|  |
 
 ### Return type
 
@@ -1118,7 +1245,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **authorization** | **String**| Bearer token in the format `Bearer <token>` | 
+ **authorization** | **String**| Bearer token in the format `Bearer <token>` |
 
 ### Return type
 
@@ -1145,7 +1272,7 @@ Get document record
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String documentId = documentId_example; // String | 
+final String documentId = documentId_example; // String |
 
 try {
     final response = api.getDocument(documentId);
@@ -1159,7 +1286,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **documentId** | **String**|  | 
+ **documentId** | **String**|  |
 
 ### Return type
 
@@ -1186,7 +1313,7 @@ Get persona skill by key
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String personaSkillKey = personaSkillKey_example; // String | 
+final String personaSkillKey = personaSkillKey_example; // String |
 
 try {
     final response = api.getPersonaSkill(personaSkillKey);
@@ -1200,7 +1327,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **personaSkillKey** | **String**|  | 
+ **personaSkillKey** | **String**|  |
 
 ### Return type
 
@@ -1264,7 +1391,7 @@ Get survey by id
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String surveyId = surveyId_example; // String | 
+final String surveyId = surveyId_example; // String |
 
 try {
     final response = api.getSurvey(surveyId);
@@ -1278,7 +1405,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **surveyId** | **String**|  | 
+ **surveyId** | **String**|  |
 
 ### Return type
 
@@ -1305,7 +1432,7 @@ Get reusable survey prompt by key
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String promptKey = promptKey_example; // String | 
+final String promptKey = promptKey_example; // String |
 
 try {
     final response = api.getSurveyPrompt(promptKey);
@@ -1319,7 +1446,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **promptKey** | **String**|  | 
+ **promptKey** | **String**|  |
 
 ### Return type
 
@@ -1346,7 +1473,7 @@ Get survey response by id
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String responseId = responseId_example; // String | 
+final String responseId = responseId_example; // String |
 
 try {
     final response = api.getSurveyResponse(responseId);
@@ -1360,7 +1487,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **responseId** | **String**|  | 
+ **responseId** | **String**|  |
 
 ### Return type
 
@@ -1387,7 +1514,7 @@ Get template
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String templateId = templateId_example; // String | 
+final String templateId = templateId_example; // String |
 
 try {
     final response = api.getTemplate(templateId);
@@ -1401,7 +1528,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **templateId** | **String**|  | 
+ **templateId** | **String**|  |
 
 ### Return type
 
@@ -1455,6 +1582,43 @@ No authorization required
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **listAiAgents**
+> BuiltList<AIAgent> listAiAgents()
+
+List AI agents
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+
+try {
+    final response = api.listAiAgents();
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->listAiAgents: $e\n');
+}
+```
+
+### Parameters
+This endpoint does not need any parameter.
+
+### Return type
+
+[**BuiltList&lt;AIAgent&gt;**](AIAgent.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **listChatMessages**
 > BuiltList<ChatMessage> listChatMessages(sessionId)
 
@@ -1465,7 +1629,7 @@ List chat messages
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String sessionId = sessionId_example; // String | 
+final String sessionId = sessionId_example; // String |
 
 try {
     final response = api.listChatMessages(sessionId);
@@ -1479,7 +1643,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **sessionId** | **String**|  | 
+ **sessionId** | **String**|  |
 
 ### Return type
 
@@ -1506,7 +1670,7 @@ List chat sessions
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String status = status_example; // String | 
+final String status = status_example; // String |
 
 try {
     final response = api.listChatSessions(status);
@@ -1520,7 +1684,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **status** | **String**|  | [optional] 
+ **status** | **String**|  | [optional]
 
 ### Return type
 
@@ -1547,7 +1711,7 @@ List full medication catalog for in-memory autocomplete
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final int limit = 56; // int | 
+final int limit = 56; // int |
 
 try {
     final response = api.listMedications(limit);
@@ -1773,9 +1937,9 @@ List templates
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final TemplateDocumentType documentType = ; // TemplateDocumentType | 
-final String q = q_example; // String | 
-final bool includeAll = true; // bool | 
+final TemplateDocumentType documentType = ; // TemplateDocumentType |
+final String q = q_example; // String |
+final bool includeAll = true; // bool |
 
 try {
     final response = api.listTemplates(documentType, q, includeAll);
@@ -1789,9 +1953,9 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **documentType** | [**TemplateDocumentType**](.md)|  | [optional] 
- **q** | **String**|  | [optional] 
- **includeAll** | **bool**|  | [optional] 
+ **documentType** | [**TemplateDocumentType**](.md)|  | [optional]
+ **q** | **String**|  | [optional]
+ **includeAll** | **bool**|  | [optional]
 
 ### Return type
 
@@ -1818,7 +1982,7 @@ Authenticate a builder administrator and issue a cookie-backed session
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final ScreenerLogin screenerLogin = ; // ScreenerLogin | 
+final ScreenerLogin screenerLogin = ; // ScreenerLogin |
 
 try {
     final response = api.loginBuilder(screenerLogin);
@@ -1832,7 +1996,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **screenerLogin** | [**ScreenerLogin**](ScreenerLogin.md)|  | 
+ **screenerLogin** | [**ScreenerLogin**](ScreenerLogin.md)|  |
 
 ### Return type
 
@@ -1859,7 +2023,7 @@ Authenticate a screener and get an access token
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final ScreenerLogin screenerLogin = ; // ScreenerLogin | 
+final ScreenerLogin screenerLogin = ; // ScreenerLogin |
 
 try {
     final response = api.loginScreener(screenerLogin);
@@ -1873,7 +2037,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **screenerLogin** | [**ScreenerLogin**](ScreenerLogin.md)|  | 
+ **screenerLogin** | [**ScreenerLogin**](ScreenerLogin.md)|  |
 
 ### Return type
 
@@ -1936,7 +2100,7 @@ Generate document preview
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final DocumentPreviewRequest documentPreviewRequest = ; // DocumentPreviewRequest | 
+final DocumentPreviewRequest documentPreviewRequest = ; // DocumentPreviewRequest |
 
 try {
     final response = api.previewDocument(documentPreviewRequest);
@@ -1950,7 +2114,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **documentPreviewRequest** | [**DocumentPreviewRequest**](DocumentPreviewRequest.md)|  | 
+ **documentPreviewRequest** | [**DocumentPreviewRequest**](DocumentPreviewRequest.md)|  |
 
 ### Return type
 
@@ -1977,8 +2141,8 @@ Preview template
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String templateId = templateId_example; // String | 
-final TemplatePreviewRequest templatePreviewRequest = ; // TemplatePreviewRequest | 
+final String templateId = templateId_example; // String |
+final TemplatePreviewRequest templatePreviewRequest = ; // TemplatePreviewRequest |
 
 try {
     final response = api.previewTemplate(templateId, templatePreviewRequest);
@@ -1992,8 +2156,8 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **templateId** | **String**|  | 
- **templatePreviewRequest** | [**TemplatePreviewRequest**](TemplatePreviewRequest.md)|  | 
+ **templateId** | **String**|  |
+ **templatePreviewRequest** | [**TemplatePreviewRequest**](TemplatePreviewRequest.md)|  |
 
 ### Return type
 
@@ -2020,7 +2184,7 @@ Forward content to Clinical Writer
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final ClinicalWriterRequest clinicalWriterRequest = ; // ClinicalWriterRequest | 
+final ClinicalWriterRequest clinicalWriterRequest = ; // ClinicalWriterRequest |
 
 try {
     final response = api.processClinicalWriter(clinicalWriterRequest);
@@ -2034,7 +2198,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **clinicalWriterRequest** | [**ClinicalWriterRequest**](ClinicalWriterRequest.md)|  | 
+ **clinicalWriterRequest** | [**ClinicalWriterRequest**](ClinicalWriterRequest.md)|  |
 
 ### Return type
 
@@ -2061,7 +2225,7 @@ Recommend templates
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final TemplateDocumentType documentType = ; // TemplateDocumentType | 
+final TemplateDocumentType documentType = ; // TemplateDocumentType |
 
 try {
     final response = api.recommendTemplates(documentType);
@@ -2075,7 +2239,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **documentType** | [**TemplateDocumentType**](.md)|  | [optional] 
+ **documentType** | [**TemplateDocumentType**](.md)|  | [optional]
 
 ### Return type
 
@@ -2102,7 +2266,7 @@ Request password recovery for a screener
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final ScreenerPasswordRecoveryRequest screenerPasswordRecoveryRequest = ; // ScreenerPasswordRecoveryRequest | 
+final ScreenerPasswordRecoveryRequest screenerPasswordRecoveryRequest = ; // ScreenerPasswordRecoveryRequest |
 
 try {
     api.recoverScreenerPassword(screenerPasswordRecoveryRequest);
@@ -2115,7 +2279,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **screenerPasswordRecoveryRequest** | [**ScreenerPasswordRecoveryRequest**](ScreenerPasswordRecoveryRequest.md)|  | 
+ **screenerPasswordRecoveryRequest** | [**ScreenerPasswordRecoveryRequest**](ScreenerPasswordRecoveryRequest.md)|  |
 
 ### Return type
 
@@ -2142,7 +2306,7 @@ Register a new screener
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final ScreenerRegister screenerRegister = ; // ScreenerRegister | 
+final ScreenerRegister screenerRegister = ; // ScreenerRegister |
 
 try {
     final response = api.registerScreener(screenerRegister);
@@ -2156,7 +2320,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **screenerRegister** | [**ScreenerRegister**](ScreenerRegister.md)|  | 
+ **screenerRegister** | [**ScreenerRegister**](ScreenerRegister.md)|  |
 
 ### Return type
 
@@ -2183,7 +2347,7 @@ Resend survey response email
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String responseId = responseId_example; // String | 
+final String responseId = responseId_example; // String |
 
 try {
     api.resendSurveyEmail(responseId);
@@ -2196,7 +2360,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **responseId** | **String**|  | 
+ **responseId** | **String**|  |
 
 ### Return type
 
@@ -2223,7 +2387,7 @@ Resolve a prepared screener access link
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String token = token_example; // String | 
+final String token = token_example; // String |
 
 try {
     final response = api.resolveScreenerAccessLink(token);
@@ -2237,7 +2401,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **token** | **String**|  | 
+ **token** | **String**|  |
 
 ### Return type
 
@@ -2264,8 +2428,8 @@ Search medications by query
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String q = q_example; // String | 
-final int limit = 56; // int | 
+final String q = q_example; // String |
+final int limit = 56; // int |
 
 try {
     final response = api.searchMedications(q, limit);
@@ -2279,7 +2443,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **q** | **String**|  | 
+ **q** | **String**|  |
  **limit** | **int**|  | [optional] [default to 10]
 
 ### Return type
@@ -2307,8 +2471,8 @@ Send report email with PDF attachment for screener response
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String responseId = responseId_example; // String | 
-final SendReportEmailRequest sendReportEmailRequest = ; // SendReportEmailRequest | 
+final String responseId = responseId_example; // String |
+final SendReportEmailRequest sendReportEmailRequest = ; // SendReportEmailRequest |
 
 try {
     api.sendScreenerReportEmail(responseId, sendReportEmailRequest);
@@ -2321,8 +2485,8 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **responseId** | **String**|  | 
- **sendReportEmailRequest** | [**SendReportEmailRequest**](SendReportEmailRequest.md)|  | [optional] 
+ **responseId** | **String**|  |
+ **sendReportEmailRequest** | [**SendReportEmailRequest**](SendReportEmailRequest.md)|  | [optional]
 
 ### Return type
 
@@ -2349,7 +2513,7 @@ Transcribe voice audio
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final TranscriptionRequest transcriptionRequest = ; // TranscriptionRequest | 
+final TranscriptionRequest transcriptionRequest = ; // TranscriptionRequest |
 
 try {
     final response = api.transcribeVoiceAudio(transcriptionRequest);
@@ -2363,7 +2527,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **transcriptionRequest** | [**TranscriptionRequest**](TranscriptionRequest.md)|  | 
+ **transcriptionRequest** | [**TranscriptionRequest**](TranscriptionRequest.md)|  |
 
 ### Return type
 
@@ -2390,8 +2554,8 @@ Update agent access point
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String accessPointKey = accessPointKey_example; // String | 
-final AgentAccessPointUpsert agentAccessPointUpsert = ; // AgentAccessPointUpsert | 
+final String accessPointKey = accessPointKey_example; // String |
+final AgentAccessPointUpsert agentAccessPointUpsert = ; // AgentAccessPointUpsert |
 
 try {
     final response = api.updateAgentAccessPoint(accessPointKey, agentAccessPointUpsert);
@@ -2405,12 +2569,55 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **accessPointKey** | **String**|  | 
- **agentAccessPointUpsert** | [**AgentAccessPointUpsert**](AgentAccessPointUpsert.md)|  | 
+ **accessPointKey** | **String**|  |
+ **agentAccessPointUpsert** | [**AgentAccessPointUpsert**](AgentAccessPointUpsert.md)|  |
 
 ### Return type
 
 [**AgentAccessPoint**](AgentAccessPoint.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **updateAiAgent**
+> AIAgent updateAiAgent(agentKey, aIAgentUpsert)
+
+Update AI agent
+
+### Example
+```dart
+import 'package:survey_backend_api/api.dart';
+
+final api = SurveyBackendApi().getDefaultApi();
+final String agentKey = agentKey_example; // String |
+final AIAgentUpsert aIAgentUpsert = ; // AIAgentUpsert |
+
+try {
+    final response = api.updateAiAgent(agentKey, aIAgentUpsert);
+    print(response);
+} catch on DioException (e) {
+    print('Exception when calling DefaultApi->updateAiAgent: $e\n');
+}
+```
+
+### Parameters
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **agentKey** | **String**|  |
+ **aIAgentUpsert** | [**AIAgentUpsert**](AIAgentUpsert.md)|  |
+
+### Return type
+
+[**AIAgent**](AIAgent.md)
 
 ### Authorization
 
@@ -2433,8 +2640,8 @@ Update chat message
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String messageId = messageId_example; // String | 
-final ChatMessageUpdate chatMessageUpdate = ; // ChatMessageUpdate | 
+final String messageId = messageId_example; // String |
+final ChatMessageUpdate chatMessageUpdate = ; // ChatMessageUpdate |
 
 try {
     final response = api.updateChatMessage(messageId, chatMessageUpdate);
@@ -2448,8 +2655,8 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **messageId** | **String**|  | 
- **chatMessageUpdate** | [**ChatMessageUpdate**](ChatMessageUpdate.md)|  | 
+ **messageId** | **String**|  |
+ **chatMessageUpdate** | [**ChatMessageUpdate**](ChatMessageUpdate.md)|  |
 
 ### Return type
 
@@ -2476,8 +2683,8 @@ Update chat session
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String sessionId = sessionId_example; // String | 
-final ChatSessionUpdate chatSessionUpdate = ; // ChatSessionUpdate | 
+final String sessionId = sessionId_example; // String |
+final ChatSessionUpdate chatSessionUpdate = ; // ChatSessionUpdate |
 
 try {
     final response = api.updateChatSession(sessionId, chatSessionUpdate);
@@ -2491,8 +2698,8 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **sessionId** | **String**|  | 
- **chatSessionUpdate** | [**ChatSessionUpdate**](ChatSessionUpdate.md)|  | 
+ **sessionId** | **String**|  |
+ **chatSessionUpdate** | [**ChatSessionUpdate**](ChatSessionUpdate.md)|  |
 
 ### Return type
 
@@ -2519,8 +2726,8 @@ Update persona skill
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String personaSkillKey = personaSkillKey_example; // String | 
-final PersonaSkillUpsert personaSkillUpsert = ; // PersonaSkillUpsert | 
+final String personaSkillKey = personaSkillKey_example; // String |
+final PersonaSkillUpsert personaSkillUpsert = ; // PersonaSkillUpsert |
 
 try {
     final response = api.updatePersonaSkill(personaSkillKey, personaSkillUpsert);
@@ -2534,8 +2741,8 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **personaSkillKey** | **String**|  | 
- **personaSkillUpsert** | [**PersonaSkillUpsert**](PersonaSkillUpsert.md)|  | 
+ **personaSkillKey** | **String**|  |
+ **personaSkillUpsert** | [**PersonaSkillUpsert**](PersonaSkillUpsert.md)|  |
 
 ### Return type
 
@@ -2562,7 +2769,7 @@ Update screener global settings
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final ScreenerSettingsUpdate screenerSettingsUpdate = ; // ScreenerSettingsUpdate | 
+final ScreenerSettingsUpdate screenerSettingsUpdate = ; // ScreenerSettingsUpdate |
 
 try {
     final response = api.updateScreenerSettings(screenerSettingsUpdate);
@@ -2576,7 +2783,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **screenerSettingsUpdate** | [**ScreenerSettingsUpdate**](ScreenerSettingsUpdate.md)|  | 
+ **screenerSettingsUpdate** | [**ScreenerSettingsUpdate**](ScreenerSettingsUpdate.md)|  |
 
 ### Return type
 
@@ -2603,8 +2810,8 @@ Update survey
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String surveyId = surveyId_example; // String | 
-final Survey survey = ; // Survey | 
+final String surveyId = surveyId_example; // String |
+final Survey survey = ; // Survey |
 
 try {
     final response = api.updateSurvey(surveyId, survey);
@@ -2618,8 +2825,8 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **surveyId** | **String**|  | 
- **survey** | [**Survey**](Survey.md)|  | 
+ **surveyId** | **String**|  |
+ **survey** | [**Survey**](Survey.md)|  |
 
 ### Return type
 
@@ -2646,8 +2853,8 @@ Update reusable survey prompt
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String promptKey = promptKey_example; // String | 
-final SurveyPromptUpsert surveyPromptUpsert = ; // SurveyPromptUpsert | 
+final String promptKey = promptKey_example; // String |
+final SurveyPromptUpsert surveyPromptUpsert = ; // SurveyPromptUpsert |
 
 try {
     final response = api.updateSurveyPrompt(promptKey, surveyPromptUpsert);
@@ -2661,8 +2868,8 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **promptKey** | **String**|  | 
- **surveyPromptUpsert** | [**SurveyPromptUpsert**](SurveyPromptUpsert.md)|  | 
+ **promptKey** | **String**|  |
+ **surveyPromptUpsert** | [**SurveyPromptUpsert**](SurveyPromptUpsert.md)|  |
 
 ### Return type
 
@@ -2689,8 +2896,8 @@ Update template (new version)
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final String templateId = templateId_example; // String | 
-final TemplateUpdateRequest templateUpdateRequest = ; // TemplateUpdateRequest | 
+final String templateId = templateId_example; // String |
+final TemplateUpdateRequest templateUpdateRequest = ; // TemplateUpdateRequest |
 
 try {
     final response = api.updateTemplate(templateId, templateUpdateRequest);
@@ -2704,8 +2911,8 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **templateId** | **String**|  | 
- **templateUpdateRequest** | [**TemplateUpdateRequest**](TemplateUpdateRequest.md)|  | 
+ **templateId** | **String**|  |
+ **templateUpdateRequest** | [**TemplateUpdateRequest**](TemplateUpdateRequest.md)|  |
 
 ### Return type
 
@@ -2732,7 +2939,7 @@ Upsert manual medication
 import 'package:survey_backend_api/api.dart';
 
 final api = SurveyBackendApi().getDefaultApi();
-final MedicationManualUpsertRequest medicationManualUpsertRequest = ; // MedicationManualUpsertRequest | 
+final MedicationManualUpsertRequest medicationManualUpsertRequest = ; // MedicationManualUpsertRequest |
 
 try {
     final response = api.upsertManualMedication(medicationManualUpsertRequest);
@@ -2746,7 +2953,7 @@ try {
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **medicationManualUpsertRequest** | [**MedicationManualUpsertRequest**](MedicationManualUpsertRequest.md)|  | 
+ **medicationManualUpsertRequest** | [**MedicationManualUpsertRequest**](MedicationManualUpsertRequest.md)|  |
 
 ### Return type
 

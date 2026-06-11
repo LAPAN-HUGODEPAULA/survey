@@ -14,6 +14,10 @@ import 'package:built_value/iso_8601_date_time_serializer.dart';
 import 'package:survey_backend_api/src/date_serializer.dart';
 import 'package:survey_backend_api/src/model/date.dart';
 
+import 'package:survey_backend_api/src/model/ai_agent.dart';
+import 'package:survey_backend_api/src/model/ai_agent_route_ref.dart';
+import 'package:survey_backend_api/src/model/ai_agent_upsert.dart';
+import 'package:survey_backend_api/src/model/ai_config.dart';
 import 'package:survey_backend_api/src/model/ai_progress.dart';
 import 'package:survey_backend_api/src/model/address.dart';
 import 'package:survey_backend_api/src/model/agent_access_point.dart';
@@ -86,6 +90,10 @@ import 'package:survey_backend_api/src/model/transcription_segment.dart';
 part 'serializers.g.dart';
 
 @SerializersFor([
+  AIAgent,
+  AIAgentRouteRef,
+  AIAgentUpsert,$AIAgentUpsert,
+  AIConfig,
   AIProgress,
   Address,
   AgentAccessPoint,
@@ -189,9 +197,14 @@ Serializers serializers = (_$serializers.toBuilder()
         () => ListBuilder<TemplateRecord>(),
       )
       ..addBuilderFactory(
+        const FullType(BuiltList, [FullType(AIAgent)]),
+        () => ListBuilder<AIAgent>(),
+      )
+      ..addBuilderFactory(
         const FullType(BuiltList, [FullType(ChatMessage)]),
         () => ListBuilder<ChatMessage>(),
       )
+      ..add(AIAgentUpsert.serializer)
       ..add(AgentAccessPointUpsert.serializer)
       ..add(AgentResponse.serializer)
       ..add(PersonaSkillUpsert.serializer)

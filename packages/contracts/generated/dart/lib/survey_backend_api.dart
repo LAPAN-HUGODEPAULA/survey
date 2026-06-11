@@ -12,6 +12,10 @@ export 'package:survey_backend_api/src/model/date.dart';
 
 export 'package:survey_backend_api/src/api/default_api.dart';
 
+export 'package:survey_backend_api/src/model/ai_agent.dart';
+export 'package:survey_backend_api/src/model/ai_agent_route_ref.dart';
+export 'package:survey_backend_api/src/model/ai_agent_upsert.dart';
+export 'package:survey_backend_api/src/model/ai_config.dart';
 export 'package:survey_backend_api/src/model/ai_progress.dart';
 export 'package:survey_backend_api/src/model/address.dart';
 export 'package:survey_backend_api/src/model/agent_access_point.dart';

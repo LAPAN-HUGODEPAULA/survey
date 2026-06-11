@@ -26,6 +26,14 @@ class _$AgentAccessPoint extends AgentAccessPoint {
   @override
   final String outputProfile;
   @override
+  final AIConfig? aiConfig;
+  @override
+  final String? aiProvider;
+  @override
+  final String? glmModel;
+  @override
+  final String? geminiModel;
+  @override
   final String? surveyId;
   @override
   final String? description;
@@ -44,6 +52,10 @@ class _$AgentAccessPoint extends AgentAccessPoint {
       required this.promptKey,
       required this.personaSkillKey,
       required this.outputProfile,
+      this.aiConfig,
+      this.aiProvider,
+      this.glmModel,
+      this.geminiModel,
       this.surveyId,
       this.description})
       : super._();
@@ -68,6 +80,10 @@ class _$AgentAccessPoint extends AgentAccessPoint {
         promptKey == other.promptKey &&
         personaSkillKey == other.personaSkillKey &&
         outputProfile == other.outputProfile &&
+        aiConfig == other.aiConfig &&
+        aiProvider == other.aiProvider &&
+        glmModel == other.glmModel &&
+        geminiModel == other.geminiModel &&
         surveyId == other.surveyId &&
         description == other.description;
   }
@@ -84,6 +100,10 @@ class _$AgentAccessPoint extends AgentAccessPoint {
     _$hash = $jc(_$hash, promptKey.hashCode);
     _$hash = $jc(_$hash, personaSkillKey.hashCode);
     _$hash = $jc(_$hash, outputProfile.hashCode);
+    _$hash = $jc(_$hash, aiConfig.hashCode);
+    _$hash = $jc(_$hash, aiProvider.hashCode);
+    _$hash = $jc(_$hash, glmModel.hashCode);
+    _$hash = $jc(_$hash, geminiModel.hashCode);
     _$hash = $jc(_$hash, surveyId.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jf(_$hash);
@@ -102,6 +122,10 @@ class _$AgentAccessPoint extends AgentAccessPoint {
           ..add('promptKey', promptKey)
           ..add('personaSkillKey', personaSkillKey)
           ..add('outputProfile', outputProfile)
+          ..add('aiConfig', aiConfig)
+          ..add('aiProvider', aiProvider)
+          ..add('glmModel', glmModel)
+          ..add('geminiModel', geminiModel)
           ..add('surveyId', surveyId)
           ..add('description', description))
         .toString();
@@ -154,6 +178,25 @@ class AgentAccessPointBuilder
   set outputProfile(covariant String? outputProfile) =>
       _$this._outputProfile = outputProfile;
 
+  AIConfigBuilder? _aiConfig;
+  AIConfigBuilder get aiConfig => _$this._aiConfig ??= AIConfigBuilder();
+  set aiConfig(covariant AIConfigBuilder? aiConfig) =>
+      _$this._aiConfig = aiConfig;
+
+  String? _aiProvider;
+  String? get aiProvider => _$this._aiProvider;
+  set aiProvider(covariant String? aiProvider) =>
+      _$this._aiProvider = aiProvider;
+
+  String? _glmModel;
+  String? get glmModel => _$this._glmModel;
+  set glmModel(covariant String? glmModel) => _$this._glmModel = glmModel;
+
+  String? _geminiModel;
+  String? get geminiModel => _$this._geminiModel;
+  set geminiModel(covariant String? geminiModel) =>
+      _$this._geminiModel = geminiModel;
+
   String? _surveyId;
   String? get surveyId => _$this._surveyId;
   set surveyId(covariant String? surveyId) => _$this._surveyId = surveyId;
@@ -179,6 +222,10 @@ class AgentAccessPointBuilder
       _promptKey = $v.promptKey;
       _personaSkillKey = $v.personaSkillKey;
       _outputProfile = $v.outputProfile;
+      _aiConfig = $v.aiConfig?.toBuilder();
+      _aiProvider = $v.aiProvider;
+      _glmModel = $v.glmModel;
+      _geminiModel = $v.geminiModel;
       _surveyId = $v.surveyId;
       _description = $v.description;
       _$v = null;
@@ -200,29 +247,46 @@ class AgentAccessPointBuilder
   AgentAccessPoint build() => _build();
 
   _$AgentAccessPoint _build() {
-    final _$result = _$v ??
-        _$AgentAccessPoint._(
-          createdAt: BuiltValueNullFieldError.checkNotNull(
-              createdAt, r'AgentAccessPoint', 'createdAt'),
-          modifiedAt: BuiltValueNullFieldError.checkNotNull(
-              modifiedAt, r'AgentAccessPoint', 'modifiedAt'),
-          accessPointKey: BuiltValueNullFieldError.checkNotNull(
-              accessPointKey, r'AgentAccessPoint', 'accessPointKey'),
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'AgentAccessPoint', 'name'),
-          sourceApp: BuiltValueNullFieldError.checkNotNull(
-              sourceApp, r'AgentAccessPoint', 'sourceApp'),
-          flowKey: BuiltValueNullFieldError.checkNotNull(
-              flowKey, r'AgentAccessPoint', 'flowKey'),
-          promptKey: BuiltValueNullFieldError.checkNotNull(
-              promptKey, r'AgentAccessPoint', 'promptKey'),
-          personaSkillKey: BuiltValueNullFieldError.checkNotNull(
-              personaSkillKey, r'AgentAccessPoint', 'personaSkillKey'),
-          outputProfile: BuiltValueNullFieldError.checkNotNull(
-              outputProfile, r'AgentAccessPoint', 'outputProfile'),
-          surveyId: surveyId,
-          description: description,
-        );
+    _$AgentAccessPoint _$result;
+    try {
+      _$result = _$v ??
+          _$AgentAccessPoint._(
+            createdAt: BuiltValueNullFieldError.checkNotNull(
+                createdAt, r'AgentAccessPoint', 'createdAt'),
+            modifiedAt: BuiltValueNullFieldError.checkNotNull(
+                modifiedAt, r'AgentAccessPoint', 'modifiedAt'),
+            accessPointKey: BuiltValueNullFieldError.checkNotNull(
+                accessPointKey, r'AgentAccessPoint', 'accessPointKey'),
+            name: BuiltValueNullFieldError.checkNotNull(
+                name, r'AgentAccessPoint', 'name'),
+            sourceApp: BuiltValueNullFieldError.checkNotNull(
+                sourceApp, r'AgentAccessPoint', 'sourceApp'),
+            flowKey: BuiltValueNullFieldError.checkNotNull(
+                flowKey, r'AgentAccessPoint', 'flowKey'),
+            promptKey: BuiltValueNullFieldError.checkNotNull(
+                promptKey, r'AgentAccessPoint', 'promptKey'),
+            personaSkillKey: BuiltValueNullFieldError.checkNotNull(
+                personaSkillKey, r'AgentAccessPoint', 'personaSkillKey'),
+            outputProfile: BuiltValueNullFieldError.checkNotNull(
+                outputProfile, r'AgentAccessPoint', 'outputProfile'),
+            aiConfig: _aiConfig?.build(),
+            aiProvider: aiProvider,
+            glmModel: glmModel,
+            geminiModel: geminiModel,
+            surveyId: surveyId,
+            description: description,
+          );
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'aiConfig';
+        _aiConfig?.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+            r'AgentAccessPoint', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

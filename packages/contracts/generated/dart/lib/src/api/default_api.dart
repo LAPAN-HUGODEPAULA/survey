@@ -12,6 +12,8 @@ import 'package:built_collection/built_collection.dart';
 import 'package:survey_backend_api/src/api_util.dart';
 import 'package:survey_backend_api/src/model/agent_access_point.dart';
 import 'package:survey_backend_api/src/model/agent_access_point_upsert.dart';
+import 'package:survey_backend_api/src/model/ai_agent.dart';
+import 'package:survey_backend_api/src/model/ai_agent_upsert.dart';
 import 'package:survey_backend_api/src/model/builder_session_response.dart';
 import 'package:survey_backend_api/src/model/chat_message.dart';
 import 'package:survey_backend_api/src/model/chat_message_create.dart';
@@ -67,7 +69,7 @@ class DefaultApi {
   const DefaultApi(this._dio, this._serializers);
 
   /// Record the current screener initial notice agreement
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [authorization] - Bearer token in the format `Bearer <token>`
@@ -80,7 +82,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ScreenerProfile] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ScreenerProfile>> acceptScreenerInitialNoticeAgreement({ 
+  Future<Response<ScreenerProfile>> acceptScreenerInitialNoticeAgreement({
     required String authorization,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -143,10 +145,10 @@ class DefaultApi {
   }
 
   /// Analyze conversation context with Clinical Writer
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [clinicalWriterAnalysisRequest] 
+  /// * [clinicalWriterAnalysisRequest]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -156,7 +158,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ClinicalWriterAnalysisResponse] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ClinicalWriterAnalysisResponse>> analyzeClinicalWriter({ 
+  Future<Response<ClinicalWriterAnalysisResponse>> analyzeClinicalWriter({
     required ClinicalWriterAnalysisRequest clinicalWriterAnalysisRequest,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -238,10 +240,10 @@ class DefaultApi {
   }
 
   /// Approve template
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [templateId] 
+  /// * [templateId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -251,7 +253,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [TemplateRecord] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<TemplateRecord>> approveTemplate({ 
+  Future<Response<TemplateRecord>> approveTemplate({
     required String templateId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -313,10 +315,10 @@ class DefaultApi {
   }
 
   /// Archive template
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [templateId] 
+  /// * [templateId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -326,7 +328,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [TemplateRecord] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<TemplateRecord>> archiveTemplate({ 
+  Future<Response<TemplateRecord>> archiveTemplate({
     required String templateId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -388,10 +390,10 @@ class DefaultApi {
   }
 
   /// Complete chat session
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [sessionId] 
+  /// * [sessionId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -401,7 +403,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ChatSession] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ChatSession>> completeChatSession({ 
+  Future<Response<ChatSession>> completeChatSession({
     required String sessionId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -463,10 +465,10 @@ class DefaultApi {
   }
 
   /// Create agent access point
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [agentAccessPointUpsert] 
+  /// * [agentAccessPointUpsert]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -476,7 +478,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [AgentAccessPoint] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<AgentAccessPoint>> createAgentAccessPoint({ 
+  Future<Response<AgentAccessPoint>> createAgentAccessPoint({
     required AgentAccessPointUpsert agentAccessPointUpsert,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -557,12 +559,107 @@ class DefaultApi {
     );
   }
 
-  /// Create chat message
-  /// 
+  /// Create AI agent
+  ///
   ///
   /// Parameters:
-  /// * [sessionId] 
-  /// * [chatMessageCreate] 
+  /// * [aIAgentUpsert]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AIAgent] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AIAgent>> createAiAgent({
+    required AIAgentUpsert aIAgentUpsert,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/ai_agents/';
+    final _options = Options(
+      method: r'POST',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      const _type = FullType(AIAgentUpsert);
+      _bodyData = _serializers.serialize(aIAgentUpsert, specifiedType: _type);
+
+    } catch(error, stackTrace) {
+      throw DioException(
+         requestOptions: _options.compose(
+          _dio.options,
+          _path,
+        ),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AIAgent? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(AIAgent),
+      ) as AIAgent;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AIAgent>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Create chat message
+  ///
+  ///
+  /// Parameters:
+  /// * [sessionId]
+  /// * [chatMessageCreate]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -572,7 +669,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ChatMessage] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ChatMessage>> createChatMessage({ 
+  Future<Response<ChatMessage>> createChatMessage({
     required String sessionId,
     required ChatMessageCreate chatMessageCreate,
     CancelToken? cancelToken,
@@ -655,10 +752,10 @@ class DefaultApi {
   }
 
   /// Create chat session
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [chatSessionCreate] 
+  /// * [chatSessionCreate]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -668,7 +765,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ChatSession] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ChatSession>> createChatSession({ 
+  Future<Response<ChatSession>> createChatSession({
     required ChatSessionCreate chatSessionCreate,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -750,10 +847,10 @@ class DefaultApi {
   }
 
   /// Create patient response
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [surveyResponse] 
+  /// * [surveyResponse]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -763,7 +860,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [SurveyResponseWithAgent] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<SurveyResponseWithAgent>> createPatientResponse({ 
+  Future<Response<SurveyResponseWithAgent>> createPatientResponse({
     required SurveyResponse surveyResponse,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -845,10 +942,10 @@ class DefaultApi {
   }
 
   /// Create persona skill
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [personaSkillUpsert] 
+  /// * [personaSkillUpsert]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -858,7 +955,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [PersonaSkill] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<PersonaSkill>> createPersonaSkill({ 
+  Future<Response<PersonaSkill>> createPersonaSkill({
     required PersonaSkillUpsert personaSkillUpsert,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -940,11 +1037,11 @@ class DefaultApi {
   }
 
   /// Create a prepared screener access link
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [authorization] - Bearer token in the format `Bearer <token>`
-  /// * [createScreenerAccessLinkRequest] 
+  /// * [createScreenerAccessLinkRequest]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -954,7 +1051,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ScreenerAccessLink] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ScreenerAccessLink>> createScreenerAccessLink({ 
+  Future<Response<ScreenerAccessLink>> createScreenerAccessLink({
     required String authorization,
     required CreateScreenerAccessLinkRequest createScreenerAccessLinkRequest,
     CancelToken? cancelToken,
@@ -1038,10 +1135,10 @@ class DefaultApi {
   }
 
   /// Create survey
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [survey] 
+  /// * [survey]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -1051,7 +1148,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [Survey] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Survey>> createSurvey({ 
+  Future<Response<Survey>> createSurvey({
     required Survey survey,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1133,10 +1230,10 @@ class DefaultApi {
   }
 
   /// Create reusable survey prompt
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [surveyPromptUpsert] 
+  /// * [surveyPromptUpsert]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -1146,7 +1243,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [SurveyPrompt] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<SurveyPrompt>> createSurveyPrompt({ 
+  Future<Response<SurveyPrompt>> createSurveyPrompt({
     required SurveyPromptUpsert surveyPromptUpsert,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1228,10 +1325,10 @@ class DefaultApi {
   }
 
   /// Create survey response
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [surveyResponse] 
+  /// * [surveyResponse]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -1241,7 +1338,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [SurveyResponseWithAgent] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<SurveyResponseWithAgent>> createSurveyResponse({ 
+  Future<Response<SurveyResponseWithAgent>> createSurveyResponse({
     required SurveyResponse surveyResponse,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1323,10 +1420,10 @@ class DefaultApi {
   }
 
   /// Create template
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [templateCreateRequest] 
+  /// * [templateCreateRequest]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -1336,7 +1433,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [TemplateRecord] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<TemplateRecord>> createTemplate({ 
+  Future<Response<TemplateRecord>> createTemplate({
     required TemplateCreateRequest templateCreateRequest,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1418,10 +1515,10 @@ class DefaultApi {
   }
 
   /// Delete agent access point
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [accessPointKey] 
+  /// * [accessPointKey]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -1431,7 +1528,7 @@ class DefaultApi {
   ///
   /// Returns a [Future]
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<void>> deleteAgentAccessPoint({ 
+  Future<Response<void>> deleteAgentAccessPoint({
     required String accessPointKey,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1464,11 +1561,11 @@ class DefaultApi {
     return _response;
   }
 
-  /// Delete persona skill
-  /// 
+  /// Delete AI agent
+  ///
   ///
   /// Parameters:
-  /// * [personaSkillKey] 
+  /// * [agentKey]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -1478,7 +1575,54 @@ class DefaultApi {
   ///
   /// Returns a [Future]
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<void>> deletePersonaSkill({ 
+  Future<Response<void>> deleteAiAgent({
+    required String agentKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/ai_agents/{agentKey}'.replaceAll('{' r'agentKey' '}', encodeQueryParameter(_serializers, agentKey, const FullType(String)).toString());
+    final _options = Options(
+      method: r'DELETE',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    return _response;
+  }
+
+  /// Delete persona skill
+  ///
+  ///
+  /// Parameters:
+  /// * [personaSkillKey]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future]
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<void>> deletePersonaSkill({
     required String personaSkillKey,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1512,10 +1656,10 @@ class DefaultApi {
   }
 
   /// Delete survey
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [surveyId] 
+  /// * [surveyId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -1525,7 +1669,7 @@ class DefaultApi {
   ///
   /// Returns a [Future]
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<void>> deleteSurvey({ 
+  Future<Response<void>> deleteSurvey({
     required String surveyId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1559,10 +1703,10 @@ class DefaultApi {
   }
 
   /// Delete reusable survey prompt
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [promptKey] 
+  /// * [promptKey]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -1572,7 +1716,7 @@ class DefaultApi {
   ///
   /// Returns a [Future]
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<void>> deleteSurveyPrompt({ 
+  Future<Response<void>> deleteSurveyPrompt({
     required String promptKey,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1606,10 +1750,10 @@ class DefaultApi {
   }
 
   /// Export document
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [documentExportRequest] 
+  /// * [documentExportRequest]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -1619,7 +1763,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [DocumentRecord] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<DocumentRecord>> exportDocument({ 
+  Future<Response<DocumentRecord>> exportDocument({
     required DocumentExportRequest documentExportRequest,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1701,7 +1845,7 @@ class DefaultApi {
   }
 
   /// Export surveys
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1713,7 +1857,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<Survey>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<Survey>>> exportSurveys({ 
+  Future<Response<BuiltList<Survey>>> exportSurveys({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -1774,10 +1918,10 @@ class DefaultApi {
   }
 
   /// Get agent access point by key
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [accessPointKey] 
+  /// * [accessPointKey]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -1787,7 +1931,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [AgentAccessPoint] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<AgentAccessPoint>> getAgentAccessPoint({ 
+  Future<Response<AgentAccessPoint>> getAgentAccessPoint({
     required String accessPointKey,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1848,8 +1992,83 @@ class DefaultApi {
     );
   }
 
+  /// Get AI agent by key
+  ///
+  ///
+  /// Parameters:
+  /// * [agentKey]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AIAgent] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AIAgent>> getAiAgent({
+    required String agentKey,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/ai_agents/{agentKey}'.replaceAll('{' r'agentKey' '}', encodeQueryParameter(_serializers, agentKey, const FullType(String)).toString());
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AIAgent? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(AIAgent),
+      ) as AIAgent;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AIAgent>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
   /// Resolve the current builder administrator session
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -1861,7 +2080,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuilderSessionResponse] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuilderSessionResponse>> getBuilderSession({ 
+  Future<Response<BuilderSessionResponse>> getBuilderSession({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -1922,10 +2141,10 @@ class DefaultApi {
   }
 
   /// Get chat session
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [sessionId] 
+  /// * [sessionId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -1935,7 +2154,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ChatSession] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ChatSession>> getChatSession({ 
+  Future<Response<ChatSession>> getChatSession({
     required String sessionId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -1997,10 +2216,10 @@ class DefaultApi {
   }
 
   /// Get asynchronous Clinical Writer task status
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [taskId] 
+  /// * [taskId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -2010,7 +2229,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ClinicalWriterTaskResponse] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ClinicalWriterTaskResponse>> getClinicalWriterStatus({ 
+  Future<Response<ClinicalWriterTaskResponse>> getClinicalWriterStatus({
     required String taskId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2072,7 +2291,7 @@ class DefaultApi {
   }
 
   /// Get the current screener profile
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [authorization] - Bearer token in the format `Bearer <token>`
@@ -2085,7 +2304,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ScreenerProfile] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ScreenerProfile>> getCurrentScreener({ 
+  Future<Response<ScreenerProfile>> getCurrentScreener({
     required String authorization,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2148,10 +2367,10 @@ class DefaultApi {
   }
 
   /// Get document record
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [documentId] 
+  /// * [documentId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -2161,7 +2380,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [DocumentRecord] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<DocumentRecord>> getDocument({ 
+  Future<Response<DocumentRecord>> getDocument({
     required String documentId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2223,10 +2442,10 @@ class DefaultApi {
   }
 
   /// Get persona skill by key
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [personaSkillKey] 
+  /// * [personaSkillKey]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -2236,7 +2455,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [PersonaSkill] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<PersonaSkill>> getPersonaSkill({ 
+  Future<Response<PersonaSkill>> getPersonaSkill({
     required String personaSkillKey,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2298,7 +2517,7 @@ class DefaultApi {
   }
 
   /// Get screener global settings
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -2310,7 +2529,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ScreenerSettings] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ScreenerSettings>> getScreenerSettings({ 
+  Future<Response<ScreenerSettings>> getScreenerSettings({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -2371,10 +2590,10 @@ class DefaultApi {
   }
 
   /// Get survey by id
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [surveyId] 
+  /// * [surveyId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -2384,7 +2603,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [Survey] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Survey>> getSurvey({ 
+  Future<Response<Survey>> getSurvey({
     required String surveyId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2446,10 +2665,10 @@ class DefaultApi {
   }
 
   /// Get reusable survey prompt by key
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [promptKey] 
+  /// * [promptKey]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -2459,7 +2678,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [SurveyPrompt] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<SurveyPrompt>> getSurveyPrompt({ 
+  Future<Response<SurveyPrompt>> getSurveyPrompt({
     required String promptKey,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2521,10 +2740,10 @@ class DefaultApi {
   }
 
   /// Get survey response by id
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [responseId] 
+  /// * [responseId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -2534,7 +2753,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [SurveyResponse] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<SurveyResponse>> getSurveyResponse({ 
+  Future<Response<SurveyResponse>> getSurveyResponse({
     required String responseId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2596,10 +2815,10 @@ class DefaultApi {
   }
 
   /// Get template
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [templateId] 
+  /// * [templateId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -2609,7 +2828,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [TemplateRecord] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<TemplateRecord>> getTemplate({ 
+  Future<Response<TemplateRecord>> getTemplate({
     required String templateId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2671,7 +2890,7 @@ class DefaultApi {
   }
 
   /// List agent access points
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -2683,7 +2902,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<AgentAccessPoint>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<AgentAccessPoint>>> listAgentAccessPoints({ 
+  Future<Response<BuiltList<AgentAccessPoint>>> listAgentAccessPoints({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -2743,11 +2962,84 @@ class DefaultApi {
     );
   }
 
-  /// List chat messages
-  /// 
+  /// List AI agents
+  ///
   ///
   /// Parameters:
-  /// * [sessionId] 
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [BuiltList<AIAgent>] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<BuiltList<AIAgent>>> listAiAgents({
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/ai_agents/';
+    final _options = Options(
+      method: r'GET',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[],
+        ...?extra,
+      },
+      validateStatus: validateStatus,
+    );
+
+    final _response = await _dio.request<Object>(
+      _path,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    BuiltList<AIAgent>? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(BuiltList, [FullType(AIAgent)]),
+      ) as BuiltList<AIAgent>;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<BuiltList<AIAgent>>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// List chat messages
+  ///
+  ///
+  /// Parameters:
+  /// * [sessionId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -2757,7 +3049,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<ChatMessage>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<ChatMessage>>> listChatMessages({ 
+  Future<Response<BuiltList<ChatMessage>>> listChatMessages({
     required String sessionId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2819,10 +3111,10 @@ class DefaultApi {
   }
 
   /// List chat sessions
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [status] 
+  /// * [status]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -2832,7 +3124,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<ChatSession>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<ChatSession>>> listChatSessions({ 
+  Future<Response<BuiltList<ChatSession>>> listChatSessions({
     String? status,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2899,10 +3191,10 @@ class DefaultApi {
   }
 
   /// List full medication catalog for in-memory autocomplete
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [limit] 
+  /// * [limit]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -2912,7 +3204,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [MedicationSearchResponse] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<MedicationSearchResponse>> listMedications({ 
+  Future<Response<MedicationSearchResponse>> listMedications({
     int? limit = 500,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -2979,7 +3271,7 @@ class DefaultApi {
   }
 
   /// List persona skills
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -2991,7 +3283,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<PersonaSkill>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<PersonaSkill>>> listPersonaSkills({ 
+  Future<Response<BuiltList<PersonaSkill>>> listPersonaSkills({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -3052,7 +3344,7 @@ class DefaultApi {
   }
 
   /// List reusable survey prompts
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -3064,7 +3356,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<SurveyPrompt>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<SurveyPrompt>>> listSurveyPrompts({ 
+  Future<Response<BuiltList<SurveyPrompt>>> listSurveyPrompts({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -3125,7 +3417,7 @@ class DefaultApi {
   }
 
   /// List survey responses
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -3137,7 +3429,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<SurveyResponse>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<SurveyResponse>>> listSurveyResponses({ 
+  Future<Response<BuiltList<SurveyResponse>>> listSurveyResponses({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -3198,7 +3490,7 @@ class DefaultApi {
   }
 
   /// List surveys
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -3210,7 +3502,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<Survey>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<Survey>>> listSurveys({ 
+  Future<Response<BuiltList<Survey>>> listSurveys({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -3271,7 +3563,7 @@ class DefaultApi {
   }
 
   /// List supported template document types
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -3283,7 +3575,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<ListTemplateDocumentTypes200ResponseInner>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<ListTemplateDocumentTypes200ResponseInner>>> listTemplateDocumentTypes({ 
+  Future<Response<BuiltList<ListTemplateDocumentTypes200ResponseInner>>> listTemplateDocumentTypes({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -3344,12 +3636,12 @@ class DefaultApi {
   }
 
   /// List templates
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [documentType] 
-  /// * [q] 
-  /// * [includeAll] 
+  /// * [documentType]
+  /// * [q]
+  /// * [includeAll]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -3359,7 +3651,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<TemplateRecord>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<TemplateRecord>>> listTemplates({ 
+  Future<Response<BuiltList<TemplateRecord>>> listTemplates({
     TemplateDocumentType? documentType,
     String? q,
     bool? includeAll,
@@ -3430,10 +3722,10 @@ class DefaultApi {
   }
 
   /// Authenticate a builder administrator and issue a cookie-backed session
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [screenerLogin] 
+  /// * [screenerLogin]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -3443,7 +3735,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuilderSessionResponse] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuilderSessionResponse>> loginBuilder({ 
+  Future<Response<BuilderSessionResponse>> loginBuilder({
     required ScreenerLogin screenerLogin,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -3525,10 +3817,10 @@ class DefaultApi {
   }
 
   /// Authenticate a screener and get an access token
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [screenerLogin] 
+  /// * [screenerLogin]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -3538,7 +3830,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [Token] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Token>> loginScreener({ 
+  Future<Response<Token>> loginScreener({
     required ScreenerLogin screenerLogin,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -3620,7 +3912,7 @@ class DefaultApi {
   }
 
   /// Clear the current builder administrator session
-  /// 
+  ///
   ///
   /// Parameters:
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
@@ -3632,7 +3924,7 @@ class DefaultApi {
   ///
   /// Returns a [Future]
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<void>> logoutBuilder({ 
+  Future<Response<void>> logoutBuilder({
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
     Map<String, dynamic>? extra,
@@ -3665,10 +3957,10 @@ class DefaultApi {
   }
 
   /// Generate document preview
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [documentPreviewRequest] 
+  /// * [documentPreviewRequest]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -3678,7 +3970,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [DocumentPreview] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<DocumentPreview>> previewDocument({ 
+  Future<Response<DocumentPreview>> previewDocument({
     required DocumentPreviewRequest documentPreviewRequest,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -3760,11 +4052,11 @@ class DefaultApi {
   }
 
   /// Preview template
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [templateId] 
-  /// * [templatePreviewRequest] 
+  /// * [templateId]
+  /// * [templatePreviewRequest]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -3774,7 +4066,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [TemplatePreviewResponse] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<TemplatePreviewResponse>> previewTemplate({ 
+  Future<Response<TemplatePreviewResponse>> previewTemplate({
     required String templateId,
     required TemplatePreviewRequest templatePreviewRequest,
     CancelToken? cancelToken,
@@ -3857,10 +4149,10 @@ class DefaultApi {
   }
 
   /// Forward content to Clinical Writer
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [clinicalWriterRequest] 
+  /// * [clinicalWriterRequest]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -3870,7 +4162,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ProcessClinicalWriter200Response] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ProcessClinicalWriter200Response>> processClinicalWriter({ 
+  Future<Response<ProcessClinicalWriter200Response>> processClinicalWriter({
     required ClinicalWriterRequest clinicalWriterRequest,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -3952,10 +4244,10 @@ class DefaultApi {
   }
 
   /// Recommend templates
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [documentType] 
+  /// * [documentType]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -3965,7 +4257,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [BuiltList<TemplateRecord>] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<BuiltList<TemplateRecord>>> recommendTemplates({ 
+  Future<Response<BuiltList<TemplateRecord>>> recommendTemplates({
     TemplateDocumentType? documentType,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -4032,10 +4324,10 @@ class DefaultApi {
   }
 
   /// Request password recovery for a screener
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [screenerPasswordRecoveryRequest] 
+  /// * [screenerPasswordRecoveryRequest]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -4045,7 +4337,7 @@ class DefaultApi {
   ///
   /// Returns a [Future]
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<void>> recoverScreenerPassword({ 
+  Future<Response<void>> recoverScreenerPassword({
     required ScreenerPasswordRecoveryRequest screenerPasswordRecoveryRequest,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -4099,10 +4391,10 @@ class DefaultApi {
   }
 
   /// Register a new screener
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [screenerRegister] 
+  /// * [screenerRegister]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -4112,7 +4404,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ScreenerProfile] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ScreenerProfile>> registerScreener({ 
+  Future<Response<ScreenerProfile>> registerScreener({
     required ScreenerRegister screenerRegister,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -4194,10 +4486,10 @@ class DefaultApi {
   }
 
   /// Resend survey response email
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [responseId] 
+  /// * [responseId]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -4207,7 +4499,7 @@ class DefaultApi {
   ///
   /// Returns a [Future]
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<void>> resendSurveyEmail({ 
+  Future<Response<void>> resendSurveyEmail({
     required String responseId,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -4241,10 +4533,10 @@ class DefaultApi {
   }
 
   /// Resolve a prepared screener access link
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [token] 
+  /// * [token]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -4254,7 +4546,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ScreenerAccessLink] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ScreenerAccessLink>> resolveScreenerAccessLink({ 
+  Future<Response<ScreenerAccessLink>> resolveScreenerAccessLink({
     required String token,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -4316,11 +4608,11 @@ class DefaultApi {
   }
 
   /// Search medications by query
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [q] 
-  /// * [limit] 
+  /// * [q]
+  /// * [limit]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -4330,7 +4622,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [MedicationSearchResponse] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<MedicationSearchResponse>> searchMedications({ 
+  Future<Response<MedicationSearchResponse>> searchMedications({
     required String q,
     int? limit = 10,
     CancelToken? cancelToken,
@@ -4399,11 +4691,11 @@ class DefaultApi {
   }
 
   /// Send report email with PDF attachment for screener response
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [responseId] 
-  /// * [sendReportEmailRequest] 
+  /// * [responseId]
+  /// * [sendReportEmailRequest]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -4413,7 +4705,7 @@ class DefaultApi {
   ///
   /// Returns a [Future]
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<void>> sendScreenerReportEmail({ 
+  Future<Response<void>> sendScreenerReportEmail({
     required String responseId,
     SendReportEmailRequest? sendReportEmailRequest,
     CancelToken? cancelToken,
@@ -4468,10 +4760,10 @@ class DefaultApi {
   }
 
   /// Transcribe voice audio
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [transcriptionRequest] 
+  /// * [transcriptionRequest]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -4481,7 +4773,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [TranscriptionResponse] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<TranscriptionResponse>> transcribeVoiceAudio({ 
+  Future<Response<TranscriptionResponse>> transcribeVoiceAudio({
     required TranscriptionRequest transcriptionRequest,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -4563,11 +4855,11 @@ class DefaultApi {
   }
 
   /// Update agent access point
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [accessPointKey] 
-  /// * [agentAccessPointUpsert] 
+  /// * [accessPointKey]
+  /// * [agentAccessPointUpsert]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -4577,7 +4869,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [AgentAccessPoint] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<AgentAccessPoint>> updateAgentAccessPoint({ 
+  Future<Response<AgentAccessPoint>> updateAgentAccessPoint({
     required String accessPointKey,
     required AgentAccessPointUpsert agentAccessPointUpsert,
     CancelToken? cancelToken,
@@ -4659,12 +4951,109 @@ class DefaultApi {
     );
   }
 
-  /// Update chat message
-  /// 
+  /// Update AI agent
+  ///
   ///
   /// Parameters:
-  /// * [messageId] 
-  /// * [chatMessageUpdate] 
+  /// * [agentKey]
+  /// * [aIAgentUpsert]
+  /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
+  /// * [headers] - Can be used to add additional headers to the request
+  /// * [extras] - Can be used to add flags to the request
+  /// * [validateStatus] - A [ValidateStatus] callback that can be used to determine request success based on the HTTP status of the response
+  /// * [onSendProgress] - A [ProgressCallback] that can be used to get the send progress
+  /// * [onReceiveProgress] - A [ProgressCallback] that can be used to get the receive progress
+  ///
+  /// Returns a [Future] containing a [Response] with a [AIAgent] as data
+  /// Throws [DioException] if API call or serialization fails
+  Future<Response<AIAgent>> updateAiAgent({
+    required String agentKey,
+    required AIAgentUpsert aIAgentUpsert,
+    CancelToken? cancelToken,
+    Map<String, dynamic>? headers,
+    Map<String, dynamic>? extra,
+    ValidateStatus? validateStatus,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    final _path = r'/ai_agents/{agentKey}'.replaceAll('{' r'agentKey' '}', encodeQueryParameter(_serializers, agentKey, const FullType(String)).toString());
+    final _options = Options(
+      method: r'PUT',
+      headers: <String, dynamic>{
+        ...?headers,
+      },
+      extra: <String, dynamic>{
+        'secure': <Map<String, String>>[],
+        ...?extra,
+      },
+      contentType: 'application/json',
+      validateStatus: validateStatus,
+    );
+
+    dynamic _bodyData;
+
+    try {
+      const _type = FullType(AIAgentUpsert);
+      _bodyData = _serializers.serialize(aIAgentUpsert, specifiedType: _type);
+
+    } catch(error, stackTrace) {
+      throw DioException(
+         requestOptions: _options.compose(
+          _dio.options,
+          _path,
+        ),
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    final _response = await _dio.request<Object>(
+      _path,
+      data: _bodyData,
+      options: _options,
+      cancelToken: cancelToken,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+    );
+
+    AIAgent? _responseData;
+
+    try {
+      final rawResponse = _response.data;
+      _responseData = rawResponse == null ? null : _serializers.deserialize(
+        rawResponse,
+        specifiedType: const FullType(AIAgent),
+      ) as AIAgent;
+
+    } catch (error, stackTrace) {
+      throw DioException(
+        requestOptions: _response.requestOptions,
+        response: _response,
+        type: DioExceptionType.unknown,
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+
+    return Response<AIAgent>(
+      data: _responseData,
+      headers: _response.headers,
+      isRedirect: _response.isRedirect,
+      requestOptions: _response.requestOptions,
+      redirects: _response.redirects,
+      statusCode: _response.statusCode,
+      statusMessage: _response.statusMessage,
+      extra: _response.extra,
+    );
+  }
+
+  /// Update chat message
+  ///
+  ///
+  /// Parameters:
+  /// * [messageId]
+  /// * [chatMessageUpdate]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -4674,7 +5063,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ChatMessage] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ChatMessage>> updateChatMessage({ 
+  Future<Response<ChatMessage>> updateChatMessage({
     required String messageId,
     required ChatMessageUpdate chatMessageUpdate,
     CancelToken? cancelToken,
@@ -4757,11 +5146,11 @@ class DefaultApi {
   }
 
   /// Update chat session
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [sessionId] 
-  /// * [chatSessionUpdate] 
+  /// * [sessionId]
+  /// * [chatSessionUpdate]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -4771,7 +5160,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ChatSession] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ChatSession>> updateChatSession({ 
+  Future<Response<ChatSession>> updateChatSession({
     required String sessionId,
     required ChatSessionUpdate chatSessionUpdate,
     CancelToken? cancelToken,
@@ -4854,11 +5243,11 @@ class DefaultApi {
   }
 
   /// Update persona skill
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [personaSkillKey] 
-  /// * [personaSkillUpsert] 
+  /// * [personaSkillKey]
+  /// * [personaSkillUpsert]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -4868,7 +5257,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [PersonaSkill] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<PersonaSkill>> updatePersonaSkill({ 
+  Future<Response<PersonaSkill>> updatePersonaSkill({
     required String personaSkillKey,
     required PersonaSkillUpsert personaSkillUpsert,
     CancelToken? cancelToken,
@@ -4951,10 +5340,10 @@ class DefaultApi {
   }
 
   /// Update screener global settings
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [screenerSettingsUpdate] 
+  /// * [screenerSettingsUpdate]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -4964,7 +5353,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [ScreenerSettings] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<ScreenerSettings>> updateScreenerSettings({ 
+  Future<Response<ScreenerSettings>> updateScreenerSettings({
     required ScreenerSettingsUpdate screenerSettingsUpdate,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,
@@ -5046,11 +5435,11 @@ class DefaultApi {
   }
 
   /// Update survey
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [surveyId] 
-  /// * [survey] 
+  /// * [surveyId]
+  /// * [survey]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -5060,7 +5449,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [Survey] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<Survey>> updateSurvey({ 
+  Future<Response<Survey>> updateSurvey({
     required String surveyId,
     required Survey survey,
     CancelToken? cancelToken,
@@ -5143,11 +5532,11 @@ class DefaultApi {
   }
 
   /// Update reusable survey prompt
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [promptKey] 
-  /// * [surveyPromptUpsert] 
+  /// * [promptKey]
+  /// * [surveyPromptUpsert]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -5157,7 +5546,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [SurveyPrompt] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<SurveyPrompt>> updateSurveyPrompt({ 
+  Future<Response<SurveyPrompt>> updateSurveyPrompt({
     required String promptKey,
     required SurveyPromptUpsert surveyPromptUpsert,
     CancelToken? cancelToken,
@@ -5240,11 +5629,11 @@ class DefaultApi {
   }
 
   /// Update template (new version)
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [templateId] 
-  /// * [templateUpdateRequest] 
+  /// * [templateId]
+  /// * [templateUpdateRequest]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -5254,7 +5643,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [TemplateRecord] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<TemplateRecord>> updateTemplate({ 
+  Future<Response<TemplateRecord>> updateTemplate({
     required String templateId,
     required TemplateUpdateRequest templateUpdateRequest,
     CancelToken? cancelToken,
@@ -5337,10 +5726,10 @@ class DefaultApi {
   }
 
   /// Upsert manual medication
-  /// 
+  ///
   ///
   /// Parameters:
-  /// * [medicationManualUpsertRequest] 
+  /// * [medicationManualUpsertRequest]
   /// * [cancelToken] - A [CancelToken] that can be used to cancel the operation
   /// * [headers] - Can be used to add additional headers to the request
   /// * [extras] - Can be used to add flags to the request
@@ -5350,7 +5739,7 @@ class DefaultApi {
   ///
   /// Returns a [Future] containing a [Response] with a [MedicationSearchItem] as data
   /// Throws [DioException] if API call or serialization fails
-  Future<Response<MedicationSearchItem>> upsertManualMedication({ 
+  Future<Response<MedicationSearchItem>> upsertManualMedication({
     required MedicationManualUpsertRequest medicationManualUpsertRequest,
     CancelToken? cancelToken,
     Map<String, dynamic>? headers,

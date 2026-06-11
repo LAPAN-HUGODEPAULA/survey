@@ -2,6 +2,10 @@
 .openapi-generator-ignore
 README.md
 analysis_options.yaml
+doc/AIAgent.md
+doc/AIAgentRouteRef.md
+doc/AIAgentUpsert.md
+doc/AIConfig.md
 doc/AIProgress.md
 doc/Address.md
 doc/AgentAccessPoint.md
@@ -85,6 +89,10 @@ lib/src/model/agent_access_point.dart
 lib/src/model/agent_access_point_upsert.dart
 lib/src/model/agent_artifact_response.dart
 lib/src/model/agent_response.dart
+lib/src/model/ai_agent.dart
+lib/src/model/ai_agent_route_ref.dart
+lib/src/model/ai_agent_upsert.dart
+lib/src/model/ai_config.dart
 lib/src/model/ai_progress.dart
 lib/src/model/answer.dart
 lib/src/model/api_error.dart
@@ -157,6 +165,10 @@ test/agent_access_point_test.dart
 test/agent_access_point_upsert_test.dart
 test/agent_artifact_response_test.dart
 test/agent_response_test.dart
+test/ai_agent_route_ref_test.dart
+test/ai_agent_test.dart
+test/ai_agent_upsert_test.dart
+test/ai_config_test.dart
 test/ai_progress_test.dart
 test/answer_test.dart
 test/api_error_test.dart

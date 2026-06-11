@@ -30,6 +30,18 @@ abstract class AgentAccessPointUpsertBuilder {
   String? get outputProfile;
   set outputProfile(String? outputProfile);
 
+  AIConfigBuilder get aiConfig;
+  set aiConfig(AIConfigBuilder? aiConfig);
+
+  String? get aiProvider;
+  set aiProvider(String? aiProvider);
+
+  String? get glmModel;
+  set glmModel(String? glmModel);
+
+  String? get geminiModel;
+  set geminiModel(String? geminiModel);
+
   String? get surveyId;
   set surveyId(String? surveyId);
 
@@ -53,6 +65,14 @@ class _$$AgentAccessPointUpsert extends $AgentAccessPointUpsert {
   @override
   final String outputProfile;
   @override
+  final AIConfig? aiConfig;
+  @override
+  final String? aiProvider;
+  @override
+  final String? glmModel;
+  @override
+  final String? geminiModel;
+  @override
   final String? surveyId;
   @override
   final String? description;
@@ -69,6 +89,10 @@ class _$$AgentAccessPointUpsert extends $AgentAccessPointUpsert {
       required this.promptKey,
       required this.personaSkillKey,
       required this.outputProfile,
+      this.aiConfig,
+      this.aiProvider,
+      this.glmModel,
+      this.geminiModel,
       this.surveyId,
       this.description})
       : super._();
@@ -92,6 +116,10 @@ class _$$AgentAccessPointUpsert extends $AgentAccessPointUpsert {
         promptKey == other.promptKey &&
         personaSkillKey == other.personaSkillKey &&
         outputProfile == other.outputProfile &&
+        aiConfig == other.aiConfig &&
+        aiProvider == other.aiProvider &&
+        glmModel == other.glmModel &&
+        geminiModel == other.geminiModel &&
         surveyId == other.surveyId &&
         description == other.description;
   }
@@ -106,6 +134,10 @@ class _$$AgentAccessPointUpsert extends $AgentAccessPointUpsert {
     _$hash = $jc(_$hash, promptKey.hashCode);
     _$hash = $jc(_$hash, personaSkillKey.hashCode);
     _$hash = $jc(_$hash, outputProfile.hashCode);
+    _$hash = $jc(_$hash, aiConfig.hashCode);
+    _$hash = $jc(_$hash, aiProvider.hashCode);
+    _$hash = $jc(_$hash, glmModel.hashCode);
+    _$hash = $jc(_$hash, geminiModel.hashCode);
     _$hash = $jc(_$hash, surveyId.hashCode);
     _$hash = $jc(_$hash, description.hashCode);
     _$hash = $jf(_$hash);
@@ -122,6 +154,10 @@ class _$$AgentAccessPointUpsert extends $AgentAccessPointUpsert {
           ..add('promptKey', promptKey)
           ..add('personaSkillKey', personaSkillKey)
           ..add('outputProfile', outputProfile)
+          ..add('aiConfig', aiConfig)
+          ..add('aiProvider', aiProvider)
+          ..add('glmModel', glmModel)
+          ..add('geminiModel', geminiModel)
           ..add('surveyId', surveyId)
           ..add('description', description))
         .toString();
@@ -165,6 +201,25 @@ class $AgentAccessPointUpsertBuilder
   set outputProfile(covariant String? outputProfile) =>
       _$this._outputProfile = outputProfile;
 
+  AIConfigBuilder? _aiConfig;
+  AIConfigBuilder get aiConfig => _$this._aiConfig ??= AIConfigBuilder();
+  set aiConfig(covariant AIConfigBuilder? aiConfig) =>
+      _$this._aiConfig = aiConfig;
+
+  String? _aiProvider;
+  String? get aiProvider => _$this._aiProvider;
+  set aiProvider(covariant String? aiProvider) =>
+      _$this._aiProvider = aiProvider;
+
+  String? _glmModel;
+  String? get glmModel => _$this._glmModel;
+  set glmModel(covariant String? glmModel) => _$this._glmModel = glmModel;
+
+  String? _geminiModel;
+  String? get geminiModel => _$this._geminiModel;
+  set geminiModel(covariant String? geminiModel) =>
+      _$this._geminiModel = geminiModel;
+
   String? _surveyId;
   String? get surveyId => _$this._surveyId;
   set surveyId(covariant String? surveyId) => _$this._surveyId = surveyId;
@@ -188,6 +243,10 @@ class $AgentAccessPointUpsertBuilder
       _promptKey = $v.promptKey;
       _personaSkillKey = $v.personaSkillKey;
       _outputProfile = $v.outputProfile;
+      _aiConfig = $v.aiConfig?.toBuilder();
+      _aiProvider = $v.aiProvider;
+      _glmModel = $v.glmModel;
+      _geminiModel = $v.geminiModel;
       _surveyId = $v.surveyId;
       _description = $v.description;
       _$v = null;
@@ -209,25 +268,42 @@ class $AgentAccessPointUpsertBuilder
   $AgentAccessPointUpsert build() => _build();
 
   _$$AgentAccessPointUpsert _build() {
-    final _$result = _$v ??
-        _$$AgentAccessPointUpsert._(
-          accessPointKey: BuiltValueNullFieldError.checkNotNull(
-              accessPointKey, r'$AgentAccessPointUpsert', 'accessPointKey'),
-          name: BuiltValueNullFieldError.checkNotNull(
-              name, r'$AgentAccessPointUpsert', 'name'),
-          sourceApp: BuiltValueNullFieldError.checkNotNull(
-              sourceApp, r'$AgentAccessPointUpsert', 'sourceApp'),
-          flowKey: BuiltValueNullFieldError.checkNotNull(
-              flowKey, r'$AgentAccessPointUpsert', 'flowKey'),
-          promptKey: BuiltValueNullFieldError.checkNotNull(
-              promptKey, r'$AgentAccessPointUpsert', 'promptKey'),
-          personaSkillKey: BuiltValueNullFieldError.checkNotNull(
-              personaSkillKey, r'$AgentAccessPointUpsert', 'personaSkillKey'),
-          outputProfile: BuiltValueNullFieldError.checkNotNull(
-              outputProfile, r'$AgentAccessPointUpsert', 'outputProfile'),
-          surveyId: surveyId,
-          description: description,
-        );
+    _$$AgentAccessPointUpsert _$result;
+    try {
+      _$result = _$v ??
+          _$$AgentAccessPointUpsert._(
+            accessPointKey: BuiltValueNullFieldError.checkNotNull(
+                accessPointKey, r'$AgentAccessPointUpsert', 'accessPointKey'),
+            name: BuiltValueNullFieldError.checkNotNull(
+                name, r'$AgentAccessPointUpsert', 'name'),
+            sourceApp: BuiltValueNullFieldError.checkNotNull(
+                sourceApp, r'$AgentAccessPointUpsert', 'sourceApp'),
+            flowKey: BuiltValueNullFieldError.checkNotNull(
+                flowKey, r'$AgentAccessPointUpsert', 'flowKey'),
+            promptKey: BuiltValueNullFieldError.checkNotNull(
+                promptKey, r'$AgentAccessPointUpsert', 'promptKey'),
+            personaSkillKey: BuiltValueNullFieldError.checkNotNull(
+                personaSkillKey, r'$AgentAccessPointUpsert', 'personaSkillKey'),
+            outputProfile: BuiltValueNullFieldError.checkNotNull(
+                outputProfile, r'$AgentAccessPointUpsert', 'outputProfile'),
+            aiConfig: _aiConfig?.build(),
+            aiProvider: aiProvider,
+            glmModel: glmModel,
+            geminiModel: geminiModel,
+            surveyId: surveyId,
+            description: description,
+          );
+    } catch (_) {
+      late String _$failedField;
+      try {
+        _$failedField = 'aiConfig';
+        _aiConfig?.build();
+      } catch (e) {
+        throw BuiltValueNestedFieldError(
+            r'$AgentAccessPointUpsert', _$failedField, e.toString());
+      }
+      rethrow;
+    }
     replace(_$result);
     return _$result;
   }

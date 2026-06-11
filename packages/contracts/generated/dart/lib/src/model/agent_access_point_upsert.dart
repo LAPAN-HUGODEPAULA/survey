@@ -3,6 +3,7 @@
 //
 
 // ignore_for_file: unused_element
+import 'package:survey_backend_api/src/model/ai_config.dart';
 import 'package:built_value/built_value.dart';
 import 'package:built_value/serializer.dart';
 
@@ -11,15 +12,19 @@ part 'agent_access_point_upsert.g.dart';
 /// AgentAccessPointUpsert
 ///
 /// Properties:
-/// * [accessPointKey] 
-/// * [name] 
-/// * [sourceApp] 
-/// * [flowKey] 
-/// * [promptKey] 
-/// * [personaSkillKey] 
-/// * [outputProfile] 
-/// * [surveyId] 
-/// * [description] 
+/// * [accessPointKey]
+/// * [name]
+/// * [sourceApp]
+/// * [flowKey]
+/// * [promptKey]
+/// * [personaSkillKey]
+/// * [outputProfile]
+/// * [aiConfig]
+/// * [aiProvider]
+/// * [glmModel]
+/// * [geminiModel]
+/// * [surveyId]
+/// * [description]
 @BuiltValue(instantiable: false)
 abstract class AgentAccessPointUpsert  {
   @BuiltValueField(wireName: r'accessPointKey')
@@ -42,6 +47,18 @@ abstract class AgentAccessPointUpsert  {
 
   @BuiltValueField(wireName: r'outputProfile')
   String get outputProfile;
+
+  @BuiltValueField(wireName: r'aiConfig')
+  AIConfig? get aiConfig;
+
+  @BuiltValueField(wireName: r'aiProvider')
+  String? get aiProvider;
+
+  @BuiltValueField(wireName: r'glmModel')
+  String? get glmModel;
+
+  @BuiltValueField(wireName: r'geminiModel')
+  String? get geminiModel;
 
   @BuiltValueField(wireName: r'surveyId')
   String? get surveyId;
@@ -100,6 +117,34 @@ class _$AgentAccessPointUpsertSerializer implements PrimitiveSerializer<AgentAcc
       object.outputProfile,
       specifiedType: const FullType(String),
     );
+    if (object.aiConfig != null) {
+      yield r'aiConfig';
+      yield serializers.serialize(
+        object.aiConfig,
+        specifiedType: const FullType(AIConfig),
+      );
+    }
+    if (object.aiProvider != null) {
+      yield r'aiProvider';
+      yield serializers.serialize(
+        object.aiProvider,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.glmModel != null) {
+      yield r'glmModel';
+      yield serializers.serialize(
+        object.glmModel,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
+    if (object.geminiModel != null) {
+      yield r'geminiModel';
+      yield serializers.serialize(
+        object.geminiModel,
+        specifiedType: const FullType.nullable(String),
+      );
+    }
     if (object.surveyId != null) {
       yield r'surveyId';
       yield serializers.serialize(
@@ -225,6 +270,37 @@ class _$$AgentAccessPointUpsertSerializer implements PrimitiveSerializer<$AgentA
             specifiedType: const FullType(String),
           ) as String;
           result.outputProfile = valueDes;
+          break;
+        case r'aiConfig':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(AIConfig),
+          ) as AIConfig;
+          result.aiConfig.replace(valueDes);
+          break;
+        case r'aiProvider':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.aiProvider = valueDes;
+          break;
+        case r'glmModel':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.glmModel = valueDes;
+          break;
+        case r'geminiModel':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(String),
+          ) as String?;
+          if (valueDes == null) continue;
+          result.geminiModel = valueDes;
           break;
         case r'surveyId':
           final valueDes = serializers.deserialize(

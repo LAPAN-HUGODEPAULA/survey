@@ -42,6 +42,26 @@ void main() {
       // TODO
     });
 
+    // AIConfig aiConfig
+    test('to test the property `aiConfig`', () async {
+      // TODO
+    });
+
+    // String aiProvider
+    test('to test the property `aiProvider`', () async {
+      // TODO
+    });
+
+    // String glmModel
+    test('to test the property `glmModel`', () async {
+      // TODO
+    });
+
+    // String geminiModel
+    test('to test the property `geminiModel`', () async {
+      // TODO
+    });
+
     // String surveyId
     test('to test the property `surveyId`', () async {
       // TODO
