@@ -2,6 +2,7 @@ import 'package:design_system_flutter/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:survey_builder/core/auth/builder_auth_controller.dart';
 import 'package:survey_builder/features/survey/pages/agent_access_point_list_page.dart';
+import 'package:survey_builder/features/survey/pages/ai_agent_list_page.dart';
 import 'package:survey_builder/features/survey/pages/persona_skill_list_page.dart';
 import 'package:survey_builder/features/survey/pages/screener_settings_page.dart';
 import 'package:survey_builder/features/survey/pages/survey_list_page.dart';
@@ -22,6 +23,7 @@ class _BuilderShellPageState extends State<BuilderShellPage> {
   static const _surveysSection = 'surveys';
   static const _promptsSection = 'prompts';
   static const _personasSection = 'personas';
+  static const _aiAgentsSection = 'ai-agents';
   static const _accessPointsSection = 'access-points';
   static const _screenerSettingsSection = 'screener-settings';
 
@@ -48,6 +50,11 @@ class _BuilderShellPageState extends State<BuilderShellPage> {
       key: _personasSection,
       label: 'Personas',
       icon: Icons.psychology_alt_outlined,
+    ),
+    NavigationItem(
+      key: _aiAgentsSection,
+      label: 'Agentes IA',
+      icon: Icons.memory_outlined,
     ),
     NavigationItem(
       key: _accessPointsSection,
@@ -86,6 +93,8 @@ class _BuilderShellPageState extends State<BuilderShellPage> {
         return SurveyPromptListPage(key: sectionKey, embedded: true);
       case _personasSection:
         return PersonaSkillListPage(key: sectionKey, embedded: true);
+      case _aiAgentsSection:
+        return AIAgentListPage(key: sectionKey, embedded: true);
       case _accessPointsSection:
         return AgentAccessPointListPage(key: sectionKey, embedded: true);
       case _screenerSettingsSection:
