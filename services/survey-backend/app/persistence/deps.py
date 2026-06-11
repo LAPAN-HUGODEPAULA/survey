@@ -20,6 +20,7 @@ from app.persistence.repositories.privacy_request_repo import PrivacyRequestRepo
 from app.persistence.repositories.security_audit_repo import SecurityAuditRepository
 from app.persistence.repositories.data_lifecycle_repo import DataLifecycleRepository
 from app.persistence.repositories.agent_access_point_repo import AgentAccessPointRepository
+from app.persistence.repositories.ai_agent_repo import AIAgentRepository
 from app.persistence.repositories.reference_medication_repo import ReferenceMedicationRepository
 from app.persistence.repositories.system_settings_repo import SystemSettingsRepository
 
@@ -42,6 +43,11 @@ def get_persona_skill_repo(db: Database = Depends(get_database)) -> PersonaSkill
 def get_agent_access_point_repo(db: Database = Depends(get_database)) -> AgentAccessPointRepository:
     """Build an agent access-point repository for the current request."""
     return AgentAccessPointRepository(db)
+
+
+def get_ai_agent_repo(db: Database = Depends(get_database)) -> AIAgentRepository:
+    """Build an AI agent catalog repository for the current request."""
+    return AIAgentRepository(db)
 
 def get_survey_response_repo(db: Database = Depends(get_database)) -> SurveyResponseRepository:
     """Build a survey response repository for the current request."""

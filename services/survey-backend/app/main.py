@@ -1,7 +1,6 @@
 """FastAPI application entrypoint for the survey backend."""
 
 from contextlib import asynccontextmanager
-import os
 import secrets
 import string
 
@@ -14,6 +13,7 @@ from app.api.errors import global_http_exception_handler
 from app.api.middleware.correlation import CorrelationMiddleware
 from app.api.routes.builder_auth import router as builder_auth_router
 from app.api.routes.ai_settings import router as ai_settings_router
+from app.api.routes.ai_agents import router as ai_agents_router
 from app.api.routes.agent_access_points import router as agent_access_points_router
 from app.api.routes.chat_messages import router as chat_messages_router
 from app.api.routes.chat_sessions import router as chat_sessions_router
@@ -39,7 +39,6 @@ from app.persistence.repositories.screener_repo import (
     SYSTEM_SCREENER_ID,
     ScreenerRepository,
 )
-from app.persistence.repositories.system_settings_repo import SystemSettingsRepository
 
 
 def _build_security_headers() -> dict[str, str]:
@@ -85,40 +84,6 @@ def _ensure_reserved_system_screener(screener_repo: ScreenerRepository) -> None:
         )
 
 
-def _ensure_global_ai_defaults(settings_repo: SystemSettingsRepository) -> None:
-    """Ensure baseline global aiConfig exists in system settings."""
-    if settings_repo.get_json("global_ai_config"):
-        return
-
-    glm_model = os.getenv("GLM_MODEL")
-    gemini_model = os.getenv("GEMINI_MODEL")
-    primary_provider = os.getenv("AI_DEFAULT_PRIMARY_PROVIDER") or ("glm" if glm_model else "gemini")
-    if primary_provider == "glm":
-        primary_model = glm_model
-        fallback_provider = "gemini"
-        fallback_model = gemini_model
-    else:
-        primary_model = gemini_model
-        fallback_provider = "glm"
-        fallback_model = glm_model
-
-    if not primary_model:
-        logger.info("Global AI defaults not seeded because no primary model env value is configured.")
-        return
-
-    ai_config = {
-        "primaryProvider": primary_provider,
-        "primaryModel": primary_model,
-        "fallbackProvider": fallback_provider if fallback_model else None,
-        "fallbackModel": fallback_model,
-        "temperature": float(os.getenv("AI_DEFAULT_TEMPERATURE", "0")),
-        "reasoningEffort": os.getenv("AI_DEFAULT_REASONING_EFFORT", "low"),
-        "enableCaching": os.getenv("AI_DEFAULT_ENABLE_CACHING", "true").lower() in {"1", "true", "yes", "on"},
-    }
-    settings_repo.set_json("global_ai_config", ai_config)
-    logger.info("Seeded global AI config defaults from environment")
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize service-level dependencies when the API starts."""
@@ -128,17 +93,11 @@ async def lifespan(app: FastAPI):
     # Ensure the reserved system screener exists before handling requests.
     db = get_db()
     screener_repo = ScreenerRepository(db)
-    settings_repo = SystemSettingsRepository(db)
 
     try:
         _ensure_reserved_system_screener(screener_repo)
     except Exception as e:
         logger.error("Failed to create System Screener: %s", e)
-
-    try:
-        _ensure_global_ai_defaults(settings_repo)
-    except Exception as e:
-        logger.error("Failed to seed global AI defaults: %s", e)
 
     yield
     logger.info("Survey Application API stopped")
@@ -193,6 +152,7 @@ app.include_router(surveys_router, prefix="/api/v1", tags=["surveys"])
 app.include_router(survey_prompts_router, prefix="/api/v1", tags=["survey_prompts"])
 app.include_router(persona_skills_router, prefix="/api/v1", tags=["persona_skills"])
 app.include_router(agent_access_points_router, prefix="/api/v1", tags=["agent_access_points"])
+app.include_router(ai_agents_router, prefix="/api/v1", tags=["ai_agents"])
 app.include_router(survey_responses_router, prefix="/api/v1", tags=["survey_responses"])
 app.include_router(patient_responses_router, prefix="/api/v1", tags=["patient_responses"])
 app.include_router(medications_router, prefix="/api/v1", tags=["medications"])
