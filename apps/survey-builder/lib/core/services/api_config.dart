@@ -44,7 +44,7 @@ class ApiConfig {
     final dio = Dio(
       BaseOptions(
         baseUrl: dioBaseUrl,
-        headers: {...defaultHeaders, if (headers != null) ...headers},
+        headers: {...defaultHeaders, ...?headers},
         extra: const {'withCredentials': true},
       ),
     );

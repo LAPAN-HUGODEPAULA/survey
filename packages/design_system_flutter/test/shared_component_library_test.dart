@@ -128,6 +128,38 @@ void main() {
     expect(find.text('Questionário'), findsOneWidget);
   });
 
+  testWidgets('DsSection with scrollableChild supports vertical scrolling', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap(
+        DsSection(
+          title: 'Título Longo',
+          scrollableChild: true,
+          maxScrollableChildHeight: 100,
+          child: Column(
+            children: List.generate(
+              20,
+              (index) => SizedBox(
+                height: 50,
+                child: Text('Item $index'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Item 0'), findsOneWidget);
+    expect(find.text('Item 19'), findsNothing); // Should be scrolled out of view
+
+    // Scroll down
+    await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -500));
+    await tester.pump();
+
+    expect(find.text('Item 19'), findsOneWidget);
+  });
+
   testWidgets('DsBreadcrumbs supports clickable parent items', (
     WidgetTester tester,
   ) async {

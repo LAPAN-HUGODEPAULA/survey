@@ -49,7 +49,7 @@ class ApiConfig {
           ...defaultHeaders,
           if (token != null && token.isNotEmpty)
             'Authorization': 'Bearer $token',
-          if (headers != null) ...headers,
+          ...?headers,
         },
       ),
     );

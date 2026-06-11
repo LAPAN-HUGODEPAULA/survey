@@ -36,7 +36,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Login do avaliador'), findsOneWidget);
+    expect(find.text('Login do screener'), findsOneWidget);
     expect(find.text('Não tem uma conta? Registre-se'), findsOneWidget);
     expect(find.byType(DsScaffold), findsOneWidget);
     expect(find.text(dsSharedStatusBarText), findsOneWidget);

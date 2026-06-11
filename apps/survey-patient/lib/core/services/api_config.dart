@@ -34,7 +34,7 @@ class ApiConfig {
     return Dio(
       BaseOptions(
         baseUrl: dioBaseUrl,
-        headers: {...defaultHeaders, if (headers != null) ...headers},
+        headers: {...defaultHeaders, ...?headers},
         connectTimeout: const Duration(seconds: 8),
         sendTimeout: const Duration(seconds: 8),
         receiveTimeout: const Duration(seconds: 12),
