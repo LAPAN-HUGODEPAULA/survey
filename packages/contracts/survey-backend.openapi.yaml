@@ -188,6 +188,96 @@ paths:
           description: Persona skill deleted
         '404':
           description: Persona skill not found
+  /ai_agents/:
+    get:
+      summary: List AI agents
+      operationId: listAiAgents
+      responses:
+        '200':
+          description: List of configured AI agents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AIAgent'
+    post:
+      summary: Create AI agent
+      operationId: createAiAgent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIAgentUpsert'
+      responses:
+        '201':
+          description: Created AI agent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIAgent'
+        '409':
+          description: Duplicate AI agent key
+  /ai_agents/{agentKey}:
+    get:
+      summary: Get AI agent by key
+      operationId: getAiAgent
+      parameters:
+        - in: path
+          name: agentKey
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: AI agent found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIAgent'
+        '404':
+          description: AI agent not found
+    put:
+      summary: Update AI agent
+      operationId: updateAiAgent
+      parameters:
+        - in: path
+          name: agentKey
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AIAgentUpsert'
+      responses:
+        '200':
+          description: Updated AI agent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIAgent'
+        '404':
+          description: AI agent not found
+        '409':
+          description: Duplicate AI agent key
+    delete:
+      summary: Delete AI agent
+      operationId: deleteAiAgent
+      parameters:
+        - in: path
+          name: agentKey
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: AI agent deleted
+        '404':
+          description: AI agent not found
   /agent_access_points/:
     get:
       summary: List agent access points
@@ -1557,6 +1647,58 @@ components:
             modifiedAt:
               type: string
               format: date-time
+    AIAgentUpsert:
+      type: object
+      required:
+        - agentKey
+        - name
+        - providerType
+        - apiKeyEnvVar
+        - defaultModel
+      properties:
+        agentKey:
+          type: string
+        name:
+          type: string
+        providerType:
+          type: string
+          enum: [openai_compatible, glm, gemini]
+        baseUrl:
+          type: string
+          nullable: true
+        apiKeyEnvVar:
+          type: string
+        defaultModel:
+          type: string
+        enabled:
+          type: boolean
+          default: true
+        supportsOpenAIChatCompletions:
+          type: boolean
+          default: true
+        supportsResponseFormat:
+          type: boolean
+          default: false
+        supportsRag:
+          type: boolean
+          default: false
+        notes:
+          type: string
+          nullable: true
+    AIAgent:
+      allOf:
+        - $ref: '#/components/schemas/AIAgentUpsert'
+        - type: object
+          required:
+            - createdAt
+            - modifiedAt
+          properties:
+            createdAt:
+              type: string
+              format: date-time
+            modifiedAt:
+              type: string
+              format: date-time
     AgentAccessPointUpsert:
       type: object
       required:
@@ -1601,18 +1743,20 @@ components:
           nullable: true
     AIConfig:
       type: object
-      required:
-        - primaryProvider
-        - primaryModel
       properties:
+        agentRefs:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/AIAgentRouteRef'
         primaryProvider:
           type: string
-          enum: [glm, gemini]
+          nullable: true
         primaryModel:
           type: string
+          nullable: true
         fallbackProvider:
           type: string
-          enum: [glm, gemini]
           nullable: true
         fallbackModel:
           type: string
@@ -1629,6 +1773,29 @@ components:
           default: low
           nullable: true
         enableCaching:
+          type: boolean
+          default: true
+    AIAgentRouteRef:
+      type: object
+      required:
+        - agentKey
+      properties:
+        agentKey:
+          type: string
+        model:
+          type: string
+          nullable: true
+        temperature:
+          type: number
+          format: float
+          nullable: true
+          minimum: 0.0
+          maximum: 1.0
+        maxTokens:
+          type: integer
+          nullable: true
+          minimum: 1
+        enabled:
           type: boolean
           default: true
     AgentAccessPoint:
