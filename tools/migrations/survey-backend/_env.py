@@ -13,6 +13,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent.parent.parent
 ENV_FILES = (
     PROJECT_ROOT / ".env",
+    PROJECT_ROOT / "services" / "clinical-writer-api" / "clinical_writer_agent" / ".env",
     PROJECT_ROOT / "config" / "runtime" / "generated" / "private" / "mongodb.env",
     PROJECT_ROOT / "config" / "runtime" / "generated" / "private" / "survey-backend.env",
 )
