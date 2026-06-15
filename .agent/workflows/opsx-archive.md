@@ -1,5 +1,9 @@
 ---
+name: "OPSX: Archive"
+id: opsx-archive
+category: Workflow
 description: Archive a completed change in the experimental workflow
+tags: [workflow, archive, experimental]
 ---
 
 Archive a completed change in the experimental workflow.

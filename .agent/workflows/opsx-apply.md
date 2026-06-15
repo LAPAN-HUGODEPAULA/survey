@@ -1,5 +1,9 @@
 ---
+name: "OPSX: Apply"
+id: opsx-apply
+category: Workflow
 description: Implement tasks from an OpenSpec change (Experimental)
+tags: [workflow, artifacts, experimental]
 ---
 
 Implement tasks from an OpenSpec change.

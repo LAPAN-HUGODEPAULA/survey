@@ -1,154 +1,274 @@
-# Repository Guidelines
+# LAPAN Survey Platform — Repository & Agent Guidelines
 
-## Project Structure & Module Organization
+This document serves as the master guidelines and development handbook for the **LAPAN Survey Platform** ecosystem. It is the single source of truth for all developers and AI agent assistants (including Antigravity, Claude Code, Google Gemini, and OpenAI Codex).
 
-- Backend lives in `services/survey-backend/app` (FastAPI), with persistence in `app/persistence/**` and domain models in `app/domain/models`.
-- Frontend apps (Flutter) reside under `apps/`: `survey-frontend/`, `survey-patient/`, and `clinical-narrative/`.
-- Contracts and generated SDKs live in `packages/contracts/` (`survey-backend.openapi.yaml` and `generated/dart/`). The shared Flutter design system lives in `packages/design_system_flutter/`.
-- Clinical Writer API (`services/clinical-writer-api`) uses a 4-stage LangGraph state graph (ContextLoader → ClinicalAnalyzer → PersonaWriter → ReflectorNode) to generate clinical reports. It composes prompts from `QuestionnairePrompts` (domain rules) and `PersonaSkills` (output profiles) stored in MongoDB, with reflection cycles for hallucination mitigation. Exposes `/process` with JSON-only `ReportDocument` output.
-- Tooling, CI scripts, and migrations live under `tools/`.
-- Docs live in `docs/`. This guidance file should remain at the repository root as `AGENTS.md`.
+---
 
-## Build, Test, and Development Commands
+## 1. Project Overview & Context
 
-- Python package and project manager: use `uv` to manage the virtual environment, dependencies, and command execution.
-- The project virtual environment lives in `.venv`.
-- Add a dependency with `uv add <package>`; for dev dependencies use `uv add -D <package>`.
-- Sync dependencies with the environment using `uv sync`.
-- Run commands in the project environment with `uv run <command>`.
-- Backend compile check: `uv run python -m compileall services/survey-backend/app`
-- Backend run (compose): `docker compose up -d mongodb survey-backend`
-- Backend run (local): `uv run uvicorn app.main:app --reload --app-dir services/survey-backend/app`
-- Generate API clients: `tools/scripts/generate_clients.sh`
-- Flutter: from each app directory, run `flutter pub get`, then `flutter analyze`; build web when needed with `flutter build web`.
-- Docker build: build one service or app at a time to avoid resource exhaustion, e.g. `docker build -t survey-backend .`
-- Compose full stack: `docker compose up -d mongodb survey-backend survey-frontend survey-patient`
+### Project Overview
+The **LAPAN Survey Platform** is a comprehensive healthcare application designed to assess visual hypersensitivity in neurodevelopmental disorders (NDDs) in Brazil. It digitizes and validates the Brazilian Portuguese version of the Cardiff Hypersensitivity Scale (CHYPS-Br).
 
-## Coding Style & Naming Conventions
+The platform uses a microservices architecture with a Python/FastAPI backend, MongoDB, and multiple Flutter web frontends. It features an AI-powered multi-agent system for clinical narrative generation and documentation.
 
-- Python: follow PEP 8. Avoid runtime imports from legacy folders.
-- Only `app/persistence/**` may import `pymongo` directly.
-- FastAPI routers should use dependency-injected repositories from `app.persistence.deps`.
-- Dart/Flutter: prefer a feature-first structure (`app/`, `features/<feature>/data|domain|presentation`, `shared/`).
-- Prefer the shared `design_system_flutter` package for theming and reusable UI patterns.
-- Filenames: `snake_case` for Python modules, `lower_snake_case` for Dart files, and `PascalCase` for classes and types.
+### Project Evolution & Milestones
+*   **Initial Phase (Jan 2026):** Implemented public patient screening flows.
+*   **Professional Workflows (Feb 2026):** Added screener registration and administrative survey building capabilities.
+*   **Clinical Documentation (Mar 2026):** 
+    *   Launched the `clinical-narrative` application with AI-driven conversation engine.
+    *   Implemented voice capture and hybrid transcription system.
+    *   Added centralized template management and clinical document generation.
+    *   Standardized shared design system, scaffolds, and security/privacy controls.
+*   **Survey Prompts & Schema Stabilization (Mar 2026):**
+    *   Refactored survey associations to use centralized reusable prompts.
+    *   Stabilized response processing and collection naming (`survey_responses`, `patient_responses`).
+    *   Implemented systematic migration framework for database consistency.
+    *   Launched version `0.1.0` following Semantic Versioning (tracked in root `VERSION` file).
+*   **Multi-Agent Architecture & Professional Core (Mar 2026):**
+    *   Adopted a 4-stage LangGraph state graph (ContextLoader → ClinicalAnalyzer → PersonaWriter → ReflectorNode) for clinical report generation.
+    *   Introduced composable prompt architecture (Domain + Persona + Context layers).
+    *   Implemented reflection cycles for hallucination mitigation and clinical safety.
+    *   Stored Agent Skills (Personas) in MongoDB for CMS-style management via `survey-builder`.
+    *   **Shared Screener Auth:** Unified authentication across all professional applications.
+    *   **Shared Component Library:** Launched `packages/design_system_flutter` for UI consistency.
+*   **Autonomous Development & OpenSpec (Apr 2026):**
+    *   Adoption of the **OpenSpec** workflow for change management and design-first development.
+    *   Integration of specialized agent skills for exploration, proposal, and implementation.
+*   **UX/UI Standardization & Clinical Safety (Apr 2026):**
+    *   Executed a comprehensive UI/UX overhaul focusing on cognitive load reduction in `survey-builder`.
+    *   Standardized feedback messaging, severity icons, and form validation patterns across all applications.
+    *   Implemented high-visibility AI waiting states and conversational status indicators for Clinical AI.
+    *   Integrated an Emotional Design layer to improve clinical user experience and patient trust.
+    *   Added comprehensive platform-wide legal notices and a system-wide Dark Theme.
+*   **Administrative Governance & Agent Lifecycle (Apr 2026 - Ongoing):**
+    *   Transitioning clinical prompt resolution to a centralized Mongo-first model managed via `survey-builder`.
+    *   Implementing dedicated administrative access control and audit trails for prompt governance.
+    *   Centralizing Agent Access Points to decouple clinical AI configuration from external dependencies.
 
-## Commenting Standards
+### Domain Context
+*   **`Screener`**: Authorized healthcare professional (doctor, psychologist) with professional council registration.
+*   **`Patient`**: Individual undergoing assessment. Public screening is anonymous; professional assessments use unique identifiers.
+*   **`Questionnaire` / `Survey`**: Definitions and instances of structured assessments.
+*   **`Narrative`**: Free-text or voice-captured clinical interview transformed by AI into medical records.
 
-- Write all comments and docstrings in English.
-- Prefer comments that explain intent, invariants, edge cases, or non-obvious behavior; avoid narrating obvious code.
-- Use language-native documentation formats:
-  - Python: `"""triple double quote"""` docstrings following PEP 257.
-  - Dart: `///` doc comments for libraries, public types, and members that benefit from context.
-  - Java: `/** ... */` Javadoc when editing handwritten Java code.
-- Keep comments concise and maintain them when code changes.
-- Replace stale implementation-history comments such as `Added`, `Changed`, or similar patch notes with intent-focused documentation or remove them.
-- Exclude generated or scaffolded files from manual comment cleanup unless they contain custom handwritten logic.
-- Add author tags only when a tool or format explicitly requires them; use `Hugo de Paula`.
+---
 
-## Architecture Principles
+## 2. System Architecture & Components
 
-- Keep UI, business logic, and data access in distinct modules.
-- Avoid duplication; prefer single responsibility and dependency on abstractions.
-- Maintain layered or clean architecture boundaries: presentation → business → data, with no cross-layer shortcuts.
-- Use domain-driven design concepts when modeling core flows: define bounded contexts and keep domain logic framework-free where practical.
-- Treat service and client contracts as API-first artifacts: update OpenAPI or AsyncAPI specs first, then generate SDKs or mocks.
-- Use microservices or event-driven patterns only when there is a clear boundary or scaling need; handlers must be idempotent.
-- Prefer stateless, container-ready services with health checks for deployment targets.
-- Prioritize loose coupling, testability, and maintainability over premature optimization.
-- Use the 4-stage multi-agent graph pattern (context loading → clinical analysis → persona writing → reflection) for AI-powered clinical report generation; keep clinical interpretation separate from narrative formatting.
+### Monorepo Structure
+*   **`apps/`**: Flutter web applications using shared design system.
+    *   `survey-patient`: A public-facing screening tool (7 questions) for preliminary assessment. Compliant with WCAG 2.1 Level AA.
+    *   `survey-frontend`: A professional platform for authorized screeners to administer full assessments (CHYPS-Br), manage patient records, and generate formal reports.
+    *   `clinical-narrative`: A conversational documentation tool that transforms clinician-patient interactions into structured medical records using AI. Features voice capture and hybrid transcription.
+    *   `survey-builder`: A secure administrative tool for managing questionnaires, reusable clinical prompts (Persona Skills), and Agent Access Points. Features dedicated admin authentication and persistent audit logging for clinical governance.
+*   **`services/`**: Python FastAPI backend and workers.
+    *   `survey-backend`: Main API with MongoDB repositories, JWT auth, and modular routes. Backend lives in `services/survey-backend/app`, with persistence in `app/persistence/**` and domain models in `app/domain/models`.
+    *   `survey-worker`: Background processor for response enrichment.
+    *   `clinical-writer-api`: LLM-based clinical narrative generation using LangGraph state graph.
+*   **`packages/`**: Shared packages.
+    *   `contracts`: OpenAPI spec with generated Python/Dart SDKs (`survey-backend.openapi.yaml` and `generated/dart/`).
+    *   `design_system_flutter`: Shared Flutter design system package for theming and reusable UI patterns.
+    *   `shared_python`: Common Python utilities.
+*   **`tools/`**: Tooling, CI scripts, and database migrations.
+*   **`docs/`**: Platform documentation.
+*   **`openspec/`**: OpenSpec specifications and changes.
 
-## Commands
+### Multi-Agent Architecture
+The Clinical Writer AI service (`services/clinical-writer-api`) uses a **4-stage LangGraph state graph** that separates clinical interpretation from narrative generation and applies reflection-based safety validation. It exposes `/process` with JSON-only `ReportDocument` output.
 
-### Linting and Validation Commands
+#### 4-Stage Orchestration Graph
+1.  **ContextLoader** — Retrieves questionnaire interpretation prompts and persona skills from MongoDB.
+2.  **ClinicalAnalyzer** — Processes response JSON with clinical rules; outputs structured clinical facts (no narrative).
+3.  **PersonaWriter** — Transforms clinical facts into audience-appropriate Markdown narrative.
+4.  **ReflectorNode** — Validates grounding, tone, and safety; loops back to writing on failure (up to 2 retries) to mitigate hallucinations.
 
-Run these when relevant to the files changed, or when explicitly requested.
+#### Composable Prompt Layers
+*   **Interpretation Layer (Domain):** Questionnaire-specific clinical rules from `QuestionnairePrompts` MongoDB collection.
+*   **Persona Layer (Profile):** Tone, vocabulary, and output format from `PersonaSkills` MongoDB collection.
+*   **Contextual Data Layer:** Pseudonymized patient response JSON.
 
-- Backend lint: `pylint --disable=C services/survey-backend/app/**/*.py`
-- Clinical Writer API lint: `pylint --disable=C services/clinical-writer-api/clinical_writer_agent/**/*.py`
-- Flutter lint: run `flutter analyze` from each affected app directory.
-- Markdown lint: `markdownlint docs/**/*.md --fix`
+### Survey Prompt Management & Agent Routing
+The platform features a centralized system for managing clinical AI prompts and agent behavior:
+*   **Reusable Prompts**: Prompts are stored in the `survey_prompts` collection and can be shared across multiple clinical contexts.
+*   **Agent Access Points**: High-level configuration entries that map specific entry points (keys) to a combination of Questionnaire Prompts, Persona Skills, and Output Profiles.
+*   **Mongo-First Resolution**: The system has transitioned from hardcoded or external prompt resolution to a dynamic, builder-managed model where `survey-builder` acts as the source of truth.
+*   **Access-Point Keys**: Applications (`survey-patient`, `survey-frontend`) reference stable `accessPointKey` identifiers, allowing administrators to update underlying AI logic without code changes.
+*   **Management UI**: The `survey-builder` application provides a dedicated interface for CRUD operations on these reusable prompts, Persona Skills, and Agent Access Points.
 
-## Testing Guidelines
+### Database Schema & Migrations
+The project uses MongoDB with a systematic migration framework.
+*   **Collections**:
+    *   `surveys`: Definitions of clinical questionnaires.
+    *   `survey_prompts`: Reusable AI instructions for clinical narrative generation.
+    *   `questionnaire_prompts`: Questionnaire-specific clinical interpretation logic (Domain layer).
+    *   `persona_skills`: Output persona definitions with tone, format, and safety constraints (Persona layer).
+    *   `agent_access_points`: Runtime configuration mapping keys to specific prompt and persona combinations.
+    *   `survey_responses`: Records of professional assessments.
+    *   `patient_responses`: Records of public screenings (pseudonymized).
+    *   `screeners`: Registered healthcare professionals.
+    *   `survey_builder_audit_logs`: Persistent audit trail for administrative actions in `survey-builder`.
+    *   `clinical_writer_run_logs`: Audit logs for AI processing tasks.
+*   **Migrations**: Found in `tools/migrations/survey-backend/`, these scripts ensure schema consistency.
 
-- Backend: rely on unit-style tests where available; always ensure `uv run python -m compileall services/survey-backend/app` passes before pushing.
-- Flutter: run `flutter analyze` for each affected app; favor widget and unit tests colocated under mirrored `test/` directories.
-- Contract generation: re-run `tools/scripts/generate_clients.sh` when relevant and verify the resulting git diff is intentional and clean.
-- When changing backend request or response models, validate whether the OpenAPI contract and generated clients must also change.
+---
 
-## Commit & Pull Request Guidelines
+## 3. Architecture & Design Principles
 
-- Use Conventional Commits with emojis, e.g.:
-  - `feat(scope): ✨ add ...`
-  - `fix(scope): 🐛 fix ...`
-  - `chore(scope): 🧹 update ...`
-  - `docs(scope): 📝 document ...`
-  - `test(scope): ✅ add tests ...`
-  - `ops(scope): 🚀 deploy ...`
-  - `refactor(scope): ♻️ refactor ...`
-- Keep commits small and trunk-friendly.
-- Avoid mixing backend, contracts, and Flutter changes in one commit unless the change genuinely spans those layers.
-- Pull requests should describe scope, commands run for validation, and any known gaps.
-- Link related issues when relevant.
+### Core Architectural Guidelines
+1.  **Separation of Concerns**: Isolate UI, business logic, and data access into distinct layers.
+2.  **DRY Principle**: Extract shared logic into reusable packages or common utility modules.
+3.  **SOLID Principles**: Code to abstractions; enforce single responsibilities.
+4.  **Clean Architecture Boundaries**: Enforce dependencies pointing inwards (Presentation → Business/Domain → Data), with no cross-layer shortcuts.
+5.  **Microservices Boundaries**: Services must own their data models and interact via clean APIs.
+6.  **Event-Driven Patterns**: Decouple intensive background processing using event workers.
+7.  **Domain-Driven Design (DDD)**: Use bounded contexts and a ubiquitous domain language.
+8.  **API-First**: Treat OpenAPI contracts as the source of truth. Update contracts first, then generate SDKs or mocks.
+9.  **Cloud-Native**: Design stateless, container-ready services with robust health endpoints.
 
-## Git Workflow
+### Key Architecture Patterns
+*   **Repository Pattern**: MongoDB access is strictly abstracted via repositories. Only `app/persistence/**` may import `pymongo` directly. Routers must use dependency-injected repositories from `app.persistence.deps`.
+*   **Contract-First Development**: All client-server communication is driven by the OpenAPI specification.
+*   **UI/UX Consistency**: Full-screen Flutter pages must utilize `DsScaffold` from `design_system_flutter`. The shared theme uses `Colors.orange` as the seed color.
 
-- Never push directly to `main`.
-- Always work on a branch.
-- Open a pull request for any code change.
-- Prefer pull requests with focused scope.
-- When making changes as an automated agent, prefer opening or updating a pull request rather than pushing directly to a protected branch.
+---
 
-## Security & Configuration Tips
+## 4. Development Environment & Commands
 
-- Configure MongoDB via `MONGO_URI` and `MONGO_DB_NAME`; never hardcode secrets.
-- Clinical Writer and email integrations are environment-driven in `app/config/settings.py`; keep credentials and tokens out of source control.
-- `PromptRegistry` uses Google Drive `modifiedTime` as `prompt_version`; do not embed prompt content in MongoDB.
-- Validate generated clients before releases to avoid contract drift.
-- Avoid logging secrets, raw tokens, or sensitive patient or clinical payloads.
+### Project Tooling
+*   **Python Package Manager**: The project uses `uv` to manage the virtual environment, workspace dependencies, and command execution.
+*   **Virtual Environment**: The project virtual environment lives in `.venv`.
+*   **Dev Servers**: Dev workflows utilize `npm run` scripts and `docker compose` to run components locally.
 
-## Review Guidelines
+### Version Management
+*   Sync version across managed files: `npm run version:sync`
+*   Check version consistency: `npm run version:check`
+*   Prepare for release: `npm run release:prepare`
 
-### General
+### Backend Development Commands
+*   **Local Run (Uvicorn):**
+    ```bash
+    uv run uvicorn app.main:app --reload --app-dir services/survey-backend/app
+    ```
+*   **Docker Compose up (local core stack):**
+    ```bash
+    # Starts mongodb, survey-backend, survey-frontend, survey-patient, clinical-narrative, survey-builder, and survey-worker
+    docker compose up -d mongodb survey-backend survey-frontend survey-patient clinical-narrative survey-builder survey-worker
+    ```
+    Or via tool script:
+    ```bash
+    ./tools/scripts/compose_local.sh up -d mongodb survey-backend survey-frontend survey-patient clinical-narrative survey-builder survey-worker
+    ```
+*   **Docker Compose up (Clinical Writer API):**
+    ```bash
+    docker compose -f services/clinical-writer-api/docker-compose.yml up -d
+    ```
+    Or via tool script:
+    ```bash
+    ./tools/scripts/compose_local.sh up -d clinical-writer-api
+    ```
+*   **Dependency Management:**
+    *   Add dependency: `uv add <package>`
+    *   Add dev dependency: `uv add -D <package>`
+    *   Sync dependencies: `uv sync`
+    *   Run env command: `uv run <command>`
+*   **Backend Compile Check:**
+    ```bash
+    uv run python -m compileall services/survey-backend/app
+    ```
+*   **API Client Generation:**
+    ```bash
+    tools/scripts/generate_clients.sh
+    ```
 
-- Focus on correctness, security, maintainability, and regressions introduced by the PR.
-- Flag only actionable issues.
-- Prefer comments tied to changed lines when possible.
-- Ignore purely stylistic nits unless they harm readability or violate established team conventions.
+### Flutter Development Commands
+Run these from the respective app directory or using repository root npm scripts:
+*   **Survey Frontend (Screener):** `npm run dev:survey-frontend` (Port 8080)
+*   **Patient App:** `npm run dev:survey-patient` (Port 8081)
+*   **Clinical Narrative:** `npm run dev:clinical-narrative` (Port 8082)
+*   **Survey Builder:** `npm run dev:survey-builder` (Port 8083)
+*   **Flutter Setup:** Run `flutter pub get` and `flutter analyze` from each affected app directory under `apps/` or package directory under `packages/`.
+*   **Flutter Web Build:** Run `flutter build web` inside the specific app directory when deploying.
 
-### FastAPI Backend
+### Runtime Configuration
+*   **Configuration Source-of-Truth:** `config/runtime/config.private.json`
+*   **Generate Runtime Config Artifacts:**
+    ```bash
+    python3 tools/scripts/render_runtime_config.py
+    ```
+*   **Scaffold from Example:**
+    ```bash
+    cp config/runtime/config.private.example.json config/runtime/config.private.json
+    ```
 
-- Verify routers use dependency-injected repositories from `app.persistence.deps`.
-- Verify no new runtime imports from legacy folders are introduced.
-- Verify only `app/persistence/**` imports `pymongo` directly.
-- Check request and response contracts against `packages/contracts/survey-backend.openapi.yaml` when relevant.
-- Watch for secret leakage, environment misuse, unsafe logging, and broken validation assumptions.
-- Watch for business logic leaking into routing or persistence layers.
+### Linting, Validation & Testing
+*   **FastAPI Backend Linting:**
+    ```bash
+    pylint --disable=C services/survey-backend/app/**/*.py
+    ```
+*   **Clinical Writer API Linting:**
+    ```bash
+    pylint --disable=C services/clinical-writer-api/clinical_writer_agent/**/*.py
+    ```
+*   **Flutter Linting:** Run `flutter analyze` in the target app directory.
+*   **Markdown Linting:**
+    ```bash
+    markdownlint docs/**/*.md --fix
+    ```
+*   **Backend Testing:** Run `pytest` inside `services/survey-backend`.
+*   **Flutter Testing:** Run `flutter test` inside the respective app's directory (e.g., `apps/survey-patient`).
 
-### Flutter Apps
+---
 
-- Check feature-first structure consistency.
-- Flag UI changes that bypass `design_system_flutter` without justification.
-- Watch for state-management regressions, null-safety mistakes, async lifecycle issues, and unnecessary widget duplication.
-- Prefer maintainable widget composition over large monolithic widgets.
+## 5. Development Conventions & Standards
 
-### Monorepo and Contracts
+### Mandatory Documentation & Localization Rules
+*   **Legal Documents:** **NEVER** modify files under `docs/legal/**`. Only legal staff is authorized to change these documents.
+*   **Naming:** Use "**LAPAN Survey Platform**" as the official name for the whole ecosystem. In Portuguese documentation, use "**Plataforma LAPAN Survey**".
+*   **Localization:** All application UI and code comments **MUST** be in Brazilian Portuguese (pt-BR). Exception: Guidelines and structural documentation may be written in English.
 
-- When backend contract changes are introduced, verify generated clients were updated.
-- Flag mixed changes spanning backend, contracts, and Flutter when there is no clear reason for coupling.
-- Remind authors when testing or validation evidence is missing from the PR description.
+### Coding Style & Naming Conventions
+*   **Python:** Follow PEP 8 style guides. Avoid runtime imports from legacy folders.
+*   **Dart/Flutter:** Prefer a feature-first structure (`app/`, `features/<feature>/data|domain|presentation`, `shared/`). Use the shared design system.
+*   **Filenames:** Use `snake_case` for Python modules, `lower_snake_case` for Dart files, and `PascalCase` for classes and types.
 
-### Validation Expectations
+### Commenting Standards
+*   Write comments and docstrings in English.
+*   Explain intent, invariants, edge cases, and non-obvious behavior rather than repeating code actions.
+*   **Documentation Formats:**
+    *   Python: PEP 257 triple-double-quote (`"""`) docstrings.
+    *   Dart: Triple-slash (`///`) doc comments for libraries, public types, and members.
+    *   Java: Standard Javadoc (`/** ... */`) for handwritten Java.
+*   Remove legacy annotations (e.g., `Added`, `Changed`, patch notes). Focus purely on intent.
+*   Add author tags only when explicitly required; use `Hugo de Paula`.
 
-- Backend-relevant changes should pass:
-  - `uv run python -m compileall services/survey-backend/app`
-- Flutter-relevant changes should pass:
-  - `flutter analyze`
-- Contract-relevant changes should be checked with:
-  - `tools/scripts/generate_clients.sh`
+### Git Workflow & Commits
+*   **Branching:** Never push directly to `main`. Always work on a feature/bug branch and open a Pull Request.
+*   **Conventional Commits:** Format commit messages as `{type}({scope}): {:emoji:} {Message}` using:
+    *   `feat(scope): ✨ add ...`
+    *   `fix(scope): 🐛 fix ...`
+    *   `chore(scope): 🧹 update ...`
+    *   `docs(scope): 📝 document ...`
+    *   `test(scope): ✅ add tests ...`
+    *   `ops(scope): 🚀 deploy ...`
+    *   `refactor(scope): ♻️ refactor ...`
+*   **Granularity:** Keep commits small, surgical, and trunk-friendly. Avoid mixing backend, contract, and Flutter modifications in a single commit unless they are strictly coupled.
 
-## When Stuck
+---
 
-- Ask a clarifying question if a requirement is ambiguous.
-- Propose a short plan before making broad or risky changes.
-- If work is partially complete, summarize blockers clearly before opening or updating a draft PR.
+## 6. Security, Privacy & Review Guidelines
+
+### Security & Configuration Tips
+*   **Secrets Management:** Never hardcode secrets. Clinical Writer and email integrations are environment-driven in `app/config/settings.py`. Configure MongoDB connection using `MONGO_URI` and `MONGO_DB_NAME`.
+*   **LGPD Compliance:** Enforce strict pseudonymization of patient data, encrypt sensitive PII, and maintain secure audit logging.
+*   **Logging:** Avoid logging secrets, raw tokens, or sensitive patient/clinical payloads.
+*   **Prompt Governance:** `PromptRegistry` uses Google Drive `modifiedTime` as `prompt_version`; do not embed prompt content in MongoDB.
+
+### Review Guidelines
+*   **FastAPI Backend:** Check that routers only use dependency-injected repositories. Verify that no raw `pymongo` imports leak outside `app/persistence/**`. Check contracts against OpenAPI specs.
+*   **Flutter Apps:** Flag any components bypassing `design_system_flutter` without explicit justification. Watch for async lifecycle issues and null safety.
+*   **Contracts:** Re-run contract generation scripts and confirm that any changes in request/response models are correctly reflected in the OpenAPI yaml definition.
+
+### When Stuck
+*   Ask a clarifying question if a requirement is ambiguous.
+*   Propose a short plan before making broad or risky changes.
+*   If work is partially complete, summarize blockers clearly before opening or updating a draft PR.
