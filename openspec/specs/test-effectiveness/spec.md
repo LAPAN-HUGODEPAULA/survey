@@ -1,4 +1,9 @@
-## ADDED Requirements
+# test-effectiveness Specification
+
+## Purpose
+Define the requirements for test effectiveness across layers, prioritizing real interactions over excessive mocking to ensure robustness.
+
+## Requirements
 
 ### Requirement: Cross-Layer Validation
 The system SHALL implement tests at appropriate boundaries including unit, integration, and contract/API layers, prioritizing real interactions over excessive mocking for critical paths.

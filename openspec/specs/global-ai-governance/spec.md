@@ -1,6 +1,9 @@
 # global-ai-governance Specification
 
-## ADDED Requirements
+## Purpose
+Define the requirements for global AI governance and configuration hierarchy across all LAPAN platform services.
+
+## Requirements
 
 ### Requirement: Centralized Global AI Configuration
 The system SHALL maintain a global configuration for AI model defaults that applies when no specific override exists at the Access Point level.

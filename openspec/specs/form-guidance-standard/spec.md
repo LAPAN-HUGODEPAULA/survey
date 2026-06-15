@@ -32,6 +32,10 @@ All textual content presented to the user, including field labels, error message
 ### Requirement: Clear Mandatory Marking and Group Headers
 Mandatory fields MUST be clearly marked with an asterisk (*) and related field groups MUST have descriptive headers.
 
+#### Scenario: Mark mandatory fields with asterisk
+- **WHEN** a form with mandatory fields is rendered
+- **THEN** the labels of the mandatory fields MUST be appended with an asterisk (*)
+
 ### Requirement: Draft State and Progress Restoration
 Long administrative forms MUST expose visible draft states and restore progress when it avoids relevant rework.
 

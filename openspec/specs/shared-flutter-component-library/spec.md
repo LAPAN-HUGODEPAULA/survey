@@ -136,8 +136,6 @@ The shared Flutter component library MUST provide canonical primitives for the m
 - **THEN** the shared package MUST provide reusable primitives for inline messages, persistent banners, validation summaries, and transient toast or snackbar content
 - **AND** the app MUST NOT need to invent a second feedback component family for the same responsibilities
 
-## ADDED Requirements
-
 ### Requirement: Shared visual primitives MUST live in `packages/design_system_flutter`
 The LAPAN platform SHALL provide the canonical visual primitives for the shared dark design language in `packages/design_system_flutter`, including reusable navigation bars, section containers, tonal panels, focus frames, action groups, form-field chrome, and standardized empty, loading, and error states.
 

@@ -1,6 +1,9 @@
-# clinical-writer-prompt-resolution Specification (Delta)
+# clinical-writer-prompt-resolution Specification
 
-## MODIFIED Requirements
+## Purpose
+Define the requirements for model policy and prompt resolution execution in the Clinical Writer API, ensuring request-driven control.
+
+## Requirements
 
 ### Requirement: Clinical Writer API MUST follow payload authority
 The AI processing service SHALL strictly follow the AI configuration provided in the request payload (Primary/Fallback models, Providers, Temperature).

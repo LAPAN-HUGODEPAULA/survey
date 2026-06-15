@@ -24,6 +24,10 @@ The system SHALL generate clinical documents from the conversation context and a
 ### Requirement: Export and Print
 The system SHALL allow PDF export and direct print option.
 
+#### Scenario: Export document to PDF
+- **WHEN** the user requests a PDF export
+- **THEN** the system SHALL compile the clinical document and prompt a local PDF download
+
 ### Requirement: Report Page (survey-patient)
 The system MUST display the AI agent's response on a report page. The report generation MUST use the async task-based approach to avoid timeouts, and the page MUST offer email delivery of the report.
 

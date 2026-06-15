@@ -1,4 +1,9 @@
-## ADDED Requirements
+# spec-traceability Specification
+
+## Purpose
+Define the requirements for maintaining a spec-to-test traceability matrix to ensure comprehensive validation of normative requirements.
+
+## Requirements
 
 ### Requirement: Spec-to-Test Traceability Matrix
 The system SHALL build and maintain a traceability matrix mapping every normative criterion in active OpenSpec specs to its coverage status (Covered, Partially Covered, Uncovered).

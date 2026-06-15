@@ -1,6 +1,9 @@
-# Delta for python-platform
+# python-platform Specification
 
-## ADDED Requirements
+## Purpose
+Define the package management, dependency manifests, and workspace member requirements for the Python platform services.
+
+## Requirements
 
 ### Requirement: Service Dependency Manifest
 

@@ -1,4 +1,9 @@
-## ADDED Requirements
+# import-maintenance-workflow Specification
+
+## Purpose
+Define the requirements for maintaining clean import sets across Flutter applications to prevent codebase bloat and compile warnings.
+
+## Requirements
 
 ### Requirement: Clean Import Sets
 All Flutter applications within the `apps/` directory SHALL be free of unused imports. This ensures that the codebase is lean and that the dependency graph is accurately represented.

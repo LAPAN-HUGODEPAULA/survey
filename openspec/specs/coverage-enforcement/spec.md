@@ -1,4 +1,9 @@
-## ADDED Requirements
+# coverage-enforcement Specification
+
+## Purpose
+Define the requirements for test coverage measurement and CI quality gates to maintain software quality.
+
+## Requirements
 
 ### Requirement: Coverage Measurement
 The system SHALL measure line and branch coverage for API, web, and mobile workspaces using platform-native tools.

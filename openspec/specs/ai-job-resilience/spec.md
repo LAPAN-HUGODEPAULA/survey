@@ -1,6 +1,9 @@
 # ai-job-resilience Specification
 
-## ADDED Requirements
+## Purpose
+Define the requirements for handling failures and retries of background AI jobs, ensuring reliability and limiting resource consumption.
+
+## Requirements
 
 ### Requirement: Limited Retries for AI Jobs
 The background worker SHALL limit the number of processing attempts for a single document to prevent infinite token consumption.

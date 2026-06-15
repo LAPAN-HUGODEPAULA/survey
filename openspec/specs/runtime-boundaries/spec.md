@@ -1,6 +1,9 @@
-# Delta for runtime-boundaries
+# runtime-boundaries Specification
 
-## ADDED Requirements
+## Purpose
+Define the filesystem and outbound network boundaries for Python services to prevent unauthorized access and SSRF vulnerabilities.
+
+## Requirements
 
 ### Requirement: Safe File Write Boundary
 

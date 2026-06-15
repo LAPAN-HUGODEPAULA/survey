@@ -1,4 +1,9 @@
-## ADDED Requirements
+# authoring-flow-standardization Specification
+
+## Purpose
+Standardize the administrative authoring forms in the survey-builder to enforce separation of concerns, validation consistency, and local draft persistence.
+
+## Requirements
 
 ### Requirement: Separation of Concerns in Authoring Forms
 Administrative forms in `survey-builder` MUST separate UI rendering from business logic, validation, and data persistence.

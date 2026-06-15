@@ -32,8 +32,6 @@ The shared scaffold refactor SHALL standardize layout composition without changi
 - **Then** the flow MUST preserve its existing route structure and app-specific interaction model
 - **And** the refactor MUST limit behavior changes to layout-shell standardization unless a separate approved change defines additional UI behavior changes
 
-## ADDED Requirements
-
 ### Requirement: The shared Flutter page shell MUST render the canonical dark structure
 The shared scaffold contract in `packages/design_system_flutter` SHALL provide the canonical full-screen dark shell for LAPAN Flutter apps, including platform background treatment, header integration, content spacing, and footer/status-bar placement.
 
