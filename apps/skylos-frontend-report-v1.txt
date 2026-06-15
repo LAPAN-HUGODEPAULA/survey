@@ -1,0 +1,362 @@
+╭────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                                                                                            │
+│   ███████ ██   ██ ██    ██ ██       ██████  ███████                                                                                                                                        │
+│   ██      ██  ██   ██  ██  ██      ██    ██ ██                                                                                                                                             │
+│   ███████ █████     ████   ██      ██    ██ ███████                                                                                                                                        │
+│        ██ ██  ██     ██    ██      ██    ██      ██                                                                                                                                        │
+│   ███████ ██   ██    ██    ███████  ██████  ███████                                                                                                                                        │
+│                                                                                                                                                                                            │
+│    v4.24.1  │  github.com/duriantaco/skylos                                                                                                                                                │
+│                                                                                                                                                                                            │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+ Excluding: **/*.freezed.dart, **/*.g.dart, **/*.mocks.dart, **/.dart_tool/**, **/.flutter-plugins*, **/build/**, **/generated/**, *.egg-info, ../packages/contracts/generated/**, .coverage, 
+.git, .hg, .idea, .mypy_cache, .next, .nuxt, .pytest_cache, .svn, .tox, .turbo, .venv, .vscode, __pycache__, build, dist, htmlcov, node_modules, vendor, venv
+
+
+╭────────────────────────────────╮
+│ Python Static Analysis Results │
+│ Analyzed 54 file(s)            │
+╰────────────────────────────────╯
+Unused functions: 14 Unused imports: 194 Unused params: 0 Unused vars: 57 Unused classes: 11 Quality: 0 Custom: 0 Suppressed: 0 Grep verify: on (rescued 21)
+
+╭───────────────────────────╮
+│ Codebase Grade: F (2/100) │
+╰───────────────────────────╯
+                                                                                       Grade Breakdown                                                                                        
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Category                                  ┃                  Score ┃ Grade             ┃ Weight                 ┃ Key Issue                                                                ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Dead Code                                 │                      2 │ F                 │ 100%                   │ 276 dead symbols (47.6/1K LOC)                                           │
+└───────────────────────────────────────────┴────────────────────────┴───────────────────┴────────────────────────┴──────────────────────────────────────────────────────────────────────────┘
+
+╭──────────────────────────────────────────────── Score Badge ─────────────────────────────────────────────────╮
+│ Score Badge for your README.md:                                                                              │
+│                                                                                                              │
+│ [![Skylos Grade](https://img.shields.io/badge/Skylos-F%20%282%29-red)](https://github.com/duriantaco/skylos) │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+Copied to clipboard!
+
+────────────────────────────────────────────────────────────────────────────────────── Unused Functions ──────────────────────────────────────────────────────────────────────────────────────
+┏━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┓
+┃ #     ┃ Name                                                                        ┃ Location                                                                                  ┃     Conf ┃
+┡━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━┩
+│ 1     │ ClinicalData._readString                                                    │ lib/core/models/clinical_data.dart:84                                                     │      90% │
+│ 2     │ surveyFromJson                                                              │ lib/core/models/survey/survey.dart:8                                                      │     100% │
+│ 3     │ _parseDate                                                                  │ lib/core/models/survey_response.dart:113                                                  │      90% │
+│ 4     │ _ClinicalPageState._goNext                                                  │ lib/features/clinical/pages/clinical_page.dart:50                                         │      90% │
+│ 5     │ _DemographicsPageState._buildAdditionalValidationItems                      │ lib/features/demographics/pages/demographics_page.dart:59                                 │      90% │
+│ 6     │ _DemographicsPageState._loadMedicationCatalog                               │ lib/features/demographics/pages/demographics_page.dart:98                                 │      90% │
+│ 7     │ _DemographicsPageState._persistManualMedication                             │ lib/features/demographics/pages/demographics_page.dart:102                                │      90% │
+│ 8     │ _ScreenerInitialNoticePageState._acceptNotice                               │ lib/features/screener/pages/screener_initial_notice_page.dart:23                          │      90% │
+│ 9     │ _ProfileField._ProfileField                                                 │ lib/features/screener/pages/screener_profile_page.dart:141                                │      90% │
+│ 10    │ ScreenerRegistrationPage._lookupCep                                         │ lib/features/screener/pages/screener_registration_page.dart:77                            │      90% │
+│ 11    │ _resolveViaCepBaseUrl                                                       │ lib/features/screener/pages/screener_registration_page.dart:105                           │      90% │
+│ 12    │ _SettingsPageState._generatePreparedLink                                    │ lib/features/settings/pages/settings_page.dart:63                                         │      90% │
+│ 13    │ _SettingsPageState._submitForm                                              │ lib/features/settings/pages/settings_page.dart:176                                        │      90% │
+│ 14    │ _routeGuard                                                                 │ lib/main.dart:29                                                                          │      90% │
+└───────┴─────────────────────────────────────────────────────────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────┴──────────┘
+Name — the unused function, import, class, or variable.
+Conf — how confident Skylos is that this code is truly unused (higher = safer to remove).
+Suppress: # skylos: ignore (line), ignore = ["SKY-XXX"] (rule), or # skylos: ignore-start/end (block)
+Full guide: https://docs.skylos.dev/guides/understanding-output
+
+─────────────────────────────────────────────────────────────────────────────────────── Unused Imports ───────────────────────────────────────────────────────────────────────────────────────
+┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ #       ┃ Name                                                ┃ Location                                                                                                      ┃       Conf ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━┩
+│ 1       │ runtime_app_config                                  │ lib/core/config/runtime_config.dart:1                                                                         │       100% │
+│ 2       │ report_models                                       │ lib/core/models/agent_response.dart:1                                                                         │       100% │
+│ 3       │ dart:convert                                        │ lib/core/models/survey/survey.dart:1                                                                          │       100% │
+│ 4       │ prompt_association                                  │ lib/core/models/survey/survey.dart:4                                                                          │       100% │
+│ 5       │ question                                            │ lib/core/models/survey/survey.dart:5                                                                          │       100% │
+│ 6       │ agent_response                                      │ lib/core/models/survey_response.dart:1                                                                        │       100% │
+│ 7       │ shared                                              │ lib/core/models/survey_response.dart:3                                                                        │       100% │
+│ 8       │ material                                            │ lib/core/navigation/app_navigator.dart:1                                                                      │       100% │
+│ 9       │ question                                            │ lib/core/navigation/app_navigator.dart:2                                                                      │       100% │
+│ 10      │ survey                                              │ lib/core/navigation/app_navigator.dart:3                                                                      │       100% │
+│ 11      │ clinical_page                                       │ lib/core/navigation/app_navigator.dart:4                                                                      │       100% │
+│ 12      │ instructions_page                                   │ lib/core/navigation/app_navigator.dart:5                                                                      │       100% │
+│ 13      │ report_page                                         │ lib/core/navigation/app_navigator.dart:6                                                                      │       100% │
+│ 14      │ survey_page                                         │ lib/core/navigation/app_navigator.dart:7                                                                      │       100% │
+│ 15      │ thank_you_page                                      │ lib/core/navigation/app_navigator.dart:8                                                                      │       100% │
+│ 16      │ material                                            │ lib/core/providers/api_provider.dart:1                                                                        │       100% │
+│ 17      │ api_config                                          │ lib/core/providers/api_provider.dart:2                                                                        │       100% │
+│ 18      │ survey_backend_api                                  │ lib/core/providers/api_provider.dart:3                                                                        │       100% │
+│ 19      │ material                                            │ lib/core/providers/app_settings.dart:7                                                                        │       100% │
+│ 20      │ clinical_data                                       │ lib/core/providers/app_settings.dart:9                                                                        │       100% │
+│ 21      │ patient                                             │ lib/core/providers/app_settings.dart:10                                                                       │       100% │
+│ 22      │ screener_access_link                                │ lib/core/providers/app_settings.dart:11                                                                       │       100% │
+│ 23      │ screener_profile                                    │ lib/core/providers/app_settings.dart:12                                                                       │       100% │
+│ 24      │ survey                                              │ lib/core/providers/app_settings.dart:13                                                                       │       100% │
+│ 25      │ survey_repository                                   │ lib/core/providers/app_settings.dart:14                                                                       │       100% │
+│ 26      │ dart:convert                                        │ lib/core/repositories/screener_access_link_repository.dart:1                                                  │       100% │
+│ 27      │ dio                                                 │ lib/core/repositories/screener_access_link_repository.dart:3                                                  │       100% │
+│ 28      │ screener_access_link                                │ lib/core/repositories/screener_access_link_repository.dart:4                                                  │       100% │
+│ 29      │ api_config                                          │ lib/core/repositories/screener_access_link_repository.dart:5                                                  │       100% │
+│ 30      │ dart:convert                                        │ lib/core/repositories/survey_repository.dart:1                                                                │       100% │
+│ 31      │ dart:math                                           │ lib/core/repositories/survey_repository.dart:2                                                                │       100% │
+│ 32      │ built_collection                                    │ lib/core/repositories/survey_repository.dart:4                                                                │       100% │
+│ 33      │ dio                                                 │ lib/core/repositories/survey_repository.dart:5                                                                │       100% │
+│ 34      │ agent_response                                      │ lib/core/repositories/survey_repository.dart:6                                                                │       100% │
+│ 35      │ ui                                                  │ lib/core/repositories/survey_repository.dart:11                                                               │       100% │
+│ 36      │ api_config                                          │ lib/core/repositories/survey_repository.dart:12                                                               │       100% │
+│ 37      │ api                                                 │ lib/core/repositories/survey_repository.dart:13                                                               │       100% │
+│ 38      │ dio                                                 │ lib/core/services/api_config.dart:1                                                                           │       100% │
+│ 39      │ runtime_api_url                                     │ lib/core/services/api_config.dart:2                                                                           │       100% │
+│ 40      │ runtime_config                                      │ lib/core/services/api_config.dart:3                                                                           │       100% │
+│ 41      │ asset_loader                                        │ lib/core/services/asset_list_provider.dart:2                                                                  │       100% │
+│ 42      │ dart:convert                                        │ lib/core/services/asset_loader.dart:2                                                                         │       100% │
+│ 43      │ rootBundle                                          │ lib/core/services/asset_loader.dart:3                                                                         │       100% │
+│ 44      │ dart:typed_data                                     │ lib/core/services/file_download.dart:2                                                                        │       100% │
+│ 45      │ file_download                                       │ lib/core/services/file_download.dart:4                                                                        │       100% │
+│ 46      │ dart:typed_data                                     │ lib/core/services/file_download_stub.dart:2                                                                   │       100% │
+│ 47      │ dart:js_interop                                     │ lib/core/services/file_download_web.dart:2                                                                    │       100% │
+│ 48      │ dart:typed_data                                     │ lib/core/services/file_download_web.dart:3                                                                    │       100% │
+│ 49      │ web                                                 │ lib/core/services/file_download_web.dart:5                                                                    │       100% │
+│ 50      │ asset_list_provider                                 │ lib/core/services/form_data_service.dart:8                                                                    │       100% │
+│ 51      │ form_validators                                     │ lib/core/utils/validator_sets.dart:7                                                                          │       100% │
+│ 52      │ widgets                                             │ lib/features/access_links/pages/access_link_launch_page.dart:1                                                │       100% │
+│ 53      │ material                                            │ lib/features/access_links/pages/access_link_launch_page.dart:2                                                │       100% │
+│ 54      │ go_router                                           │ lib/features/access_links/pages/access_link_launch_page.dart:3                                                │       100% │
+│ 55      │ provider                                            │ lib/features/access_links/pages/access_link_launch_page.dart:4                                                │       100% │
+│ 56      │ app_settings                                        │ lib/features/access_links/pages/access_link_launch_page.dart:5                                                │       100% │
+│ 57      │ screener_access_link_repository                     │ lib/features/access_links/pages/access_link_launch_page.dart:6                                                │       100% │
+│ 58      │ access_link_unavailable_page                        │ lib/features/access_links/pages/access_link_launch_page.dart:7                                                │       100% │
+│ 59      │ widgets                                             │ lib/features/access_links/pages/access_link_unavailable_page.dart:1                                           │       100% │
+│ 60      │ material                                            │ lib/features/access_links/pages/access_link_unavailable_page.dart:2                                           │       100% │
+│ 61      │ widgets                                             │ lib/features/clinical/pages/clinical_page.dart:1                                                              │       100% │
+│ 62      │ material                                            │ lib/features/clinical/pages/clinical_page.dart:2                                                              │       100% │
+│ 63      │ provider                                            │ lib/features/clinical/pages/clinical_page.dart:3                                                              │       100% │
+│ 64      │ app_navigator                                       │ lib/features/clinical/pages/clinical_page.dart:4                                                              │       100% │
+│ 65      │ app_settings                                        │ lib/features/clinical/pages/clinical_page.dart:5                                                              │       100% │
+│ 66      │ assessment_flow_stepper                             │ lib/features/clinical/pages/clinical_page.dart:6                                                              │       100% │
+│ 67      │ widgets                                             │ lib/features/demographics/pages/demographics_page.dart:4                                                      │       100% │
+│ 68      │ material                                            │ lib/features/demographics/pages/demographics_page.dart:5                                                      │       100% │
+│ 69      │ provider                                            │ lib/features/demographics/pages/demographics_page.dart:6                                                      │       100% │
+│ 70      │ app_navigator                                       │ lib/features/demographics/pages/demographics_page.dart:7                                                      │       100% │
+│ 71      │ app_settings                                        │ lib/features/demographics/pages/demographics_page.dart:8                                                      │       100% │
+│ 72      │ survey_repository                                   │ lib/features/demographics/pages/demographics_page.dart:9                                                      │       100% │
+│ 73      │ assessment_flow_stepper                             │ lib/features/demographics/pages/demographics_page.dart:10                                                     │       100% │
+│ 74      │ screener_navigation_app_bar                         │ lib/features/demographics/pages/demographics_page.dart:11                                                     │       100% │
+│ 75      │ widgets                                             │ lib/features/instructions/pages/instructions_page.dart:7                                                      │       100% │
+│ 76      │ material                                            │ lib/features/instructions/pages/instructions_page.dart:8                                                      │       100% │
+│ 77      │ provider                                            │ lib/features/instructions/pages/instructions_page.dart:9                                                      │       100% │
+│ 78      │ survey                                              │ lib/features/instructions/pages/instructions_page.dart:10                                                     │       100% │
+│ 79      │ app_navigator                                       │ lib/features/instructions/pages/instructions_page.dart:11                                                     │       100% │
+│ 80      │ app_settings                                        │ lib/features/instructions/pages/instructions_page.dart:12                                                     │       100% │
+│ 81      │ assessment_flow_stepper                             │ lib/features/instructions/pages/instructions_page.dart:13                                                     │       100% │
+│ 82      │ dart:convert                                        │ lib/features/report/pages/report_page.dart:1                                                                  │       100% │
+│ 83      │ dart:io                                             │ lib/features/report/pages/report_page.dart:2                                                                  │       100% │
+│ 84      │ report_models                                       │ lib/features/report/pages/report_page.dart:4                                                                  │       100% │
+│ 85      │ report_view                                         │ lib/features/report/pages/report_page.dart:5                                                                  │       100% │
+│ 86      │ widgets                                             │ lib/features/report/pages/report_page.dart:6                                                                  │       100% │
+│ 87      │ foundation                                          │ lib/features/report/pages/report_page.dart:7                                                                  │       100% │
+│ 88      │ material                                            │ lib/features/report/pages/report_page.dart:8                                                                  │       100% │
+│ 89      │ path                                                │ lib/features/report/pages/report_page.dart:9                                                                  │       100% │
+│ 90      │ provider                                            │ lib/features/report/pages/report_page.dart:10                                                                 │       100% │
+│ 91      │ runtime_agent_access_points                         │ lib/features/report/pages/report_page.dart:11                                                                 │       100% │
+│ 92      │ agent_response                                      │ lib/features/report/pages/report_page.dart:12                                                                 │       100% │
+│ 93      │ question                                            │ lib/features/report/pages/report_page.dart:13                                                                 │       100% │
+│ 94      │ survey_response                                     │ lib/features/report/pages/report_page.dart:15                                                                 │       100% │
+│ 95      │ app_settings                                        │ lib/features/report/pages/report_page.dart:16                                                                 │       100% │
+│ 96      │ survey_repository                                   │ lib/features/report/pages/report_page.dart:17                                                                 │       100% │
+│ 97      │ assessment_flow_stepper                             │ lib/features/report/pages/report_page.dart:18                                                                 │       100% │
+│ 98      │ shared                                              │ lib/features/report/pages/report_page.dart:19                                                                 │       100% │
+│ 99      │ widgets                                             │ lib/features/screener/pages/screener_initial_notice_page.dart:1                                               │       100% │
+│ 100     │ dio                                                 │ lib/features/screener/pages/screener_initial_notice_page.dart:2                                               │       100% │
+│ 101     │ material                                            │ lib/features/screener/pages/screener_initial_notice_page.dart:3                                               │       100% │
+│ 102     │ go_router                                           │ lib/features/screener/pages/screener_initial_notice_page.dart:4                                               │       100% │
+│ 103     │ provider                                            │ lib/features/screener/pages/screener_initial_notice_page.dart:5                                               │       100% │
+│ 104     │ screener_profile                                    │ lib/features/screener/pages/screener_initial_notice_page.dart:6                                               │       100% │
+│ 105     │ api_provider                                        │ lib/features/screener/pages/screener_initial_notice_page.dart:7                                               │       100% │
+│ 106     │ app_settings                                        │ lib/features/screener/pages/screener_initial_notice_page.dart:8                                               │       100% │
+│ 107     │ api_config                                          │ lib/features/screener/pages/screener_initial_notice_page.dart:9                                               │       100% │
+│ 108     │ widgets                                             │ lib/features/screener/pages/screener_login_page.dart:1                                                        │       100% │
+│ 109     │ dio                                                 │ lib/features/screener/pages/screener_login_page.dart:2                                                        │       100% │
+│ 110     │ material                                            │ lib/features/screener/pages/screener_login_page.dart:3                                                        │       100% │
+│ 111     │ go_router                                           │ lib/features/screener/pages/screener_login_page.dart:4                                                        │       100% │
+│ 112     │ provider                                            │ lib/features/screener/pages/screener_login_page.dart:5                                                        │       100% │
+│ 113     │ screener_profile                                    │ lib/features/screener/pages/screener_login_page.dart:6                                                        │       100% │
+│ 114     │ api_provider                                        │ lib/features/screener/pages/screener_login_page.dart:7                                                        │       100% │
+│ 115     │ app_settings                                        │ lib/features/screener/pages/screener_login_page.dart:8                                                        │       100% │
+│ 116     │ api_config                                          │ lib/features/screener/pages/screener_login_page.dart:9                                                        │       100% │
+│ 117     │ widgets                                             │ lib/features/screener/pages/screener_profile_page.dart:1                                                      │       100% │
+│ 118     │ material                                            │ lib/features/screener/pages/screener_profile_page.dart:2                                                      │       100% │
+│ 119     │ go_router                                           │ lib/features/screener/pages/screener_profile_page.dart:3                                                      │       100% │
+│ 120     │ provider                                            │ lib/features/screener/pages/screener_profile_page.dart:4                                                      │       100% │
+│ 121     │ app_settings                                        │ lib/features/screener/pages/screener_profile_page.dart:5                                                      │       100% │
+│ 122     │ screener_navigation_app_bar                         │ lib/features/screener/pages/screener_profile_page.dart:6                                                      │       100% │
+│ 123     │ widgets                                             │ lib/features/screener/pages/screener_registration_page.dart:1                                                 │       100% │
+│ 124     │ dio                                                 │ lib/features/screener/pages/screener_registration_page.dart:2                                                 │       100% │
+│ 125     │ material                                            │ lib/features/screener/pages/screener_registration_page.dart:3                                                 │       100% │
+│ 126     │ go_router                                           │ lib/features/screener/pages/screener_registration_page.dart:4                                                 │       100% │
+│ 127     │ provider                                            │ lib/features/screener/pages/screener_registration_page.dart:5                                                 │       100% │
+│ 128     │ runtime_config                                      │ lib/features/screener/pages/screener_registration_page.dart:6                                                 │       100% │
+│ 129     │ api_provider                                        │ lib/features/screener/pages/screener_registration_page.dart:7                                                 │       100% │
+│ 130     │ api_config                                          │ lib/features/screener/pages/screener_registration_page.dart:8                                                 │       100% │
+│ 131     │ ui                                                  │ lib/features/settings/pages/settings_page.dart:7                                                              │       100% │
+│ 132     │ widgets                                             │ lib/features/settings/pages/settings_page.dart:9                                                              │       100% │
+│ 133     │ material                                            │ lib/features/settings/pages/settings_page.dart:10                                                             │       100% │
+│ 134     │ services                                            │ lib/features/settings/pages/settings_page.dart:11                                                             │       100% │
+│ 135     │ go_router                                           │ lib/features/settings/pages/settings_page.dart:12                                                             │       100% │
+│ 136     │ provider                                            │ lib/features/settings/pages/settings_page.dart:13                                                             │       100% │
+│ 137     │ qr_flutter                                          │ lib/features/settings/pages/settings_page.dart:14                                                             │       100% │
+│ 138     │ screener_access_link                                │ lib/features/settings/pages/settings_page.dart:15                                                             │       100% │
+│ 139     │ app_settings                                        │ lib/features/settings/pages/settings_page.dart:17                                                             │       100% │
+│ 140     │ screener_access_link_repository                     │ lib/features/settings/pages/settings_page.dart:18                                                             │       100% │
+│ 141     │ file_download                                       │ lib/features/settings/pages/settings_page.dart:19                                                             │       100% │
+│ 142     │ survey_details_page                                 │ lib/features/settings/pages/settings_page.dart:20                                                             │       100% │
+│ 143     │ screener_navigation_app_bar                         │ lib/features/settings/pages/settings_page.dart:21                                                             │       100% │
+│ 144     │ dart:async                                          │ lib/features/splash/splash_screen.dart:1                                                                      │       100% │
+│ 145     │ widgets                                             │ lib/features/splash/splash_screen.dart:3                                                                      │       100% │
+│ 146     │ material                                            │ lib/features/splash/splash_screen.dart:4                                                                      │       100% │
+│ 147     │ go_router                                           │ lib/features/splash/splash_screen.dart:5                                                                      │       100% │
+│ 148     │ provider                                            │ lib/features/splash/splash_screen.dart:6                                                                      │       100% │
+│ 149     │ app_settings                                        │ lib/features/splash/splash_screen.dart:7                                                                      │       100% │
+│ 150     │ widgets                                             │ lib/features/survey/pages/survey_details_page.dart:1                                                          │       100% │
+│ 151     │ material                                            │ lib/features/survey/pages/survey_details_page.dart:2                                                          │       100% │
+│ 152     │ widgets                                             │ lib/features/survey/pages/survey_page.dart:7                                                                  │       100% │
+│ 153     │ material                                            │ lib/features/survey/pages/survey_page.dart:8                                                                  │       100% │
+│ 154     │ app_navigator                                       │ lib/features/survey/pages/survey_page.dart:10                                                                 │       100% │
+│ 155     │ assessment_flow_stepper                             │ lib/features/survey/pages/survey_page.dart:11                                                                 │       100% │
+│ 156     │ dart:convert                                        │ lib/features/survey/pages/thank_you_page.dart:1                                                               │       100% │
+│ 157     │ widgets                                             │ lib/features/survey/pages/thank_you_page.dart:3                                                               │       100% │
+│ 158     │ fl_chart                                            │ lib/features/survey/pages/thank_you_page.dart:4                                                               │       100% │
+│ 159     │ material                                            │ lib/features/survey/pages/thank_you_page.dart:5                                                               │       100% │
+│ 160     │ flutter_html                                        │ lib/features/survey/pages/thank_you_page.dart:6                                                               │       100% │
+│ 161     │ provider                                            │ lib/features/survey/pages/thank_you_page.dart:7                                                               │       100% │
+│ 162     │ runtime_agent_access_points                         │ lib/features/survey/pages/thank_you_page.dart:8                                                               │       100% │
+│ 163     │ survey_response                                     │ lib/features/survey/pages/thank_you_page.dart:12                                                              │       100% │
+│ 164     │ app_navigator                                       │ lib/features/survey/pages/thank_you_page.dart:13                                                              │       100% │
+│ 165     │ app_settings                                        │ lib/features/survey/pages/thank_you_page.dart:14                                                              │       100% │
+│ 166     │ survey_repository                                   │ lib/features/survey/pages/thank_you_page.dart:15                                                              │       100% │
+│ 167     │ assessment_flow_stepper                             │ lib/features/survey/pages/thank_you_page.dart:16                                                              │       100% │
+│ 168     │ app_theme                                           │ lib/main.dart:7                                                                                               │       100% │
+│ 169     │ widgets                                             │ lib/main.dart:8                                                                                               │       100% │
+│ 170     │ material                                            │ lib/main.dart:9                                                                                               │       100% │
+│ 171     │ flutter_localizations                               │ lib/main.dart:10                                                                                              │       100% │
+│ 172     │ go_router                                           │ lib/main.dart:11                                                                                              │       100% │
+│ 173     │ provider                                            │ lib/main.dart:12                                                                                              │       100% │
+│ 174     │ runtime_config                                      │ lib/main.dart:13                                                                                              │       100% │
+│ 175     │ api_provider                                        │ lib/main.dart:14                                                                                              │       100% │
+│ 176     │ app_settings                                        │ lib/main.dart:15                                                                                              │       100% │
+│ 177     │ access_link_launch_page                             │ lib/main.dart:16                                                                                              │       100% │
+│ 178     │ demographics_page                                   │ lib/main.dart:17                                                                                              │       100% │
+│ 179     │ screener_initial_notice_page                        │ lib/main.dart:18                                                                                              │       100% │
+│ 180     │ screener_login_page                                 │ lib/main.dart:19                                                                                              │       100% │
+│ 181     │ screener_profile_page                               │ lib/main.dart:20                                                                                              │       100% │
+│ 182     │ screener_registration_page                          │ lib/main.dart:21                                                                                              │       100% │
+│ 183     │ settings_page                                       │ lib/main.dart:22                                                                                              │       100% │
+│ 184     │ splash_screen                                       │ lib/main.dart:23                                                                                              │       100% │
+│ 185     │ main_layout                                         │ lib/main.dart:24                                                                                              │       100% │
+│ 186     │ widgets                                             │ lib/shared/widgets/assessment_flow_stepper.dart:1                                                             │       100% │
+│ 187     │ material                                            │ lib/shared/widgets/assessment_flow_stepper.dart:2                                                             │       100% │
+│ 188     │ material                                            │ lib/shared/widgets/main_layout.dart:1                                                                         │       100% │
+│ 189     │ widgets                                             │ lib/shared/widgets/screener_navigation_app_bar.dart:1                                                         │       100% │
+│ 190     │ material                                            │ lib/shared/widgets/screener_navigation_app_bar.dart:2                                                         │       100% │
+│ 191     │ go_router                                           │ lib/shared/widgets/screener_navigation_app_bar.dart:3                                                         │       100% │
+│ 192     │ provider                                            │ lib/shared/widgets/screener_navigation_app_bar.dart:4                                                         │       100% │
+│ 193     │ api_provider                                        │ lib/shared/widgets/screener_navigation_app_bar.dart:5                                                         │       100% │
+│ 194     │ app_settings                                        │ lib/shared/widgets/screener_navigation_app_bar.dart:6                                                         │       100% │
+└─────────┴─────────────────────────────────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────────────┴────────────┘
+Name — the unused function, import, class, or variable.
+Conf — how confident Skylos is that this code is truly unused (higher = safer to remove).
+Suppress: # skylos: ignore (line), ignore = ["SKY-XXX"] (rule), or # skylos: ignore-start/end (block)
+Full guide: https://docs.skylos.dev/guides/understanding-output
+
+────────────────────────────────────────────────────────────────────────────────────── Unused Variables ──────────────────────────────────────────────────────────────────────────────────────
+┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓
+┃ #       ┃ Name                                              ┃ Location                                                                                                       ┃        Conf ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━┩
+│ 1       │ _authToken                                        │ lib/core/providers/app_settings.dart:27                                                                        │         90% │
+│ 2       │ _screenerProfile                                  │ lib/core/providers/app_settings.dart:28                                                                        │         90% │
+│ 3       │ _patient                                          │ lib/core/providers/app_settings.dart:29                                                                        │         90% │
+│ 4       │ _clinicalData                                     │ lib/core/providers/app_settings.dart:30                                                                        │         90% │
+│ 5       │ _selectedSurveyId                                 │ lib/core/providers/app_settings.dart:33                                                                        │         90% │
+│ 6       │ _defaultSurveyId                                  │ lib/core/providers/app_settings.dart:34                                                                        │         90% │
+│ 7       │ _defaultSurveyName                                │ lib/core/providers/app_settings.dart:35                                                                        │         90% │
+│ 8       │ _preparedAccessLinkToken                          │ lib/core/providers/app_settings.dart:36                                                                        │         90% │
+│ 9       │ _preparedScreenerId                               │ lib/core/providers/app_settings.dart:37                                                                        │         90% │
+│ 10      │ _preparedScreenerName                             │ lib/core/providers/app_settings.dart:38                                                                        │         90% │
+│ 11      │ _isLoadingSurveys                                 │ lib/core/providers/app_settings.dart:39                                                                        │         90% │
+│ 12      │ _loadError                                        │ lib/core/providers/app_settings.dart:40                                                                        │         90% │
+│ 13      │ _cachedData                                       │ lib/core/services/form_data_service.dart:16                                                                    │         90% │
+│ 14      │ _repository                                       │ lib/features/access_links/pages/access_link_launch_page.dart:20                                                │         90% │
+│ 15      │ _isResolving                                      │ lib/features/access_links/pages/access_link_launch_page.dart:22                                                │         90% │
+│ 16      │ _failureMessage                                   │ lib/features/access_links/pages/access_link_launch_page.dart:23                                                │         90% │
+│ 17      │ _medicalHistoryController                         │ lib/features/clinical/pages/clinical_page.dart:19                                                              │         90% │
+│ 18      │ _familyHistoryController                          │ lib/features/clinical/pages/clinical_page.dart:21                                                              │         90% │
+│ 19      │ _socialDataController                             │ lib/features/clinical/pages/clinical_page.dart:23                                                              │         90% │
+│ 20      │ _medicationHistoryController                      │ lib/features/clinical/pages/clinical_page.dart:24                                                              │         90% │
+│ 21      │ _demographicsController                           │ lib/features/demographics/pages/demographics_page.dart:22                                                      │         90% │
+│ 22      │ _maxPollingAttempts                               │ lib/features/report/pages/report_page.dart:42                                                                  │         90% │
+│ 23      │ _initialDelay                                     │ lib/features/report/pages/report_page.dart:43                                                                  │         90% │
+│ 24      │ _pollingDelay                                     │ lib/features/report/pages/report_page.dart:44                                                                  │         90% │
+│ 25      │ _isSaving                                         │ lib/features/report/pages/report_page.dart:46                                                                  │         90% │
+│ 26      │ _saveSuccess                                      │ lib/features/report/pages/report_page.dart:47                                                                  │         90% │
+│ 27      │ _isSendingReportEmail                             │ lib/features/report/pages/report_page.dart:48                                                                  │         90% │
+│ 28      │ _saveError                                        │ lib/features/report/pages/report_page.dart:49                                                                  │         90% │
+│ 29      │ _reportError                                      │ lib/features/report/pages/report_page.dart:50                                                                  │         90% │
+│ 30      │ _savedFilePath                                    │ lib/features/report/pages/report_page.dart:51                                                                  │         90% │
+│ 31      │ _documentLoadingKeys                              │ lib/features/report/pages/report_page.dart:56                                                                  │         90% │
+│ 32      │ _generatedDocumentTexts                           │ lib/features/report/pages/report_page.dart:57                                                                  │         90% │
+│ 33      │ _documentErrors                                   │ lib/features/report/pages/report_page.dart:58                                                                  │         90% │
+│ 34      │ _isSubmitting                                     │ lib/features/screener/pages/screener_initial_notice_page.dart:20                                               │         90% │
+│ 35      │ _feedback                                         │ lib/features/screener/pages/screener_initial_notice_page.dart:21                                               │         90% │
+│ 36      │ _accessLinkRepository                             │ lib/features/settings/pages/settings_page.dart:34                                                              │         90% │
+│ 37      │ _generatedLink                                    │ lib/features/settings/pages/settings_page.dart:37                                                              │         90% │
+│ 38      │ _isGeneratingLink                                 │ lib/features/settings/pages/settings_page.dart:38                                                              │         90% │
+│ 39      │ _generationError                                  │ lib/features/settings/pages/settings_page.dart:39                                                              │         90% │
+│ 40      │ _pageFeedback                                     │ lib/features/settings/pages/settings_page.dart:40                                                              │         90% │
+│ 41      │ _validationErrors                                 │ lib/features/settings/pages/settings_page.dart:41                                                              │         90% │
+│ 42      │ _redirectTimer                                    │ lib/features/splash/splash_screen.dart:17                                                                      │         90% │
+│ 43      │ _survey                                           │ lib/features/survey/pages/survey_page.dart:24                                                                  │         90% │
+│ 44      │ _radarOptionScores                                │ lib/features/survey/pages/thank_you_page.dart:19                                                               │         90% │
+│ 45      │ _ownsRepository                                   │ lib/features/survey/pages/thank_you_page.dart:55                                                               │         90% │
+│ 46      │ _handoffState                                     │ lib/features/survey/pages/thank_you_page.dart:56                                                               │         90% │
+│ 47      │ _agentError                                       │ lib/features/survey/pages/thank_you_page.dart:57                                                               │         90% │
+│ 48      │ _agentRetryable                                   │ lib/features/survey/pages/thank_you_page.dart:58                                                               │         90% │
+│ 49      │ _aiProgress                                       │ lib/features/survey/pages/thank_you_page.dart:60                                                               │         90% │
+│ 50      │ _appSettings                                      │ lib/main.dart:26                                                                                               │         90% │
+│ 51      │ _apiProvider                                      │ lib/main.dart:27                                                                                               │         90% │
+│ 52      │ login                                             │ lib/shared/widgets/screener_navigation_app_bar.dart:9                                                          │        100% │
+│ 53      │ register                                          │ lib/shared/widgets/screener_navigation_app_bar.dart:10                                                         │        100% │
+│ 54      │ profile                                           │ lib/shared/widgets/screener_navigation_app_bar.dart:11                                                         │        100% │
+│ 55      │ settings                                          │ lib/shared/widgets/screener_navigation_app_bar.dart:12                                                         │        100% │
+│ 56      │ switchAccount                                     │ lib/shared/widgets/screener_navigation_app_bar.dart:13                                                         │        100% │
+│ 57      │ logout                                            │ lib/shared/widgets/screener_navigation_app_bar.dart:14                                                         │        100% │
+└─────────┴───────────────────────────────────────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────────────┴─────────────┘
+Name — the unused function, import, class, or variable.
+Conf — how confident Skylos is that this code is truly unused (higher = safer to remove).
+Suppress: # skylos: ignore (line), ignore = ["SKY-XXX"] (rule), or # skylos: ignore-start/end (block)
+Full guide: https://docs.skylos.dev/guides/understanding-output
+
+─────────────────────────────────────────────────────────────────────────────────────── Unused Classes ───────────────────────────────────────────────────────────────────────────────────────
+┏━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┓
+┃ #        ┃ Name                                           ┃ Location                                                                                                        ┃         Conf ┃
+┡━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━┩
+│ 1        │ AIProgress                                     │ lib/core/models/agent_response.dart:3                                                                           │         100% │
+│ 2        │ AppNavigator                                   │ lib/core/navigation/app_navigator.dart:10                                                                       │         100% │
+│ 3        │ AssetListProvider                              │ lib/core/services/asset_list_provider.dart:4                                                                    │         100% │
+│ 4        │ AssetLoader                                    │ lib/core/services/asset_loader.dart:5                                                                           │         100% │
+│ 5        │ StringListDataService                          │ lib/core/services/form_data_service.dart:57                                                                     │         100% │
+│ 6        │ FormDataServiceRegistry                        │ lib/core/services/form_data_service.dart:86                                                                     │         100% │
+│ 7        │ FormValidators                                 │ lib/core/utils/form_validators.dart:13                                                                          │         100% │
+│ 8        │ Formatters                                     │ lib/core/utils/formatters.dart:2                                                                                │         100% │
+│ 9        │ ValidatorSets                                  │ lib/core/utils/validator_sets.dart:13                                                                           │         100% │
+│ 10       │ _LoggedOutState                                │ lib/features/screener/pages/screener_profile_page.dart:125                                                      │          90% │
+│ 11       │ _ScreenerMenuAction                            │ lib/shared/widgets/screener_navigation_app_bar.dart:8                                                           │          90% │
+└──────────┴────────────────────────────────────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┴──────────────┘
+Name — the unused function, import, class, or variable.
+Conf — how confident Skylos is that this code is truly unused (higher = safer to remove).
+Suppress: # skylos: ignore (line), ignore = ["SKY-XXX"] (rule), or # skylos: ignore-start/end (block)
+Full guide: https://docs.skylos.dev/guides/understanding-output
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+╭───────────────────────────────────────────────────────────╮
+│ Found 276 dead-code items. Add this badge to your README: │
+╰───────────────────────────────────────────────────────────╯
+```markdown
+![Dead Code: 276](https://img.shields.io/badge/Dead_Code-276_detected-orange?logo=codacy&logoColor=red)
+```

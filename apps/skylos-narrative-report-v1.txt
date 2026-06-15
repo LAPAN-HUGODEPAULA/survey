@@ -1,0 +1,299 @@
+╭────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                                                                                            │
+│   ███████ ██   ██ ██    ██ ██       ██████  ███████                                                                                                                                        │
+│   ██      ██  ██   ██  ██  ██      ██    ██ ██                                                                                                                                             │
+│   ███████ █████     ████   ██      ██    ██ ███████                                                                                                                                        │
+│        ██ ██  ██     ██    ██      ██    ██      ██                                                                                                                                        │
+│   ███████ ██   ██    ██    ███████  ██████  ███████                                                                                                                                        │
+│                                                                                                                                                                                            │
+│    v4.24.1  │  github.com/duriantaco/skylos                                                                                                                                                │
+│                                                                                                                                                                                            │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+ Excluding: **/*.freezed.dart, **/*.g.dart, **/*.mocks.dart, **/.dart_tool/**, **/.flutter-plugins*, **/build/**, **/generated/**, *.egg-info, ../packages/contracts/generated/**, .coverage, 
+.git, .hg, .idea, .mypy_cache, .next, .nuxt, .pytest_cache, .svn, .tox, .turbo, .venv, .vscode, __pycache__, build, dist, htmlcov, node_modules, vendor, venv
+
+
+╭────────────────────────────────╮
+│ Python Static Analysis Results │
+│ Analyzed 43 file(s)            │
+╰────────────────────────────────╯
+Unused functions: 23 Unused imports: 134 Unused params: 0 Unused vars: 45 Unused classes: 11 Quality: 0 Custom: 0 Suppressed: 0 Grep verify: on (rescued 19)
+
+╭───────────────────────────╮
+│ Codebase Grade: F (3/100) │
+╰───────────────────────────╯
+                                                                                       Grade Breakdown                                                                                        
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Category                                  ┃                  Score ┃ Grade             ┃ Weight                 ┃ Key Issue                                                                ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Dead Code                                 │                      3 │ F                 │ 100%                   │ 213 dead symbols (47.5/1K LOC)                                           │
+└───────────────────────────────────────────┴────────────────────────┴───────────────────┴────────────────────────┴──────────────────────────────────────────────────────────────────────────┘
+
+╭──────────────────────────────────────────────── Score Badge ─────────────────────────────────────────────────╮
+│ Score Badge for your README.md:                                                                              │
+│                                                                                                              │
+│ [![Skylos Grade](https://img.shields.io/badge/Skylos-F%20%283%29-red)](https://github.com/duriantaco/skylos) │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+Copied to clipboard!
+
+────────────────────────────────────────────────────────────────────────────────────── Unused Functions ──────────────────────────────────────────────────────────────────────────────────────
+┏━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┓
+┃ #      ┃ Name                                                                ┃ Location                                                                                        ┃      Conf ┃
+┡━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━┩
+│ 1      │ _storeSessionId                                                     │ lib/core/providers/chat_provider.dart:673                                                       │       90% │
+│ 2      │ _PendingMessage                                                     │ lib/core/providers/chat_provider.dart:720                                                       │       90% │
+│ 3      │ callMethod                                                          │ lib/core/services/js_interop_web.dart:33                                                        │      100% │
+│ 4      │ setProperty                                                         │ lib/core/services/js_interop_web.dart:39                                                        │      100% │
+│ 5      │ onResult                                                            │ lib/core/services/voice_capture_service.dart:147                                                │      100% │
+│ 6      │ onError                                                             │ lib/core/services/voice_capture_service.dart:161                                                │      100% │
+│ 7      │ _ChatPageState._startRecordingTimer                                 │ lib/features/chat/pages/chat_page.dart:105                                                      │       90% │
+│ 8      │ _ChatPageState._startRecording                                      │ lib/features/chat/pages/chat_page.dart:635                                                      │       90% │
+│ 9      │ _ChatPageState._stopRecording                                       │ lib/features/chat/pages/chat_page.dart:673                                                      │       90% │
+│ 10     │ _ChatPageState._registerAudioView                                   │ lib/features/chat/pages/chat_page.dart:695                                                      │       90% │
+│ 11     │ _AssistantInsightPanel._AssistantInsightPanel                       │ lib/features/chat/pages/chat_page.dart:1069                                                     │       90% │
+│ 12     │ _ClinicianInitialNoticePageState._acceptNotice                      │ lib/features/clinician/pages/clinician_initial_notice_page.dart:23                              │       90% │
+│ 13     │ ClinicianLoginPage._recoverPassword                                 │ lib/features/clinician/pages/clinician_login_page.dart:100                                      │       90% │
+│ 14     │ ClinicianRegistrationPage._lookupCep                                │ lib/features/clinician/pages/clinician_registration_page.dart:74                                │       90% │
+│ 15     │ _resolveViaCepBaseUrl                                               │ lib/features/clinician/pages/clinician_registration_page.dart:101                               │       90% │
+│ 16     │ _buildRegistrationErrorMessage                                      │ lib/features/clinician/pages/clinician_registration_page.dart:109                               │       90% │
+│ 17     │ _extractRegistrationErrorDetail                                     │ lib/features/clinician/pages/clinician_registration_page.dart:121                               │       90% │
+│ 18     │ _DemographicsPageState._syncValidationSummary                       │ lib/features/demographics/pages/demographics_page.dart:42                                       │       90% │
+│ 19     │ _DemographicsPageState._buildValidationItems                        │ lib/features/demographics/pages/demographics_page.dart:51                                       │       90% │
+│ 20     │ _NarrativePageState._generateNarrative                              │ lib/features/narrative/pages/narrative_page.dart:33                                             │       90% │
+│ 21     │ _NarrativePageState._generateWithPolling                            │ lib/features/narrative/pages/narrative_page.dart:109                                            │       90% │
+│ 22     │ _NarrativePageState._resolveReportDocument                          │ lib/features/narrative/pages/narrative_page.dart:167                                            │       90% │
+│ 23     │ _ReportPageState._printReport                                       │ lib/features/report/pages/report_page.dart:45                                                   │       90% │
+└────────┴─────────────────────────────────────────────────────────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────┴───────────┘
+Name — the unused function, import, class, or variable.
+Conf — how confident Skylos is that this code is truly unused (higher = safer to remove).
+Suppress: # skylos: ignore (line), ignore = ["SKY-XXX"] (rule), or # skylos: ignore-start/end (block)
+Full guide: https://docs.skylos.dev/guides/understanding-output
+
+─────────────────────────────────────────────────────────────────────────────────────── Unused Imports ───────────────────────────────────────────────────────────────────────────────────────
+┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓
+┃ #       ┃ Name                                               ┃ Location                                                                                                      ┃        Conf ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━┩
+│ 1       │ runtime_app_config                                 │ lib/core/config/runtime_config.dart:1                                                                         │        100% │
+│ 2       │ report_models                                      │ lib/core/models/agent_response.dart:1                                                                         │        100% │
+│ 3       │ report_models                                      │ lib/core/navigation/app_navigator.dart:1                                                                      │        100% │
+│ 4       │ material                                           │ lib/core/navigation/app_navigator.dart:2                                                                      │        100% │
+│ 5       │ patient                                            │ lib/core/providers/app_settings.dart:1                                                                        │        100% │
+│ 6       │ screener_profile                                   │ lib/core/providers/app_settings.dart:2                                                                        │        100% │
+│ 7       │ api_config                                         │ lib/core/providers/app_settings.dart:3                                                                        │        100% │
+│ 8       │ material                                           │ lib/core/providers/app_settings.dart:4                                                                        │        100% │
+│ 9       │ dart:async                                         │ lib/core/providers/chat_provider.dart:1                                                                       │        100% │
+│ 10      │ dart:convert                                       │ lib/core/providers/chat_provider.dart:2                                                                       │        100% │
+│ 11      │ dart:js_interop                                    │ lib/core/providers/chat_provider.dart:3                                                                       │        100% │
+│ 12      │ chat_message                                       │ lib/core/providers/chat_provider.dart:5                                                                       │        100% │
+│ 13      │ chat_session                                       │ lib/core/providers/chat_provider.dart:6                                                                       │        100% │
+│ 14      │ document_models                                    │ lib/core/providers/chat_provider.dart:7                                                                       │        100% │
+│ 15      │ template_models                                    │ lib/core/providers/chat_provider.dart:8                                                                       │        100% │
+│ 16      │ api_config                                         │ lib/core/providers/chat_provider.dart:10                                                                      │        100% │
+│ 17      │ dio                                                │ lib/core/providers/chat_provider.dart:11                                                                      │        100% │
+│ 18      │ foundation                                         │ lib/core/providers/chat_provider.dart:12                                                                      │        100% │
+│ 19      │ runtime_agent_access_points                        │ lib/core/providers/chat_provider.dart:13                                                                      │        100% │
+│ 20      │ web                                                │ lib/core/providers/chat_provider.dart:14                                                                      │        100% │
+│ 21      │ web_socket_channel                                 │ lib/core/providers/chat_provider.dart:15                                                                      │        100% │
+│ 22      │ runtime_config                                     │ lib/core/services/api_config.dart:1                                                                           │        100% │
+│ 23      │ dio                                                │ lib/core/services/api_config.dart:2                                                                           │        100% │
+│ 24      │ runtime_api_url                                    │ lib/core/services/api_config.dart:3                                                                           │        100% │
+│ 25      │ api_config                                         │ lib/core/services/audit_log_service.dart:2                                                                    │        100% │
+│ 26      │ dio                                                │ lib/core/services/audit_log_service.dart:3                                                                    │        100% │
+│ 27      │ agent_response                                     │ lib/core/services/clinical_writer_service.dart:1                                                              │        100% │
+│ 28      │ api_config                                         │ lib/core/services/clinical_writer_service.dart:2                                                              │        100% │
+│ 29      │ dio                                                │ lib/core/services/clinical_writer_service.dart:3                                                              │        100% │
+│ 30      │ runtime_agent_access_points                        │ lib/core/services/clinical_writer_service.dart:4                                                              │        100% │
+│ 31      │ dart:js_interop                                    │ lib/core/services/js_interop_stub.dart:2                                                                      │        100% │
+│ 32      │ dart:js_interop                                    │ lib/core/services/js_interop_web.dart:2                                                                       │        100% │
+│ 33      │ dart:js_interop_unsafe                             │ lib/core/services/js_interop_web.dart:3                                                                       │        100% │
+│ 34      │ api_config                                         │ lib/core/services/narrative_service.dart:3                                                                    │        100% │
+│ 35      │ dio                                                │ lib/core/services/narrative_service.dart:4                                                                    │        100% │
+│ 36      │ web                                                │ lib/core/services/platform_view_registry_web.dart:4                                                           │        100% │
+│ 37      │ dart:async                                         │ lib/core/services/voice_capture_service.dart:2                                                                │        100% │
+│ 38      │ dart:convert                                       │ lib/core/services/voice_capture_service.dart:3                                                                │        100% │
+│ 39      │ dart:js_interop                                    │ lib/core/services/voice_capture_service.dart:4                                                                │        100% │
+│ 40      │ js_interop                                         │ lib/core/services/voice_capture_service.dart:6                                                                │        100% │
+│ 41      │ foundation                                         │ lib/core/services/voice_capture_service.dart:7                                                                │        100% │
+│ 42      │ web                                                │ lib/core/services/voice_capture_service.dart:8                                                                │        100% │
+│ 43      │ chat_provider                                      │ lib/features/chat/controllers/assistant_status_controller.dart:1                                              │        100% │
+│ 44      │ widgets                                            │ lib/features/chat/controllers/assistant_status_controller.dart:2                                              │        100% │
+│ 45      │ dart:async                                         │ lib/features/chat/pages/chat_page.dart:1                                                                      │        100% │
+│ 46      │ dart:js_interop                                    │ lib/features/chat/pages/chat_page.dart:2                                                                      │        100% │
+│ 47      │ chat_message                                       │ lib/features/chat/pages/chat_page.dart:4                                                                      │        100% │
+│ 48      │ chat_session                                       │ lib/features/chat/pages/chat_page.dart:5                                                                      │        100% │
+│ 49      │ app_settings                                       │ lib/features/chat/pages/chat_page.dart:6                                                                      │        100% │
+│ 50      │ chat_provider                                      │ lib/features/chat/pages/chat_page.dart:7                                                                      │        100% │
+│ 51      │ platform_view_registry                             │ lib/features/chat/pages/chat_page.dart:8                                                                      │        100% │
+│ 52      │ voice_capture_service                              │ lib/features/chat/pages/chat_page.dart:10                                                                     │        100% │
+│ 53      │ assistant_status_controller                        │ lib/features/chat/pages/chat_page.dart:11                                                                     │        100% │
+│ 54      │ clinician_navigation_app_bar                       │ lib/features/chat/pages/chat_page.dart:12                                                                     │        100% │
+│ 55      │ widgets                                            │ lib/features/chat/pages/chat_page.dart:13                                                                     │        100% │
+│ 56      │ foundation                                         │ lib/features/chat/pages/chat_page.dart:14                                                                     │        100% │
+│ 57      │ material                                           │ lib/features/chat/pages/chat_page.dart:15                                                                     │        100% │
+│ 58      │ web                                                │ lib/features/chat/pages/chat_page.dart:19                                                                     │        100% │
+│ 59      │ screener_profile                                   │ lib/features/clinician/pages/clinician_initial_notice_page.dart:1                                             │        100% │
+│ 60      │ app_navigator                                      │ lib/features/clinician/pages/clinician_initial_notice_page.dart:2                                             │        100% │
+│ 61      │ app_settings                                       │ lib/features/clinician/pages/clinician_initial_notice_page.dart:3                                             │        100% │
+│ 62      │ api_config                                         │ lib/features/clinician/pages/clinician_initial_notice_page.dart:4                                             │        100% │
+│ 63      │ widgets                                            │ lib/features/clinician/pages/clinician_initial_notice_page.dart:5                                             │        100% │
+│ 64      │ dio                                                │ lib/features/clinician/pages/clinician_initial_notice_page.dart:6                                             │        100% │
+│ 65      │ material                                           │ lib/features/clinician/pages/clinician_initial_notice_page.dart:7                                             │        100% │
+│ 66      │ provider                                           │ lib/features/clinician/pages/clinician_initial_notice_page.dart:8                                             │        100% │
+│ 67      │ screener_profile                                   │ lib/features/clinician/pages/clinician_login_page.dart:1                                                      │        100% │
+│ 68      │ app_navigator                                      │ lib/features/clinician/pages/clinician_login_page.dart:2                                                      │        100% │
+│ 69      │ app_settings                                       │ lib/features/clinician/pages/clinician_login_page.dart:3                                                      │        100% │
+│ 70      │ chat_provider                                      │ lib/features/clinician/pages/clinician_login_page.dart:4                                                      │        100% │
+│ 71      │ api_config                                         │ lib/features/clinician/pages/clinician_login_page.dart:5                                                      │        100% │
+│ 72      │ clinician_registration_page                        │ lib/features/clinician/pages/clinician_login_page.dart:6                                                      │        100% │
+│ 73      │ widgets                                            │ lib/features/clinician/pages/clinician_login_page.dart:7                                                      │        100% │
+│ 74      │ dio                                                │ lib/features/clinician/pages/clinician_login_page.dart:8                                                      │        100% │
+│ 75      │ material                                           │ lib/features/clinician/pages/clinician_login_page.dart:9                                                      │        100% │
+│ 76      │ provider                                           │ lib/features/clinician/pages/clinician_login_page.dart:10                                                     │        100% │
+│ 77      │ runtime_config                                     │ lib/features/clinician/pages/clinician_registration_page.dart:1                                               │        100% │
+│ 78      │ app_navigator                                      │ lib/features/clinician/pages/clinician_registration_page.dart:2                                               │        100% │
+│ 79      │ api_config                                         │ lib/features/clinician/pages/clinician_registration_page.dart:3                                               │        100% │
+│ 80      │ widgets                                            │ lib/features/clinician/pages/clinician_registration_page.dart:4                                               │        100% │
+│ 81      │ dio                                                │ lib/features/clinician/pages/clinician_registration_page.dart:5                                               │        100% │
+│ 82      │ material                                           │ lib/features/clinician/pages/clinician_registration_page.dart:6                                               │        100% │
+│ 83      │ app_navigator                                      │ lib/features/demographics/pages/demographics_page.dart:4                                                      │        100% │
+│ 84      │ app_settings                                       │ lib/features/demographics/pages/demographics_page.dart:5                                                      │        100% │
+│ 85      │ widgets                                            │ lib/features/demographics/pages/demographics_page.dart:6                                                      │        100% │
+│ 86      │ material                                           │ lib/features/demographics/pages/demographics_page.dart:7                                                      │        100% │
+│ 87      │ provider                                           │ lib/features/demographics/pages/demographics_page.dart:8                                                      │        100% │
+│ 88      │ app_navigator                                      │ lib/features/narrative/pages/narrative_page.dart:5                                                            │        100% │
+│ 89      │ app_settings                                       │ lib/features/narrative/pages/narrative_page.dart:6                                                            │        100% │
+│ 90      │ clinical_writer_service                            │ lib/features/narrative/pages/narrative_page.dart:7                                                            │        100% │
+│ 91      │ report_models                                      │ lib/features/narrative/pages/narrative_page.dart:8                                                            │        100% │
+│ 92      │ widgets                                            │ lib/features/narrative/pages/narrative_page.dart:9                                                            │        100% │
+│ 93      │ material                                           │ lib/features/narrative/pages/narrative_page.dart:10                                                           │        100% │
+│ 94      │ provider                                           │ lib/features/narrative/pages/narrative_page.dart:11                                                           │        100% │
+│ 95      │ dart:io                                            │ lib/features/report/pages/report_page.dart:4                                                                  │        100% │
+│ 96      │ dart:js_interop                                    │ lib/features/report/pages/report_page.dart:5                                                                  │        100% │
+│ 97      │ app_settings                                       │ lib/features/report/pages/report_page.dart:7                                                                  │        100% │
+│ 98      │ report_models                                      │ lib/features/report/pages/report_page.dart:8                                                                  │        100% │
+│ 99      │ report_view                                        │ lib/features/report/pages/report_page.dart:9                                                                  │        100% │
+│ 100     │ widgets                                            │ lib/features/report/pages/report_page.dart:10                                                                 │        100% │
+│ 101     │ foundation                                         │ lib/features/report/pages/report_page.dart:11                                                                 │        100% │
+│ 102     │ material                                           │ lib/features/report/pages/report_page.dart:12                                                                 │        100% │
+│ 103     │ provider                                           │ lib/features/report/pages/report_page.dart:14                                                                 │        100% │
+│ 104     │ web                                                │ lib/features/report/pages/report_page.dart:15                                                                 │        100% │
+│ 105     │ app_settings                                       │ lib/features/thankyou/pages/thankyou_page.dart:4                                                              │        100% │
+│ 106     │ narrative_service                                  │ lib/features/thankyou/pages/thankyou_page.dart:5                                                              │        100% │
+│ 107     │ demographics_page                                  │ lib/features/thankyou/pages/thankyou_page.dart:6                                                              │        100% │
+│ 108     │ widgets                                            │ lib/features/thankyou/pages/thankyou_page.dart:7                                                              │        100% │
+│ 109     │ material                                           │ lib/features/thankyou/pages/thankyou_page.dart:8                                                              │        100% │
+│ 110     │ provider                                           │ lib/features/thankyou/pages/thankyou_page.dart:9                                                              │        100% │
+│ 111     │ runtime_config                                     │ lib/main.dart:4                                                                                               │        100% │
+│ 112     │ app_navigator                                      │ lib/main.dart:5                                                                                               │        100% │
+│ 113     │ app_settings                                       │ lib/main.dart:6                                                                                               │        100% │
+│ 114     │ chat_provider                                      │ lib/main.dart:7                                                                                               │        100% │
+│ 115     │ chat_page                                          │ lib/main.dart:8                                                                                               │        100% │
+│ 116     │ clinician_initial_notice_page                      │ lib/main.dart:9                                                                                               │        100% │
+│ 117     │ clinician_login_page                               │ lib/main.dart:10                                                                                              │        100% │
+│ 118     │ clinician_registration_page                        │ lib/main.dart:11                                                                                              │        100% │
+│ 119     │ demographics_page                                  │ lib/main.dart:12                                                                                              │        100% │
+│ 120     │ narrative_page                                     │ lib/main.dart:13                                                                                              │        100% │
+│ 121     │ report_page                                        │ lib/main.dart:14                                                                                              │        100% │
+│ 122     │ thankyou_page                                      │ lib/main.dart:15                                                                                              │        100% │
+│ 123     │ report_models                                      │ lib/main.dart:16                                                                                              │        100% │
+│ 124     │ app_theme                                          │ lib/main.dart:17                                                                                              │        100% │
+│ 125     │ widgets                                            │ lib/main.dart:18                                                                                              │        100% │
+│ 126     │ material                                           │ lib/main.dart:19                                                                                              │        100% │
+│ 127     │ flutter_localizations                              │ lib/main.dart:20                                                                                              │        100% │
+│ 128     │ provider                                           │ lib/main.dart:21                                                                                              │        100% │
+│ 129     │ app_navigator                                      │ lib/shared/widgets/clinician_navigation_app_bar.dart:1                                                        │        100% │
+│ 130     │ app_settings                                       │ lib/shared/widgets/clinician_navigation_app_bar.dart:2                                                        │        100% │
+│ 131     │ chat_provider                                      │ lib/shared/widgets/clinician_navigation_app_bar.dart:3                                                        │        100% │
+│ 132     │ clinician_login_page                               │ lib/shared/widgets/clinician_navigation_app_bar.dart:4                                                        │        100% │
+│ 133     │ widgets                                            │ lib/shared/widgets/clinician_navigation_app_bar.dart:5                                                        │        100% │
+│ 134     │ material                                           │ lib/shared/widgets/clinician_navigation_app_bar.dart:6                                                        │        100% │
+└─────────┴────────────────────────────────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────────────┴─────────────┘
+Name — the unused function, import, class, or variable.
+Conf — how confident Skylos is that this code is truly unused (higher = safer to remove).
+Suppress: # skylos: ignore (line), ignore = ["SKY-XXX"] (rule), or # skylos: ignore-start/end (block)
+Full guide: https://docs.skylos.dev/guides/understanding-output
+
+────────────────────────────────────────────────────────────────────────────────────── Unused Variables ──────────────────────────────────────────────────────────────────────────────────────
+┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓
+┃ #       ┃ Name                                           ┃ Location                                                                                                          ┃        Conf ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━┩
+│ 1       │ _screenerProfile                               │ lib/core/providers/app_settings.dart:8                                                                            │         90% │
+│ 2       │ _patient                                       │ lib/core/providers/app_settings.dart:9                                                                            │         90% │
+│ 3       │ _narrative                                     │ lib/core/providers/app_settings.dart:10                                                                           │         90% │
+│ 4       │ _accessPoint                                   │ lib/core/services/clinical_writer_service.dart:11                                                                 │         90% │
+│ 5       │ _recorder                                      │ lib/core/services/voice_capture_service.dart:43                                                                   │         90% │
+│ 6       │ _durationTimer                                 │ lib/core/services/voice_capture_service.dart:45                                                                   │         90% │
+│ 7       │ _elapsedSeconds                                │ lib/core/services/voice_capture_service.dart:46                                                                   │         90% │
+│ 8       │ _speechRecognition                             │ lib/core/services/voice_capture_service.dart:48                                                                   │         90% │
+│ 9       │ _previewController                             │ lib/core/services/voice_capture_service.dart:49                                                                   │         90% │
+│ 10      │ _errorController                               │ lib/core/services/voice_capture_service.dart:50                                                                   │         90% │
+│ 11      │ _previewText                                   │ lib/core/services/voice_capture_service.dart:51                                                                   │         90% │
+│ 12      │ kPrivacyNotice                                 │ lib/core/utils/privacy_notice.dart:2                                                                              │        100% │
+│ 13      │ _orderedPhases                                 │ lib/features/chat/controllers/assistant_status_controller.dart:36                                                 │         90% │
+│ 14      │ _phaseLabelByKey                               │ lib/features/chat/controllers/assistant_status_controller.dart:43                                                 │         90% │
+│ 15      │ _phaseMessageByKey                             │ lib/features/chat/controllers/assistant_status_controller.dart:50                                                 │         90% │
+│ 16      │ _assistantStatusController                     │ lib/features/chat/pages/chat_page.dart:29                                                                         │         90% │
+│ 17      │ _controller                                    │ lib/features/chat/pages/chat_page.dart:30                                                                         │         90% │
+│ 18      │ _voiceTextController                           │ lib/features/chat/pages/chat_page.dart:31                                                                         │         90% │
+│ 19      │ _scrollController                              │ lib/features/chat/pages/chat_page.dart:32                                                                         │         90% │
+│ 20      │ _voiceMode                                     │ lib/features/chat/pages/chat_page.dart:33                                                                         │         90% │
+│ 21      │ _voiceService                                  │ lib/features/chat/pages/chat_page.dart:34                                                                         │         90% │
+│ 22      │ _voiceResult                                   │ lib/features/chat/pages/chat_page.dart:35                                                                         │         90% │
+│ 23      │ _voiceError                                    │ lib/features/chat/pages/chat_page.dart:36                                                                         │         90% │
+│ 24      │ _audioViewType                                 │ lib/features/chat/pages/chat_page.dart:37                                                                         │         90% │
+│ 25      │ _isRecording                                   │ lib/features/chat/pages/chat_page.dart:38                                                                         │         90% │
+│ 26      │ _isTranscribing                                │ lib/features/chat/pages/chat_page.dart:39                                                                         │         90% │
+│ 27      │ _recordingSeconds                              │ lib/features/chat/pages/chat_page.dart:40                                                                         │         90% │
+│ 28      │ _recordingTimer                                │ lib/features/chat/pages/chat_page.dart:41                                                                         │         90% │
+│ 29      │ _lastMessageCount                              │ lib/features/chat/pages/chat_page.dart:42                                                                         │         90% │
+│ 30      │ _lastAssistantAnnouncement                     │ lib/features/chat/pages/chat_page.dart:43                                                                         │         90% │
+│ 31      │ _isSubmitting                                  │ lib/features/clinician/pages/clinician_initial_notice_page.dart:20                                                │         90% │
+│ 32      │ _formKey                                       │ lib/features/demographics/pages/demographics_page.dart:18                                                         │         90% │
+│ 33      │ _nameController                                │ lib/features/demographics/pages/demographics_page.dart:19                                                         │         90% │
+│ 34      │ _medicalRecordIdController                     │ lib/features/demographics/pages/demographics_page.dart:20                                                         │         90% │
+│ 35      │ _hasSubmitted                                  │ lib/features/demographics/pages/demographics_page.dart:22                                                         │         90% │
+│ 36      │ _validationItems                               │ lib/features/demographics/pages/demographics_page.dart:23                                                         │         90% │
+│ 37      │ _narrativeController                           │ lib/features/narrative/pages/narrative_page.dart:21                                                               │         90% │
+│ 38      │ _isGenerating                                  │ lib/features/narrative/pages/narrative_page.dart:22                                                               │         90% │
+│ 39      │ _aiProgress                                    │ lib/features/narrative/pages/narrative_page.dart:24                                                               │         90% │
+│ 40      │ _retryableFailure                              │ lib/features/narrative/pages/narrative_page.dart:25                                                               │         90% │
+│ 41      │ _saveNarrativeFuture                           │ lib/features/thankyou/pages/thankyou_page.dart:19                                                                 │         90% │
+│ 42      │ login                                          │ lib/shared/widgets/clinician_navigation_app_bar.dart:9                                                            │        100% │
+│ 43      │ register                                       │ lib/shared/widgets/clinician_navigation_app_bar.dart:9                                                            │        100% │
+│ 44      │ switchAccount                                  │ lib/shared/widgets/clinician_navigation_app_bar.dart:9                                                            │        100% │
+│ 45      │ logout                                         │ lib/shared/widgets/clinician_navigation_app_bar.dart:9                                                            │        100% │
+└─────────┴────────────────────────────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┴─────────────┘
+Name — the unused function, import, class, or variable.
+Conf — how confident Skylos is that this code is truly unused (higher = safer to remove).
+Suppress: # skylos: ignore (line), ignore = ["SKY-XXX"] (rule), or # skylos: ignore-start/end (block)
+Full guide: https://docs.skylos.dev/guides/understanding-output
+
+─────────────────────────────────────────────────────────────────────────────────────── Unused Classes ───────────────────────────────────────────────────────────────────────────────────────
+┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━┓
+┃ #       ┃ Name                                             ┃ Location                                                                                                        ┃        Conf ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━┩
+│ 1       │ AIProgress                                       │ lib/core/models/agent_response.dart:3                                                                           │        100% │
+│ 2       │ ScreenerAddress                                  │ lib/core/models/screener_profile.dart:1                                                                         │        100% │
+│ 3       │ ScreenerProfessionalCouncil                      │ lib/core/models/screener_profile.dart:33                                                                        │        100% │
+│ 4       │ TemplatePreview                                  │ lib/core/models/template_models.dart:46                                                                         │        100% │
+│ 5       │ AppNavigator                                     │ lib/core/navigation/app_navigator.dart:4                                                                        │        100% │
+│ 6       │ AuditLogService                                  │ lib/core/services/audit_log_service.dart:5                                                                      │        100% │
+│ 7       │ VoiceCaptureConfig                               │ lib/core/services/voice_capture_service.dart:10                                                                 │        100% │
+│ 8       │ ValidatorSets                                    │ lib/core/utils/validator_sets.dart:2                                                                            │        100% │
+│ 9       │ AssistantStatusController                        │ lib/features/chat/controllers/assistant_status_controller.dart:33                                               │        100% │
+│ 10      │ _MissingReportRoutePage                          │ lib/main.dart:113                                                                                               │         90% │
+│ 11      │ _ClinicianMenuAction                             │ lib/shared/widgets/clinician_navigation_app_bar.dart:9                                                          │         90% │
+└─────────┴──────────────────────────────────────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┴─────────────┘
+Name — the unused function, import, class, or variable.
+Conf — how confident Skylos is that this code is truly unused (higher = safer to remove).
+Suppress: # skylos: ignore (line), ignore = ["SKY-XXX"] (rule), or # skylos: ignore-start/end (block)
+Full guide: https://docs.skylos.dev/guides/understanding-output
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+╭───────────────────────────────────────────────────────────╮
+│ Found 213 dead-code items. Add this badge to your README: │
+╰───────────────────────────────────────────────────────────╯
+```markdown
+![Dead Code: 213](https://img.shields.io/badge/Dead_Code-213_detected-orange?logo=codacy&logoColor=red)
+```

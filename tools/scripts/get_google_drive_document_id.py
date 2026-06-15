@@ -1,10 +1,17 @@
+import os
+
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
-# Setup
-SERVICE_ACCOUNT_FILE = '../../services/clinical-writer-api/clinical_writer_agent/credentials/darv-13c19-740b161e0018.json'
-FOLDER_ID = '1i7C27Zm4lvqoWEOYRBHHPL_5FMFy6jxP' # Use the ID you already found
+SERVICE_ACCOUNT_FILE = os.getenv(
+    "GOOGLE_APPLICATION_CREDENTIALS",
+    "../../services/clinical-writer-api/clinical_writer_agent/credentials/google-application-credentials.json",
+)
+FOLDER_ID = os.getenv("GOOGLE_DRIVE_FOLDER_ID")
 SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
+
+if not FOLDER_ID:
+    raise RuntimeError("GOOGLE_DRIVE_FOLDER_ID must be configured.")
 
 creds = service_account.Credentials.from_service_account_file(
     SERVICE_ACCOUNT_FILE, scopes=SCOPES)

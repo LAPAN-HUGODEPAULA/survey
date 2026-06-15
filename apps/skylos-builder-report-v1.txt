@@ -1,0 +1,410 @@
+╭────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                                                                                            │
+│   ███████ ██   ██ ██    ██ ██       ██████  ███████                                                                                                                                        │
+│   ██      ██  ██   ██  ██  ██      ██    ██ ██                                                                                                                                             │
+│   ███████ █████     ████   ██      ██    ██ ███████                                                                                                                                        │
+│        ██ ██  ██     ██    ██      ██    ██      ██                                                                                                                                        │
+│   ███████ ██   ██    ██    ███████  ██████  ███████                                                                                                                                        │
+│                                                                                                                                                                                            │
+│    v4.24.1  │  github.com/duriantaco/skylos                                                                                                                                                │
+│                                                                                                                                                                                            │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+ Excluding: **/*.freezed.dart, **/*.g.dart, **/*.mocks.dart, **/.dart_tool/**, **/.flutter-plugins*, **/build/**, **/generated/**, *.egg-info, ../packages/contracts/generated/**, .coverage, 
+.git, .hg, .idea, .mypy_cache, .next, .nuxt, .pytest_cache, .svn, .tox, .turbo, .venv, .vscode, __pycache__, build, dist, htmlcov, node_modules, vendor, venv
+
+
+╭────────────────────────────────╮
+│ Python Static Analysis Results │
+│ Analyzed 62 file(s)            │
+╰────────────────────────────────╯
+Unused functions: 34 Unused imports: 214 Unused params: 0 Unused vars: 70 Unused classes: 6 Quality: 0 Custom: 0 Suppressed: 0 Grep verify: on (rescued 13)
+
+╭────────────────────────────╮
+│ Codebase Grade: F (17/100) │
+╰────────────────────────────╯
+                                                                                       Grade Breakdown                                                                                        
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Category                                  ┃                  Score ┃ Grade             ┃ Weight                 ┃ Key Issue                                                                ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ Dead Code                                 │                     17 │ F                 │ 100%                   │ 324 dead symbols (33.0/1K LOC)                                           │
+└───────────────────────────────────────────┴────────────────────────┴───────────────────┴────────────────────────┴──────────────────────────────────────────────────────────────────────────┘
+
+╭───────────────────────────────────────────────── Score Badge ─────────────────────────────────────────────────╮
+│ Score Badge for your README.md:                                                                               │
+│                                                                                                               │
+│ [![Skylos Grade](https://img.shields.io/badge/Skylos-F%20%2817%29-red)](https://github.com/duriantaco/skylos) │
+╰───────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+Copied to clipboard!
+
+────────────────────────────────────────────────────────────────────────────────────── Unused Functions ──────────────────────────────────────────────────────────────────────────────────────
+┏━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┓
+┃ #     ┃ Name                                                                   ┃ Location                                                                                        ┃    Conf ┃
+┡━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━┩
+│ 1     │ ApiConfig._isStateChanging                                             │ lib/core/services/api_config.dart:91                                                            │     90% │
+│ 2     │ ApiConfig._isBuilderAuthPath                                           │ lib/core/services/api_config.dart:99                                                            │     90% │
+│ 3     │ AgentAccessPointFormController._handleMutation                         │ lib/features/survey/controllers/agent_access_point_form_controller.dart:498                     │     90% │
+│ 4     │ AgentAccessPointFormController._clearSelectionErrors                   │ lib/features/survey/controllers/agent_access_point_form_controller.dart:503                     │     90% │
+│ 5     │ PersonaSkillFormController._handleFieldMutation                        │ lib/features/survey/controllers/persona_skill_form_controller.dart:53                           │     90% │
+│ 6     │ SurveyFormController._emptyDraft                                       │ lib/features/survey/controllers/survey_form_controller.dart:714                                 │     90% │
+│ 7     │ SurveyFormController._handleFieldMutation                              │ lib/features/survey/controllers/survey_form_controller.dart:769                                 │     90% │
+│ 8     │ _AgentAccessPointFormPageState._handleControllerChanged                │ lib/features/survey/pages/agent_access_point_form_page.dart:59                                  │     90% │
+│ 9     │ _AgentAccessPointFormPageState._handleSectionScroll                    │ lib/features/survey/pages/agent_access_point_form_page.dart:65                                  │     90% │
+│ 10    │ _AgentAccessPointListPageState._handleSearchChanged                    │ lib/features/survey/pages/agent_access_point_list_page.dart:47                                  │     90% │
+│ 11    │ _AIAgentFormPageState._handleControllerChanged                         │ lib/features/survey/pages/ai_agent_form_page.dart:49                                            │     90% │
+│ 12    │ _AIAgentFormPageState._handleSectionScroll                             │ lib/features/survey/pages/ai_agent_form_page.dart:55                                            │     90% │
+│ 13    │ _AIAgentListPageState._handleSearchChanged                             │ lib/features/survey/pages/ai_agent_list_page.dart:42                                            │     90% │
+│ 14    │ _BuilderShellPageState._handleNavigateToSection                        │ lib/features/survey/pages/builder_shell_page.dart:71                                            │     90% │
+│ 15    │ _BuilderShellPageState._refreshCurrentSection                          │ lib/features/survey/pages/builder_shell_page.dart:79                                            │     90% │
+│ 16    │ _PersonaSkillFormPageState._handleControllerChanged                    │ lib/features/survey/pages/persona_skill_form_page.dart:56                                       │     90% │
+│ 17    │ _PersonaSkillFormPageState._handleSectionScroll                        │ lib/features/survey/pages/persona_skill_form_page.dart:62                                       │     90% │
+│ 18    │ _PersonaSkillListPageState._handleSearchChanged                        │ lib/features/survey/pages/persona_skill_list_page.dart:46                                       │     90% │
+│ 19    │ _ScreenerSettingsPageState._saveAiSettings                             │ lib/features/survey/pages/screener_settings_page.dart:109                                       │     90% │
+│ 20    │ _SurveyFormPageState._handleControllerChanged                          │ lib/features/survey/pages/survey_form_page.dart:82                                              │     90% │
+│ 21    │ _SurveyFormPageState._confirmCancel                                    │ lib/features/survey/pages/survey_form_page.dart:189                                             │     90% │
+│ 22    │ _SurveyFormPageState._returnToCatalog                                  │ lib/features/survey/pages/survey_form_page.dart:235                                             │     90% │
+│ 23    │ _SurveyListPageState._handleSearchChanged                              │ lib/features/survey/pages/survey_list_page.dart:50                                              │     90% │
+│ 24    │ _SurveyListPageState._exportSurveys                                    │ lib/features/survey/pages/survey_list_page.dart:176                                             │     90% │
+│ 25    │ _SurveyPromptFormPageState._handleFieldMutation                        │ lib/features/survey/pages/survey_prompt_form_page.dart:68                                       │     90% │
+│ 26    │ _SurveyPromptFormPageState._handleSectionScroll                        │ lib/features/survey/pages/survey_prompt_form_page.dart:74                                       │     90% │
+│ 27    │ _SurveyPromptListPageState._handleSearchChanged                        │ lib/features/survey/pages/survey_prompt_list_page.dart:46                                       │     90% │
+│ 28    │ _DashboardContent._DashboardContent                                    │ lib/features/survey/pages/task_dashboard_page.dart:48                                           │     90% │
+│ 29    │ _PrimaryActionCard._PrimaryActionCard                                  │ lib/features/survey/pages/task_dashboard_page.dart:206                                          │     90% │
+│ 30    │ _InlineFieldError._InlineFieldError                                    │ lib/features/survey/widgets/agent_access_point_form_sections.dart:410                           │     90% │
+│ 31    │ HtmlRichTextEditorState._handleChanged                                 │ lib/features/survey/widgets/html_rich_text_editor.dart:71                                       │     90% │
+│ 32    │ _PlatformHtmlRichTextEditorState._insertLink                           │ lib/features/survey/widgets/html_rich_text_editor_web.dart:155                                  │     90% │
+│ 33    │ _QuestionFields._QuestionFields                                        │ lib/features/survey/widgets/survey_form_sections.dart:473                                       │     90% │
+│ 34    │ _ErrorPanel._ErrorPanel                                                │ lib/features/survey/widgets/survey_form_sections.dart:571                                       │     90% │
+└───────┴────────────────────────────────────────────────────────────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────┴─────────┘
+Name — the unused function, import, class, or variable.
+Conf — how confident Skylos is that this code is truly unused (higher = safer to remove).
+Suppress: # skylos: ignore (line), ignore = ["SKY-XXX"] (rule), or # skylos: ignore-start/end (block)
+Full guide: https://docs.skylos.dev/guides/understanding-output
+
+─────────────────────────────────────────────────────────────────────────────────────── Unused Imports ───────────────────────────────────────────────────────────────────────────────────────
+┏━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┓
+┃ #      ┃ Name                                                 ┃ Location                                                                                                       ┃      Conf ┃
+┡━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━┩
+│ 1      │ foundation                                           │ lib/core/auth/builder_auth_controller.dart:1                                                                   │      100% │
+│ 2      │ builder_auth_models                                  │ lib/core/auth/builder_auth_controller.dart:2                                                                   │      100% │
+│ 3      │ builder_auth_repository                              │ lib/core/auth/builder_auth_controller.dart:3                                                                   │      100% │
+│ 4      │ dart:convert                                         │ lib/core/auth/builder_auth_repository.dart:1                                                                   │      100% │
+│ 5      │ dio                                                  │ lib/core/auth/builder_auth_repository.dart:3                                                                   │      100% │
+│ 6      │ builder_auth_models                                  │ lib/core/auth/builder_auth_repository.dart:4                                                                   │      100% │
+│ 7      │ api_config                                           │ lib/core/auth/builder_auth_repository.dart:5                                                                   │      100% │
+│ 8      │ runtime_app_config                                   │ lib/core/config/runtime_config.dart:1                                                                          │      100% │
+│ 9      │ widgets                                              │ lib/core/models/persona_skill_draft.dart:1                                                                     │      100% │
+│ 10     │ survey_prompt_draft                                  │ lib/core/models/survey_draft.dart:1                                                                            │      100% │
+│ 11     │ dart:convert                                         │ lib/core/repositories/agent_access_point_repository.dart:1                                                     │      100% │
+│ 12     │ dio                                                  │ lib/core/repositories/agent_access_point_repository.dart:3                                                     │      100% │
+│ 13     │ agent_access_point_draft                             │ lib/core/repositories/agent_access_point_repository.dart:4                                                     │      100% │
+│ 14     │ api_config                                           │ lib/core/repositories/agent_access_point_repository.dart:5                                                     │      100% │
+│ 15     │ dart:convert                                         │ lib/core/repositories/ai_agent_repository.dart:1                                                               │      100% │
+│ 16     │ dio                                                  │ lib/core/repositories/ai_agent_repository.dart:3                                                               │      100% │
+│ 17     │ ai_agent_draft                                       │ lib/core/repositories/ai_agent_repository.dart:4                                                               │      100% │
+│ 18     │ api_config                                           │ lib/core/repositories/ai_agent_repository.dart:5                                                               │      100% │
+│ 19     │ dart:convert                                         │ lib/core/repositories/ai_settings_repository.dart:1                                                            │      100% │
+│ 20     │ dio                                                  │ lib/core/repositories/ai_settings_repository.dart:3                                                            │      100% │
+│ 21     │ ai_settings_draft                                    │ lib/core/repositories/ai_settings_repository.dart:4                                                            │      100% │
+│ 22     │ api_config                                           │ lib/core/repositories/ai_settings_repository.dart:5                                                            │      100% │
+│ 23     │ dart:convert                                         │ lib/core/repositories/persona_skill_repository.dart:1                                                          │      100% │
+│ 24     │ widgets                                              │ lib/core/repositories/persona_skill_repository.dart:3                                                          │      100% │
+│ 25     │ dio                                                  │ lib/core/repositories/persona_skill_repository.dart:4                                                          │      100% │
+│ 26     │ persona_skill_draft                                  │ lib/core/repositories/persona_skill_repository.dart:5                                                          │      100% │
+│ 27     │ api_config                                           │ lib/core/repositories/persona_skill_repository.dart:6                                                          │      100% │
+│ 28     │ dart:convert                                         │ lib/core/repositories/screener_settings_repository.dart:1                                                      │      100% │
+│ 29     │ dio                                                  │ lib/core/repositories/screener_settings_repository.dart:3                                                      │      100% │
+│ 30     │ screener_settings_draft                              │ lib/core/repositories/screener_settings_repository.dart:4                                                      │      100% │
+│ 31     │ api_config                                           │ lib/core/repositories/screener_settings_repository.dart:5                                                      │      100% │
+│ 32     │ dart:convert                                         │ lib/core/repositories/survey_prompt_repository.dart:1                                                          │      100% │
+│ 33     │ widgets                                              │ lib/core/repositories/survey_prompt_repository.dart:3                                                          │      100% │
+│ 34     │ dio                                                  │ lib/core/repositories/survey_prompt_repository.dart:4                                                          │      100% │
+│ 35     │ survey_prompt_draft                                  │ lib/core/repositories/survey_prompt_repository.dart:5                                                          │      100% │
+│ 36     │ api_config                                           │ lib/core/repositories/survey_prompt_repository.dart:6                                                          │      100% │
+│ 37     │ dart:convert                                         │ lib/core/repositories/survey_repository.dart:1                                                                 │      100% │
+│ 38     │ built_collection                                     │ lib/core/repositories/survey_repository.dart:3                                                                 │      100% │
+│ 39     │ dio                                                  │ lib/core/repositories/survey_repository.dart:4                                                                 │      100% │
+│ 40     │ survey_draft                                         │ lib/core/repositories/survey_repository.dart:6                                                                 │      100% │
+│ 41     │ survey_prompt_draft                                  │ lib/core/repositories/survey_repository.dart:7                                                                 │      100% │
+│ 42     │ api_config                                           │ lib/core/repositories/survey_repository.dart:8                                                                 │      100% │
+│ 43     │ dio                                                  │ lib/core/services/api_config.dart:1                                                                            │      100% │
+│ 44     │ runtime_api_url                                      │ lib/core/services/api_config.dart:2                                                                            │      100% │
+│ 45     │ builder_auth_models                                  │ lib/core/services/api_config.dart:3                                                                            │      100% │
+│ 46     │ runtime_config                                       │ lib/core/services/api_config.dart:4                                                                            │      100% │
+│ 47     │ file_download_stub                                   │ lib/core/services/file_download.dart:1                                                                         │      100% │
+│ 48     │ dart:js_interop                                      │ lib/core/services/file_download_web.dart:1                                                                     │      100% │
+│ 49     │ web                                                  │ lib/core/services/file_download_web.dart:3                                                                     │      100% │
+│ 50     │ widgets                                              │ lib/features/auth/pages/builder_login_page.dart:1                                                              │      100% │
+│ 51     │ material                                             │ lib/features/auth/pages/builder_login_page.dart:2                                                              │      100% │
+│ 52     │ builder_auth_controller                              │ lib/features/auth/pages/builder_login_page.dart:3                                                              │      100% │
+│ 53     │ builder_auth_models                                  │ lib/features/auth/pages/builder_login_page.dart:4                                                              │      100% │
+│ 54     │ widgets                                              │ lib/features/survey/controllers/agent_access_point_form_controller.dart:1                                      │      100% │
+│ 55     │ material                                             │ lib/features/survey/controllers/agent_access_point_form_controller.dart:2                                      │      100% │
+│ 56     │ runtime_agent_access_points                          │ lib/features/survey/controllers/agent_access_point_form_controller.dart:3                                      │      100% │
+│ 57     │ agent_access_point_draft                             │ lib/features/survey/controllers/agent_access_point_form_controller.dart:4                                      │      100% │
+│ 58     │ ai_agent_draft                                       │ lib/features/survey/controllers/agent_access_point_form_controller.dart:5                                      │      100% │
+│ 59     │ persona_skill_draft                                  │ lib/features/survey/controllers/agent_access_point_form_controller.dart:6                                      │      100% │
+│ 60     │ survey_draft                                         │ lib/features/survey/controllers/agent_access_point_form_controller.dart:7                                      │      100% │
+│ 61     │ survey_prompt_draft                                  │ lib/features/survey/controllers/agent_access_point_form_controller.dart:8                                      │      100% │
+│ 62     │ agent_access_point_repository                        │ lib/features/survey/controllers/agent_access_point_form_controller.dart:9                                      │      100% │
+│ 63     │ ai_agent_repository                                  │ lib/features/survey/controllers/agent_access_point_form_controller.dart:10                                     │      100% │
+│ 64     │ persona_skill_repository                             │ lib/features/survey/controllers/agent_access_point_form_controller.dart:11                                     │      100% │
+│ 65     │ survey_prompt_repository                             │ lib/features/survey/controllers/agent_access_point_form_controller.dart:12                                     │      100% │
+│ 66     │ survey_repository                                    │ lib/features/survey/controllers/agent_access_point_form_controller.dart:13                                     │      100% │
+│ 67     │ authoring_form_controller                            │ lib/features/survey/controllers/agent_access_point_form_controller.dart:14                                     │      100% │
+│ 68     │ survey_authoring_validators                          │ lib/features/survey/controllers/agent_access_point_form_controller.dart:15                                     │      100% │
+│ 69     │ widgets                                              │ lib/features/survey/controllers/ai_agent_form_controller.dart:1                                                │      100% │
+│ 70     │ material                                             │ lib/features/survey/controllers/ai_agent_form_controller.dart:2                                                │      100% │
+│ 71     │ ai_agent_draft                                       │ lib/features/survey/controllers/ai_agent_form_controller.dart:3                                                │      100% │
+│ 72     │ ai_agent_repository                                  │ lib/features/survey/controllers/ai_agent_form_controller.dart:4                                                │      100% │
+│ 73     │ authoring_form_controller                            │ lib/features/survey/controllers/ai_agent_form_controller.dart:5                                                │      100% │
+│ 74     │ survey_authoring_validators                          │ lib/features/survey/controllers/ai_agent_form_controller.dart:6                                                │      100% │
+│ 75     │ widgets                                              │ lib/features/survey/controllers/authoring_form_controller.dart:1                                               │      100% │
+│ 76     │ foundation                                           │ lib/features/survey/controllers/authoring_form_controller.dart:2                                               │      100% │
+│ 77     │ widgets                                              │ lib/features/survey/controllers/persona_skill_form_controller.dart:1                                           │      100% │
+│ 78     │ material                                             │ lib/features/survey/controllers/persona_skill_form_controller.dart:2                                           │      100% │
+│ 79     │ persona_skill_draft                                  │ lib/features/survey/controllers/persona_skill_form_controller.dart:3                                           │      100% │
+│ 80     │ persona_skill_repository                             │ lib/features/survey/controllers/persona_skill_form_controller.dart:4                                           │      100% │
+│ 81     │ authoring_form_controller                            │ lib/features/survey/controllers/persona_skill_form_controller.dart:5                                           │      100% │
+│ 82     │ survey_authoring_validators                          │ lib/features/survey/controllers/persona_skill_form_controller.dart:6                                           │      100% │
+│ 83     │ dart:async                                           │ lib/features/survey/controllers/survey_form_controller.dart:1                                                  │      100% │
+│ 84     │ dart:convert                                         │ lib/features/survey/controllers/survey_form_controller.dart:2                                                  │      100% │
+│ 85     │ widgets                                              │ lib/features/survey/controllers/survey_form_controller.dart:4                                                  │      100% │
+│ 86     │ material                                             │ lib/features/survey/controllers/survey_form_controller.dart:5                                                  │      100% │
+│ 87     │ shared_preferences                                   │ lib/features/survey/controllers/survey_form_controller.dart:6                                                  │      100% │
+│ 88     │ persona_skill_draft                                  │ lib/features/survey/controllers/survey_form_controller.dart:7                                                  │      100% │
+│ 89     │ survey_draft                                         │ lib/features/survey/controllers/survey_form_controller.dart:8                                                  │      100% │
+│ 90     │ survey_prompt_draft                                  │ lib/features/survey/controllers/survey_form_controller.dart:9                                                  │      100% │
+│ 91     │ persona_skill_repository                             │ lib/features/survey/controllers/survey_form_controller.dart:10                                                 │      100% │
+│ 92     │ survey_prompt_repository                             │ lib/features/survey/controllers/survey_form_controller.dart:11                                                 │      100% │
+│ 93     │ survey_repository                                    │ lib/features/survey/controllers/survey_form_controller.dart:12                                                 │      100% │
+│ 94     │ authoring_form_controller                            │ lib/features/survey/controllers/survey_form_controller.dart:13                                                 │      100% │
+│ 95     │ survey_authoring_validators                          │ lib/features/survey/controllers/survey_form_controller.dart:14                                                 │      100% │
+│ 96     │ widgets                                              │ lib/features/survey/pages/agent_access_point_form_page.dart:1                                                  │      100% │
+│ 97     │ material                                             │ lib/features/survey/pages/agent_access_point_form_page.dart:2                                                  │      100% │
+│ 98     │ agent_access_point_draft                             │ lib/features/survey/pages/agent_access_point_form_page.dart:3                                                  │      100% │
+│ 99     │ agent_access_point_repository                        │ lib/features/survey/pages/agent_access_point_form_page.dart:4                                                  │      100% │
+│ 100    │ agent_access_point_form_controller                   │ lib/features/survey/pages/agent_access_point_form_page.dart:5                                                  │      100% │
+│ 101    │ agent_access_point_form_sections                     │ lib/features/survey/pages/agent_access_point_form_page.dart:6                                                  │      100% │
+│ 102    │ widgets                                              │ lib/features/survey/pages/agent_access_point_list_page.dart:1                                                  │      100% │
+│ 103    │ material                                             │ lib/features/survey/pages/agent_access_point_list_page.dart:2                                                  │      100% │
+│ 104    │ agent_access_point_draft                             │ lib/features/survey/pages/agent_access_point_list_page.dart:3                                                  │      100% │
+│ 105    │ agent_access_point_repository                        │ lib/features/survey/pages/agent_access_point_list_page.dart:4                                                  │      100% │
+│ 106    │ agent_access_point_form_page                         │ lib/features/survey/pages/agent_access_point_list_page.dart:5                                                  │      100% │
+│ 107    │ widgets                                              │ lib/features/survey/pages/ai_agent_form_page.dart:1                                                            │      100% │
+│ 108    │ material                                             │ lib/features/survey/pages/ai_agent_form_page.dart:2                                                            │      100% │
+│ 109    │ ai_agent_draft                                       │ lib/features/survey/pages/ai_agent_form_page.dart:3                                                            │      100% │
+│ 110    │ ai_agent_repository                                  │ lib/features/survey/pages/ai_agent_form_page.dart:4                                                            │      100% │
+│ 111    │ ai_agent_form_controller                             │ lib/features/survey/pages/ai_agent_form_page.dart:5                                                            │      100% │
+│ 112    │ ai_agent_form_sections                               │ lib/features/survey/pages/ai_agent_form_page.dart:6                                                            │      100% │
+│ 113    │ widgets                                              │ lib/features/survey/pages/ai_agent_list_page.dart:1                                                            │      100% │
+│ 114    │ material                                             │ lib/features/survey/pages/ai_agent_list_page.dart:2                                                            │      100% │
+│ 115    │ ai_agent_draft                                       │ lib/features/survey/pages/ai_agent_list_page.dart:3                                                            │      100% │
+│ 116    │ ai_agent_repository                                  │ lib/features/survey/pages/ai_agent_list_page.dart:4                                                            │      100% │
+│ 117    │ ai_agent_form_page                                   │ lib/features/survey/pages/ai_agent_list_page.dart:5                                                            │      100% │
+│ 118    │ widgets                                              │ lib/features/survey/pages/builder_shell_page.dart:1                                                            │      100% │
+│ 119    │ material                                             │ lib/features/survey/pages/builder_shell_page.dart:2                                                            │      100% │
+│ 120    │ builder_auth_controller                              │ lib/features/survey/pages/builder_shell_page.dart:3                                                            │      100% │
+│ 121    │ agent_access_point_list_page                         │ lib/features/survey/pages/builder_shell_page.dart:4                                                            │      100% │
+│ 122    │ ai_agent_list_page                                   │ lib/features/survey/pages/builder_shell_page.dart:5                                                            │      100% │
+│ 123    │ persona_skill_list_page                              │ lib/features/survey/pages/builder_shell_page.dart:6                                                            │      100% │
+│ 124    │ screener_settings_page                               │ lib/features/survey/pages/builder_shell_page.dart:7                                                            │      100% │
+│ 125    │ survey_list_page                                     │ lib/features/survey/pages/builder_shell_page.dart:8                                                            │      100% │
+│ 126    │ survey_prompt_list_page                              │ lib/features/survey/pages/builder_shell_page.dart:9                                                            │      100% │
+│ 127    │ task_dashboard_page                                  │ lib/features/survey/pages/builder_shell_page.dart:10                                                           │      100% │
+│ 128    │ widgets                                              │ lib/features/survey/pages/empty_section_view.dart:1                                                            │      100% │
+│ 129    │ material                                             │ lib/features/survey/pages/empty_section_view.dart:2                                                            │      100% │
+│ 130    │ widgets                                              │ lib/features/survey/pages/persona_skill_form_page.dart:1                                                       │      100% │
+│ 131    │ material                                             │ lib/features/survey/pages/persona_skill_form_page.dart:2                                                       │      100% │
+│ 132    │ persona_skill_draft                                  │ lib/features/survey/pages/persona_skill_form_page.dart:3                                                       │      100% │
+│ 133    │ persona_skill_repository                             │ lib/features/survey/pages/persona_skill_form_page.dart:4                                                       │      100% │
+│ 134    │ persona_skill_form_controller                        │ lib/features/survey/pages/persona_skill_form_page.dart:5                                                       │      100% │
+│ 135    │ persona_skill_form_sections                          │ lib/features/survey/pages/persona_skill_form_page.dart:6                                                       │      100% │
+│ 136    │ widgets                                              │ lib/features/survey/pages/persona_skill_list_page.dart:1                                                       │      100% │
+│ 137    │ material                                             │ lib/features/survey/pages/persona_skill_list_page.dart:2                                                       │      100% │
+│ 138    │ persona_skill_draft                                  │ lib/features/survey/pages/persona_skill_list_page.dart:3                                                       │      100% │
+│ 139    │ persona_skill_repository                             │ lib/features/survey/pages/persona_skill_list_page.dart:4                                                       │      100% │
+│ 140    │ persona_skill_form_page                              │ lib/features/survey/pages/persona_skill_list_page.dart:5                                                       │      100% │
+│ 141    │ widgets                                              │ lib/features/survey/pages/screener_settings_page.dart:1                                                        │      100% │
+│ 142    │ material                                             │ lib/features/survey/pages/screener_settings_page.dart:2                                                        │      100% │
+│ 143    │ ai_settings_draft                                    │ lib/features/survey/pages/screener_settings_page.dart:3                                                        │      100% │
+│ 144    │ survey_draft                                         │ lib/features/survey/pages/screener_settings_page.dart:4                                                        │      100% │
+│ 145    │ ai_settings_repository                               │ lib/features/survey/pages/screener_settings_page.dart:5                                                        │      100% │
+│ 146    │ screener_settings_repository                         │ lib/features/survey/pages/screener_settings_page.dart:6                                                        │      100% │
+│ 147    │ survey_repository                                    │ lib/features/survey/pages/screener_settings_page.dart:7                                                        │      100% │
+│ 148    │ dart:async                                           │ lib/features/survey/pages/survey_form_page.dart:1                                                              │      100% │
+│ 149    │ widgets                                              │ lib/features/survey/pages/survey_form_page.dart:3                                                              │      100% │
+│ 150    │ material                                             │ lib/features/survey/pages/survey_form_page.dart:4                                                              │      100% │
+│ 151    │ survey_draft                                         │ lib/features/survey/pages/survey_form_page.dart:5                                                              │      100% │
+│ 152    │ persona_skill_repository                             │ lib/features/survey/pages/survey_form_page.dart:6                                                              │      100% │
+│ 153    │ survey_prompt_repository                             │ lib/features/survey/pages/survey_form_page.dart:7                                                              │      100% │
+│ 154    │ survey_repository                                    │ lib/features/survey/pages/survey_form_page.dart:8                                                              │      100% │
+│ 155    │ survey_form_controller                               │ lib/features/survey/pages/survey_form_page.dart:9                                                              │      100% │
+│ 156    │ html_rich_text_editor                                │ lib/features/survey/pages/survey_form_page.dart:10                                                             │      100% │
+│ 157    │ survey_form_sections                                 │ lib/features/survey/pages/survey_form_page.dart:11                                                             │      100% │
+│ 158    │ widgets                                              │ lib/features/survey/pages/survey_list_page.dart:1                                                              │      100% │
+│ 159    │ material                                             │ lib/features/survey/pages/survey_list_page.dart:2                                                              │      100% │
+│ 160    │ survey_draft                                         │ lib/features/survey/pages/survey_list_page.dart:3                                                              │      100% │
+│ 161    │ survey_repository                                    │ lib/features/survey/pages/survey_list_page.dart:4                                                              │      100% │
+│ 162    │ file_download                                        │ lib/features/survey/pages/survey_list_page.dart:5                                                              │      100% │
+│ 163    │ survey_form_page                                     │ lib/features/survey/pages/survey_list_page.dart:6                                                              │      100% │
+│ 164    │ widgets                                              │ lib/features/survey/pages/survey_prompt_form_page.dart:1                                                       │      100% │
+│ 165    │ material                                             │ lib/features/survey/pages/survey_prompt_form_page.dart:2                                                       │      100% │
+│ 166    │ survey_prompt_draft                                  │ lib/features/survey/pages/survey_prompt_form_page.dart:3                                                       │      100% │
+│ 167    │ survey_prompt_repository                             │ lib/features/survey/pages/survey_prompt_form_page.dart:4                                                       │      100% │
+│ 168    │ widgets                                              │ lib/features/survey/pages/survey_prompt_list_page.dart:1                                                       │      100% │
+│ 169    │ material                                             │ lib/features/survey/pages/survey_prompt_list_page.dart:2                                                       │      100% │
+│ 170    │ survey_prompt_draft                                  │ lib/features/survey/pages/survey_prompt_list_page.dart:3                                                       │      100% │
+│ 171    │ survey_prompt_repository                             │ lib/features/survey/pages/survey_prompt_list_page.dart:4                                                       │      100% │
+│ 172    │ survey_prompt_form_page                              │ lib/features/survey/pages/survey_prompt_list_page.dart:5                                                       │      100% │
+│ 173    │ widgets                                              │ lib/features/survey/pages/task_dashboard_page.dart:1                                                           │      100% │
+│ 174    │ material                                             │ lib/features/survey/pages/task_dashboard_page.dart:2                                                           │      100% │
+│ 175    │ builder_auth_controller                              │ lib/features/survey/pages/task_dashboard_page.dart:3                                                           │      100% │
+│ 176    │ survey_form_page                                     │ lib/features/survey/pages/task_dashboard_page.dart:4                                                           │      100% │
+│ 177    │ widgets                                              │ lib/features/survey/validators/survey_authoring_validators.dart:1                                              │      100% │
+│ 178    │ widgets                                              │ lib/features/survey/widgets/agent_access_point_form_sections.dart:1                                            │      100% │
+│ 179    │ material                                             │ lib/features/survey/widgets/agent_access_point_form_sections.dart:2                                            │      100% │
+│ 180    │ runtime_agent_access_points                          │ lib/features/survey/widgets/agent_access_point_form_sections.dart:3                                            │      100% │
+│ 181    │ agent_access_point_form_controller                   │ lib/features/survey/widgets/agent_access_point_form_sections.dart:4                                            │      100% │
+│ 182    │ survey_authoring_validators                          │ lib/features/survey/widgets/agent_access_point_form_sections.dart:5                                            │      100% │
+│ 183    │ widgets                                              │ lib/features/survey/widgets/ai_agent_form_sections.dart:1                                                      │      100% │
+│ 184    │ material                                             │ lib/features/survey/widgets/ai_agent_form_sections.dart:2                                                      │      100% │
+│ 185    │ ai_agent_form_controller                             │ lib/features/survey/widgets/ai_agent_form_sections.dart:3                                                      │      100% │
+│ 186    │ survey_authoring_validators                          │ lib/features/survey/widgets/ai_agent_form_sections.dart:4                                                      │      100% │
+│ 187    │ widgets                                              │ lib/features/survey/widgets/html_rich_text_editor.dart:1                                                       │      100% │
+│ 188    │ material                                             │ lib/features/survey/widgets/html_rich_text_editor.dart:2                                                       │      100% │
+│ 189    │ html_rich_text_editor_impl                           │ lib/features/survey/widgets/html_rich_text_editor.dart:4                                                       │      100% │
+│ 190    │ material                                             │ lib/features/survey/widgets/html_rich_text_editor_native.dart:1                                                │      100% │
+│ 191    │ dart:js_interop                                      │ lib/features/survey/widgets/html_rich_text_editor_web.dart:1                                                   │      100% │
+│ 192    │ ui                                                   │ lib/features/survey/widgets/html_rich_text_editor_web.dart:2                                                   │      100% │
+│ 193    │ widgets                                              │ lib/features/survey/widgets/html_rich_text_editor_web.dart:4                                                   │      100% │
+│ 194    │ material                                             │ lib/features/survey/widgets/html_rich_text_editor_web.dart:5                                                   │      100% │
+│ 195    │ web                                                  │ lib/features/survey/widgets/html_rich_text_editor_web.dart:6                                                   │      100% │
+│ 196    │ widgets                                              │ lib/features/survey/widgets/persona_skill_form_sections.dart:1                                                 │      100% │
+│ 197    │ material                                             │ lib/features/survey/widgets/persona_skill_form_sections.dart:2                                                 │      100% │
+│ 198    │ persona_skill_form_controller                        │ lib/features/survey/widgets/persona_skill_form_sections.dart:3                                                 │      100% │
+│ 199    │ survey_authoring_validators                          │ lib/features/survey/widgets/persona_skill_form_sections.dart:4                                                 │      100% │
+│ 200    │ widgets                                              │ lib/features/survey/widgets/survey_form_sections.dart:1                                                        │      100% │
+│ 201    │ material                                             │ lib/features/survey/widgets/survey_form_sections.dart:2                                                        │      100% │
+│ 202    │ survey_form_controller                               │ lib/features/survey/widgets/survey_form_sections.dart:3                                                        │      100% │
+│ 203    │ survey_authoring_validators                          │ lib/features/survey/widgets/survey_form_sections.dart:4                                                        │      100% │
+│ 204    │ html_rich_text_editor                                │ lib/features/survey/widgets/survey_form_sections.dart:5                                                        │      100% │
+│ 205    │ app_theme                                            │ lib/main.dart:1                                                                                                │      100% │
+│ 206    │ widgets                                              │ lib/main.dart:2                                                                                                │      100% │
+│ 207    │ material                                             │ lib/main.dart:3                                                                                                │      100% │
+│ 208    │ flutter_localizations                                │ lib/main.dart:4                                                                                                │      100% │
+│ 209    │ builder_auth_controller                              │ lib/main.dart:5                                                                                                │      100% │
+│ 210    │ builder_auth_models                                  │ lib/main.dart:6                                                                                                │      100% │
+│ 211    │ runtime_config                                       │ lib/main.dart:7                                                                                                │      100% │
+│ 212    │ api_config                                           │ lib/main.dart:8                                                                                                │      100% │
+│ 213    │ builder_login_page                                   │ lib/main.dart:9                                                                                                │      100% │
+│ 214    │ builder_shell_page                                   │ lib/main.dart:10                                                                                               │      100% │
+└────────┴──────────────────────────────────────────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────────────┴───────────┘
+Name — the unused function, import, class, or variable.
+Conf — how confident Skylos is that this code is truly unused (higher = safer to remove).
+Suppress: # skylos: ignore (line), ignore = ["SKY-XXX"] (rule), or # skylos: ignore-start/end (block)
+Full guide: https://docs.skylos.dev/guides/understanding-output
+
+────────────────────────────────────────────────────────────────────────────────────── Unused Variables ──────────────────────────────────────────────────────────────────────────────────────
+┏━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ #      ┃ Name                                               ┃ Location                                                                                                        ┃       Conf ┃
+┡━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━┩
+│ 1      │ _failure                                           │ lib/core/auth/builder_auth_controller.dart:14                                                                   │        90% │
+│ 2      │ _submitting                                        │ lib/core/auth/builder_auth_controller.dart:15                                                                   │        90% │
+│ 3      │ _rawClient                                         │ lib/core/repositories/survey_repository.dart:18                                                                 │        90% │
+│ 4      │ _csrfTokenProvider                                 │ lib/core/services/api_config.dart:27                                                                            │        90% │
+│ 5      │ _authFailureHandler                                │ lib/core/services/api_config.dart:28                                                                            │        90% │
+│ 6      │ _initialDraft                                      │ lib/features/survey/controllers/persona_skill_form_controller.dart:39                                           │        90% │
+│ 7      │ _existingSkills                                    │ lib/features/survey/controllers/persona_skill_form_controller.dart:41                                           │        90% │
+│ 8      │ _promptRepo                                        │ lib/features/survey/controllers/survey_form_controller.dart:52                                                  │        90% │
+│ 9      │ _personaSkillRepo                                  │ lib/features/survey/controllers/survey_form_controller.dart:53                                                  │        90% │
+│ 10     │ _initialDraftId                                    │ lib/features/survey/controllers/survey_form_controller.dart:54                                                  │        90% │
+│ 11     │ _draftSaveDebounce                                 │ lib/features/survey/controllers/survey_form_controller.dart:55                                                  │        90% │
+│ 12     │ _routingSectionId                                  │ lib/features/survey/pages/agent_access_point_form_page.dart:37                                                  │        90% │
+│ 13     │ _assignmentSectionId                               │ lib/features/survey/pages/agent_access_point_form_page.dart:25                                                  │        90% │
+│ 14     │ _aiSectionId                                       │ lib/features/survey/pages/agent_access_point_form_page.dart:26                                                  │        90% │
+│ 15     │ _orchestratorSectionId                             │ lib/features/survey/pages/agent_access_point_form_page.dart:27                                                  │        90% │
+│ 16     │ _routingSectionKey                                 │ lib/features/survey/pages/agent_access_point_form_page.dart:31                                                  │        90% │
+│ 17     │ _assignmentSectionKey                              │ lib/features/survey/pages/agent_access_point_form_page.dart:32                                                  │        90% │
+│ 18     │ _aiSectionKey                                      │ lib/features/survey/pages/agent_access_point_form_page.dart:33                                                  │        90% │
+│ 19     │ _orchestratorSectionKey                            │ lib/features/survey/pages/agent_access_point_form_page.dart:34                                                  │        90% │
+│ 20     │ _accessPoints                                      │ lib/features/survey/pages/agent_access_point_list_page.dart:28                                                  │        90% │
+│ 21     │ _capabilitiesSectionId                             │ lib/features/survey/pages/ai_agent_form_page.dart:20                                                            │        90% │
+│ 22     │ _capabilitiesSectionKey                            │ lib/features/survey/pages/ai_agent_form_page.dart:25                                                            │        90% │
+│ 23     │ _agents                                            │ lib/features/survey/pages/ai_agent_list_page.dart:23                                                            │        90% │
+│ 24     │ _dashboardSection                                  │ lib/features/survey/pages/builder_shell_page.dart:30                                                            │        90% │
+│ 25     │ _surveysSection                                    │ lib/features/survey/pages/builder_shell_page.dart:23                                                            │        90% │
+│ 26     │ _promptsSection                                    │ lib/features/survey/pages/builder_shell_page.dart:24                                                            │        90% │
+│ 27     │ _personasSection                                   │ lib/features/survey/pages/builder_shell_page.dart:25                                                            │        90% │
+│ 28     │ _aiAgentsSection                                   │ lib/features/survey/pages/builder_shell_page.dart:26                                                            │        90% │
+│ 29     │ _accessPointsSection                               │ lib/features/survey/pages/builder_shell_page.dart:27                                                            │        90% │
+│ 30     │ _screenerSettingsSection                           │ lib/features/survey/pages/builder_shell_page.dart:28                                                            │        90% │
+│ 31     │ _refreshVersion                                    │ lib/features/survey/pages/builder_shell_page.dart:31                                                            │        90% │
+│ 32     │ _settingsRepository                                │ lib/features/survey/pages/screener_settings_page.dart:28                                                        │        90% │
+│ 33     │ _aiSettingsRepository                              │ lib/features/survey/pages/screener_settings_page.dart:29                                                        │        90% │
+│ 34     │ _surveyRepository                                  │ lib/features/survey/pages/screener_settings_page.dart:30                                                        │        90% │
+│ 35     │ _primaryModelController                            │ lib/features/survey/pages/screener_settings_page.dart:31                                                        │        90% │
+│ 36     │ _fallbackModelController                           │ lib/features/survey/pages/screener_settings_page.dart:32                                                        │        90% │
+│ 37     │ _selectedSurveyId                                  │ lib/features/survey/pages/screener_settings_page.dart:34                                                        │        90% │
+│ 38     │ _activeSurveyName                                  │ lib/features/survey/pages/screener_settings_page.dart:35                                                        │        90% │
+│ 39     │ _aiPrimaryProvider                                 │ lib/features/survey/pages/screener_settings_page.dart:36                                                        │        90% │
+│ 40     │ _aiFallbackProvider                                │ lib/features/survey/pages/screener_settings_page.dart:37                                                        │        90% │
+│ 41     │ _aiTemperature                                     │ lib/features/survey/pages/screener_settings_page.dart:38                                                        │        90% │
+│ 42     │ _aiReasoningEffort                                 │ lib/features/survey/pages/screener_settings_page.dart:39                                                        │        90% │
+│ 43     │ _aiEnableCaching                                   │ lib/features/survey/pages/screener_settings_page.dart:40                                                        │        90% │
+│ 44     │ _savingAi                                          │ lib/features/survey/pages/screener_settings_page.dart:43                                                        │        90% │
+│ 45     │ _promptSectionId                                   │ lib/features/survey/pages/survey_form_page.dart:36                                                              │        90% │
+│ 46     │ _personaSectionId                                  │ lib/features/survey/pages/survey_form_page.dart:37                                                              │        90% │
+│ 47     │ _questionsSectionId                                │ lib/features/survey/pages/survey_form_page.dart:38                                                              │        90% │
+│ 48     │ _promptSectionKey                                  │ lib/features/survey/pages/survey_form_page.dart:44                                                              │        90% │
+│ 49     │ _personaSectionKey                                 │ lib/features/survey/pages/survey_form_page.dart:45                                                              │        90% │
+│ 50     │ _questionsSectionKey                               │ lib/features/survey/pages/survey_form_page.dart:46                                                              │        90% │
+│ 51     │ _descriptionEditorKey                              │ lib/features/survey/pages/survey_form_page.dart:47                                                              │        90% │
+│ 52     │ _instructionsPreambleEditorKey                     │ lib/features/survey/pages/survey_form_page.dart:48                                                              │        90% │
+│ 53     │ _finalNotesEditorKey                               │ lib/features/survey/pages/survey_form_page.dart:49                                                              │        90% │
+│ 54     │ _exporting                                         │ lib/features/survey/pages/survey_list_page.dart:28                                                              │        90% │
+│ 55     │ _nameController                                    │ lib/features/survey/pages/survey_prompt_form_page.dart:27                                                       │        90% │
+│ 56     │ _keyController                                     │ lib/features/survey/pages/survey_prompt_form_page.dart:28                                                       │        90% │
+│ 57     │ _promptTextController                              │ lib/features/survey/pages/survey_prompt_form_page.dart:29                                                       │        90% │
+│ 58     │ _prompts                                           │ lib/features/survey/pages/survey_prompt_list_page.dart:27                                                       │        90% │
+│ 59     │ _testController                                    │ lib/features/survey/widgets/html_rich_text_editor.dart:36                                                       │        90% │
+│ 60     │ _currentHtml                                       │ lib/features/survey/widgets/html_rich_text_editor.dart:37                                                       │        90% │
+│ 61     │ _allowedTags                                       │ lib/features/survey/widgets/html_rich_text_editor_web.dart:29                                                   │        90% │
+│ 62     │ _viewType                                          │ lib/features/survey/widgets/html_rich_text_editor_web.dart:45                                                   │        90% │
+│ 63     │ _editorElement                                     │ lib/features/survey/widgets/html_rich_text_editor_web.dart:46                                                   │        90% │
+│ 64     │ _inputListener                                     │ lib/features/survey/widgets/html_rich_text_editor_web.dart:47                                                   │        90% │
+│ 65     │ _focusListener                                     │ lib/features/survey/widgets/html_rich_text_editor_web.dart:48                                                   │        90% │
+│ 66     │ _blurListener                                      │ lib/features/survey/widgets/html_rich_text_editor_web.dart:49                                                   │        90% │
+│ 67     │ _hasFocus                                          │ lib/features/survey/widgets/html_rich_text_editor_web.dart:50                                                   │        90% │
+│ 68     │ _isEmpty                                           │ lib/features/survey/widgets/html_rich_text_editor_web.dart:51                                                   │        90% │
+│ 69     │ _lastHtml                                          │ lib/features/survey/widgets/html_rich_text_editor_web.dart:52                                                   │        90% │
+│ 70     │ _authController                                    │ lib/main.dart:26                                                                                                │        90% │
+└────────┴────────────────────────────────────────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────────┴────────────┘
+Name — the unused function, import, class, or variable.
+Conf — how confident Skylos is that this code is truly unused (higher = safer to remove).
+Suppress: # skylos: ignore (line), ignore = ["SKY-XXX"] (rule), or # skylos: ignore-start/end (block)
+Full guide: https://docs.skylos.dev/guides/understanding-output
+
+─────────────────────────────────────────────────────────────────────────────────────── Unused Classes ───────────────────────────────────────────────────────────────────────────────────────
+┏━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ #       ┃ Name                                                  ┃ Location                                                                                                    ┃       Conf ┃
+┡━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━┩
+│ 1       │ BuilderProfile                                        │ lib/core/auth/builder_auth_models.dart:1                                                                    │       100% │
+│ 2       │ PersonaSkillDuplicateCheckResult                      │ lib/core/models/persona_skill_draft.dart:32                                                                 │       100% │
+│ 3       │ PersonaSkillFormSupport                               │ lib/core/models/persona_skill_draft.dart:44                                                                 │       100% │
+│ 4       │ _RecentUpdatesSection                                 │ lib/features/survey/pages/task_dashboard_page.dart:252                                                      │        90% │
+│ 5       │ SurveyAuthoringValidators                             │ lib/features/survey/validators/survey_authoring_validators.dart:3                                           │       100% │
+│ 6       │ _BuilderLoadingPage                                   │ lib/main.dart:93                                                                                            │        90% │
+└─────────┴───────────────────────────────────────────────────────┴─────────────────────────────────────────────────────────────────────────────────────────────────────────────┴────────────┘
+Name — the unused function, import, class, or variable.
+Conf — how confident Skylos is that this code is truly unused (higher = safer to remove).
+Suppress: # skylos: ignore (line), ignore = ["SKY-XXX"] (rule), or # skylos: ignore-start/end (block)
+Full guide: https://docs.skylos.dev/guides/understanding-output
+
+──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+╭───────────────────────────────────────────────────────────╮
+│ Found 324 dead-code items. Add this badge to your README: │
+╰───────────────────────────────────────────────────────────╯
+```markdown
+![Dead Code: 324](https://img.shields.io/badge/Dead_Code-324_detected-orange?logo=codacy&logoColor=red)
+```
