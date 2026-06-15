@@ -66,6 +66,18 @@
       "batchSize": 10,
       "httpTimeoutSeconds": 15
     },
+    "clinicalWriter": {
+      "aiApiKey": "",
+      "geminiApiKey": "",
+      "glmApiKey": "",
+      "glmBaseUrl": "https://api.z.ai/api/paas/v4/",
+      "geminiModel": "gemini-2.5-flash",
+      "glmModel": "glm-4-flash",
+      "primaryModel": "glm-4-flash",
+      "fallbackModel": "gemini-2.5-flash",
+      "googleApplicationCredentials": "/app/clinical_writer_agent/credentials/google-application-credentials.json",
+      "googleDriveFolderId": ""
+    },
     "deployment": {
       "letsencryptEmail": "ops@example.com"
     }

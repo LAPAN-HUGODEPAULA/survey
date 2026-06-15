@@ -1,7 +1,7 @@
 """Environment-backed application settings."""
 
-from pydantic import BaseModel
-import os
+from pydantic import AliasChoices, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def _parse_csv_env(value: str | None) -> list[str]:
@@ -11,62 +11,71 @@ def _parse_csv_env(value: str | None) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-class Settings(BaseModel):
+class Settings(BaseSettings):
     """Centralizes runtime configuration loaded from environment variables."""
 
+    model_config = SettingsConfigDict(case_sensitive=False, extra="ignore")
+
     # MongoDB connection settings.
-    mongo_uri: str = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-    mongo_db_name: str = os.getenv("MONGO_DB_NAME", "survey_db")
+    mongo_uri: str = "mongodb://localhost:27017"
+    mongo_db_name: str = "survey_db"
 
     # Clinical Writer integration settings.
-    clinical_writer_url: str = os.getenv("CLINICAL_WRITER_URL", "http://clinical-writer-agent:8000/process")
-    clinical_writer_token: str | None = os.getenv("CLINICAL_WRITER_API_TOKEN")
-    clinical_writer_transcription_url: str | None = os.getenv("CLINICAL_WRITER_TRANSCRIPTION_URL")
-    clinical_writer_http_timeout_seconds: int = int(
-        os.getenv("CLINICAL_WRITER_HTTP_TIMEOUT_SECONDS", "300")
+    clinical_writer_url: str = "http://clinical_writer_agent:8000/process"
+    clinical_writer_token: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("CLINICAL_WRITER_API_TOKEN", "AI_API_KEY"),
     )
-    clinical_writer_inline_timeout_seconds: int = int(
-        os.getenv("CLINICAL_WRITER_INLINE_TIMEOUT_SECONDS", "180")
-    )
+    clinical_writer_transcription_url: str | None = None
+    clinical_writer_http_timeout_seconds: int = 300
+    clinical_writer_inline_timeout_seconds: int = 180
 
     # Email delivery settings.
-    smtp_host: str | None = os.getenv("SMTP_HOST") or os.getenv("MAIL_SERVER")
-    smtp_port: int = int(os.getenv("SMTP_PORT") or os.getenv("MAIL_PORT", "587"))
-    smtp_user: str | None = os.getenv("SMTP_USER") or os.getenv("MAIL_USERNAME")
-    smtp_password: str | None = os.getenv("SMTP_PASSWORD") or os.getenv("MAIL_PASSWORD")
+    smtp_host: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("SMTP_HOST", "MAIL_SERVER"),
+    )
+    smtp_port: int = Field(
+        default=587,
+        validation_alias=AliasChoices("SMTP_PORT", "MAIL_PORT"),
+    )
+    smtp_user: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("SMTP_USER", "MAIL_USERNAME"),
+    )
+    smtp_password: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("SMTP_PASSWORD", "MAIL_PASSWORD"),
+    )
 
     # JWT signing settings.
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "super-secret-key")  # Replace in production.
-    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
-    builder_session_expire_minutes: int = int(
-        os.getenv("BUILDER_SESSION_EXPIRE_MINUTES", "480")
-    )
-    builder_session_cookie_name: str = os.getenv(
-        "BUILDER_SESSION_COOKIE_NAME",
-        "survey_builder_session",
-    )
-    builder_csrf_cookie_name: str = os.getenv(
-        "BUILDER_CSRF_COOKIE_NAME",
-        "survey_builder_csrf",
-    )
-    builder_csrf_header_name: str = os.getenv(
-        "BUILDER_CSRF_HEADER_NAME",
-        "X-Builder-CSRF",
-    )
-    builder_cookie_domain: str | None = os.getenv("BUILDER_COOKIE_DOMAIN")
+    SECRET_KEY: str = "super-secret-key"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    builder_session_expire_minutes: int = 480
+    builder_session_cookie_name: str = "survey_builder_session"
+    builder_csrf_cookie_name: str = "survey_builder_csrf"
+    builder_csrf_header_name: str = "X-Builder-CSRF"
+    builder_cookie_domain: str | None = None
 
     # Environment and administrative controls.
-    environment: str = os.getenv("ENVIRONMENT", "development")
-    cors_allowed_origins_raw: str | None = os.getenv("CORS_ALLOWED_ORIGINS")
-    template_admin_emails: list[str] = [
-        email.strip()
-        for email in os.getenv("TEMPLATE_ADMIN_EMAILS", "").split(",")
-        if email.strip()
-    ]
-    privacy_admin_token: str = os.getenv("PRIVACY_ADMIN_TOKEN", "dev-privacy-token")
-    encryption_key_id: str | None = os.getenv("ENCRYPTION_KEY_ID")
-    encryption_provider: str | None = os.getenv("ENCRYPTION_PROVIDER")
+    environment: str = "development"
+    cors_allowed_origins_raw: str | None = Field(
+        default=None,
+        validation_alias="CORS_ALLOWED_ORIGINS",
+    )
+    template_admin_emails_raw: str = Field(
+        default="",
+        validation_alias="TEMPLATE_ADMIN_EMAILS",
+    )
+    privacy_admin_token: str = "dev-privacy-token"
+    encryption_key_id: str | None = None
+    encryption_provider: str | None = None
+
+    @property
+    def template_admin_emails(self) -> list[str]:
+        """Return normalized template administrator email addresses."""
+        return _parse_csv_env(self.template_admin_emails_raw)
 
     @property
     def is_production(self) -> bool:

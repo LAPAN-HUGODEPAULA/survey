@@ -39,19 +39,15 @@ services:
       - survey_network
 
   survey-backend:
-    build: ./services/survey-backend
+    build:
+      context: .
+      dockerfile: ./services/survey-backend/Dockerfile
     container_name: survey-backend
     restart: always
     ports:
       - "8000:8000"
     env_file:
       - ./config/runtime/generated/private/survey-backend.env
-    environment:
-      - API_TOKEN=dev-token
-      - CLINICAL_WRITER_API_TOKEN=dev-token
-      - CLINICAL_WRITER_HTTP_TIMEOUT_SECONDS=300
-      - CLINICAL_WRITER_INLINE_TIMEOUT_SECONDS=180
-      - CLINICAL_WRITER_URL=http://clinical-writer-agent:8000/process
     depends_on:
       - mongodb
       - clinical-writer-api
@@ -125,7 +121,9 @@ services:
       - traefik.http.services.survey-builder.loadbalancer.server.port=80
 
   survey-worker:
-    build: ./services/survey-worker
+    build:
+      context: .
+      dockerfile: ./services/survey-worker/Dockerfile
     container_name: survey-worker
     restart: always
     env_file:
@@ -137,20 +135,16 @@ services:
 
   clinical-writer-api:
     build:
-      context: ./services/clinical-writer-api/clinical_writer_agent
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./services/clinical-writer-api/clinical_writer_agent/Dockerfile
     command: uvicorn clinical_writer_agent.main:app --host 0.0.0.0 --port 8000 --workers 2 --timeout-keep-alive 300
     container_name: clinical-writer-agent
     env_file:
-      - services/clinical-writer-api/clinical_writer_agent/.env
       - ./config/runtime/generated/private/clinical-writer.env
-    environment:
-      - API_TOKEN=dev-token
-      - ALLOW_UNAUTHENTICATED_ACCESS=true
     ports:
       - "9566:8000"
     volumes:
-      - ./services/clinical-writer-api/clinical_writer_agent/credentials/darv-13c19-740b161e0018.json:/app/clinical_writer_agent/credentials/darv-13c19-740b161e0018.json
+      - ./services/clinical-writer-api/clinical_writer_agent/credentials:/app/clinical_writer_agent/credentials:ro
     restart: unless-stopped
     networks:
       - survey_network

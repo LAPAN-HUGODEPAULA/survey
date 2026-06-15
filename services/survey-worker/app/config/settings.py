@@ -1,36 +1,25 @@
 """Environment-driven settings for the survey worker."""
 
-import os
-from pydantic import BaseModel
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Settings(BaseModel):
+class Settings(BaseSettings):
     """Runtime configuration for polling MongoDB and calling Clinical Writer."""
 
-    mongo_uri: str = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-    mongo_db_name: str = os.getenv("MONGO_DB_NAME", "survey_db")
-    poll_interval_seconds: int = int(os.getenv("POLL_INTERVAL_SECONDS", "10"))
-    batch_size: int = int(os.getenv("BATCH_SIZE", "10"))
-    processing_stale_after_seconds: int = int(
-        os.getenv("PROCESSING_STALE_AFTER_SECONDS", "60")
-    )
-    worker_max_retries: int = int(os.getenv("WORKER_MAX_RETRIES", "1"))
+    model_config = SettingsConfigDict(case_sensitive=False, extra="ignore")
 
-    clinical_writer_url: str = os.getenv("CLINICAL_WRITER_URL", "http://clinical_writer_agent:8000/process")
-    clinical_writer_token: str | None = os.getenv("CLINICAL_WRITER_API_TOKEN")
-    http_timeout_seconds: int = int(os.getenv("HTTP_TIMEOUT_SECONDS", "15"))
-    log_payload_enabled: bool = os.getenv("WORKER_LOG_PAYLOAD", "false").lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }
-    log_response_enabled: bool = os.getenv("WORKER_LOG_RESPONSE", "false").lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }
+    mongo_uri: str = "mongodb://localhost:27017"
+    mongo_db_name: str = "survey_db"
+    poll_interval_seconds: int = 10
+    batch_size: int = 10
+    processing_stale_after_seconds: int = 60
+    worker_max_retries: int = 1
+
+    clinical_writer_url: str = "http://clinical_writer_agent:8000/process"
+    clinical_writer_token: str | None = None
+    http_timeout_seconds: int = 15
+    log_payload_enabled: bool = False
+    log_response_enabled: bool = False
 
 
 settings = Settings()

@@ -54,7 +54,11 @@ def main() -> None:
     mail = private.get("mail", {})
     backend = private.get("backend", {})
     worker = private.get("worker", {})
+    clinical_writer = private.get("clinicalWriter", {})
     deployment = private.get("deployment", {})
+    clinical_writer_api_token = str(
+        clinical_writer.get("aiApiKey", backend.get("clinicalWriterApiToken", ""))
+    )
 
     _write_json(PUBLIC_DIR / "survey-frontend.config.json", public.get("surveyFrontend", {}))
     _write_json(PUBLIC_DIR / "survey-patient.config.json", public.get("surveyPatient", {}))
@@ -91,7 +95,7 @@ def main() -> None:
             "ENVIRONMENT": str(backend.get("environment", "development")),
             "MY_CUSTOM_ENV": str(backend.get("myCustomEnv", "")),
             "CLINICAL_WRITER_URL": str(backend.get("clinicalWriterUrl", "")),
-            "CLINICAL_WRITER_API_TOKEN": str(backend.get("clinicalWriterApiToken", "")),
+            "CLINICAL_WRITER_API_TOKEN": clinical_writer_api_token,
             "CLINICAL_WRITER_TRANSCRIPTION_URL": str(
                 backend.get("clinicalWriterTranscriptionUrl", "")
             ),
@@ -125,7 +129,7 @@ def main() -> None:
             "MONGO_URI": str(mongo.get("uri", "")),
             "MONGO_DB_NAME": str(mongo.get("dbName", "survey_db")),
             "CLINICAL_WRITER_URL": str(backend.get("clinicalWriterUrl", "")),
-            "CLINICAL_WRITER_API_TOKEN": str(backend.get("clinicalWriterApiToken", "")),
+            "CLINICAL_WRITER_API_TOKEN": clinical_writer_api_token,
             "POLL_INTERVAL_SECONDS": str(worker.get("pollIntervalSeconds", 10)),
             "BATCH_SIZE": str(worker.get("batchSize", 10)),
             "HTTP_TIMEOUT_SECONDS": str(worker.get("httpTimeoutSeconds", 15)),
@@ -135,12 +139,26 @@ def main() -> None:
         PRIVATE_DIR / "clinical-writer.env",
         {
             "ENVIRONMENT": str(backend.get("environment", "development")),
-            "API_TOKEN": str(backend.get("clinicalWriterApiToken", "")),
+            "API_TOKEN": clinical_writer_api_token,
+            "AI_API_KEY": clinical_writer_api_token,
             "MONGO_URI": str(mongo.get("uri", "")),
             "MONGO_DB_NAME": str(mongo.get("dbName", "survey_db")),
             "ALLOW_UNAUTHENTICATED_ACCESS": str(
                 backend.get("allowUnauthenticatedClinicalWriterAccess", False)
             ).lower(),
+            "GEMINI_API_KEY": str(clinical_writer.get("geminiApiKey", "")),
+            "GLM_API_KEY": str(clinical_writer.get("glmApiKey", "")),
+            "GLM_BASE_URL": str(
+                clinical_writer.get("glmBaseUrl", "https://api.z.ai/api/paas/v4/")
+            ),
+            "GEMINI_MODEL": str(clinical_writer.get("geminiModel", "")),
+            "GLM_MODEL": str(clinical_writer.get("glmModel", "")),
+            "PRIMARY_MODEL": str(clinical_writer.get("primaryModel", "")),
+            "FALLBACK_MODEL": str(clinical_writer.get("fallbackModel", "")),
+            "GOOGLE_APPLICATION_CREDENTIALS": str(
+                clinical_writer.get("googleApplicationCredentials", "")
+            ),
+            "GOOGLE_DRIVE_FOLDER_ID": str(clinical_writer.get("googleDriveFolderId", "")),
         },
     )
 
