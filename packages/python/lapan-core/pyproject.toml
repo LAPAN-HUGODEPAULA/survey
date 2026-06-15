@@ -1,0 +1,6 @@
+[project]
+name = "lapan-core"
+version = "0.2.0"
+description = "Shared security helpers and common utilities for LAPAN services"
+requires-python = ">=3.13"
+dependencies = []

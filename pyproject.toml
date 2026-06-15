@@ -1,3 +1,27 @@
+[project]
+name = "lapan-survey-platform"
+version = "0.2.0"
+description = "LAPAN Survey Platform — UV workspace root"
+requires-python = ">=3.13"
+dependencies = []
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "pytest-asyncio>=0.24.0",
+]
+
+[tool.uv.workspace]
+members = [
+    "services/survey-backend",
+    "services/survey-worker",
+    "services/clinical-writer-api/clinical_writer_agent",
+    "packages/python/lapan-core",
+]
+
+# ── Skylos ──────────────────────────────────────────────────────────────────
+
 [tool.skylos]
 complexity = 10
 nesting = 3
@@ -8,7 +32,13 @@ god_file_max_definitions = 40
 god_file_max_top_level_definitions = 25
 duplicate_strings = 3
 model = "gpt-4.1"
-exclude = []
+exclude = [
+  ".skylos/cache/**",
+  "config/runtime/generated/**",
+  "**/.pytest_cache/**",
+  "**/coverage_report/**",
+  "**/uv.lock",
+]
 ignore = []
 
 [tool.skylos.masking]
@@ -31,21 +61,7 @@ extra_network_timeout_calls = []
 
 [tool.skylos.architecture]
 strict = false
-# Q802/Q803 are file-level I/A/D architecture signals by default. Set this to
-# true only if those signals should block strict gates in this project.
 enforce_iad = false
-
-# [[tool.skylos.architecture.layers]]
-# name = "api"
-# patterns = ["app.api", "app.routes"]
-#
-# [[tool.skylos.architecture.layers]]
-# name = "domain"
-# patterns = ["app.domain", "app.models"]
-#
-# [[tool.skylos.architecture.rules]]
-# from = "domain"
-# deny = ["api"]
 
 [tool.skylos.whitelist]
 names = []
@@ -56,7 +72,7 @@ names = []
 
 [tool.skylos.gate]
 fail_on_critical = true
-max_critical = 0 
+max_critical = 0
 max_high = 5
 max_security = 0
 max_quality = 10

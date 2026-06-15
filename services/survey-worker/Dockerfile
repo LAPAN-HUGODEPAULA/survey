@@ -1,25 +1,32 @@
+FROM python:3.13-slim AS builder
+
+RUN pip install --no-cache-dir uv
+
+WORKDIR /workspace
+
+COPY pyproject.toml uv.lock ./
+COPY packages/python/lapan-core/pyproject.toml packages/python/lapan-core/
+COPY packages/python/lapan-core/lapan_core/ packages/python/lapan-core/lapan_core/
+COPY services/survey-worker/pyproject.toml services/survey-worker/
+
+RUN uv sync --frozen --no-dev --package survey-worker
+
 FROM python:3.13-slim
 
-# Create a non-privileged user
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup --home /home/appuser appuser
 ENV HOME=/home/appuser
 
 WORKDIR /app
 
-# Install uv as the package manager
-RUN pip install --no-cache-dir uv
+COPY --from=builder /workspace/.venv /app/.venv
+COPY --from=builder /workspace/packages/python/lapan-core /app/lapan-core
+COPY services/survey-worker/ .
 
-COPY requirements.txt .
-RUN uv pip install --system --no-cache -r requirements.txt
-
-COPY . .
-
-# Change ownership of the app directory
-RUN chown -R appuser:appgroup /app
-
-# Switch to the non-privileged user
-USER appuser
-
+ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH=/app
 
-CMD ["uv", "run", "python", "-m", "app.main"]
+RUN chown -R appuser:appgroup /app
+
+USER appuser
+
+CMD ["python", "-m", "app.main"]

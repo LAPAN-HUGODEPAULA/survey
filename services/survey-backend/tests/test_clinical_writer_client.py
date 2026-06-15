@@ -167,6 +167,31 @@ class ClinicalWriterClientTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(probe["status_code"], 200)
         self.assertTrue(str(probe["endpoint"]).endswith("/healthz"))
 
+    async def test_probe_health_rejects_metadata_endpoint_without_request(self) -> None:
+        class _ProbeAsyncClient:
+            def __init__(self, *, timeout) -> None:
+                del timeout
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, exc_type, exc, tb):
+                del exc_type, exc, tb
+                return False
+
+            async def get(self, endpoint: str, *, headers: dict):
+                del headers
+                raise AssertionError(f"Unexpected outbound probe: {endpoint}")
+
+        with patch("app.integrations.clinical_writer.client.httpx.AsyncClient", _ProbeAsyncClient):
+            probe = await client._probe_clinical_writer_health(
+                process_endpoint="http://169.254.169.254/process",
+                headers={},
+            )
+
+        self.assertFalse(probe["reachable"])
+        self.assertEqual(probe["error_type"], "SecurityBoundaryError")
+
     async def test_send_to_langgraph_agent_maps_resource_exhausted_error(self) -> None:
         endpoint = client.DEFAULT_LANGGRAPH_URL
 

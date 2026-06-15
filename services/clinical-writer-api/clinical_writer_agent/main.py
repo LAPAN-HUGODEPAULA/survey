@@ -1,5 +1,5 @@
 # Package imports
-import os
+from contextlib import asynccontextmanager
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -40,28 +40,40 @@ from .analysis_engine import (
 )
 from .transcription_models import TranscriptionRequest, TranscriptionResponse
 from .transcription_service import transcribe
+from .settings import Settings, settings
 
 # ======================================================================================
 # FastAPI App Initialization
 # ======================================================================================
 
-app = FastAPI(
-    title="Clinical Writer AI Agent",
-    description="An AI agent that processes clinical conversations and survey data to generate structured reports.",
-    version="0.2.0",
-)
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("pymongo").setLevel(logging.WARNING)
 logger = logging.getLogger("clinical_writer")
 logger.setLevel(logging.DEBUG)
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """Validate runtime configuration before serving requests."""
+    settings.validate_runtime_security()
+    logger.info("Clinical Writer API started successfully")
+    yield
+    logger.info("Clinical Writer API stopped")
+
+
+app = FastAPI(
+    title="Clinical Writer AI Agent",
+    description="An AI agent that processes clinical conversations and survey data to generate structured reports.",
+    version="0.2.0",
+    lifespan=lifespan,
+)
 
 # ======================================================================================
 # Constants and Configuration
 # ======================================================================================
 
 DEFAULT_LOCALE = "pt-BR"
-MODEL_VERSION = os.getenv("MODEL_VERSION", "unknown")
-API_TOKEN = os.getenv("API_TOKEN")
+MODEL_VERSION = settings.model_version
 
 # ======================================================================================
 # Middleware
@@ -160,21 +172,13 @@ class ProcessStatusResponse(BaseModel):
 api_key_header = APIKeyHeader(name="Authorization", auto_error=False)
 
 
-def _is_production_environment() -> bool:
-    """Return whether runtime safeguards should treat this deployment as production."""
-    return os.getenv("ENVIRONMENT", "development").lower() in {"prod", "production"}
-
-
-def _allows_unauthenticated_access() -> bool:
-    """Return whether callers explicitly opted into disabling API auth."""
-    return os.getenv("ALLOW_UNAUTHENTICATED_ACCESS", "").lower() in {"1", "true", "yes"}
-
 def verify_token(api_key: Optional[str] = Security(api_key_header)) -> bool:
     """
     Bearer token guard. Production must either configure API_TOKEN or explicitly
     opt into unauthenticated access for controlled environments.
     """
-    configured_token = os.getenv("API_TOKEN")
+    runtime_settings = Settings()
+    configured_token = runtime_settings.api_token_value
     
     # Debug log to help identify 401 issues (redacted for safety but showing presence)
     if configured_token:
@@ -183,7 +187,7 @@ def verify_token(api_key: Optional[str] = Security(api_key_header)) -> bool:
         logger.debug("Auth: API_TOKEN is NOT configured")
 
     if not configured_token:
-        if _is_production_environment() and not _allows_unauthenticated_access():
+        if runtime_settings.is_production and not runtime_settings.allow_unauthenticated_access:
             logger.error("Auth failure: API_TOKEN missing in production")
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -191,7 +195,7 @@ def verify_token(api_key: Optional[str] = Security(api_key_header)) -> bool:
             )
         return True
 
-    if _allows_unauthenticated_access():
+    if runtime_settings.allow_unauthenticated_access:
         logger.debug("Auth: Unauthenticated access allowed by configuration")
         return True
 

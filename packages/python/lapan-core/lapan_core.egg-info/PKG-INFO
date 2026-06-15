@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: lapan-core
+Version: 0.2.0
+Summary: Shared security helpers and common utilities for LAPAN services
+Requires-Python: >=3.13

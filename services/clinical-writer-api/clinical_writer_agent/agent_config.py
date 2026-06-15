@@ -1,14 +1,10 @@
-"""
-Configuration file for Clinical Writer AI Multiagent System.
-"""
+"""Configuration facade for the Clinical Writer AI multiagent system."""
 
-import os
 from pathlib import Path
-from dotenv import load_dotenv
+
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-# Load environment variables from .env file
-load_dotenv()
+from .settings import settings
 
 
 class AgentConfig:
@@ -17,18 +13,18 @@ class AgentConfig:
     # ========================
     # API Configuration
     # ========================
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-    GLM_API_KEY = os.getenv("GLM_API_KEY")
-    GLM_BASE_URL = os.getenv("GLM_BASE_URL", "https://api.z.ai/api/paas/v4/")
+    GEMINI_API_KEY = settings.gemini_api_key_value
+    GLM_API_KEY = settings.glm_api_key_value
+    GLM_BASE_URL = settings.glm_base_url
 
     # ========================
     # LLM Model Configuration
     # ========================
-    LLM_MODEL_NAME = os.getenv("GEMINI_MODEL")
-    GLM_MODEL_NAME = os.getenv("GLM_MODEL")
-    PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", GLM_MODEL_NAME)
-    FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", LLM_MODEL_NAME)
-    CRITIQUE_MODEL = os.getenv("CRITIQUE_MODEL", PRIMARY_MODEL)
+    LLM_MODEL_NAME = settings.gemini_model
+    GLM_MODEL_NAME = settings.glm_model
+    PRIMARY_MODEL = settings.primary_model or GLM_MODEL_NAME
+    FALLBACK_MODEL = settings.fallback_model or LLM_MODEL_NAME
+    CRITIQUE_MODEL = settings.critique_model or PRIMARY_MODEL
     LLM_TEMPERATURE = 0.0
     LLM_DO_SAMPLE = False
     LLM_THINKING_MODE = "disabled"

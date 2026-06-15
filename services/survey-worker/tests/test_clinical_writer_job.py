@@ -1,11 +1,13 @@
 import json
 import unittest
+import asyncio
 from datetime import datetime, timezone
 from unittest.mock import patch
 
 from bson import ObjectId
 
 from app.jobs.clinical_writer import ClinicalWriterJob
+from lapan_core import SecurityBoundaryError
 
 
 class ClinicalWriterJobTests(unittest.TestCase):
@@ -84,6 +86,21 @@ class ClinicalWriterJobTests(unittest.TestCase):
         self.assertEqual(normalized["medicalRecord"], "Resumo\nConteudo do laudo.")
         self.assertEqual(normalized["questionnaire_prompt_version"], None)
         self.assertEqual(normalized["persona_skill_version"], None)
+
+    def test_call_clinical_writer_rejects_metadata_endpoint_before_http(self) -> None:
+        class _NoRequestClient:
+            async def post(self, endpoint: str, *, json: dict):
+                del json
+                raise AssertionError(f"Unexpected outbound request: {endpoint}")
+
+        job = ClinicalWriterJob()
+        job._http_client = _NoRequestClient()
+
+        with (
+            patch("app.jobs.clinical_writer.settings.clinical_writer_url", "http://169.254.169.254/process"),
+            self.assertRaises(SecurityBoundaryError),
+        ):
+            asyncio.run(job._call_clinical_writer({}))
 
 
 if __name__ == "__main__":
