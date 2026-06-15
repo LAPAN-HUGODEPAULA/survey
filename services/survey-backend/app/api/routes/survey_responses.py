@@ -1,9 +1,10 @@
 """FastAPI router for survey responses."""
 
 from pathlib import Path
-from tempfile import NamedTemporaryFile
+import tempfile
 from typing import List, Optional
 from typing import Any
+import uuid
 
 from bson.objectid import InvalidId, ObjectId
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
@@ -37,12 +38,14 @@ from app.persistence.repositories.survey_response_repo import SurveyResponseRepo
 from app.persistence.repositories.system_settings_repo import SystemSettingsRepository
 from app.persistence.mongo.client import get_db
 from app.domain.models.agent_response_model import AgentArtifactResponse
+from lapan_core import get_safe_write_path, write_bytes_to_safe_path
 from app.services.access_point_selection import AccessPointSelection, resolve_access_point_selection
 from app.services.survey_prompt_selection import (
     hydrate_survey_persona_defaults,
 )
 
 router = APIRouter()
+REPORT_TEMP_DIR = Path(tempfile.gettempdir()) / "survey-backend-report-pdfs"
 
 
 class SendReportEmailRequest(BaseModel):
@@ -272,7 +275,7 @@ async def send_report_email(
             detail="Failed to send report email.",
         ) from exc
     finally:
-        Path(temp_file_path).unlink(missing_ok=True)
+        _cleanup_temp_pdf(temp_file_path)
 
     return {
         "status": "sent",
@@ -364,30 +367,41 @@ def _generate_report_pdf(report_text: str) -> bytes:
         story.append(Paragraph(line.replace("&", "&amp;"), body_style))
         story.append(Spacer(1, 6))
 
-    with NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
-        temp_path = tmp_file.name
+    temp_path = get_safe_write_path(REPORT_TEMP_DIR, f"{uuid.uuid4().hex}.pdf")
 
     doc = SimpleDocTemplate(
-        temp_path,
+        str(temp_path),
         pagesize=A4,
         leftMargin=36,
         rightMargin=36,
         topMargin=42,
         bottomMargin=42,
     )
-    doc.build(story)
-    pdf_bytes = Path(temp_path).read_bytes()
-    Path(temp_path).unlink(missing_ok=True)
-    return pdf_bytes
+    try:
+        doc.build(story)
+        return temp_path.read_bytes()
+    finally:
+        _cleanup_temp_pdf(str(temp_path))
 
 
 def _write_temp_pdf(pdf_bytes: bytes, response_id: str) -> str:
-    with NamedTemporaryFile(
-        suffix=f"_{response_id}_report.pdf",
-        delete=False,
-    ) as tmp_file:
-        tmp_file.write(pdf_bytes)
-        return tmp_file.name
+    safe_response_id = _safe_filename_component(response_id)
+    temp_path = write_bytes_to_safe_path(
+        REPORT_TEMP_DIR,
+        f"{uuid.uuid4().hex}_{safe_response_id}_report.pdf",
+        pdf_bytes,
+    )
+    return str(temp_path)
+
+
+def _safe_filename_component(value: str) -> str:
+    normalized = "".join(char if char.isalnum() or char in {"-", "_"} else "_" for char in value)
+    return (normalized[:80] or "response").strip("._") or "response"
+
+
+def _cleanup_temp_pdf(temp_file_path: str) -> None:
+    temp_path = get_safe_write_path(REPORT_TEMP_DIR, Path(temp_file_path).name)
+    temp_path.unlink(missing_ok=True)
 
 
 @router.post("/survey_responses/{response_id}/send_email", status_code=status.HTTP_202_ACCEPTED)

@@ -3,9 +3,11 @@ from datetime import datetime
 from typing import Optional, Dict, Any
 import json
 from collections import defaultdict
+from pathlib import Path
 
 
 # Project imports
+from lapan_core import write_text_to_safe_path
 from .base_monitors import ProcessingMonitor
 
 
@@ -137,8 +139,19 @@ class MetricsMonitor(ProcessingMonitor):
             filepath: Path where to save the metrics JSON
         """
         summary = self.get_metrics_summary()
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(summary, f, indent=2, ensure_ascii=False)
+        requested_path = Path(filepath)
+        if requested_path.is_absolute():
+            write_text_to_safe_path(
+                requested_path.parent,
+                requested_path.name,
+                json.dumps(summary, indent=2, ensure_ascii=False),
+            )
+        else:
+            write_text_to_safe_path(
+                ".",
+                requested_path,
+                json.dumps(summary, indent=2, ensure_ascii=False),
+            )
     
     def reset_metrics(self):
         """Reset all collected metrics."""

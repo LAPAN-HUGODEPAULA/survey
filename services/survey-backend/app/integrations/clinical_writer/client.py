@@ -18,6 +18,7 @@ from app.persistence.mongo.client import get_db
 from app.persistence.repositories.clinical_writer_run_log_repo import (
     ClinicalWriterRunLogRepository,
 )
+from lapan_core import SecurityBoundaryError, validate_outbound_url
 
 LANGGRAPH_URL = os.getenv("LANGGRAPH_URL")
 DEFAULT_LANGGRAPH_URL = "http://clinical_writer_agent:8000/process"
@@ -95,6 +96,32 @@ def _candidate_status_endpoints(request_id: str) -> list[str]:
     return [_to_status_endpoint(endpoint, request_id) for endpoint in _candidate_process_endpoints()]
 
 
+def _clinical_writer_allowed_hosts(*extra_urls: str | None) -> list[str]:
+    urls = [
+        os.getenv("CLINICAL_WRITER_URL"),
+        LANGGRAPH_URL,
+        settings.clinical_writer_url,
+        DEFAULT_LANGGRAPH_URL,
+        DEFAULT_LOCAL_LANGGRAPH_URL,
+        DEFAULT_LOOPBACK_LANGGRAPH_URL,
+        DEFAULT_LANGGRAPH_ANALYSIS_URL,
+        DEFAULT_LANGGRAPH_TRANSCRIPTION_URL,
+        settings.clinical_writer_transcription_url,
+        os.getenv("LANGGRAPH_ANALYSIS_URL"),
+        os.getenv("LANGGRAPH_TRANSCRIPTION_URL"),
+        *extra_urls,
+    ]
+    return [url for url in urls if url]
+
+
+def _validate_clinical_writer_url(url: str, *extra_allowed_urls: str | None) -> str:
+    return validate_outbound_url(
+        url,
+        _clinical_writer_allowed_hosts(*extra_allowed_urls),
+        allow_loopback=not settings.is_production,
+    )
+
+
 async def _probe_clinical_writer_health(
     *,
     process_endpoint: str,
@@ -103,14 +130,16 @@ async def _probe_clinical_writer_health(
     """Check whether the clinical writer service is reachable right now."""
     base_endpoint = _to_base_endpoint(process_endpoint)
     probe_timeout = httpx.Timeout(connect=2.0, read=2.0, write=2.0, pool=2.0)
-    last_request_error: httpx.RequestError | None = None
+    last_request_error: Exception | None = None
 
     async with httpx.AsyncClient(timeout=probe_timeout) as probe_client:
         for path in HEALTH_PROBE_PATHS:
             probe_endpoint = f"{base_endpoint}{path}"
             started_at = time.monotonic()
             try:
-                response = await probe_client.get(probe_endpoint, headers=headers)
+                _validate_clinical_writer_url(probe_endpoint, process_endpoint)
+                # The endpoint passed the Clinical Writer URL policy immediately above.
+                response = await probe_client.get(probe_endpoint, headers=headers)  # skylos: ignore
                 elapsed_ms = int((time.monotonic() - started_at) * 1000)
                 return {
                     "reachable": True,
@@ -118,7 +147,7 @@ async def _probe_clinical_writer_health(
                     "latency_ms": elapsed_ms,
                     "endpoint": probe_endpoint,
                 }
-            except httpx.RequestError as exc:
+            except (SecurityBoundaryError, httpx.RequestError) as exc:
                 last_request_error = exc
                 continue
 
@@ -332,6 +361,7 @@ async def send_to_langgraph_agent(
         async with httpx.AsyncClient(timeout=request_timeout) as client:
             for endpoint in endpoints:
                 try:
+                    endpoint = _validate_clinical_writer_url(endpoint)
                     logger.info(
                         "Sending to clinical writer request_id=%s input_type=%s prompt_key=%s endpoint=%s",
                         request_id,
@@ -564,6 +594,7 @@ async def send_to_langgraph_analysis(payload: Dict[str, Any]) -> Dict[str, Any]:
     if not configured and settings.clinical_writer_url:
         configured = settings.clinical_writer_url.replace("/process", "/analysis")
     endpoint = configured or DEFAULT_LANGGRAPH_ANALYSIS_URL
+    endpoint = _validate_clinical_writer_url(endpoint)
     async with httpx.AsyncClient(timeout=10) as client:
         response = await client.post(endpoint, json=payload, headers=headers)
         response.raise_for_status()
@@ -583,6 +614,7 @@ async def fetch_langgraph_status(request_id: str) -> Dict[str, Any]:
     async with httpx.AsyncClient(timeout=5) as client:
         for endpoint in endpoints:
             try:
+                endpoint = _validate_clinical_writer_url(endpoint)
                 response = await client.get(endpoint, headers=headers)
                 response.raise_for_status()
                 payload = response.json()
@@ -615,6 +647,7 @@ async def send_to_langgraph_transcription(payload: Dict[str, Any]) -> Dict[str, 
     if not configured and settings.clinical_writer_url:
         configured = settings.clinical_writer_url.replace("/process", "/transcriptions")
     endpoint = configured or DEFAULT_LANGGRAPH_TRANSCRIPTION_URL
+    endpoint = _validate_clinical_writer_url(endpoint)
     async with httpx.AsyncClient(timeout=30) as client:
         response = await client.post(endpoint, json=payload, headers=headers)
         response.raise_for_status()

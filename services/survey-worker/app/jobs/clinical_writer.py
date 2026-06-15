@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
@@ -16,6 +17,7 @@ from pymongo.database import Database
 
 from app.config.settings import settings
 from app.logging_config import logger
+from lapan_core import validate_outbound_url
 
 
 class ClinicalWriterJob:
@@ -205,8 +207,13 @@ class ClinicalWriterJob:
     async def _call_clinical_writer(self, request_payload: Dict[str, Any]) -> Dict[str, Any]:
         """Invoke the Clinical Writer agent and normalize its response."""
         client = await self._get_http_client()
-        response = await client.post(
+        endpoint = validate_outbound_url(
             settings.clinical_writer_url,
+            [settings.clinical_writer_url],
+            allow_loopback=os.getenv("ENVIRONMENT", "development").lower() not in {"prod", "production"},
+        )
+        response = await client.post(
+            endpoint,
             json=request_payload,
         )
         response.raise_for_status()

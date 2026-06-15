@@ -1,8 +1,9 @@
 """FastAPI router for patient survey responses."""
 
 from pathlib import Path
-from tempfile import NamedTemporaryFile
+import tempfile
 from typing import Any, Optional
+import uuid
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
@@ -30,12 +31,14 @@ from app.persistence.repositories.persona_skill_repo import PersonaSkillReposito
 from app.persistence.repositories.survey_repo import SurveyRepository
 from app.persistence.repositories.system_settings_repo import SystemSettingsRepository
 from app.persistence.mongo.client import get_db
+from lapan_core import get_safe_write_path, write_bytes_to_safe_path
 from app.services.access_point_selection import AccessPointSelection, resolve_access_point_selection
 from app.services.survey_prompt_selection import (
     hydrate_survey_persona_defaults,
 )
 
 router = APIRouter()
+REPORT_TEMP_DIR = Path(tempfile.gettempdir()) / "survey-backend-report-pdfs"
 
 SURVEY_PATIENT_THANK_YOU_ACCESS_POINT = "survey_patient.thank_you.auto_analysis"
 
@@ -245,7 +248,7 @@ async def send_report_email(
             detail="Failed to send report email.",
         ) from exc
     finally:
-        Path(temp_file_path).unlink(missing_ok=True)
+        _cleanup_temp_pdf(temp_file_path)
 
     return {
         "status": "sent",
@@ -375,11 +378,20 @@ def _generate_report_pdf(report_text: str) -> bytes:
 
 
 def _write_temp_pdf(pdf_bytes: bytes, response_id: str) -> str:
-    with NamedTemporaryFile(
-        mode="wb",
-        suffix=f"_{response_id}.pdf",
-        prefix="patient_report_",
-        delete=False,
-    ) as temp_file:
-        temp_file.write(pdf_bytes)
-        return temp_file.name
+    safe_response_id = _safe_filename_component(response_id)
+    temp_path = write_bytes_to_safe_path(
+        REPORT_TEMP_DIR,
+        f"patient_report_{uuid.uuid4().hex}_{safe_response_id}.pdf",
+        pdf_bytes,
+    )
+    return str(temp_path)
+
+
+def _safe_filename_component(value: str) -> str:
+    normalized = "".join(char if char.isalnum() or char in {"-", "_"} else "_" for char in value)
+    return (normalized[:80] or "response").strip("._") or "response"
+
+
+def _cleanup_temp_pdf(temp_file_path: str) -> None:
+    temp_path = get_safe_write_path(REPORT_TEMP_DIR, Path(temp_file_path).name)
+    temp_path.unlink(missing_ok=True)
