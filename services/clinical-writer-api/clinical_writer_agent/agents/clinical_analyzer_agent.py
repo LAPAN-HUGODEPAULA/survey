@@ -7,6 +7,7 @@ import logging
 from datetime import datetime
 
 from .agent_state import AgentState
+from .schemas import ClinicalAnalyzerInput, ClinicalAnalyzerOutput
 from .layered_node_utils import (
     LLMClient,
     parse_json_object,
@@ -31,6 +32,7 @@ class ClinicalAnalyzerAgent:  # pylint: disable=too-few-public-methods
     def analyze(self, state: AgentState) -> AgentState:
         """Produce `clinical_facts` as a JSON object without end-user prose."""
         new_state = state.copy()
+        payload = ClinicalAnalyzerInput.model_validate(state)
         observer = state.get("observer")
         request_id = state.get("request_id")
         agent_type = "ClinicalAnalyzer"
@@ -49,32 +51,35 @@ class ClinicalAnalyzerAgent:  # pylint: disable=too-few-public-methods
             logger.info(
                 "stage=clinical_analyzer_start request_id=%s input_type=%s",
                 request_id,
-                state.get("input_type"),
+                payload.input_type,
             )
             llm_model = self._select_llm(state)
             
             # Emit high-visibility thinking event if reasoning is active
-            if state.get("thinking_mode") in {"medium", "high"} and observer:
+            if payload.thinking_mode in {"medium", "high"} and observer:
                 observer.on_processing_start(
                     "Thinking",
                     datetime.now(),
-                    {"thinking_mode": state.get("thinking_mode")},
+                    {"thinking_mode": payload.thinking_mode},
                     request_id,
                 )
 
             prompt = self._build_prompt(
-                input_type=state.get("input_type", ""),
-                interpretation_prompt=state.get("interpretation_prompt", ""),
-                content=state.get("input_content", ""),
-                format_override=state.get("format_prompt_override"),
+                input_type=payload.input_type,
+                interpretation_prompt=payload.interpretation_prompt,
+                content=payload.input_content,
+                format_override=payload.format_prompt_override,
             )
             response = llm_model.invoke(prompt)
             content = (
                 response.content if isinstance(response.content, str) else str(response.content)
             )
-            new_state["clinical_facts"] = parse_json_object(content)
-            new_state["model_version"] = resolve_model_version(llm_model)
-            new_state["validation_status"] = "analyzed"
+            output = ClinicalAnalyzerOutput(
+                clinical_facts=parse_json_object(content),
+                model_version=resolve_model_version(llm_model),
+                validation_status="analyzed",
+            )
+            new_state.update(output.model_dump(exclude_none=True))
             routing_metadata = resolve_model_routing_metadata(llm_model, state)
 
             if observer:
@@ -91,11 +96,18 @@ class ClinicalAnalyzerAgent:  # pylint: disable=too-few-public-methods
             logger.info(
                 "stage=clinical_analyzer_complete request_id=%s model_version=%s",
                 request_id,
-                new_state.get("model_version"),
+                output.model_version,
             )
         except Exception as error:  # pylint: disable=broad-exception-caught
-            new_state["error_kind"] = "clinical_analysis_failed"
-            new_state["error_message"] = f"Clinical analysis failed: {error}"
+            new_state.update(
+                ClinicalAnalyzerOutput(
+                    clinical_facts=new_state.get("clinical_facts", {}),
+                    model_version=new_state.get("model_version", ""),
+                    validation_status=new_state.get("validation_status", "context_loaded"),
+                    error_kind="clinical_analysis_failed",
+                    error_message=f"Clinical analysis failed: {error}",
+                ).model_dump(exclude_none=True)
+            )
             logger.error(
                 "stage=clinical_analyzer_error request_id=%s error_kind=%s error=%s",
                 request_id,

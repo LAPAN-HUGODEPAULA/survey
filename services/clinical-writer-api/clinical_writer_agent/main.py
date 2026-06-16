@@ -39,6 +39,7 @@ from .analysis_engine import (
     knowledge_lookup,
 )
 from .transcription_models import TranscriptionRequest, TranscriptionResponse
+from .transcription_retention import cleanup_startup_audio_residue
 from .transcription_service import transcribe
 from .settings import Settings, settings
 
@@ -56,6 +57,12 @@ logger.setLevel(logging.DEBUG)
 async def lifespan(_app: FastAPI):
     """Validate runtime configuration before serving requests."""
     settings.validate_runtime_security()
+    deleted_audio_files = cleanup_startup_audio_residue()
+    if deleted_audio_files:
+        logger.info(
+            "Startup audio cleanup removed %d stranded files",
+            len(deleted_audio_files),
+        )
     logger.info("Clinical Writer API started successfully")
     yield
     logger.info("Clinical Writer API stopped")
@@ -382,6 +389,7 @@ async def process_content(
         ),
         model_version=final_state.get("model_version", MODEL_VERSION),
         report=report,
+        warnings=final_state.get("warnings", []),
         ai_progress=tracker.get(request_id) or {},
     )
     tracker.complete(request_id)

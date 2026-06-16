@@ -9,6 +9,7 @@ from .agents.deterministic_router_agent import DeterministicRouterAgent
 from .agents.context_loader_agent import ContextLoaderAgent
 from .agents.clinical_analyzer_agent import ClinicalAnalyzerAgent
 from .agents.persona_writer_agent import PersonaWriterAgent
+from .agents.reflector_agent import ReflectorAgent
 from .agents.other_inputs_handler_agent import OtherInputHandlerAgent
 from .monitoring.base_monitors import CompositeMonitor, ProcessingMonitor
 from .monitoring.logging_monitor import LoggingMonitor
@@ -25,6 +26,7 @@ def create_graph(
     *,
     conversation_llm=None,
     json_llm=None,
+    reflector_llm=None,
     prompt_registry=None,
 ):
     """
@@ -62,6 +64,12 @@ def create_graph(
             conversation_llm=conversation_llm,
             json_llm=json_llm,
         ).write,
+    )
+    workflow.add_node(
+        "reflector",
+        ReflectorAgent(
+            critique_llm=reflector_llm or json_llm or conversation_llm,
+        ).reflect,
     )
     workflow.add_node("handle_other", OtherInputHandlerAgent().handle)
 
@@ -110,7 +118,17 @@ def create_graph(
         "persona_writer",
         lambda state: "error" if state.get("error_message") else "ok",
         {
-            "ok": END,
+            "ok": "reflector",
+            "error": "handle_other",
+        },
+    )
+    workflow.add_conditional_edges(
+        "reflector",
+        lambda state: state.get("reflection_outcome", "accepted"),
+        {
+            "retry": "persona_writer",
+            "accepted": END,
+            "accepted_with_warning": END,
             "error": "handle_other",
         },
     )

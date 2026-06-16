@@ -6,7 +6,7 @@ the clinical writer agent system's operations.
 """
 
 # Package imports
-from abc import ABC, abstractmethod
+from abc import ABC
 from datetime import datetime
 from typing import Optional, Dict, Any
 
@@ -18,33 +18,26 @@ class ProcessingMonitor(ABC):
     including classification, processing start/completion, and errors.
     """
     
-    @abstractmethod
     def on_classification(self, classification: str, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
-        pass
-    
-    @abstractmethod
+        del classification, timestamp, metadata, request_id
+
     def on_processing_start(self, agent_type: str, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
-        pass
-    
-    @abstractmethod
+        del agent_type, timestamp, metadata, request_id
+
     def on_processing_complete(self, agent_type: str, duration: float, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
-        pass
-    
-    @abstractmethod
+        del agent_type, duration, timestamp, metadata, request_id
+
     def on_error(self, error: Exception, context: Dict[str, Any], timestamp: datetime, request_id: Optional[str] = None):
-        pass
-    
-    @abstractmethod
+        del error, context, timestamp, request_id
+
     def on_validation_start(self, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
-        pass
-    
-    @abstractmethod
+        del timestamp, metadata, request_id
+
     def on_validation_complete(self, is_valid: bool, duration: float, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
-        pass
-    
-    @abstractmethod
+        del is_valid, duration, timestamp, metadata, request_id
+
     def on_event(self, event_name: str, timestamp: datetime, metadata: Optional[Dict[str, Any]] = None, request_id: Optional[str] = None):
-        pass
+        del event_name, timestamp, metadata, request_id
 
 class CompositeMonitor(ProcessingMonitor):
     """

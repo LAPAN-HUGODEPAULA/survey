@@ -55,6 +55,7 @@ class AgentState(TypedDict, total=False):
     report: ReportPayload
     medical_record: str
     model_version: str
+    warnings: list[str]
 
     # Error and runtime metadata
     ai_config: Optional[dict[str, Any]]
@@ -66,5 +67,9 @@ class AgentState(TypedDict, total=False):
     enable_caching: Optional[bool]
     error_kind: str
     error_message: str
+    reflection_feedback: str
+    reflection_retries_used: int
+    reflection_outcome: str
     prompt_registry: Any
+    agent_route_repository: Any
     observer: Optional[ProcessingMonitor]

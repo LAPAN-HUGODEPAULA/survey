@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from .agent_state import AgentState
+from .schemas import ContextLoaderInput, ContextLoaderOutput
 from ..prompt_registry import PromptNotFoundError, PromptRegistry
 
 
@@ -17,6 +18,7 @@ class ContextLoaderAgent:  # pylint: disable=too-few-public-methods
     def load(self, state: AgentState) -> AgentState:
         """Resolve questionnaire and persona prompts into the shared state."""
         new_state = state.copy()
+        payload = ContextLoaderInput.model_validate(state)
         observer = state.get("observer")
         request_id = state.get("request_id")
         agent_type = "ContextLoader"
@@ -28,10 +30,10 @@ class ContextLoaderAgent:  # pylint: disable=too-few-public-methods
                 agent_type,
                 start_time,
                 {
-                    "input_type": state.get("input_type"),
-                    "prompt_key": state.get("prompt_key"),
-                    "persona_skill_key": state.get("persona_skill_key"),
-                    "output_profile": state.get("output_profile"),
+                    "input_type": payload.input_type,
+                    "prompt_key": payload.prompt_key,
+                    "persona_skill_key": payload.persona_skill_key,
+                    "output_profile": payload.output_profile,
                 },
                 request_id,
             )
@@ -41,30 +43,25 @@ class ContextLoaderAgent:  # pylint: disable=too-few-public-methods
                 raise RuntimeError("Prompt registry is not configured.")
 
             resolved = registry.resolve_process_prompt(
-                input_type=state.get("input_type", ""),
-                prompt_key=state.get("prompt_key", "default"),
-                persona_skill_key=state.get("persona_skill_key"),
-                output_profile=state.get("output_profile"),
-                system_prompt_override=state.get("system_prompt_override"),
-                format_prompt_override=state.get("format_prompt_override"),
+                input_type=payload.input_type,
+                prompt_key=payload.prompt_key,
+                persona_skill_key=payload.persona_skill_key,
+                output_profile=payload.output_profile,
+                system_prompt_override=payload.system_prompt_override,
+                format_prompt_override=payload.format_prompt_override,
             )
-            new_state["prompt_version"] = resolved.prompt_version
-            new_state["questionnaire_prompt_version"] = (
-                resolved.questionnaire_prompt_version or ""
+            output = ContextLoaderOutput(
+                prompt_version=resolved.prompt_version,
+                questionnaire_prompt_version=resolved.questionnaire_prompt_version or "",
+                persona_skill_version=resolved.persona_skill_version or "",
+                persona_skill_key=resolved.persona_skill_key or payload.persona_skill_key or "",
+                output_profile=resolved.output_profile or payload.output_profile or "",
+                prompt_text=resolved.prompt_text,
+                interpretation_prompt=resolved.interpretation_prompt or resolved.prompt_text,
+                persona_prompt=resolved.persona_prompt or resolved.prompt_text,
+                validation_status="context_loaded",
             )
-            new_state["persona_skill_version"] = resolved.persona_skill_version or ""
-            new_state["persona_skill_key"] = (
-                resolved.persona_skill_key or state.get("persona_skill_key") or ""
-            )
-            new_state["output_profile"] = (
-                resolved.output_profile or state.get("output_profile") or ""
-            )
-            new_state["prompt_text"] = resolved.prompt_text
-            new_state["interpretation_prompt"] = (
-                resolved.interpretation_prompt or resolved.prompt_text
-            )
-            new_state["persona_prompt"] = resolved.persona_prompt or resolved.prompt_text
-            new_state["validation_status"] = "context_loaded"
+            new_state.update(output.model_dump(exclude_none=True))
 
             if observer:
                 observer.on_event(
@@ -78,9 +75,17 @@ class ContextLoaderAgent:  # pylint: disable=too-few-public-methods
                     request_id,
                 )
         except PromptNotFoundError as error:
-            new_state["validation_status"] = "prompt_not_found"
-            new_state["error_kind"] = "prompt_not_found"
-            new_state["error_message"] = str(error)
+            new_state.update(
+                ContextLoaderOutput(
+                    prompt_version=new_state.get("prompt_version", "unknown"),
+                    prompt_text=new_state.get("prompt_text", ""),
+                    interpretation_prompt=new_state.get("interpretation_prompt", ""),
+                    persona_prompt=new_state.get("persona_prompt", ""),
+                    validation_status="prompt_not_found",
+                    error_kind="prompt_not_found",
+                    error_message=str(error),
+                ).model_dump(exclude_none=True)
+            )
             if observer:
                 observer.on_error(
                     error,
@@ -89,9 +94,17 @@ class ContextLoaderAgent:  # pylint: disable=too-few-public-methods
                     request_id,
                 )
         except Exception as error:  # pylint: disable=broad-exception-caught
-            new_state["validation_status"] = "context_error"
-            new_state["error_kind"] = "context_load_failed"
-            new_state["error_message"] = f"Context loading failed: {error}"
+            new_state.update(
+                ContextLoaderOutput(
+                    prompt_version=new_state.get("prompt_version", "unknown"),
+                    prompt_text=new_state.get("prompt_text", ""),
+                    interpretation_prompt=new_state.get("interpretation_prompt", ""),
+                    persona_prompt=new_state.get("persona_prompt", ""),
+                    validation_status="context_error",
+                    error_kind="context_load_failed",
+                    error_message=f"Context loading failed: {error}",
+                ).model_dump(exclude_none=True)
+            )
             if observer:
                 observer.on_error(
                     error,

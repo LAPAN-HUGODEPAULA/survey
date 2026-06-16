@@ -4,34 +4,29 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import re
 from typing import Any, Protocol
 
-from pymongo import MongoClient
-
 from ..agent_config import AgentConfig
 from ..model_router import ModelRouter
+from ..repository.agent_route_repository import (
+    AgentRouteRepository,
+    create_agent_route_repository_from_env,
+)
 from ..report_models import ReportDocument
 
 
 logger = logging.getLogger("clinical_writer.routing")
 
 
-def _mongo_db():
-    mongo_uri = os.getenv("MONGO_URI")
-    if not mongo_uri:
-        return None
-    client = MongoClient(mongo_uri, serverSelectionTimeoutMS=3000)
-    return client[os.getenv("MONGO_DB_NAME", "survey_db")]
-
-
-def _resolve_agent_routes(ai_config: dict[str, Any]) -> list[dict[str, Any]]:
+def _resolve_agent_routes(
+    ai_config: dict[str, Any],
+    route_repository: AgentRouteRepository | None,
+) -> list[dict[str, Any]]:
     agent_refs = ai_config.get("agentRefs")
     if not isinstance(agent_refs, list):
         return []
 
-    db = _mongo_db()
     routes: list[dict[str, Any]] = []
     for item in agent_refs:
         if not isinstance(item, dict) or item.get("enabled", True) is False:
@@ -39,9 +34,7 @@ def _resolve_agent_routes(ai_config: dict[str, Any]) -> list[dict[str, Any]]:
         agent_key = item.get("agentKey")
         if not agent_key:
             continue
-        agent = None
-        if db is not None:
-            agent = db["AIAgents"].find_one({"agentKey": agent_key}, {"_id": 0})
+        agent = route_repository.get_agent(agent_key) if route_repository else None
         if not agent:
             raise ValueError(f"Unknown AI agent: {agent_key}")
         if not agent.get("enabled", True):
@@ -130,7 +123,8 @@ def resolve_model_routing_metadata(llm_model: Any, state: Any) -> dict[str, Any]
 def resolve_model_router(state: Any) -> ModelRouter:
     """Build a ModelRouter using configuration from state or environment defaults."""
     ai_config = state.get("ai_config") or {}
-    agent_routes = _resolve_agent_routes(ai_config)
+    route_repository = state.get("agent_route_repository") or create_agent_route_repository_from_env()
+    agent_routes = _resolve_agent_routes(ai_config, route_repository)
     if agent_routes:
         primary_route = agent_routes[0]
         logger.info(

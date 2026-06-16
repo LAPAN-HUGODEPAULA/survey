@@ -22,6 +22,7 @@ _AGENT_STAGE_MAP: dict[str, tuple[str, int]] = {
     "ClinicalAnalyzer": ("analyzing", 40),
     "Thinking": ("thinking", 65),
     "PersonaWriter": ("drafting", 85),
+    "Reflector": ("reviewing", 95),
 }
 
 
