@@ -4,6 +4,7 @@ from clinical_writer_agent.prompt_registry import (
     PromptNotFoundError,
     create_prompt_registry,
 )
+from clinical_writer_agent.repository.prompt_repository import MongoPromptRepository
 
 
 class _MissingProvider:
@@ -148,20 +149,12 @@ def test_clinical_prompt_registry_uses_updated_persona_on_next_request():
     assert second.persona_skill_version == "persona_modifiedAt:2026-03-26T10:06:00+00:00"
 
 
-def test_create_prompt_registry_falls_back_when_google_drive_is_misconfigured(
-    monkeypatch,
-):
+def test_create_prompt_registry_ignores_deprecated_google_drive_provider(monkeypatch):
     monkeypatch.setenv("PROMPT_PROVIDER", "google_drive")
-    monkeypatch.setenv(
-        "GOOGLE_APPLICATION_CREDENTIALS",
-        "/tmp/does-not-exist-service-account.json",
-    )
     monkeypatch.delenv("PROMPT_MONGO_URI", raising=False)
     monkeypatch.delenv("MONGO_URI", raising=False)
     monkeypatch.delenv("PROMPT_MONGO_DB_NAME", raising=False)
     monkeypatch.delenv("MONGO_DB_NAME", raising=False)
-    monkeypatch.delenv("PROMPT_DOC_MAP_JSON", raising=False)
-    monkeypatch.delenv("GOOGLE_DRIVE_FOLDER_ID", raising=False)
 
     registry = create_prompt_registry()
 
@@ -169,3 +162,31 @@ def test_create_prompt_registry_falls_back_when_google_drive_is_misconfigured(
 
     assert prompt_text
     assert version == "local:default"
+
+
+class _CountingCollection:
+    def __init__(self, document: dict):
+        self.document = document
+        self.calls = 0
+
+    def find_one(self, query):
+        self.calls += 1
+        assert query == {"promptKey": "survey7"}
+        return self.document
+
+
+def test_mongo_prompt_repository_caches_prompt_reads():
+    collection = _CountingCollection(
+        {
+            "promptKey": "survey7",
+            "promptText": "Use conservative interpretation.",
+            "modifiedAt": "2026-06-16T10:00:00Z",
+        }
+    )
+    repository = MongoPromptRepository(collection=collection, cache_ttl_seconds=60)
+
+    first = repository.get_prompt("survey7")
+    second = repository.get_prompt("survey7")
+
+    assert first == second
+    assert collection.calls == 1

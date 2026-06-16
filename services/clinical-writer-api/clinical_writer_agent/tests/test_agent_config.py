@@ -20,6 +20,18 @@ class _StubLLM:
 
         if "clinical analysis engine" in prompt.lower():
             return Response(json.dumps({"summary": f"{self.name}-facts"}))
+        if "clinical reflection validator" in prompt.lower():
+            return Response(
+                json.dumps(
+                    {
+                        "grounded": True,
+                        "tone_ok": True,
+                        "safety_ok": True,
+                        "issues": [],
+                        "revision_instructions": "",
+                    }
+                )
+            )
 
         report = {
             "title": "Relatorio Clinico",
@@ -97,6 +109,6 @@ def test_create_graph_accepts_injected_llms(monkeypatch):
 
     result = graph.invoke(state)
 
-    assert len(conv_llm.invocations) == 2, "Conversation LLM should be used by analyzer and writer"
+    assert len(conv_llm.invocations) == 3, "Conversation LLM should be used by analyzer, writer, and reflector"
     assert result["clinical_facts"]["summary"] == "conversation-facts"
     assert "conversation-response" in result["medical_record"]

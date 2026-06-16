@@ -34,9 +34,6 @@ class Settings(BaseSettings):
     fallback_model: str | None = None
     critique_model: str | None = None
 
-    google_application_credentials: str | None = None
-    google_drive_folder_id: str | None = None
-
     @property
     def is_production(self) -> bool:
         """Return whether production safeguards should apply."""
