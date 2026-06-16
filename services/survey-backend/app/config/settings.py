@@ -64,18 +64,9 @@ class Settings(BaseSettings):
         default=None,
         validation_alias="CORS_ALLOWED_ORIGINS",
     )
-    template_admin_emails_raw: str = Field(
-        default="",
-        validation_alias="TEMPLATE_ADMIN_EMAILS",
-    )
     privacy_admin_token: str = "dev-privacy-token"
     encryption_key_id: str | None = None
     encryption_provider: str | None = None
-
-    @property
-    def template_admin_emails(self) -> list[str]:
-        """Return normalized template administrator email addresses."""
-        return _parse_csv_env(self.template_admin_emails_raw)
 
     @property
     def is_production(self) -> bool:
