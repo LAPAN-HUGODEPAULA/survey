@@ -29,6 +29,18 @@ class _StubLLM:
 
         if "clinical analysis engine" in prompt.lower():
             return Response(json.dumps({"summary": f"{self.name}-facts"}))
+        if "clinical reflection validator" in prompt.lower():
+            return Response(
+                json.dumps(
+                    {
+                        "grounded": True,
+                        "tone_ok": True,
+                        "safety_ok": True,
+                        "issues": [],
+                        "revision_instructions": "",
+                    }
+                )
+            )
 
         report = {
             "title": "Relatorio Clinico",
@@ -129,8 +141,8 @@ async def test_json_and_conversation_paths_use_injected_llms():
         tracker=tracker,
     )
 
-    assert conv_llm.calls == 2
-    assert json_llm.calls == 2
+    assert conv_llm.calls == 3
+    assert json_llm.calls == 3
     assert "conversation-response" in _collect_report_text(conv_result.report)
     assert "json-response" in _collect_report_text(json_result.report)
 
@@ -161,7 +173,7 @@ async def test_request_prompt_overrides_reach_graph_nodes():
     assert "ACCESS_POINT_FORMAT_OVERRIDE" in json_llm.prompts[1]
 
 
-async def test_default_flow_finishes_after_persona_writer():
+async def test_default_flow_finishes_after_reflector_validation():
     observer = create_default_observer()
     tracker = get_progress_tracker()
 
@@ -175,6 +187,18 @@ async def test_default_flow_finishes_after_persona_writer():
 
             if "clinical analysis engine" in prompt.lower():
                 return Response(json.dumps({"summary": "json-facts"}))
+            if "clinical reflection validator" in prompt.lower():
+                return Response(
+                    json.dumps(
+                        {
+                            "grounded": True,
+                            "tone_ok": True,
+                            "safety_ok": True,
+                            "issues": [],
+                            "revision_instructions": "",
+                        }
+                    )
+                )
 
             report = {
                 "title": "Relatorio Clinico",
@@ -217,5 +241,5 @@ async def test_default_flow_finishes_after_persona_writer():
         tracker=tracker,
     )
 
-    assert json_llm.calls == 2
+    assert json_llm.calls == 3
     assert "json-response" in _collect_report_text(result.report)

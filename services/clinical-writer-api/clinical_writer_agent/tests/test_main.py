@@ -31,6 +31,18 @@ class _StubLLM:
 
         if "clinical analysis engine" in prompt.lower():
             return Response(json.dumps({"summary": f"{self.name}-facts"}))
+        if "clinical reflection validator" in prompt.lower():
+            return Response(
+                json.dumps(
+                    {
+                        "grounded": True,
+                        "tone_ok": True,
+                        "safety_ok": True,
+                        "issues": [],
+                        "revision_instructions": "",
+                    }
+                )
+            )
 
         report = {
             "title": "Relatorio Clinico",
@@ -260,15 +272,17 @@ def test_graph_ascii_contains_layered_nodes():
         assert "context_loader" in ascii_graph
         assert "clinical_analyzer" in ascii_graph
         assert "persona_writer" in ascii_graph
+        assert "reflector" in ascii_graph
     except ImportError:
         assert "context_loader" in inner_graph.nodes
         assert "clinical_analyzer" in inner_graph.nodes
         assert "persona_writer" in inner_graph.nodes
+        assert "reflector" in inner_graph.nodes
 
 
-def test_graph_does_not_include_reflector_node():
+def test_graph_includes_reflector_node():
     observer = create_default_observer()
     graph, *_ = _make_graph(observer)
     inner_graph = graph.get_graph()
 
-    assert "reflector" not in inner_graph.nodes
+    assert "reflector" in inner_graph.nodes

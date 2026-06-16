@@ -3,6 +3,7 @@ import json
 from clinical_writer_agent.agents.clinical_analyzer_agent import ClinicalAnalyzerAgent
 from clinical_writer_agent.agents.context_loader_agent import ContextLoaderAgent
 from clinical_writer_agent.agents.persona_writer_agent import PersonaWriterAgent
+from clinical_writer_agent.agents.reflector_agent import ReflectorAgent
 from clinical_writer_agent.prompt_registry import PromptNotFoundError, ResolvedPrompt
 
 
@@ -144,4 +145,64 @@ def test_persona_writer_ignores_stale_reflection_feedback():
         }
     )
 
-    assert "legacy reflection feedback" not in llm.prompts[0]
+    assert "legacy reflection feedback" in llm.prompts[0]
+
+
+def test_reflector_requests_retry_when_grounding_fails():
+    agent = ReflectorAgent(
+        critique_llm=_StubLLM(
+            {
+                "grounded": False,
+                "tone_ok": True,
+                "safety_ok": True,
+                "issues": ["Remove unsupported symptom severity."],
+                "revision_instructions": "Rewrite using only grounded facts.",
+            },
+            name="reflector",
+        )
+    )
+
+    result = agent.reflect(
+        {
+            "input_type": "survey7",
+            "persona_prompt": "write with school tone",
+            "clinical_facts": {"summary": "moderate visual distress"},
+            "report": _report_payload("hallucinated"),
+            "reflection_retries_used": 0,
+            "warnings": [],
+        }
+    )
+
+    assert result["reflection_outcome"] == "retry"
+    assert result["reflection_retries_used"] == 1
+    assert "Rewrite using only grounded facts." in result["reflection_feedback"]
+
+
+def test_reflector_appends_warning_after_retry_limit():
+    agent = ReflectorAgent(
+        critique_llm=_StubLLM(
+            {
+                "grounded": False,
+                "tone_ok": False,
+                "safety_ok": True,
+                "issues": ["Tone is too certain for the evidence provided."],
+                "revision_instructions": "Soften certainty and remove unsupported claims.",
+            },
+            name="reflector",
+        )
+    )
+
+    result = agent.reflect(
+        {
+            "input_type": "survey7",
+            "persona_prompt": "write with school tone",
+            "clinical_facts": {"summary": "moderate visual distress"},
+            "report": _report_payload("persistent"),
+            "reflection_retries_used": 2,
+            "warnings": [],
+        }
+    )
+
+    assert result["reflection_outcome"] == "accepted_with_warning"
+    assert result["warnings"]
+    assert "segurança" in result["warnings"][0].lower()
