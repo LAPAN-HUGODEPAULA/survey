@@ -43,6 +43,18 @@ class SurveyResponseRepository:
             include_internal_fields=True,
         )
 
+    def update_fields(self, response_id: str, fields: dict) -> dict | None:
+        """Update one response and return the normalized persisted document."""
+        try:
+            object_id = ObjectId(response_id)
+        except Exception:
+            return None
+        self._col.update_one({"_id": object_id}, {"$set": fields})
+        return self._normalize(
+            self._col.find_one({"_id": object_id}),
+            include_internal_fields=True,
+        )
+
     def _normalize(
         self,
         doc: dict | None,
