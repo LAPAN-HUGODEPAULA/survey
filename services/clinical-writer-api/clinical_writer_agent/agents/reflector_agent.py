@@ -30,9 +30,13 @@ class ReflectorAgent:  # pylint: disable=too-few-public-methods
         self,
         *,
         critique_llm: LLMClient | None = None,
+        conversation_llm: LLMClient | None = None,
+        json_llm: LLMClient | None = None,
         max_retries: int = MAX_REFLECTION_RETRIES,
     ):
         self._critique_llm = critique_llm
+        self._conversation_llm = conversation_llm
+        self._json_llm = json_llm
         self._max_retries = max_retries
 
     def reflect(self, state: AgentState) -> AgentState:
@@ -123,6 +127,15 @@ class ReflectorAgent:  # pylint: disable=too-few-public-methods
     def _select_llm(self, state: AgentState):
         if self._critique_llm is not None:
             return self._critique_llm
+        input_type = state.get("input_type")
+        if input_type == "consult" and self._conversation_llm is not None:
+            return self._conversation_llm
+        if input_type in {"survey7", "full_intake"} and self._json_llm is not None:
+            return self._json_llm
+        if self._json_llm is not None:
+            return self._json_llm
+        if self._conversation_llm is not None:
+            return self._conversation_llm
         return resolve_model_router(state)
 
     def _decide(
@@ -160,6 +173,8 @@ class ReflectorAgent:  # pylint: disable=too-few-public-methods
 
     @staticmethod
     def _build_feedback(assessment: ReflectionAssessment) -> str:
+        if assessment.revision_instructions.strip():
+            return assessment.revision_instructions.strip()
         issues = assessment.issues or [
             "Reescreva o laudo mantendo apenas fatos clínicos presentes na análise estruturada."
         ]

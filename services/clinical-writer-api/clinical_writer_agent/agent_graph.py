@@ -68,7 +68,9 @@ def create_graph(
     workflow.add_node(
         "reflector",
         ReflectorAgent(
-            critique_llm=reflector_llm or json_llm or conversation_llm,
+            critique_llm=reflector_llm,
+            conversation_llm=conversation_llm,
+            json_llm=json_llm,
         ).reflect,
     )
     workflow.add_node("handle_other", OtherInputHandlerAgent().handle)

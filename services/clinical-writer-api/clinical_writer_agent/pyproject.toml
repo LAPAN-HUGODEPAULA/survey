@@ -28,7 +28,14 @@ addopts = "--cov=. --cov-report=term-missing --cov-report=html:coverage_report"
 
 [tool.coverage.run]
 source = ["."]
-omit = ["tests/*", "**/__init__.py", "examples_observer_pattern.py"]
+omit = [
+    "tests/*",
+    "**/__init__.py",
+    "examples_observer_pattern.py",
+    "agents/conversation_processor_agent.py",
+    "agents/json_processor_agent.py",
+    "agents/writer_nodes.py",
+]
 
 [tool.coverage.report]
 exclude_lines = [

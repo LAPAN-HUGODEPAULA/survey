@@ -95,14 +95,24 @@ def parse_json_object(raw: str) -> dict[str, Any]:
 def resolve_model_version(llm_model: Any) -> str:
     """Best-effort model version extraction for metrics and API responses."""
     if llm_model is None:
-        return AgentConfig.PRIMARY_MODEL
+        return (
+            AgentConfig.PRIMARY_MODEL
+            or AgentConfig.LLM_MODEL_NAME
+            or AgentConfig.GLM_MODEL_NAME
+            or "unknown"
+        )
     if hasattr(llm_model, "model_version") and getattr(llm_model, "model_version"):
         return getattr(llm_model, "model_version")
     if hasattr(llm_model, "model"):
         return getattr(llm_model, "model")
     if hasattr(llm_model, "name"):
         return getattr(llm_model, "name")
-    return AgentConfig.PRIMARY_MODEL
+    return (
+        AgentConfig.PRIMARY_MODEL
+        or AgentConfig.LLM_MODEL_NAME
+        or AgentConfig.GLM_MODEL_NAME
+        or "unknown"
+    )
 
 
 def resolve_model_routing_metadata(llm_model: Any, state: Any) -> dict[str, Any]:
