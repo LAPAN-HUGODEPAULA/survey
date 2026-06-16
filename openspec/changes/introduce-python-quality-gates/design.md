@@ -2,35 +2,76 @@
 
 ## Context
 
-This change was produced from Skylos Python report v1 triage. The intent is to convert static-analysis clusters into a bounded, reviewable implementation plan rather than fixing isolated lines without architecture context.
+This change was produced from Skylos Python report v1 triage. The intent is to convert static-analysis clusters into a bounded, reviewable quality policy and tooling gate that runs locally via pre-commit and centrally on CI.
 
 ## Goals
 
-- Reduce high-confidence or high-leverage Skylos findings in the stated scope.
-- Preserve behavior unless a requirement explicitly changes it.
-- Add tests that make the intended boundary or refactor observable.
-- Keep changes small enough for review and rollback.
+- Establish local pre-commit gates to prevent new quality regressions before they are committed.
+- Introduce Ruff (lint/format), Mypy (type checking), Pylint, and Skylos (baseline-aware gate) configurations.
+- Allow legacy code to exist while ensuring newly modified code is checked.
+- Provide a unified script `tools/scripts/quality_gate.py` that developers can run locally.
 
 ## Non-Goals
 
-- Broad formatting-only rewrites.
-- Blind dependency upgrades or suppressions.
-- Generated-file cleanup unrelated to this capability.
+- Complete remediation of all 2,000+ existing codebase findings.
+- Global, automated code formatting refactors (like black/ruff format) on legacy files that were not touched.
 
 ## Decisions
 
-- Start with non-controversial checks: compileall, unused imports, new secret detection, route auth inventory.
-- Use strict typing in new modules and incremental typing in legacy modules.
-- Avoid formatting-only churn in the same PR as behavior refactors.
+### 1. Unified Tool Integration
+We will configure Ruff, Mypy, and Pylint in the root `pyproject.toml` (or specific configs) to establish standard settings.
+- **Ruff**: Enforces imports sort (`I`), code formatting and style (`E`, `W`, `F`), and common code smells (`B`, `C4`, `UP`, `ARG`).
+- **Mypy**: Enforces basic strictness (`check_untyped_defs = true`, `strict_equality = true`) with custom package overrides for libraries without types (like `reportlab`, `pymongo`).
+- **Pylint**: Standard code complexity and style checking.
+
+### 2. Pre-commit Pipeline
+A `.pre-commit-config.yaml` file will be created at the root of the repository to intercept git commits and run the quality gates on staged files.
+
+```yaml
+repos:
+  - repo: local
+    hooks:
+      - id: syntax-check
+        name: Syntax Check
+        entry: uv run python -m compileall -q
+        language: system
+        types: [python]
+      - id: ruff
+        name: Ruff Check
+        entry: uv run ruff check --force-exclude
+        language: system
+        types: [python]
+      - id: mypy
+        name: Mypy Check
+        entry: uv run mypy
+        language: system
+        types: [python]
+        pass_filenames: true
+      - id: pylint
+        name: Pylint Check
+        entry: uv run pylint --disable=C
+        language: system
+        types: [python]
+      - id: skylos
+        name: Skylos Baseline Gate
+        entry: uvx skylos . --baseline --gate
+        language: system
+        pass_filenames: false
+        always_run: true
+```
+
+### 3. Unified Quality Gate Runner
+A Python script at `tools/scripts/quality_gate.py` will allow running all checks manually:
+- `uv run tools/scripts/quality_gate.py --all`: Scans the whole repo (used on CI).
+- `uv run tools/scripts/quality_gate.py`: Detects changed files relative to `origin/main` and runs the linter/type-check only on those files, with Skylos verifying the diff.
 
 ## Risks / Trade-offs
 
-- Static analysis may report false positives. Implementation must verify source flow, route dependencies, and package roots before deleting or suppressing code.
-- Refactors in backend routes and Clinical Writer integration can affect contracts indirectly; validate OpenAPI and generated clients when response/request models change.
-- Security hardening may fail previously tolerated invalid configuration; treat this as intentional if documented in the proposal.
+- **Pre-commit friction**: Running slow checks on every commit can annoy developers. We mitigate this by configuring Ruff (extremely fast) and running Mypy/Pylint only on changed files.
+- **Mypy Import Resolution**: When mypy runs on single files, it still resolves imports. It might complain about other files. We will use `ignore_missing_imports` and config overrides to suppress noise.
+- **Baseline Drift**: When refactoring code, developers must run `uvx skylos baseline .` to update the baseline file once legacy items are resolved.
 
 ## Validation Strategy
 
-- Quality command exits nonzero for a seeded new violation.
-- Baseline report generated and documented.
-- CI/pre-commit runs on representative changed files.
+- **Seeded failure**: Verify that adding an unused import or typing error to a staged file triggers pre-commit failure.
+- **Baseline check**: Ensure `uvx skylos . --baseline --gate` exits with status `0` when no new violations exist.
