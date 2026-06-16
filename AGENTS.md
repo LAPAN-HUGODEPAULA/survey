@@ -127,6 +127,11 @@ The project uses MongoDB with a systematic migration framework.
 
 ### Key Architecture Patterns
 *   **Repository Pattern**: MongoDB access is strictly abstracted via repositories. Only `app/persistence/**` may import `pymongo` directly. Routers must use dependency-injected repositories from `app.persistence.deps`.
+*   **Dependency-First Authorization**: All FastAPI route authentication uses centralized `Depends(...)` dependencies in `app/api/dependencies/`. Two patterns:
+    *   **`require_screener`** (`app/api/dependencies/screener_auth.py`): Validates Bearer JWT tokens and resolves the authenticated `ScreenerModel`. Used for all screener-facing clinical routes (chat sessions, messages, clinical writer, documents, voice transcriptions, survey responses).
+    *   **`require_template_admin`**: Chains on `require_screener` and enforces `isBuilderAdmin=True` from the database record. Replaces the legacy `settings.template_admin_emails` allow-list.
+    *   **`require_builder_admin` / `require_builder_csrf`** (`app/api/dependencies/builder_auth.py`): Cookie-based session authentication for `survey-builder` administrative routes with CSRF protection.
+*   **Route Authorization Audit**: `test_route_authorization_audit.py` dynamically inspects `app.routes` and asserts all mutating endpoints (POST/PUT/PATCH/DELETE) have a recognized auth dependency or are explicitly listed as public exceptions. New mutating routes will fail CI unless protected.
 *   **Contract-First Development**: All client-server communication is driven by the OpenAPI specification.
 *   **UI/UX Consistency**: Full-screen Flutter pages must utilize `DsScaffold` from `design_system_flutter`. The shared theme uses `Colors.orange` as the seed color.
 
@@ -264,7 +269,8 @@ Run these from the respective app directory or using repository root npm scripts
 *   **Prompt Governance:** `PromptRegistry` uses Google Drive `modifiedTime` as `prompt_version`; do not embed prompt content in MongoDB.
 
 ### Review Guidelines
-*   **FastAPI Backend:** Check that routers only use dependency-injected repositories. Verify that no raw `pymongo` imports leak outside `app/persistence/**`. Check contracts against OpenAPI specs.
+*   **FastAPI Backend:** Check that routers only use dependency-injected repositories. Verify that no raw `pymongo` imports leak outside `app/persistence/**`. Check contracts against OpenAPI specs. Verify that every new mutating route uses a centralized auth dependency (`require_screener`, `require_builder_admin`, or `require_template_admin`). No ad hoc token/header parsing in route bodies.
+*   **Authorization:** Route authorization changes must update `test_route_authorization_audit.py` public exceptions if a new mutating route is intentionally public. Template administration must use the database-level `isBuilderAdmin` flag — never `settings.template_admin_emails` (removed).
 *   **Flutter Apps:** Flag any components bypassing `design_system_flutter` without explicit justification. Watch for async lifecycle issues and null safety.
 *   **Contracts:** Re-run contract generation scripts and confirm that any changes in request/response models are correctly reflected in the OpenAPI yaml definition.
 
