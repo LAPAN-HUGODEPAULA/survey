@@ -6,10 +6,13 @@ import jwt
 from fastapi.testclient import TestClient
 
 from app.config.settings import settings
+from app.domain.models.agent_response_model import AgentResponse
 from app.domain.models.screener_access_link_model import ScreenerAccessLinkModel
 from app.domain.models.screener_model import Address, ProfessionalCouncil, ScreenerModel
 from app.main import app
 from app.persistence.deps import (
+    get_agent_access_point_repo,
+    get_persona_skill_repo,
     get_screener_access_link_repo,
     get_screener_repo,
     get_survey_repo,
@@ -103,18 +106,30 @@ class ScreenerAccessLinksRouterTests(unittest.TestCase):
 
     @patch("app.api.routes.survey_responses.send_survey_response_email")
     @patch("app.api.routes.survey_responses.send_to_langgraph_agent")
+    @patch("app.api.routes.survey_responses.get_db")
+    @patch("app.api.routes.survey_responses.SystemSettingsRepository")
     def test_create_survey_response_uses_linked_screener(
         self,
+        mock_settings_repo_cls,
+        mock_get_db,
         mock_agent,
         mock_email,
     ) -> None:
         del mock_email
+        del mock_get_db
         mock_link_repo = MagicMock()
         mock_screener_repo = MagicMock()
         mock_survey_repo = MagicMock()
         mock_response_repo = MagicMock()
+        mock_persona_repo = MagicMock()
+        mock_persona_repo.get_by_key.return_value = None
+        mock_persona_repo.get_by_output_profile.return_value = None
+        mock_access_point_repo = MagicMock()
+        mock_access_point_repo.get_by_key.return_value = None
+        mock_access_point_repo.list_for_runtime.return_value = []
 
-        mock_agent.return_value = {"ok": True}
+        mock_agent.return_value = AgentResponse(ok=True)
+        mock_settings_repo_cls.return_value.get_json.return_value = None
         link = ScreenerAccessLinkModel(
             _id="token-123",
             screenerId="screener-1",
@@ -142,6 +157,8 @@ class ScreenerAccessLinksRouterTests(unittest.TestCase):
         app.dependency_overrides[get_screener_repo] = lambda: mock_screener_repo
         app.dependency_overrides[get_survey_repo] = lambda: mock_survey_repo
         app.dependency_overrides[get_survey_response_repo] = lambda: mock_response_repo
+        app.dependency_overrides[get_persona_skill_repo] = lambda: mock_persona_repo
+        app.dependency_overrides[get_agent_access_point_repo] = lambda: mock_access_point_repo
 
         response = self.client.post(
             "/api/v1/survey_responses/",

@@ -3,6 +3,7 @@ from unittest.mock import MagicMock
 
 from fastapi.testclient import TestClient
 
+from app.domain.models.agent_response_model import AgentResponse
 from app.main import app
 from app.persistence.deps import (
     get_agent_access_point_repo,
@@ -130,13 +131,14 @@ def test_create_patient_response_uses_access_point_bindings(monkeypatch):
     access_point_repo.list_for_runtime.return_value = []
 
     async def _fake_agent(*args, **kwargs):
-        return {
-            "ok": True,
-            "medicalRecord": "ok",
-            "prompt_version": "v1",
-        }
+        return AgentResponse(ok=True, medicalRecord="ok", prompt_version="v1")
 
     monkeypatch.setattr("app.api.routes.patient_responses.send_to_langgraph_agent", _fake_agent)
+    monkeypatch.setattr(
+        "app.api.routes.patient_responses.SystemSettingsRepository",
+        lambda _db: MagicMock(get_json=lambda _key: None),
+    )
+    monkeypatch.setattr("app.api.routes.patient_responses.get_db", lambda: MagicMock())
 
     app.dependency_overrides[get_survey_repo] = lambda: survey_repo
     app.dependency_overrides[get_persona_skill_repo] = lambda: persona_repo
@@ -187,6 +189,11 @@ def test_create_patient_response_defers_thank_you_agent_processing(monkeypatch):
         "app.api.routes.patient_responses.send_to_langgraph_agent",
         _unexpected_agent,
     )
+    monkeypatch.setattr(
+        "app.api.routes.patient_responses.SystemSettingsRepository",
+        lambda _db: MagicMock(get_json=lambda _key: None),
+    )
+    monkeypatch.setattr("app.api.routes.patient_responses.get_db", lambda: MagicMock())
 
     app.dependency_overrides[get_survey_repo] = lambda: survey_repo
     app.dependency_overrides[get_persona_skill_repo] = lambda: persona_repo
@@ -217,11 +224,7 @@ def test_process_clinical_writer_resolves_global_access_point_without_survey_id(
         assert kwargs["prompt_key"] == "narrative_prompt"
         assert kwargs["persona_skill_key"] == "clinical_writer_persona"
         assert kwargs["output_profile"] == "clinical_diagnostic_report"
-        return {
-            "ok": True,
-            "medicalRecord": "ok",
-            "prompt_version": "v1",
-        }
+        return AgentResponse(ok=True, medicalRecord="ok", prompt_version="v1")
 
     monkeypatch.setattr("app.api.routes.clinical_writer.send_to_langgraph_agent", _fake_agent)
     monkeypatch.setattr(
