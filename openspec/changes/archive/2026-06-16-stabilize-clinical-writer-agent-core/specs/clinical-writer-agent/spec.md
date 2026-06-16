@@ -41,7 +41,7 @@ Graph nodes SHALL depend on explicit repository interfaces for prompt resolution
 
 ### Requirement: Safe Transcription File Retention
 
-Stranded audio files from interrupted containers must not violate patient data boundaries.
+Stranded audio files from interrupted containers MUST NOT violate patient data boundaries.
 
 #### Scenario: Startup garbage collection
 - **GIVEN** temporary audio files remain in `/tmp/clinical-writer-audio/` due to an ungraceful container shutdown,
