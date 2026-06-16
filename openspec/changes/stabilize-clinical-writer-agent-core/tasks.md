@@ -1,16 +1,37 @@
-# Tasks
+# Tasks: stabilize-clinical-writer-agent-core
 
-- [ ] 1. Document current graph state, node inputs/outputs, and error paths.
-- [ ] 2. Add typed protocols or Pydantic models for stage input/output boundaries.
-- [ ] 3. Extract graph wiring constants and transition rules from create_graph.
-- [ ] 4. Split layered_node_utils into route resolution, model version resolution, and markdown formatting modules.
-- [ ] 5. Refactor prompt_registry into repository access, Google Drive metadata lookup, and prompt/persona resolution components.
-- [ ] 6. Normalize monitoring base classes and event hooks.
-- [ ] 7. Add regression tests for default flow, bad input, missing prompt/persona, and reflection-cycle behavior.
-- [ ] 8. Run clinical-writer compile/lint and targeted tests.
+- [x] **1. Decommission Google Drive Provider**
+  - Delete `GoogleDrivePromptProvider` in `prompt_registry.py`.
+  - Remove `google-api-python-client` and `google-auth` from dependency requirements in `pyproject.toml`.
+  - Sync lock files (`uv lock` / `uv sync`).
+  - Delete deprecated Google Drive env variables in `settings.py` and `config/runtime/config.private.example.json`.
 
-## Validation
+- [x] **2. Extract and Implement Repository Layer**
+  - Define repository protocols (`PromptRepository`, `PersonaRepository`, `AgentRouteRepository`).
+  - Create `clinical_writer_agent/repository/prompt_repository.py` and implement Mongo / Local providers.
+  - Create `clinical_writer_agent/repository/agent_route_repository.py` and implement Mongo agent route queries.
+  - Decouple `prompt_registry.py` and `layered_node_utils.py` from direct `pymongo` imports.
 
-- [ ] V1. Clinical Writer API contract tests.
-- [ ] V2. Graph default-flow tests.
-- [ ] V3. Skylos rerun with reduced architecture/complexity hotspots.
+- [x] **3. Implement Pydantic State Boundaries**
+  - Create `clinical_writer_agent/agents/schemas.py`.
+  - Define input and output Pydantic schemas for `ContextLoader`, `ClinicalAnalyzer`, `PersonaWriter`, and `Reflector`.
+  - Update agent classes to parse state dictionary items into Pydantic models before executing agent logic, and dump results back.
+
+- [x] **4. Build and Wire ReflectorNode**
+  - Create `clinical_writer_agent/agents/reflector_agent.py`.
+  - Implement LLM-based checks for Grounding, Tone, and Safety.
+  - Add reflection-related properties (`reflection_feedback`, `reflection_retries_used`) to `AgentState`.
+  - Update `agent_graph.py` to register the `reflector` node and define conditional routing loops from `persona_writer` back to it.
+
+- [x] **5. Normalize Observers**
+  - Update `ProcessingMonitor` in `base_monitors.py` to provide default empty `pass` implementations for all hooks.
+  - Simplify subclasses (`ProgressMonitor`, `LoggingMonitor`) by deleting unused empty hook definitions.
+
+- [x] **6. Add Startup Audio Cleanup Hook**
+  - Write residual cleanup helper in `transcription_retention.py` utilizing safe path utilities from `lapan_core`.
+  - Hook the cleanup helper into `main.py` lifespan application startup.
+
+- [x] **7. Implement Tests & Verification**
+  - Add unit tests for `ReflectorNode` and reflection loop routing.
+  - Verify prefix prompt layout remains compliant with LLM provider caching rules.
+  - Run the full test suite with coverage (`pytest --cov`) and verify compile checks (`python -m compileall`).

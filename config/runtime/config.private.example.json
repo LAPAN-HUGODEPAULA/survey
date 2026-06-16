@@ -74,9 +74,7 @@
       "geminiModel": "gemini-2.5-flash",
       "glmModel": "glm-4-flash",
       "primaryModel": "glm-4-flash",
-      "fallbackModel": "gemini-2.5-flash",
-      "googleApplicationCredentials": "/app/clinical_writer_agent/credentials/google-application-credentials.json",
-      "googleDriveFolderId": ""
+      "fallbackModel": "gemini-2.5-flash"
     },
     "deployment": {
       "letsencryptEmail": "ops@example.com"
