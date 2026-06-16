@@ -1,5 +1,6 @@
 """Shared security helpers and common utilities for LAPAN services."""
 
+from .report_formatter import ReportTextFormatter
 from .security_boundaries import (
     SecurityBoundaryError,
     append_text_to_safe_path,
@@ -10,6 +11,7 @@ from .security_boundaries import (
 )
 
 __all__ = [
+    "ReportTextFormatter",
     "SecurityBoundaryError",
     "append_text_to_safe_path",
     "get_safe_write_path",
