@@ -10,10 +10,11 @@ The Clinical Writer integration client is a high-churn seam between survey-backe
 - Introduce typed request/result models for integration outcomes.
 - Unify report-to-text conversion with survey-worker and report-delivery code where feasible.
 - Preserve existing external behavior while reducing complexity and nesting.
+- Update technical and architectural documentation to reflect the new decomposed module structure.
 
 ## Scope
 
-survey-backend/app/integrations/clinical_writer/** and directly related tests. It may touch survey-worker only for shared formatter extraction.
+`survey-backend/app/integrations/clinical_writer/**`, `docs/**` (specifically architecture and technical spec documents referencing the client), and directly related tests. It may touch `survey-worker` only for shared formatter extraction.
 
 ## Impact
 
