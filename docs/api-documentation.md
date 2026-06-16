@@ -58,6 +58,14 @@
 
 - **Patient Responses**
   - `POST /patient_responses/` – create patient-facing response; same access-point resolution and multi-artifact enrichment flow as survey responses. Returns `SurveyResponseWithAgent`.
+
+- **AI Agents**
+  - `GET /ai_agents/` – list AI agent endpoint definitions (builder admin required).
+  - `POST /ai_agents/` – create an AI agent definition (builder admin + CSRF required).
+  - `GET /ai_agents/{agent_key}` – fetch one agent by key (builder admin required).
+  - `PUT /ai_agents/{agent_key}` – update an AI agent definition (builder admin + CSRF required).
+  - `DELETE /ai_agents/{agent_key}` – delete an AI agent definition (builder admin + CSRF required).
+
   - `POST /clinical_writer/process` – backend proxy to Clinical Writer `/process` with JSON-only report output.
 
 ## Models (abridged)
@@ -69,6 +77,7 @@
 - `SurveyResponse`: answers plus patient details, stored in the `survey_responses` collection, with optional `accessPointKey`, `promptKey`, `personaSkillKey`, and `outputProfile`.
 - `PatientResponse`: answers plus patient details, stored in the `patient_responses` collection.
 - `SurveyResponseWithAgent`: response payload plus a legacy-compatible `agentResponse` field and the full `agentResponses` list for access-point fan-out results.
+- `AIAgent`: AI agent endpoint definition with `agentKey`, `providerType` (openai_compatible, glm, gemini), `baseUrl`, `apiKeyEnvVar`, `modelId`, and metadata. Managed via builder admin routes.
 - `ApiError`: standardized frontend-safe error object with `code`, `userMessage`, `severity`, `retryable`, `requestId`, and optional `details`.
 
 ## Clinical Writer Contract (/clinical_writer/process)
@@ -136,6 +145,15 @@ All non-2xx responses from the platform APIs return a standardized `ApiError` ob
   headers on responses.
 - `clinical-writer-api` protected endpoints require
   `Authorization: Bearer <token>` when `API_TOKEN` is configured.
+
+## Authorization Patterns
+
+The backend enforces authentication via centralized FastAPI dependencies in `app/api/dependencies/`:
+
+- **`require_screener`** (`screener_auth.py`): Validates Bearer JWT tokens in the `Authorization` header and resolves the authenticated `ScreenerModel`. Used by all screener-facing clinical routes (chat sessions, messages, clinical writer, documents, voice transcriptions, survey response queries).
+- **`require_template_admin`**: Chains on `require_screener` and enforces `isBuilderAdmin=True` from the database record. Used by template mutation routes.
+- **`require_builder_admin` / `require_builder_csrf`** (`builder_auth.py`): Cookie-based session authentication for `survey-builder` administrative routes with CSRF protection.
+- **Public routes** (registration, login, password recovery, patient link resolution, public screening) are explicitly exempt with compensating controls such as rate limiting and token validation. A route authorization audit test dynamically validates that all mutating endpoints are protected or listed as exceptions.
 - In production, `clinical-writer-api` must not run without `API_TOKEN`
   unless `ALLOW_UNAUTHENTICATED_ACCESS=true` is set intentionally for a
   controlled environment.

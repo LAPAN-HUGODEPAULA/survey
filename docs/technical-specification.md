@@ -29,8 +29,8 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 
 ### Clinical Writer API (`services/clinical-writer-api`)
 
-- Independent FastAPI + LangGraph service implementing a **4-stage state graph** for generating clinical reports. See [multiagent-architecture.md](file:///home/hugo/Documents/LAPAN/dev/survey/docs/multiagent-architecture.md) for the full architectural design.
-- **4-stage graph**: ContextLoader → ClinicalAnalyzer → PersonaWriter → ReflectorNode. Separates clinical interpretation from narrative formatting and applies reflection-based safety validation with up to 2 retry loops.
+- Independent FastAPI + LangGraph service implementing a **state graph** for generating clinical reports. See [multiagent-architecture.md](file:///home/hugo/Documents/LAPAN/dev/survey/docs/multiagent-architecture.md) for the full architectural design and `diagrams/langgraph-pipeline.md` for a visual.
+- **Graph**: InputValidator → DeterministicRouter → ContextLoader → ClinicalAnalyzer → PersonaWriter (→ END). An OtherInputHandler catches flagged, invalid, or error-causing inputs. The ReflectorNode was temporarily bypassed (May 2026) for cost optimization.
 - **Composable prompts**: Assembled at runtime from three layers — Domain (`QuestionnairePrompts`), Persona (`PersonaSkills`), and Contextual Data (pseudonymized response JSON).
 - Uses `PromptRegistry` to compose questionnaire clinical logic from `QuestionnairePrompts` and output persona rules from `PersonaSkills`.
 - Preserves Google Drive or local fallback providers only for non-migrated flows.
@@ -48,7 +48,9 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 
 - `contracts`: OpenAPI contract and generated Dart/Python SDKs.
 - `design_system_flutter`: Flutter theming and widgets (seed color `Colors.orange`).
-- `shared_python`: shared Python utilities (if consumed by services).
+- `lapan-core` (`packages/python/lapan-core`): shared Python utilities including security boundary helpers (`get_safe_write_path`, `validate_outbound_url`) and `ReportTextFormatter` for Clinical Writer report flattening used across Python services.
+- **UV Workspace**: A single root `pyproject.toml` defines the `uv` workspace with all Python services and shared packages. One `uv.lock` at the root locks all dependencies.
+- **AI Agent Catalog**: MongoDB-backed `AIAgents` collection for configurable model endpoints. Access points reference ordered `agentRefs` routes for primary/fallback agent resolution. Administered through Survey Builder UI.
 
 ## Security and Privacy
 
@@ -67,7 +69,7 @@ The LAPAN Survey Platform is a monorepo delivering survey collection and AI-assi
 ## Integrations
 
 - **Email**: background tasks send survey/patient response emails via `app.integrations.email.service`.
-- **Clinical Writer**: async HTTP client (`app.integrations.clinical_writer.client`) submits responses to the LangGraph service; worker can reprocess pending items.
+- **Clinical Writer**: `app.integrations.clinical_writer` is decomposed into `resolver.py` for endpoint selection and SSRF-safe validation, `health.py` for `/healthz` and `/status/{request_id}` probing, `normalizer.py` for response shaping and retry classification, and `client.py` for the thin run orchestrator. The survey worker reuses `lapan_core.ReportTextFormatter` when normalizing stored agent responses.
 
 ## Interfaces & Contracts
 

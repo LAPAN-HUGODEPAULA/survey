@@ -19,6 +19,18 @@
 - The private JSON is rendered into:
   - public app config files with safe values only, such as `apiBaseUrl` and `viaCepBaseUrl`
   - private env files for Docker services such as MongoDB, `survey-backend`, `survey-worker`, and Traefik
+- All Python services use `pydantic-settings` (`BaseSettings`) to load configuration from environment variables rendered by the private JSON. Type validation and startup checks prevent services from starting with missing or insecure values in production mode.
+
+## Startup Validation
+
+In production (`ENVIRONMENT=production`), services refuse to start if:
+
+- `SECRET_KEY` uses the development default (`super-secret-key`)
+- `PRIVACY_ADMIN_TOKEN` uses the development default (`dev-privacy-token`)
+- `API_TOKEN` is not set (clinical-writer-api)
+- Required database or API URLs are missing
+
+This fail-fast behavior is enforced by each service's `Settings.validate_runtime_security()` method.
 
 ## Render Config
 

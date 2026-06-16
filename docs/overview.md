@@ -73,18 +73,20 @@ A dedicated application for administrators or researchers to create, view, updat
 
 ### 5. Clinical Writer AI Multi-Agent System
 
-A centralized AI processing engine built on a **4-stage LangGraph state graph** that separates clinical interpretation from narrative generation and applies reflection-based safety validation. See [multiagent-architecture.md](file:///home/hugo/Documents/LAPAN/dev/survey/docs/multiagent-architecture.md) for the full architectural rationale.
+A centralized AI processing engine built on a **LangGraph state graph** that separates clinical interpretation from narrative generation. See [multiagent-architecture.md](file:///home/hugo/Documents/LAPAN/dev/survey/docs/multiagent-architecture.md) for the full architectural rationale and [diagrams/langgraph-pipeline.md](diagrams/langgraph-pipeline.md) for a visual.
 
-The 4-stage orchestration graph operates as follows:
+The orchestration graph operates as follows:
 
-1. **ContextLoader**: Retrieves the questionnaire's interpretation prompt from `QuestionnairePrompts` and the target persona skill from `PersonaSkills` in MongoDB.
-2. **ClinicalAnalyzer**: Processes the response JSON applying only clinical rules (e.g., CHYPS scoring); outputs structured clinical facts with no narrative text.
-3. **PersonaWriter**: Transforms clinical facts into audience-appropriate Markdown narrative following the persona's tone and format guidelines.
-4. **ReflectorNode**: The "Judge" — validates grounding against raw questionnaire data, checks for invasive recommendations, and verifies persona consistency. Returns **PASS** (end) or **FAIL** (loop back to Writing, up to 2 retries).
+1. **InputValidator**: Validates request payload structure and flags inappropriate content.
+2. **DeterministicRouter**: Routes by `input_type` (consult, survey7, full_intake) or short-circuits to error handling.
+3. **ContextLoader**: Retrieves the questionnaire's interpretation prompt from `QuestionnairePrompts` and the target persona skill from `PersonaSkills` in MongoDB.
+4. **ClinicalAnalyzer**: Processes the response JSON applying only clinical rules (e.g., CHYPS scoring); outputs structured clinical facts with no narrative text.
+5. **PersonaWriter**: Transforms clinical facts into audience-appropriate Markdown narrative following the persona's tone and format guidelines.
+6. **OtherInputHandler**: Handles flagged, invalid, or error-causing inputs with a safe fallback response.
 
 Prompts are composed at runtime from three independent layers: **Domain** (questionnaire-specific clinical rules), **Persona** (tone, vocabulary, output format), and **Contextual Data** (pseudonymized patient response JSON). Agent Skills (Personas) are stored as MongoDB documents and managed through the survey-builder application, allowing clinical specialists to version and update prompt logic without code deployments.
 
-### 5. MongoDB Document Database
+### 6. MongoDB Document Database
 
 A centralized data storage system that maintains:
 
@@ -100,25 +102,16 @@ Based on the current system design and development status, the following improve
 
 ### Data Security and Compliance
 
-- **LGPD Compliance Framework**: Implement end-to-end encryption for MongoDB data storage, pseudonymization of patient identifiers, and audit trails for data access
 - **Access Control Enhancement**: Develop granular role-based permissions with multi-factor authentication for professional screeners
 - **Data Retention Policies**: Establish automated data lifecycle management with configurable retention periods aligned with healthcare regulations
 
-### Clinical Safety and Quality Assurance
-
-- **Automated Validation Pipeline**: Implement real-time fact-checking mechanisms against medical knowledge bases to reduce AI hallucination risks in clinical documentation
-- **Human-in-the-Loop Workflow**: Create mandatory professional review steps for all AI-generated reports before finalization, with version control tracking
-- **Emergency Protocol Integration**: Develop automated alert systems for critical findings that require immediate professional attention, despite NDD focus
-
 ### User Experience and Accessibility
 
-- **Voice Interaction Support**: Implement text-to-speech and speech-to-text capabilities for users with motor impairments or reading difficulties
 - **Adaptive Questionnaire Interface**: Develop age-appropriate presentation modes for questionnaires, particularly for pediatric populations
 - **Offline Mode Capability**: Create limited offline functionality for questionnaire completion with secure synchronization when connectivity resumes
 
 ### Professional Workflow Integration
 
-- **Cross-Application Data Sharing**: Implement secure patient data portability between applications with consent management systems
 - **Longitudinal Analytics Dashboard**: Develop visual progress tracking tools for screeners to monitor patient symptom evolution over time
 - **Research-Practice Bridge**: Create automated anonymized data export features for contributing to normative database development while maintaining patient privacy
 
@@ -126,7 +119,6 @@ Based on the current system design and development status, the following improve
 
 - **Load Balancing Architecture**: Implement containerized microservices with auto-scaling capabilities to handle variable user loads
 - **Caching Strategy**: Develop intelligent caching mechanisms for frequently accessed questionnaire templates and report structures
-- **Performance Monitoring**: Integrate real-time system health monitoring with alerts for resource utilization thresholds
 
 ### Quality Control and Research Support
 

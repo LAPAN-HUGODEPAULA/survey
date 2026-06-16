@@ -42,6 +42,9 @@ identifiers when correlation is sufficient. The backend now pseudonymizes
 `patient_ref` before storing AI run logs so operators can trace a request
 without persisting raw patient email or name in that log stream.
 
+Filesystem writes across all Python services use path traversal protection
+(`security_boundaries.py`) to prevent unauthorized file access.
+
 ## Encryption Configuration
 
 Transport encryption is enforced via HTTPS in production (`ENVIRONMENT=production`).

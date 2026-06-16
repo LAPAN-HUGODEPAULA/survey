@@ -3,7 +3,7 @@
 ## Architecture Overview
 
 - Monorepo organized into `services/`, `apps/`, `packages/`, and `tools/`.
-- Backend is FastAPI with repositories for MongoDB access; integrations cover email and Clinical Writer calls.
+- Backend is FastAPI with repositories for MongoDB access; integrations cover email and a decomposed Clinical Writer client stack.
 - Worker processes augment survey responses asynchronously.
 - Clinical Writer API is an external-but-co-located FastAPI + LangGraph service using configurable agents.
 - Flutter web apps consume generated SDKs and the shared design system for a consistent experience.
@@ -19,13 +19,17 @@
   explicitly. Wildcard CORS is not used with credentials.
 - **Routing**: `/api/v1/survey_prompts`, `/api/v1/persona_skills`, `/api/v1/surveys`, `/api/v1/survey_responses`, `/api/v1/patient_responses` plus `/survey_responses/{id}/send_email` for re-sends.
 - **Screener auth**: `/api/v1/screeners/register`, `/api/v1/screeners/login`, `/api/v1/screeners/me`, and `/api/v1/screeners/recover-password` support screener registration, authentication, profile lookup, and password recovery.
+- **Dependency-first authorization**: All route authentication uses centralized `Depends(...)` in `app/api/dependencies/`. `require_screener` validates Bearer JWT tokens and resolves the authenticated `ScreenerModel`; `require_template_admin` chains on it and enforces `isBuilderAdmin=True`. This replaces ad hoc token/header parsing. A route authorization audit test (`test_route_authorization_audit.py`) dynamically inspects `app.routes` and asserts all mutating endpoints are protected or explicitly listed as public exceptions.
 - **Domain models**: `app/domain/models/*` define Pydantic schemas for surveys, reusable prompts, patients, and agent responses.
 - **Survey schema**: surveys stored in MongoDB embed a compact `prompt` reference while the questionnaire prompt catalog is stored canonically in `QuestionnairePrompts` and remains readable through the `/survey_prompts` API for backward compatibility.
 - Each question definition now carries an optional `label` field; migrations fill legacy surveys with descriptive text while the `/surveys` API exposes the label so front-end radars and future agents can show friendly names instead of raw IDs.
 - **Persona skill schema**: output persona documents live in the `PersonaSkills` collection and can be managed through `/api/v1/persona_skills`.
 - **Persistence**: repositories under `app/persistence/repositories` encapsulate MongoDB CRUD; injected via `app.persistence.deps` to keep handlers decoupled from storage.
 - **Integrations**:
-  - `app.integrations.clinical_writer.client` submits responses for AI enrichment, resolving provider and model configuration from access points or system defaults.
+  - `app.integrations.clinical_writer.client` is the orchestration layer for AI enrichment submissions.
+  - `app.integrations.clinical_writer.resolver` resolves process, status, analysis, and transcription endpoints and applies outbound URL policy checks.
+  - `app.integrations.clinical_writer.health` handles `/healthz` diagnostics and `/status/{request_id}` polling.
+  - `app.integrations.clinical_writer.normalizer` maps upstream payloads into `AgentResponse`, including retryable quota and timeout handling.
   - `app.integrations.email.service` exposes the shared `FastMail` client used by screener password recovery and manual administrative re-sends. Automatic response emails are disabled to ensure LGPD compliance.
 - **AI traceability minimization**: clinical writer run logs store
   pseudonymized `patient_ref` values instead of raw names or emails when
@@ -43,13 +47,16 @@
 
 ## Clinical Writer Design (`services/clinical-writer-api`)
 
-- **Architecture**: Independent FastAPI service with a **4-stage LangGraph state graph** that separates clinical interpretation from narrative generation and applies reflection-based safety validation. See `docs/multiagent-architecture.md` for the full architectural rationale.
-- **4-Stage Orchestration Graph**:
-  1. **ContextLoader** — Retrieves questionnaire interpretation prompts from `QuestionnairePrompts` and persona skills from `PersonaSkills` in MongoDB.
-  2. **ClinicalAnalyzer** — Processes response JSON with clinical rules; outputs structured clinical facts (no narrative text).
-  3. **PersonaWriter** — Transforms clinical facts into audience-appropriate Markdown narrative following the persona's tone and format.
-  4. **ReflectorNode** — Validates grounding, tone, and safety; loops back to PersonaWriter on failure (up to 2 retries).
-- **Multi-Provider Routing**: The service uses a `ModelRouter` with a **primary (GLM) and fallback (Gemini)** policy. It targets Zhipu AI (GLM) via the industry-standard `openai` SDK and falls back to Google Gemini on any error, ensuring high availability and cost optimization.
+- **Architecture**: Independent FastAPI service with a **LangGraph state graph** that separates clinical interpretation from narrative generation. See `docs/multiagent-architecture.md` for the full architectural rationale and `docs/diagrams/langgraph-pipeline.md` for a visual.
+- **Orchestration Graph** (6 nodes):
+  1. **InputValidator** — Validates request payload structure and flags invalid or inappropriate content.
+  2. **DeterministicRouter** — Routes by `input_type` (`consult`, `survey7`, `full_intake`) or short-circuits to error handling.
+  3. **ContextLoader** — Retrieves questionnaire interpretation prompts from `QuestionnairePrompts` and persona skills from `PersonaSkills` in MongoDB.
+  4. **ClinicalAnalyzer** — Processes response JSON with clinical rules; outputs structured clinical facts (no narrative text).
+  5. **PersonaWriter** — Transforms clinical facts into audience-appropriate Markdown narrative following the persona's tone and format.
+  6. **OtherInputHandler** — Handles flagged, invalid, or error-causing inputs with a safe fallback response.
+  - The **ReflectorNode** (reflection-based safety validation with PASS/FAIL loop) was temporarily bypassed in the `optimize-ai-graph-and-fix-glm` change (May 2026) to reduce token consumption. The architectural intent is preserved in `docs/multiagent-architecture.md`.
+- **Multi-Provider Routing**: The service uses a `ModelRouter` with a **primary (GLM) and fallback (Gemini)** policy. It targets Zhipu AI (GLM) via the industry-standard `openai` SDK and falls back to Google Gemini on any error, ensuring high availability and cost optimization. At a higher level, the **AI Agent Catalog** (`AIAgents` MongoDB collection) provides configurable model endpoints managed through Survey Builder, with ordered `agentRefs` routing for automatic primary/fallback resolution.
 - **Composable Prompts**: The final prompt is assembled at runtime from three layers: **Domain** (questionnaire-specific clinical rules), **Persona** (tone, vocabulary, output format), and **Contextual Data** (pseudonymized patient response JSON).
 - **PromptRegistry**: Composes survey-derived prompts from `QuestionnairePrompts` and `PersonaSkills` in MongoDB and exposes `prompt_version`, `questionnaire_prompt_version`, and `persona_skill_version`.
   - **Questionnaire prompt provider** resolves questionnaire clinical logic from `QuestionnairePrompts` and falls back to legacy `survey_prompts` during migration.
@@ -93,12 +100,15 @@
 
 - The platform now has a stronger focus on security and privacy, with platform-wide access control, encryption, and audit logging.
 - All services and applications are designed to be compliant with LGPD.
+- **Security boundaries**: The shared `packages/python/lapan-core/lapan_core/security_boundaries.py` utility provides path traversal protection (`get_safe_write_path`, symlink rejection) and SSRF protection (`validate_outbound_url`, loopback/link-local blocking in production). Used by all Python services for file writes and outbound URL validation. The same package also exposes `lapan_core.report_formatter.ReportTextFormatter`, which both `survey-backend` and `survey-worker` use to flatten structured Clinical Writer reports without duplicating traversal logic.
+- **Configuration management**: All three Python services (`survey-backend`, `survey-worker`, `clinical-writer-api`) use `pydantic-settings` `BaseSettings` for type-safe configuration loaded from environment variables. Services fail-fast at startup in production if required secrets are missing or use insecure development defaults. Secrets are centrallyally rendered from `config/runtime/config.private.json` via `tools/scripts/render_runtime_config.py`.
 
 ## Contracts & Tooling
 
 - **OpenAPI**: `packages/contracts/survey-backend.openapi.yaml` is the single API source of truth.
 - **Client generation**: run `tools/scripts/generate_clients.sh` to refresh SDKs under `packages/contracts/generated/`.
 - **Backend sanity check**: run `python -m compileall services/survey-backend/app` to validate bytecode compilation before shipping.
+- **UV Workspace**: Root `pyproject.toml` defines the `uv` workspace with members in `services/survey-backend`, `services/survey-worker`, `services/clinical-writer-api/clinical_writer_agent`, and `packages/python/lapan-core`. A single `uv.lock` at the root locks all dependencies. The shared `lapan-core` package provides cross-service security utilities.
 
 ## Data & Error Handling
 

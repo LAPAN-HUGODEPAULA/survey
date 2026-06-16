@@ -28,6 +28,16 @@
 
 ## Unreleased
 
+- 2026-06-16: centralized FastAPI authorization contracts — `require_screener`/`require_template_admin` dependency pattern, removed legacy `settings.template_admin_emails`, added route authorization audit test.
+- 2026-06-15: formalized Python service packaging as UV workspace with single `uv.lock`, shared `packages/python/lapan-core`, removed zombie dependencies.
+- 2026-06-12: hardened file and URL boundaries with `security_boundaries.py` utility (path traversal + SSRF protection).
+- 2026-06-11: hardened runtime secrets config with `pydantic-settings`, centralized secret rendering, fail-fast startup validation.
+- 2026-06-10: refactored survey-builder authoring flow to controller pattern (ChangeNotifier), extracted form widgets, externalized validators.
+- 2026-06-10: cleaned up 631 unused Flutter imports across all apps.
+- 2026-06-09: configured AI agent catalog with MongoDB-backed `AIAgents` collection and ordered `agentRefs` routing.
+- 2026-06-09: implemented test effectiveness and coverage hardening with cross-layer validation strategy and traceability matrix.
+- 2026-06-15: updated architecture, API, runbook, and diagram documentation to reflect May-June 2026 changes.
+
 - 2026-05-07: completed AI governance hard cut to canonical `aiConfig` across backend, worker, clinical-writer, and builder, retiring runtime usage of legacy flat AI fields.
 - 2026-05-07: added global AI settings endpoints (`GET/PUT /settings/ai`) and enforced runtime precedence chain (`Request > Access Point > Global > Environment fallback`).
 - 2026-05-07: finalized clinical-writer executor-only routing behavior with structured stage/routing logs and request correlation identifiers.
@@ -52,8 +62,8 @@
 
 ### Release Planning Notes
 
-- These entries are intentionally tracked under `Unreleased` while related survey-builder and runtime-governance changes remain in flight.
-- The next SemVer tag should be cut only after the pending coordinated changes are implemented, validated together, and released as one reviewed feature set.
+- The May AI governance hardening, June security hardening, agent catalog, authorization centralization, and packaging formalization constitute a coherent release candidate.
+- The next SemVer tag should be cut as **v0.3.0** after validation of the complete feature set.
 
 ## v0.1.0 – Initial SemVer Baseline
 

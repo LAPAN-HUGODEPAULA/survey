@@ -43,6 +43,10 @@ tools/scripts/set_builder_admin.sh --email admin@example.com --disable
 - Reads may use the builder session cookie alone, but they still require a valid authenticated admin session.
 - A revoked admin keeps no effective access even if an old cookie is still present because the backend rechecks `isBuilderAdmin` on every protected request.
 
+## Screener-facing route authorization
+
+Screener-facing clinical routes (chat sessions, messages, clinical writer, documents, voice transcriptions, survey response queries) are protected by `require_screener` (`app/api/dependencies/screener_auth.py`), which validates Bearer JWT tokens and resolves the authenticated `ScreenerModel`. Template mutation routes additionally enforce `require_template_admin`, which gates on the `isBuilderAdmin` database flag.
+
 ## Emergency access and rollback
 
 - If builder access must be stopped quickly, remove public exposure at Traefik or revoke all builder admins except a controlled break-glass account.

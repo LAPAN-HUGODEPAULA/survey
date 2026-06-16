@@ -1,5 +1,35 @@
 # Weekly Change Log
 
+## Week of 2026-06-15
+
+### Architecture
+
+- **Centralized FastAPI Authorization Contracts**: Implemented `require_screener` and `require_template_admin` dependencies in `app/api/dependencies/screener_auth.py`, replacing ad hoc token/header parsing in route bodies. Added route authorization audit test that dynamically inspects `app.routes`. Removed legacy `settings.template_admin_emails`.
+- **Formalized Python Service Packaging**: Adopted UV workspace with single root `uv.lock`, created shared `packages/python/lapan-core` for cross-service security utilities, removed zombie dependencies (Flask, Firebase).
+
+### Security
+
+- **Hardened Runtime Secrets Config**: Adopted `pydantic-settings` across all Python services, centralized secret rendering via `config/runtime/config.private.json`, implemented fail-fast startup validation.
+- **Hardened File URL Boundaries**: Standardized `security_boundaries.py` utility in all Python services with path traversal protection and SSRF blocking.
+
+### AI / Multi-Agent
+
+- **AI Agent Catalog**: Introduced MongoDB-backed `AIAgents` collection for configurable model endpoints with ordered `agentRefs` routing and provider adapters (openai_compatible, glm, gemini).
+
+### Flutter
+
+- **Survey Builder Authoring Flow**: Refactored to controller pattern (ChangeNotifier), extracted form widgets, externalized validation logic.
+- **Dead Import Cleanup**: Removed 631 unused imports across all Flutter apps.
+
+### Testing
+
+- **Test Effectiveness and Coverage Hardening**: Cross-layer validation strategy with traceability matrix and coverage enforcement.
+
+### Documentation
+
+- Updated architecture, API, and runbook documentation to reflect May-June 2026 changes.
+- Created Mermaid diagrams for LangGraph pipeline, system architecture, AI config resolution, and auth dependency pattern.
+
 ## Week of 2026-05-07
 
 ### Features

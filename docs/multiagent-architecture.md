@@ -96,13 +96,13 @@ After careful evaluation, the LAPAN project has decided **not to adopt LoRA** fo
 
 If the project scales to the point where prompt-based persona control becomes insufficient — for instance, if dozens of highly specialized output profiles are needed — LoRA can be revisited as a future enhancement.
 
-## Hallucination Mitigation (Future Reflection Extension)
+## Hallucination Mitigation (Reflection Stage — Temporarily Bypassed)
 
-Medical report generation demands factual rigor with zero tolerance for errors. A Reflexion-style cycle remains a future extension path; the current production flow relies on strict schema validation, prompt governance, and stage-level telemetry.
+Medical report generation demands factual rigor with zero tolerance for errors. A ReflectorNode implementing a Reflexion-style cycle was built and deployed, but was temporarily bypassed in the `optimize-ai-graph-and-fix-glm` change (May 2026) to reduce token consumption. The current production flow relies on strict schema validation, prompt governance, and stage-level telemetry.
 
-### Clinical Critique Node
+### Clinical Critique Node (Implemented)
 
-In a future graph variant, the initially generated report could be passed to a dedicated "Critique" node acting as an "AI Judge" or "Guardian Agent".
+The report is passed to a dedicated "Critique" node acting as an "AI Judge" or "Guardian Agent".
 
 | Reflection Criterion | Verification Question | Correction Mechanism |
 |:---|:---|:---|
@@ -132,17 +132,22 @@ The system implements a "Data Sanitization" layer (PII Masking) before data leav
 
 The integration of "Guardian Agents" in LangGraph acts not only as clinical reviewers but also as compliance monitors, blocking report generation that contains stigmatizing language or data not explicitly authorized by the patient's legal guardian.
 
-## The 3-Stage Orchestration Graph (Current Implementation)
+## The LangGraph Orchestration Graph (Current Implementation)
 
 The transition from monolithic prompts to a system based on **Decoupled Expertise** is the fundamental step for the LAPAN platform's growth. By separating **Clinical Interpretation Logic** (Questionnaire Rules) from **Communication Logic** (Persona/Skill), clinical specialists can manage knowledge without depending on software deployment cycles.
+
+See `diagrams/langgraph-pipeline.md` for a visual representation.
 
 ### Graph Stages
 
 | Stage | Node | Responsibility | Input | Output |
 |:---|:---|:---|:---|:---|
-| **1. Context** | ContextLoader | Retrieves the `interpretation_prompt` for the questionnaire and the persona SKILL from MongoDB | Questionnaire ID, Profile ID | Interpretation Prompt, Persona Prompt |
-| **2. Analysis** | ClinicalAnalyzer | Processes the response JSON applying only clinical rules (e.g., CHYPS scoring) | Response JSON, Interpretation Prompt | **Structured Analysis JSON** (Clinical Facts) |
-| **3. Writing** | PersonaWriter | Transforms clinical facts into a Markdown narrative following the Persona's tone | Analysis JSON, Persona Prompt | Report Draft (Markdown) |
+| **1. Validation** | InputValidator | Validates request payload structure and flags inappropriate content | Raw request | Validated payload or flagged status |
+| **2. Routing** | DeterministicRouter | Routes by `input_type` (consult, survey7, full_intake) or short-circuits invalid types | Validated payload | Routed to appropriate handler |
+| **3. Context** | ContextLoader | Retrieves the `interpretation_prompt` for the questionnaire and the persona SKILL from MongoDB | Questionnaire ID, Profile ID | Interpretation Prompt, Persona Prompt |
+| **4. Analysis** | ClinicalAnalyzer | Processes the response JSON applying only clinical rules (e.g., CHYPS scoring) | Response JSON, Interpretation Prompt | **Structured Analysis JSON** (Clinical Facts) |
+| **5. Writing** | PersonaWriter | Transforms clinical facts into a Markdown narrative following the Persona's tone | Analysis JSON, Persona Prompt | Report Draft (Markdown) |
+| **Error** | OtherInputHandler | Handles flagged, invalid, or error-causing inputs with a safe fallback response | Error state | Minimal response with error message |
 
 Model/provider resolution for these stages follows upstream payload authority (`aiConfig`) with backend governance chain and emergency environment fallback only.
 
@@ -153,6 +158,16 @@ Agent Skills (Personas) are stored in MongoDB collections so that the survey-bui
 - **Medical Versioning:** Specialists can create "v2" of a school profile without touching code.
 - **API Flexibility:** Different skills can, in the future, be configured to use different models (e.g., GPT-4o for Clinician, GPT-4o-mini for Patient) for cost optimization.
 
+## AI Agent Catalog
+
+The platform uses a MongoDB-backed **AI Agent Catalog** to decouple model endpoint configuration from code.
+
+- **`AIAgents` collection**: Stores agent definitions with a stable `agentKey`, provider type (`openai_compatible`, `glm`, `gemini`), base URL, model identifier, and API key environment variable reference.
+- **Ordered routing**: Access points define an `agentRefs` list specifying the primary agent and fallback agents with enabled state and parameter overrides. If the primary fails, the system tries the next enabled agent in order.
+- **Provider adapters**: Each agent is dispatched through a provider-specific adapter that translates the catalog configuration into SDK calls.
+- **Administration**: Managed through the Survey Builder AI Agents screen, allowing clinical administrators to add, edit, and deactivate model endpoints without code changes.
+- **Configuration resolution chain**: Per-request overrides → access point `aiConfig` → agent catalog `agentRefs` → global settings (`/settings/ai`) → environment variable fallback.
+
 ## Cost and Risk Mitigation
 
 The solution uses only standard API calls, eliminating the complexity of self-hosted GPU infrastructure.
@@ -162,7 +177,7 @@ The solution uses only standard API calls, eliminating the complexity of self-ho
 
 ## Implementation Roadmap
 
-Following a **Spec-Driven Design** methodology, the implementation is divided into 5 high-fidelity phases.
+Following a **Spec-Driven Design** methodology, the implementation was divided into 5 high-fidelity phases. **Phases 1–5 are substantially complete.** Post-implementation hardening (test effectiveness, coverage enforcement, agent catalog configuration, and security boundary hardening) occurred in May–June 2026.
 
 ### Phase 1: Governance and Data (Foundation)
 
