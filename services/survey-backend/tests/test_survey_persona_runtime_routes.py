@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from app.domain.models.agent_response_model import AgentResponse
 from app.main import app
+from app.persistence.deps import get_system_settings_repo
 from app.persistence.deps import (
     get_agent_access_point_repo,
     get_patient_response_repo,
@@ -62,6 +63,9 @@ def test_create_patient_response_returns_configuration_error_for_stale_persona()
     app.dependency_overrides[get_persona_skill_repo] = lambda: persona_repo
     app.dependency_overrides[get_patient_response_repo] = lambda: patient_response_repo
     app.dependency_overrides[get_agent_access_point_repo] = lambda: access_point_repo
+    app.dependency_overrides[get_system_settings_repo] = lambda: MagicMock(
+        get_json=lambda _key: None
+    )
 
     response = client.post("/api/v1/patient_responses/", json=_response_payload())
 
@@ -94,6 +98,9 @@ def test_create_survey_response_returns_configuration_error_for_stale_persona():
     app.dependency_overrides[get_screener_access_link_repo] = lambda: access_link_repo
     app.dependency_overrides[get_screener_repo] = lambda: screener_repo
     app.dependency_overrides[get_agent_access_point_repo] = lambda: access_point_repo
+    app.dependency_overrides[get_system_settings_repo] = lambda: MagicMock(
+        get_json=lambda _key: None
+    )
 
     response = client.post("/api/v1/survey_responses/", json=_response_payload())
 
@@ -133,17 +140,18 @@ def test_create_patient_response_uses_access_point_bindings(monkeypatch):
     async def _fake_agent(*args, **kwargs):
         return AgentResponse(ok=True, medicalRecord="ok", prompt_version="v1")
 
-    monkeypatch.setattr("app.api.routes.patient_responses.send_to_langgraph_agent", _fake_agent)
     monkeypatch.setattr(
-        "app.api.routes.patient_responses.SystemSettingsRepository",
-        lambda _db: MagicMock(get_json=lambda _key: None),
+        "app.api.dependencies.response_services.send_to_langgraph_agent",
+        _fake_agent,
     )
-    monkeypatch.setattr("app.api.routes.patient_responses.get_db", lambda: MagicMock())
 
     app.dependency_overrides[get_survey_repo] = lambda: survey_repo
     app.dependency_overrides[get_persona_skill_repo] = lambda: persona_repo
     app.dependency_overrides[get_patient_response_repo] = lambda: patient_response_repo
     app.dependency_overrides[get_agent_access_point_repo] = lambda: access_point_repo
+    app.dependency_overrides[get_system_settings_repo] = lambda: MagicMock(
+        get_json=lambda _key: None
+    )
 
     payload = _response_payload()
     payload["accessPointKey"] = "survey_patient.inline.analysis"
@@ -186,19 +194,17 @@ def test_create_patient_response_defers_thank_you_agent_processing(monkeypatch):
         raise AssertionError("Thank-you patient response save must not call AI inline")
 
     monkeypatch.setattr(
-        "app.api.routes.patient_responses.send_to_langgraph_agent",
+        "app.api.dependencies.response_services.send_to_langgraph_agent",
         _unexpected_agent,
     )
-    monkeypatch.setattr(
-        "app.api.routes.patient_responses.SystemSettingsRepository",
-        lambda _db: MagicMock(get_json=lambda _key: None),
-    )
-    monkeypatch.setattr("app.api.routes.patient_responses.get_db", lambda: MagicMock())
 
     app.dependency_overrides[get_survey_repo] = lambda: survey_repo
     app.dependency_overrides[get_persona_skill_repo] = lambda: persona_repo
     app.dependency_overrides[get_patient_response_repo] = lambda: patient_response_repo
     app.dependency_overrides[get_agent_access_point_repo] = lambda: access_point_repo
+    app.dependency_overrides[get_system_settings_repo] = lambda: MagicMock(
+        get_json=lambda _key: None
+    )
 
     payload = _response_payload()
     payload["accessPointKey"] = "survey_patient.thank_you.auto_analysis"
@@ -208,6 +214,63 @@ def test_create_patient_response_defers_thank_you_agent_processing(monkeypatch):
     assert response.json()["promptKey"] == "resolved-prompt"
     assert response.json()["agentResponse"] is None
     assert response.json()["agentResponses"] == []
+    app.dependency_overrides = {}
+
+
+def test_create_survey_response_uses_access_point_bindings(monkeypatch):
+    survey_repo = MagicMock()
+    survey_repo.get_by_id.return_value = {
+        "_id": "survey-1",
+        "prompt": {"promptKey": "survey-default", "name": "Default"},
+    }
+    persona_repo = MagicMock()
+    persona_repo.get_by_key.return_value = {
+        "personaSkillKey": "patient_condition_overview",
+        "outputProfile": "patient_condition_overview",
+    }
+    persona_repo.get_by_output_profile.return_value = {
+        "personaSkillKey": "patient_condition_overview",
+        "outputProfile": "patient_condition_overview",
+    }
+    survey_response_repo = MagicMock()
+    survey_response_repo.create.return_value = {"_id": "response-1"}
+    access_link_repo = MagicMock()
+    screener_repo = MagicMock()
+    access_point_repo = MagicMock()
+    access_point_repo.get_by_key.return_value = {
+        "accessPointKey": "survey_frontend.inline.analysis",
+        "promptKey": "resolved-prompt",
+        "personaSkillKey": "patient_condition_overview",
+        "outputProfile": "patient_condition_overview",
+    }
+    access_point_repo.list_for_runtime.return_value = []
+
+    async def _fake_agent(*args, **kwargs):
+        return AgentResponse(ok=True, medicalRecord="ok", prompt_version="v1")
+
+    monkeypatch.setattr(
+        "app.api.dependencies.response_services.send_to_langgraph_agent",
+        _fake_agent,
+    )
+
+    app.dependency_overrides[get_survey_repo] = lambda: survey_repo
+    app.dependency_overrides[get_persona_skill_repo] = lambda: persona_repo
+    app.dependency_overrides[get_survey_response_repo] = lambda: survey_response_repo
+    app.dependency_overrides[get_screener_access_link_repo] = lambda: access_link_repo
+    app.dependency_overrides[get_screener_repo] = lambda: screener_repo
+    app.dependency_overrides[get_agent_access_point_repo] = lambda: access_point_repo
+    app.dependency_overrides[get_system_settings_repo] = lambda: MagicMock(
+        get_json=lambda _key: None
+    )
+
+    payload = _response_payload()
+    payload["accessPointKey"] = "survey_frontend.inline.analysis"
+    response = client.post("/api/v1/survey_responses/", json=payload)
+
+    assert response.status_code == 201
+    assert response.json()["promptKey"] == "resolved-prompt"
+    assert response.json()["accessPointKey"] == "survey_frontend.inline.analysis"
+    assert response.json()["agentResponse"]["medicalRecord"] == "ok"
     app.dependency_overrides = {}
 
 

@@ -15,6 +15,7 @@ from app.persistence.deps import (
     get_persona_skill_repo,
     get_screener_access_link_repo,
     get_screener_repo,
+    get_system_settings_repo,
     get_survey_repo,
     get_survey_response_repo,
 )
@@ -104,19 +105,11 @@ class ScreenerAccessLinksRouterTests(unittest.TestCase):
             "LINK_NOT_FOUND",
         )
 
-    @patch("app.api.routes.survey_responses.send_survey_response_email")
-    @patch("app.api.routes.survey_responses.send_to_langgraph_agent")
-    @patch("app.api.routes.survey_responses.get_db")
-    @patch("app.api.routes.survey_responses.SystemSettingsRepository")
+    @patch("app.api.dependencies.response_services.send_to_langgraph_agent")
     def test_create_survey_response_uses_linked_screener(
         self,
-        mock_settings_repo_cls,
-        mock_get_db,
         mock_agent,
-        mock_email,
     ) -> None:
-        del mock_email
-        del mock_get_db
         mock_link_repo = MagicMock()
         mock_screener_repo = MagicMock()
         mock_survey_repo = MagicMock()
@@ -129,7 +122,6 @@ class ScreenerAccessLinksRouterTests(unittest.TestCase):
         mock_access_point_repo.list_for_runtime.return_value = []
 
         mock_agent.return_value = AgentResponse(ok=True)
-        mock_settings_repo_cls.return_value.get_json.return_value = None
         link = ScreenerAccessLinkModel(
             _id="token-123",
             screenerId="screener-1",
@@ -159,6 +151,9 @@ class ScreenerAccessLinksRouterTests(unittest.TestCase):
         app.dependency_overrides[get_survey_response_repo] = lambda: mock_response_repo
         app.dependency_overrides[get_persona_skill_repo] = lambda: mock_persona_repo
         app.dependency_overrides[get_agent_access_point_repo] = lambda: mock_access_point_repo
+        app.dependency_overrides[get_system_settings_repo] = lambda: MagicMock(
+            get_json=lambda _key: None
+        )
 
         response = self.client.post(
             "/api/v1/survey_responses/",
