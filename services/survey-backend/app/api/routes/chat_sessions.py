@@ -4,9 +4,11 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 
+from app.api.dependencies.screener_auth import require_screener
 from app.api.ws.chat_manager import chat_manager
 from app.config.settings import settings
 from app.domain.models.chat_session_model import ChatSession
+from app.domain.models.screener_model import ScreenerModel
 from app.persistence.deps import get_chat_session_repo
 from app.persistence.repositories.chat_session_repo import ChatSessionRepository
 
@@ -40,6 +42,7 @@ class ChatSessionUpdate(BaseModel):
 @router.post("/chat/sessions", response_model=ChatSession)
 async def create_session(
     payload: ChatSessionCreate,
+    screener: ScreenerModel = Depends(require_screener),
     repo: ChatSessionRepository = Depends(get_chat_session_repo),
 ):
     session = ChatSession(
@@ -62,6 +65,7 @@ async def create_session(
 @router.get("/chat/sessions", response_model=list[ChatSession])
 def list_sessions(
     status: Optional[str] = None,
+    screener: ScreenerModel = Depends(require_screener),
     repo: ChatSessionRepository = Depends(get_chat_session_repo),
 ):
     sessions = repo.list_by_status(status=status)
@@ -71,6 +75,7 @@ def list_sessions(
 @router.get("/chat/sessions/{session_id}", response_model=ChatSession)
 def get_session(
     session_id: str,
+    screener: ScreenerModel = Depends(require_screener),
     repo: ChatSessionRepository = Depends(get_chat_session_repo),
 ):
     found = repo.get_by_id(session_id)
@@ -83,6 +88,7 @@ def get_session(
 async def update_session(
     session_id: str,
     payload: ChatSessionUpdate,
+    screener: ScreenerModel = Depends(require_screener),
     repo: ChatSessionRepository = Depends(get_chat_session_repo),
 ):
     updates = payload.model_dump(by_alias=True, exclude_unset=True)
@@ -100,6 +106,7 @@ async def update_session(
 @router.post("/chat/sessions/{session_id}/complete", response_model=ChatSession)
 async def complete_session(
     session_id: str,
+    screener: ScreenerModel = Depends(require_screener),
     repo: ChatSessionRepository = Depends(get_chat_session_repo),
 ):
     updated = repo.complete(session_id)

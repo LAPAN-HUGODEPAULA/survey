@@ -4,8 +4,10 @@ from typing import Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.api.dependencies.screener_auth import require_screener
 from app.api.ws.chat_manager import chat_manager
 from app.domain.models.chat_message_model import ChatMessage
+from app.domain.models.screener_model import ScreenerModel
 from app.persistence.deps import get_chat_message_repo
 from app.persistence.repositories.chat_message_repo import ChatMessageRepository
 
@@ -33,6 +35,7 @@ class ChatMessageUpdate(BaseModel):
 async def create_message(
     session_id: str,
     payload: ChatMessageCreate,
+    screener: ScreenerModel = Depends(require_screener),
     repo: ChatMessageRepository = Depends(get_chat_message_repo),
 ):
     message = ChatMessage(
@@ -56,6 +59,7 @@ async def create_message(
 @router.get("/chat/sessions/{session_id}/messages", response_model=list[ChatMessage])
 def list_messages(
     session_id: str,
+    screener: ScreenerModel = Depends(require_screener),
     repo: ChatMessageRepository = Depends(get_chat_message_repo),
 ):
     messages = repo.list_by_session(session_id)
@@ -66,6 +70,7 @@ def list_messages(
 async def update_message(
     message_id: str,
     payload: ChatMessageUpdate,
+    screener: ScreenerModel = Depends(require_screener),
     repo: ChatMessageRepository = Depends(get_chat_message_repo),
 ):
     existing = repo.get_by_id(message_id)
@@ -96,6 +101,7 @@ async def update_message(
 @router.delete("/chat/messages/{message_id}", response_model=ChatMessage)
 async def delete_message(
     message_id: str,
+    screener: ScreenerModel = Depends(require_screener),
     repo: ChatMessageRepository = Depends(get_chat_message_repo),
 ):
     deleted = repo.soft_delete(message_id)

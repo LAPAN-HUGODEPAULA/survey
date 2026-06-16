@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
+from app.api.dependencies.screener_auth import require_screener
+from app.domain.models.screener_model import ScreenerModel
 from app.domain.models.transcription_models import (
     TranscriptionRequest,
     TranscriptionResponse,
@@ -12,7 +14,10 @@ router = APIRouter()
 
 
 @router.post("/voice/transcriptions", response_model=TranscriptionResponse)
-async def transcribe_audio(payload: TranscriptionRequest) -> TranscriptionResponse:
+async def transcribe_audio(
+    payload: TranscriptionRequest,
+    screener: ScreenerModel = Depends(require_screener),
+) -> TranscriptionResponse:
     try:
         result = await send_to_langgraph_transcription(payload.model_dump(by_alias=True))
     except Exception as exc:  # pragma: no cover - defensive

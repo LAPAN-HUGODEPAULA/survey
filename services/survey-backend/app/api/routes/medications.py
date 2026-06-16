@@ -3,6 +3,8 @@
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 
+from app.api.dependencies.screener_auth import require_screener
+from app.domain.models.screener_model import ScreenerModel
 from app.persistence.deps import get_reference_medication_repo
 from app.persistence.repositories.reference_medication_repo import (
     ReferenceMedicationRepository,
@@ -76,6 +78,7 @@ async def search_medications(
 @router.post("/medications/manual", response_model=MedicationSearchItem)
 async def upsert_manual_medication(
     payload: MedicationManualUpsertRequest,
+    screener: ScreenerModel = Depends(require_screener),
     repo: ReferenceMedicationRepository = Depends(get_reference_medication_repo),
 ):
     """Upsert a user-provided medication entry."""

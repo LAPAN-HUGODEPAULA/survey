@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 
+from app.api.dependencies.screener_auth import require_screener
 from app.domain.models.document_models import (
     DocumentPreviewRequest,
     DocumentExportRequest,
     DocumentPreview,
     DocumentRecord,
 )
+from app.domain.models.screener_model import ScreenerModel
 from app.persistence.deps import (
     get_chat_session_repo,
     get_chat_message_repo,
@@ -30,6 +32,7 @@ router = APIRouter()
 @router.post("/documents/preview", response_model=DocumentPreview)
 def preview_document(
     payload: DocumentPreviewRequest,
+    screener: ScreenerModel = Depends(require_screener),
     sessions: ChatSessionRepository = Depends(get_chat_session_repo),
     messages: ChatMessageRepository = Depends(get_chat_message_repo),
 ):
@@ -54,6 +57,7 @@ def preview_document(
 @router.post("/documents/export", response_model=DocumentRecord)
 def export_document(
     payload: DocumentExportRequest,
+    screener: ScreenerModel = Depends(require_screener),
     sessions: ChatSessionRepository = Depends(get_chat_session_repo),
     documents: DocumentRepository = Depends(get_document_repo),
 ):
@@ -80,6 +84,7 @@ def export_document(
 @router.get("/documents/{document_id}", response_model=DocumentRecord)
 def get_document(
     document_id: str,
+    screener: ScreenerModel = Depends(require_screener),
     documents: DocumentRepository = Depends(get_document_repo),
 ):
     found = documents.get_by_id(document_id)

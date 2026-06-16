@@ -5,8 +5,11 @@ from typing import Optional
 
 from bson import ObjectId
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from pydantic import BaseModel, Field
 
-from app.config.settings import settings
+from app.api.dependencies.screener_auth import require_screener, require_template_admin
+from app.api.dependencies.builder_auth import build_auth_http_exception
+from app.domain.models.screener_model import ScreenerModel
 from app.domain.models.template_models import (
     TemplateAuditRecord,
     TemplateCreateRequest,
@@ -31,29 +34,6 @@ from app.services.template_service import (
 router = APIRouter()
 
 
-def _get_email_from_authorization_header(authorization: Optional[str]) -> str:
-    if not authorization:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-    scheme, _, token = authorization.partition(" ")
-    if scheme.lower() != "bearer" or not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication scheme")
-    # Token is used in screener routes; here we trust it for identity only.
-    import jwt
-
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-    except jwt.PyJWTError as exc:  # pragma: no cover - defensive
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token") from exc
-    email = payload.get("sub")
-    if not email:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
-    return email
-
-
-def _is_admin(email: str) -> bool:
-    return email in settings.template_admin_emails
-
-
 def _record_audit(
     repo: TemplateAuditRepository,
     action: str,
@@ -74,24 +54,29 @@ def _record_audit(
     repo.create(payload.model_dump(by_alias=True, exclude_none=True))
 
 
-def _require_admin(
-    authorization: Optional[str],
+def _require_template_admin(
+    screener: ScreenerModel,
     audit_repo: TemplateAuditRepository,
     action: str,
     template: dict | None = None,
 ) -> str:
-    email = _get_email_from_authorization_header(authorization)
-    if not _is_admin(email):
+    if not screener.isBuilderAdmin:
         _record_audit(
             audit_repo,
             action="unauthorized",
             template=template or {},
-            actor=email,
+            actor=screener.email,
             status_value="denied",
             metadata={"attemptedAction": action},
         )
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
-    return email
+        raise build_auth_http_exception(
+            status_code=status.HTTP_403_FORBIDDEN,
+            code="TEMPLATE_ADMIN_REVOKED",
+            user_message="Sua conta não tem acesso administrativo a modelos de documento.",
+            operation="template_admin",
+            retryable=False,
+        )
+    return screener.email
 
 
 @router.get("/templates/document-types")
@@ -115,7 +100,8 @@ async def list_templates(
         template_query["name"] = {"$regex": query, "$options": "i"}
 
     if include_all:
-        _require_admin(authorization, audit_repo, action="list_all_templates")
+        screener = require_screener(authorization=authorization)
+        _require_template_admin(screener, audit_repo, action="list_all_templates")
     else:
         template_query["status"] = "active"
 
@@ -146,18 +132,19 @@ async def get_template(
     if not template:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Template not found")
     if template.get("status") != "active":
-        _require_admin(authorization, audit_repo, action="get_template", template=template)
+        screener = require_screener(authorization=authorization)
+        _require_template_admin(screener, audit_repo, action="get_template", template=template)
     return TemplateRecord.model_validate(template)
 
 
 @router.post("/templates", response_model=TemplateRecord, status_code=status.HTTP_201_CREATED)
 async def create_template(
     payload: TemplateCreateRequest,
-    authorization: Optional[str] = Header(default=None, alias="Authorization"),
+    screener: ScreenerModel = Depends(require_template_admin),
     repo: TemplateRepository = Depends(get_template_repo),
     audit_repo: TemplateAuditRepository = Depends(get_template_audit_repo),
 ) -> TemplateRecord:
-    actor = _require_admin(authorization, audit_repo, action="create_template")
+    actor = screener.email
     if not payload.body.strip():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Template body is required")
     document_type = normalize_document_type(payload.document_type)
@@ -189,14 +176,14 @@ async def create_template(
 async def update_template(
     template_id: str,
     payload: TemplateUpdateRequest,
-    authorization: Optional[str] = Header(default=None, alias="Authorization"),
+    screener: ScreenerModel = Depends(require_template_admin),
     repo: TemplateRepository = Depends(get_template_repo),
     audit_repo: TemplateAuditRepository = Depends(get_template_audit_repo),
 ) -> TemplateRecord:
     existing = repo.get_by_id(template_id)
     if not existing:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Template not found")
-    actor = _require_admin(authorization, audit_repo, action="update_template", template=existing)
+    actor = screener.email
     if not payload.body.strip():
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Template body is required")
 
@@ -229,14 +216,14 @@ async def update_template(
 @router.post("/templates/{template_id}/approve", response_model=TemplateRecord)
 async def approve_template(
     template_id: str,
-    authorization: Optional[str] = Header(default=None, alias="Authorization"),
+    screener: ScreenerModel = Depends(require_template_admin),
     repo: TemplateRepository = Depends(get_template_repo),
     audit_repo: TemplateAuditRepository = Depends(get_template_audit_repo),
 ) -> TemplateRecord:
     template = repo.get_by_id(template_id)
     if not template:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Template not found")
-    actor = _require_admin(authorization, audit_repo, action="approve_template", template=template)
+    actor = screener.email
 
     group_id = template.get("templateGroupId")
     if group_id:
@@ -262,14 +249,14 @@ async def approve_template(
 @router.post("/templates/{template_id}/archive", response_model=TemplateRecord)
 async def archive_template(
     template_id: str,
-    authorization: Optional[str] = Header(default=None, alias="Authorization"),
+    screener: ScreenerModel = Depends(require_template_admin),
     repo: TemplateRepository = Depends(get_template_repo),
     audit_repo: TemplateAuditRepository = Depends(get_template_audit_repo),
 ) -> TemplateRecord:
     template = repo.get_by_id(template_id)
     if not template:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Template not found")
-    actor = _require_admin(authorization, audit_repo, action="archive_template", template=template)
+    actor = screener.email
     updated = repo.update(
         template_id,
         {"status": "archived", "updatedBy": actor},
@@ -292,7 +279,8 @@ async def preview_template(
     if not template:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Template not found")
     if template.get("status") != "active":
-        _require_admin(authorization, audit_repo, action="preview_template", template=template)
+        screener = require_screener(authorization=authorization)
+        _require_template_admin(screener, audit_repo, action="preview_template", template=template)
 
     data = payload.sample_data or {}
     rendered_body, missing = render_template(

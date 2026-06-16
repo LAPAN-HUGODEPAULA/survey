@@ -1,13 +1,12 @@
 from datetime import datetime
 import secrets
-from typing import Optional
 
-import jwt
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.config.settings import settings
+from app.api.dependencies.screener_auth import require_screener
 from app.domain.models.screener_access_link_model import ScreenerAccessLinkModel
+from app.domain.models.screener_model import ScreenerModel
 from app.persistence.deps import (
     get_screener_access_link_repo,
     get_screener_repo,
@@ -39,22 +38,6 @@ class ScreenerAccessLinkResponse(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
-def _get_email_from_authorization_header(authorization: Optional[str]) -> str:
-    if not authorization:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-    scheme, _, token = authorization.partition(" ")
-    if scheme.lower() != "bearer" or not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication scheme")
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-    except jwt.PyJWTError as exc:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token") from exc
-    subject = payload.get("sub")
-    if not subject:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
-    return subject
-
-
 def _to_response(link: ScreenerAccessLinkModel) -> ScreenerAccessLinkResponse:
     return ScreenerAccessLinkResponse(
         token=link.id,
@@ -73,15 +56,10 @@ def _to_response(link: ScreenerAccessLinkModel) -> ScreenerAccessLinkResponse:
 )
 async def create_screener_access_link(
     request: CreateScreenerAccessLinkRequest,
-    authorization: Optional[str] = Header(default=None, alias="Authorization"),
+    screener: ScreenerModel = Depends(require_screener),
     link_repo: ScreenerAccessLinkRepository = Depends(get_screener_access_link_repo),
-    screener_repo: ScreenerRepository = Depends(get_screener_repo),
     survey_repo: SurveyRepository = Depends(get_survey_repo),
 ):
-    email = _get_email_from_authorization_header(authorization)
-    screener = screener_repo.find_by_email(email)
-    if not screener or not screener.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Screener not found")
 
     survey = survey_repo.get_by_id(request.survey_id)
     if not survey:

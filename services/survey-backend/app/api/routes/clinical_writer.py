@@ -4,10 +4,12 @@ import json
 import uuid
 from typing import Any, Literal
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
+from app.api.dependencies.screener_auth import require_screener
 from app.config.logging_config import logger
+from app.domain.models.screener_model import ScreenerModel
 from app.domain.models.agent_response_model import AgentResponse
 from app.domain.models.ai_stages import AIProcessingStage, STAGE_MESSAGES_PTBR
 from app.api.task_manager import task_manager
@@ -234,7 +236,10 @@ async def _run_background_task(task_id: str, request: ClinicalWriterRequest, req
 
 
 @router.post("/clinical_writer/process", response_model=AgentResponse | ClinicalWriterTaskResponse)
-async def process_clinical_writer(request: ClinicalWriterRequest) -> AgentResponse | ClinicalWriterTaskResponse:
+async def process_clinical_writer(
+    request: ClinicalWriterRequest,
+    screener: ScreenerModel = Depends(require_screener),
+) -> AgentResponse | ClinicalWriterTaskResponse:
     """Forward a request to the Clinical Writer agent and optionally run it asynchronously."""
     logger.info("Forwarding clinical writer request.")
     request = _resolve_request_selection(request)
@@ -355,7 +360,10 @@ def _resolve_request_selection(request: ClinicalWriterRequest) -> ClinicalWriter
 
 
 @router.get("/clinical_writer/status/{task_id}", response_model=ClinicalWriterTaskResponse)
-async def get_clinical_writer_status(task_id: str) -> ClinicalWriterTaskResponse:
+async def get_clinical_writer_status(
+    task_id: str,
+    screener: ScreenerModel = Depends(require_screener),
+) -> ClinicalWriterTaskResponse:
     """Get the current asynchronous processing status for a clinical writer task."""
     task = await task_manager.get_task(task_id)
     if task is None:
@@ -370,7 +378,10 @@ async def get_clinical_writer_status(task_id: str) -> ClinicalWriterTaskResponse
 
 
 @router.post("/clinical_writer/analysis", response_model=ClinicalWriterAnalysisResponse)
-async def analyze_clinical_writer(request: ClinicalWriterAnalysisRequest) -> ClinicalWriterAnalysisResponse:
+async def analyze_clinical_writer(
+    request: ClinicalWriterAnalysisRequest,
+    screener: ScreenerModel = Depends(require_screener),
+) -> ClinicalWriterAnalysisResponse:
     """Forward conversation analysis request to the Clinical Writer analysis engine."""
     logger.info("Forwarding clinical writer analysis request.")
     payload = request.model_dump(by_alias=True)

@@ -3,20 +3,22 @@
 from datetime import datetime, timedelta
 import secrets
 import string
+
 from typing import Optional
 
 import bcrypt
 import jwt
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from app.api.dependencies.screener_auth import require_screener
 from app.api.models.auth_models import ScreenerLogin, ScreenerProfile, Token
 from app.config.logging_config import logger
 from app.config.settings import settings
+from app.domain.models.screener_model import ScreenerModel, Address, ProfessionalCouncil
 from app.integrations.email.service import get_mail_client
 from app.persistence.deps import get_screener_repo
 from app.persistence.repositories.screener_repo import ScreenerRepository
-from app.domain.models.screener_model import ScreenerModel, Address, ProfessionalCouncil
 
 
 router = APIRouter()
@@ -68,23 +70,6 @@ class ScreenerRegister(BaseModel):
             }
         }
     )
-
-def _get_email_from_authorization_header(authorization: Optional[str]) -> str:
-    """Extract and validate the JWT subject from the Authorization header."""
-    if not authorization:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
-    scheme, _, token = authorization.partition(" ")
-    if scheme.lower() != "bearer" or not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid authentication scheme")
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-    except jwt.PyJWTError as exc:  # pragma: no cover - defensive
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token") from exc
-    subject = payload.get("sub")
-    if not subject:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
-    return subject
-
 
 @router.post("/screeners/register", response_model=ScreenerProfile, status_code=status.HTTP_201_CREATED)
 async def register_screener(
@@ -248,14 +233,9 @@ Equipe LAPAN
 
 @router.get("/screeners/me", response_model=ScreenerProfile)
 async def get_current_screener(
-    authorization: Optional[str] = Header(default=None, alias="Authorization"),
-    repo: ScreenerRepository = Depends(get_screener_repo),
+    screener: ScreenerModel = Depends(require_screener),
 ):
     """Return the public profile for the currently authenticated screener."""
-    email = _get_email_from_authorization_header(authorization)
-    screener = repo.find_by_email(email)
-    if not screener or not screener.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Screener not found")
     profile_data = screener.model_dump(by_alias=True, exclude={"password"})
     return ScreenerProfile.model_validate(profile_data)
 
@@ -265,15 +245,10 @@ async def get_current_screener(
     response_model=ScreenerProfile,
 )
 async def accept_initial_notice_agreement(
-    authorization: Optional[str] = Header(default=None, alias="Authorization"),
+    screener: ScreenerModel = Depends(require_screener),
     repo: ScreenerRepository = Depends(get_screener_repo),
 ):
     """Persist the platform-wide initial notice agreement for the current screener."""
-    email = _get_email_from_authorization_header(authorization)
-    screener = repo.find_by_email(email)
-    if not screener or not screener.id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Screener not found")
-
     accepted_screener = repo.record_initial_notice_agreement(
         screener_id=screener.id,
         accepted_at=datetime.utcnow(),

@@ -11,8 +11,10 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from app.api.dependencies.screener_auth import require_screener
 from app.config.settings import settings
 from app.config.logging_config import logger
+from app.domain.models.screener_model import ScreenerModel
 from app.domain.models.agent_response_model import AgentResponse
 from app.domain.models.survey_response_model import SurveyResponse
 from app.domain.models.survey_response_with_agent import SurveyResponseWithAgent
@@ -435,7 +437,10 @@ async def resend_survey_email(
     )
 
 @router.get("/survey_responses/", response_model=List[SurveyResponse])
-async def get_survey_responses(repo: SurveyResponseRepository = Depends(get_survey_response_repo)):
+async def get_survey_responses(
+    screener: ScreenerModel = Depends(require_screener),
+    repo: SurveyResponseRepository = Depends(get_survey_response_repo),
+):
     """Return a list of all survey responses from the database."""
     logger.info("--- Received request to get all survey responses ---")
     try:
@@ -465,7 +470,11 @@ async def get_survey_responses(repo: SurveyResponseRepository = Depends(get_surv
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from e
 
 @router.get("/survey_responses/{response_id}", response_model=SurveyResponse)
-async def get_survey_response(response_id: str, repo: SurveyResponseRepository = Depends(get_survey_response_repo)):
+async def get_survey_response(
+    response_id: str,
+    screener: ScreenerModel = Depends(require_screener),
+    repo: SurveyResponseRepository = Depends(get_survey_response_repo),
+):
     """Return a single survey response by its ID."""
     logger.info(f"--- Received request to get survey response with id: {response_id} ---")
     try:
