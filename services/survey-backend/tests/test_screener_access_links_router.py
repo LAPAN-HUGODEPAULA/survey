@@ -97,8 +97,8 @@ class ScreenerAccessLinksRouterTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(
-            response.json()["detail"],
-            "Prepared assessment is no longer available",
+            response.json()["code"],
+            "LINK_NOT_FOUND",
         )
 
     @patch("app.api.routes.survey_responses.send_survey_response_email")

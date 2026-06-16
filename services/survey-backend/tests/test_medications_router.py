@@ -41,6 +41,9 @@ def test_upsert_manual_medication_returns_item() -> None:
         category="manual",
         trade_names=[],
     )
+    from app.api.dependencies.screener_auth import require_screener
+    from app.domain.models.screener_model import ScreenerModel
+    app.dependency_overrides[require_screener] = lambda: MagicMock(spec=ScreenerModel)
     _override_repo(repo)
 
     response = client.post(

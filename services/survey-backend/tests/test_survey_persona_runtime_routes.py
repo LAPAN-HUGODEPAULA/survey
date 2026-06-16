@@ -228,7 +228,11 @@ def test_process_clinical_writer_resolves_global_access_point_without_survey_id(
         "app.api.routes.clinical_writer.AgentAccessPointRepository",
         lambda _db: access_point_repo,
     )
-    monkeypatch.setattr("app.api.routes.clinical_writer.get_db", lambda: object())
+    monkeypatch.setattr("app.api.routes.clinical_writer.get_db", lambda: MagicMock())
+
+    from app.api.dependencies.screener_auth import require_screener
+    from app.domain.models.screener_model import ScreenerModel
+    app.dependency_overrides[require_screener] = lambda: MagicMock(spec=ScreenerModel)
 
     response = client.post(
         "/api/v1/clinical_writer/process",
@@ -248,3 +252,4 @@ def test_process_clinical_writer_resolves_global_access_point_without_survey_id(
 
     assert response.status_code == 200
     assert response.json()["medicalRecord"] == "ok"
+    app.dependency_overrides = {}

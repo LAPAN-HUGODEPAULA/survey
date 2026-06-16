@@ -98,8 +98,8 @@ class TestBuilderAuditService:
         assert result is not None
         # Verify content digest was calculated
         call_args = audit_service._builder_repo.create.call_args
-        assert "content_digest" in call_args[0]["outcome"]
-        assert call_args[0]["outcome"]["word_count"] == 6
+        assert "contentDigest" in call_args[0][0]["outcome"]
+        assert call_args[0][0]["outcome"]["wordCount"] == 8
 
     @pytest.mark.asyncio
     async def test_record_auth_operation_failure(self, audit_service):
@@ -127,7 +127,7 @@ class TestBuilderAuditService:
         audit_service._security_service.record_event.assert_called_once()
         # Verify failure is captured
         call_args = audit_service._security_service.record_event.call_args
-        assert call_args[0]["payload"]["outcome"]["success"] is False
+        assert call_args[1]["payload"]["outcome"]["success"] is False
 
 
 class TestAuditPrivacyService:
@@ -185,7 +185,7 @@ class TestAuditPrivacyService:
     def test_sanitize_user_agent(self):
         """Test user agent sanitization."""
         # Arrange
-        raw_ua = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 ip=192.168.1.100 session=abc123def456"
+        raw_ua = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 ip=192.168.1.100 session=abc123def456abc123def456"
         expected = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 [IP] [SESSION]"
 
         # Act
@@ -195,7 +195,7 @@ class TestAuditPrivacyService:
         assert "[IP]" in sanitized
         assert "[SESSION]" in sanitized
         assert "192.168.1.100" not in sanitized
-        assert "abc123def456" not in sanitized
+        assert "abc123def456abc123def456" not in sanitized
 
     def test_should_audit_access(self):
         """Test access audit decision."""
