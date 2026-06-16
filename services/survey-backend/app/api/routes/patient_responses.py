@@ -14,7 +14,7 @@ from app.domain.models.agent_response_model import AgentResponse
 from app.domain.models.agent_response_model import AgentArtifactResponse
 from app.domain.models.survey_response_model import SurveyResponse
 from app.domain.models.survey_response_with_agent import SurveyResponseWithAgent
-from app.integrations.clinical_writer.client import send_to_langgraph_agent
+from app.integrations.clinical_writer import send_to_langgraph_agent
 from app.integrations.email.service import (
     send_patient_report_email,
     send_patient_response_email,
@@ -31,7 +31,7 @@ from app.persistence.repositories.persona_skill_repo import PersonaSkillReposito
 from app.persistence.repositories.survey_repo import SurveyRepository
 from app.persistence.repositories.system_settings_repo import SystemSettingsRepository
 from app.persistence.mongo.client import get_db
-from lapan_core import get_safe_write_path, write_bytes_to_safe_path
+from lapan_core import ReportTextFormatter, get_safe_write_path, write_bytes_to_safe_path
 from app.services.access_point_selection import AccessPointSelection, resolve_access_point_selection
 from app.services.survey_prompt_selection import (
     hydrate_survey_persona_defaults,
@@ -150,7 +150,7 @@ async def create_patient_response(
                     )
                     artifact = AgentArtifactResponse(
                         accessPointKey=runtime_point.access_point_key,
-                        **agent_result,
+                        **agent_result.model_dump(by_alias=True),
                     )
                     agent_responses.append(artifact)
                 agent_response = agent_responses[0] if agent_responses else None
@@ -311,52 +311,15 @@ def _resolve_report_text(response: dict[str, Any], override_text: str | None) ->
         candidate_payloads.extend(item for item in artifacts if isinstance(item, dict))
 
     for payload in candidate_payloads:
-        medical_record = payload.get("medicalRecord")
+        medical_record = payload.get("medicalRecord") or payload.get("medical_record")
         if isinstance(medical_record, str) and medical_record.strip():
             return medical_record.strip()
         report = payload.get("report")
         if isinstance(report, dict):
-            rendered = _report_dict_to_text(report).strip()
+            rendered = ReportTextFormatter.to_text(report).strip()
             if rendered:
                 return rendered
     return ""
-
-
-def _report_dict_to_text(report: dict[str, Any], level: int = 0) -> str:
-    lines: list[str] = []
-    indent = "  " * level
-    for key, value in report.items():
-        label = key.replace("_", " ").strip().capitalize()
-        if value is None:
-            continue
-        if isinstance(value, str):
-            content = value.strip()
-            if content:
-                lines.append(f"{indent}{label}: {content}")
-            continue
-        if isinstance(value, dict):
-            nested = _report_dict_to_text(value, level + 1).strip()
-            if nested:
-                lines.append(f"{indent}{label}:")
-                lines.append(nested)
-            continue
-        if isinstance(value, list):
-            if not value:
-                continue
-            lines.append(f"{indent}{label}:")
-            for item in value:
-                if isinstance(item, dict):
-                    nested = _report_dict_to_text(item, level + 2).strip()
-                    if nested:
-                        lines.append(f"{indent}  -")
-                        lines.append(nested)
-                else:
-                    item_text = str(item).strip()
-                    if item_text:
-                        lines.append(f"{indent}  - {item_text}")
-            continue
-        lines.append(f"{indent}{label}: {value}")
-    return "\n".join(lines)
 
 
 def _generate_report_pdf(report_text: str) -> bytes:

@@ -18,7 +18,7 @@ from app.persistence.repositories.agent_access_point_repo import AgentAccessPoin
 from app.persistence.repositories.survey_repo import SurveyRepository
 from app.persistence.repositories.system_settings_repo import SystemSettingsRepository
 from app.services.access_point_selection import resolve_access_point_selection
-from app.integrations.clinical_writer.client import (
+from app.integrations.clinical_writer import (
     fetch_langgraph_status,
     send_to_langgraph_agent,
     send_to_langgraph_analysis,
@@ -130,12 +130,11 @@ async def _poll_upstream_progress(task_id: str, request_id: str, stop_event: asy
         await asyncio.sleep(10.0)
 
 
-def _error_payload(agent_result: dict[str, Any]) -> ClinicalWriterTaskError:
-    progress = agent_result.get("ai_progress") or {}
+def _error_payload(agent_result: AgentResponse) -> ClinicalWriterTaskError:
+    progress = agent_result.ai_progress or {}
     retryable = bool(progress.get("retryable", False))
     detail = (
-        agent_result.get("errorMessage")
-        or agent_result.get("error_message")
+        agent_result.error_message
         or "Falha ao processar a solicitação de IA."
     )
     user_message = progress.get("userMessage") or progress.get("user_message")
@@ -167,7 +166,7 @@ async def _run_background_task(task_id: str, request: ClinicalWriterRequest, req
             patient_ref=request.metadata.get("patient_ref"),
             request_id=request_id,
         )
-        parsed_result = AgentResponse(**agent_result)
+        parsed_result = agent_result
         has_error = bool(parsed_result.error_message)
         if has_error:
             error = _error_payload(agent_result)
@@ -280,11 +279,7 @@ async def process_clinical_writer(
         patient_ref=request.metadata.get("patient_ref"),
         request_id=request.metadata.get("request_id"),
     )
-    try:
-        return AgentResponse(**agent_result)
-    except Exception as exc:  # pragma: no cover - guard for unexpected response shapes
-        logger.error("Invalid data returned by agent: %s", exc)
-        return AgentResponse(error_message="Invalid agent response format")
+    return agent_result
 
 
 def _resolve_request_selection(request: ClinicalWriterRequest) -> ClinicalWriterRequest:

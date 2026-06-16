@@ -18,7 +18,7 @@ from app.domain.models.screener_model import ScreenerModel
 from app.domain.models.agent_response_model import AgentResponse
 from app.domain.models.survey_response_model import SurveyResponse
 from app.domain.models.survey_response_with_agent import SurveyResponseWithAgent
-from app.integrations.clinical_writer.client import send_to_langgraph_agent
+from app.integrations.clinical_writer import send_to_langgraph_agent
 from app.integrations.email.service import (
     send_patient_report_email,
     send_survey_response_email,
@@ -40,7 +40,7 @@ from app.persistence.repositories.survey_response_repo import SurveyResponseRepo
 from app.persistence.repositories.system_settings_repo import SystemSettingsRepository
 from app.persistence.mongo.client import get_db
 from app.domain.models.agent_response_model import AgentArtifactResponse
-from lapan_core import get_safe_write_path, write_bytes_to_safe_path
+from lapan_core import ReportTextFormatter, get_safe_write_path, write_bytes_to_safe_path
 from app.services.access_point_selection import AccessPointSelection, resolve_access_point_selection
 from app.services.survey_prompt_selection import (
     hydrate_survey_persona_defaults,
@@ -159,7 +159,7 @@ async def create_survey_response(
                 )
                 artifact = AgentArtifactResponse(
                     accessPointKey=runtime_point.access_point_key,
-                    **agent_result,
+                    **agent_result.model_dump(by_alias=True),
                 )
                 agent_responses.append(artifact)
             agent_response = agent_responses[0] if agent_responses else None
@@ -309,42 +309,19 @@ def _resolve_report_text(response: dict[str, Any], override_text: str | None) ->
         )
 
     for payload in candidate_payloads:
-        report = payload.get("report")
-        if isinstance(report, dict):
-            serialized = _report_dict_to_text(report)
-            if serialized.strip():
-                return serialized
-        medical_record = payload.get("medical_record")
+        medical_record = payload.get("medicalRecord") or payload.get("medical_record")
         if isinstance(medical_record, str) and medical_record.strip():
             return medical_record.strip()
-        error_message = payload.get("error_message")
+        report = payload.get("report")
+        if isinstance(report, dict):
+            serialized = ReportTextFormatter.to_text(report)
+            if serialized:
+                return serialized
+        error_message = payload.get("errorMessage") or payload.get("error_message")
         if isinstance(error_message, str) and error_message.strip():
             return error_message.strip()
 
     return ""
-
-
-def _report_dict_to_text(report: dict[str, Any]) -> str:
-    title = str(report.get("title") or "").strip()
-    subtitle = str(report.get("subtitle") or "").strip()
-    sections = report.get("sections")
-    lines: list[str] = []
-    if title:
-        lines.append(title)
-    if subtitle:
-        lines.append(subtitle)
-    if isinstance(sections, list):
-        for section in sections:
-            if not isinstance(section, dict):
-                continue
-            heading = str(section.get("heading") or "").strip()
-            body = str(section.get("body") or "").strip()
-            if heading:
-                lines.append("")
-                lines.append(heading)
-            if body:
-                lines.append(body)
-    return "\n".join(lines).strip()
 
 
 def _generate_report_pdf(report_text: str) -> bytes:

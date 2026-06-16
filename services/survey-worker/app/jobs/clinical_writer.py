@@ -17,7 +17,7 @@ from pymongo.database import Database
 
 from app.config.settings import settings
 from app.logging_config import logger
-from lapan_core import validate_outbound_url
+from lapan_core import ReportTextFormatter, validate_outbound_url
 
 
 class ClinicalWriterJob:
@@ -233,32 +233,6 @@ class ClinicalWriterJob:
             )
         return normalized
 
-    def _report_to_text(self, report: Dict[str, Any]) -> str | None:
-        """Flatten the report JSON into readable text for legacy consumers."""
-        sections = report.get("sections") or []
-        lines: list[str] = []
-        for section in sections:
-            title = section.get("title")
-            if title:
-                lines.append(str(title))
-            for block in section.get("blocks") or []:
-                block_type = block.get("type")
-                if block_type == "paragraph":
-                    spans = block.get("spans") or []
-                    lines.append("".join(span.get("text", "") for span in spans))
-                elif block_type == "bullet_list":
-                    for item in block.get("items") or []:
-                        spans = item.get("spans") or []
-                        lines.append("- " + "".join(span.get("text", "") for span in spans))
-                elif block_type == "key_value":
-                    for item in block.get("items") or []:
-                        key = item.get("key", "")
-                        spans = item.get("value") or []
-                        value = "".join(span.get("text", "") for span in spans)
-                        lines.append(f"{key}: {value}")
-        flattened = "\n".join(line for line in lines if line)
-        return flattened or None
-
     def _normalize_agent_response(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Ensure the stored agent response matches our expected shape."""
         report = data.get("report")
@@ -275,7 +249,7 @@ class ClinicalWriterJob:
             "report": report,
             "warnings": warnings,
             "classification": data.get("classification"),
-            "medicalRecord": data.get("medicalRecord") or self._report_to_text(report or {}),
+            "medicalRecord": data.get("medicalRecord") or ReportTextFormatter.to_text(report),
             "errorMessage": data.get("errorMessage") or data.get("error_message"),
         }
 
