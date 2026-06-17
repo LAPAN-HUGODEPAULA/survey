@@ -219,6 +219,18 @@ Run these from the respective app directory or using repository root npm scripts
     ```bash
     markdownlint docs/**/*.md --fix
     ```
+*   **Install Pre-commit Hooks:**
+    ```bash
+    uv run pre-commit install
+    ```
+*   **Unified Python Quality Gate (changed files):**
+    ```bash
+    uv run python tools/scripts/quality_gate.py
+    ```
+*   **Unified Python Quality Gate (full managed repo scope):**
+    ```bash
+    uv run python tools/scripts/quality_gate.py --all
+    ```
 *   **Backend Testing:** Run `pytest` inside `services/survey-backend`.
 *   **Flutter Testing:** Run `flutter test` inside the respective app's directory (e.g., `apps/survey-patient`).
 

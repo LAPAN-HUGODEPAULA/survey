@@ -149,4 +149,7 @@ app.*.map.json
 
 # NodeJS
 node_modules/
-.skylos/
+.skylos/*
+.skylos/cache/
+**/.skylos/cache/
+!.skylos/baseline.json

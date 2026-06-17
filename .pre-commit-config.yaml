@@ -1,0 +1,29 @@
+repos:
+  - repo: local
+    hooks:
+      - id: python-compile
+        name: Python Compile Check
+        entry: uv run python tools/scripts/quality_gate.py --hook compile
+        language: system
+        types: [python]
+      - id: python-ruff
+        name: Ruff Check
+        entry: uv run python tools/scripts/quality_gate.py --hook ruff
+        language: system
+        types: [python]
+      - id: python-mypy
+        name: Mypy Check
+        entry: uv run python tools/scripts/quality_gate.py --hook mypy
+        language: system
+        types: [python]
+      - id: python-pylint
+        name: Pylint Check
+        entry: uv run python tools/scripts/quality_gate.py --hook pylint
+        language: system
+        types: [python]
+      - id: python-skylos
+        name: Skylos Baseline Gate
+        entry: uv run python tools/scripts/quality_gate.py --hook skylos --staged
+        language: system
+        pass_filenames: false
+        always_run: true
