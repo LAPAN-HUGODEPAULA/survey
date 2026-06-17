@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, ConfigDict, NaiveDatetime
+from pydantic import BaseModel, ConfigDict
 
 class Answer(BaseModel):
     id: int

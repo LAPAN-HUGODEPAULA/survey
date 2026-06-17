@@ -72,7 +72,7 @@ class ScreenerRepository:
             return ScreenerModel.model_validate(self._normalize(result))
         return None
 
-    def set_builder_admin(self, identifier: str, enabled: bool) -> Optional[ScreenerModel]:
+    def set_builder_admin(self, identifier: str, enabled: bool) -> Optional[ScreenerModel]:  # skylos: ignore
         screener = self.find_by_email_or_id(identifier)
         if not screener or not screener.id:
             return None

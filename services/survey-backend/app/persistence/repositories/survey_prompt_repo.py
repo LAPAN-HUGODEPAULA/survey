@@ -1,11 +1,9 @@
 """Mongo-backed repository for questionnaire-level prompt definitions."""
 
 from datetime import datetime, timezone
-from typing import Any
 
 from bson import ObjectId
 from pymongo.database import Database
-from pymongo.errors import DuplicateKeyError
 
 
 class SurveyPromptRepository:
@@ -88,12 +86,6 @@ class SurveyPromptRepository:
             > 0
             or self._access_points.count_documents({"promptKey": prompt_key}, limit=1) > 0
         )
-
-    @staticmethod
-    def is_duplicate_key_error(exc: Exception) -> bool:
-        """Expose duplicate-key detection for route handlers."""
-        return isinstance(exc, DuplicateKeyError)
-
     def _normalize(self, doc: dict | None) -> dict:
         """Convert Mongo-specific values into JSON-safe primitives."""
         if not doc:

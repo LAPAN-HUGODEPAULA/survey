@@ -86,15 +86,6 @@ class AgentAccessPointRepository:
             )
         return [self._normalize(doc) for doc in docs]
 
-    def has_output_profile(self, output_profile: str) -> bool:
-        return self._col.count_documents({"outputProfile": output_profile}, limit=1) > 0
-
-    def has_prompt_key(self, prompt_key: str) -> bool:
-        return self._col.count_documents({"promptKey": prompt_key}, limit=1) > 0
-
-    def has_persona_skill_key(self, persona_skill_key: str) -> bool:
-        return self._col.count_documents({"personaSkillKey": persona_skill_key}, limit=1) > 0
-
     def _normalize(self, doc: dict | None) -> dict:
         if not doc:
             return {}

@@ -2,7 +2,7 @@ import asyncio
 import contextlib
 import json
 import uuid
-from typing import Any, Literal
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field

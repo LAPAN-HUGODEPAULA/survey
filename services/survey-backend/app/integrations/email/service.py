@@ -11,7 +11,6 @@ from pydantic.json import pydantic_encoder
 from app.config.logging_config import logger
 from app.config.settings import settings
 from app.persistence.mongo.client import get_db
-from app.persistence.repositories.patient_response_repo import PatientResponseRepository
 from app.persistence.repositories.survey_response_repo import SurveyResponseRepository
 
 _fast_mail: Optional[Any] = None
@@ -159,18 +158,6 @@ async def send_survey_response_email(response_id: str):
         body_prefix="New survey response received:",
         log_label="survey response",
     )
-
-
-async def send_patient_response_email(response_id: str):
-    """Fetch a patient survey response by its ID and send it via email."""
-    repo = PatientResponseRepository(get_db())
-    await _send_response_email(
-        repo, response_id,
-        subject_prefix="New Patient Survey Response ID",
-        body_prefix="New patient survey response received:",
-        log_label="patient response",
-    )
-
 
 async def send_patient_report_email(
     *,

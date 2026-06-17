@@ -1,6 +1,6 @@
 """Repository for builder audit records."""
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from bson import ObjectId
 from pymongo import IndexModel, ASCENDING, DESCENDING
@@ -72,52 +72,6 @@ class BuilderAuditRepository:
             return None
         doc = self._collection.find_one({"_id": object_id})
         return BuilderAuditLog.model_validate(self._normalize(doc)) if doc else None
-
-    def cleanup_old_records(self, retention_days: int = 90) -> int:
-        """Clean up audit records older than retention period."""
-        cutoff_date = datetime.utcnow() - timedelta(days=retention_days)
-        result = self._collection.delete_many(
-            {
-                "createdAt": {"$lt": cutoff_date},
-            }
-        )
-        return result.deleted_count
-
-    def get_statistics(self) -> dict:
-        """Get audit statistics for monitoring."""
-        yesterday = datetime.utcnow() - timedelta(hours=24)
-        pipeline = [
-            {
-                "$facet": {
-                    "total": [{"$count": "count"}],
-                    "recent_24h": [
-                        {"$match": {"createdAt": {"$gte": yesterday}}},
-                        {"$count": "count"},
-                    ],
-                    "operation_stats": [
-                        {"$group": {
-                            "_id": {
-                                "operation": "$operation",
-                                "status": "$status",
-                                "namespace": "$namespace",
-                            },
-                            "count": {"$sum": 1},
-                        }},
-                        {"$sort": {"count": -1}},
-                    ],
-                }
-            }
-        ]
-        results = list(self._collection.aggregate(pipeline))
-        facet = results[0] if results else {}
-        total_bucket = facet.get("total", [])
-        recent_bucket = facet.get("recent_24h", [])
-        return {
-            "total_records": total_bucket[0]["count"] if total_bucket else 0,
-            "recent_records_24h": recent_bucket[0]["count"] if recent_bucket else 0,
-            "operation_stats": facet.get("operation_stats", []),
-        }
-
     def _normalize(self, doc: dict | None) -> dict:
         if not doc:
             return {}

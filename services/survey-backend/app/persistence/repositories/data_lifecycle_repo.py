@@ -14,13 +14,6 @@ class DataLifecycleRepository:
         result = self._col.insert_one(payload)
         created = self._col.find_one({"_id": result.inserted_id})
         return self._normalize(created)
-
-    def list_by_request(self, request_id: str) -> list[dict]:
-        return [
-            self._normalize(doc)
-            for doc in self._col.find({"requestId": request_id}).sort("createdAt", -1)
-        ]
-
     def _normalize(self, doc: dict | None) -> dict:
         if not doc:
             return {}

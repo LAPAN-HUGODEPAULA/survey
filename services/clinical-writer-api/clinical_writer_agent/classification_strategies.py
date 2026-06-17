@@ -9,7 +9,7 @@ import logging
 import re
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Optional, Tuple, TYPE_CHECKING
+from typing import Optional, Tuple
 
 from .agent_config import AgentConfig
 from .monitoring.base_monitors import ProcessingMonitor

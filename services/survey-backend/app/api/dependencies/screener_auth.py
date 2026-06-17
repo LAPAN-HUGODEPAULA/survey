@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Optional
 
 import jwt
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, Header, status
 
 from app.api.dependencies.builder_auth import build_auth_http_exception
 from app.config.settings import settings

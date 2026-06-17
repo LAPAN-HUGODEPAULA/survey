@@ -1,7 +1,6 @@
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from app.domain.models.error_model import ApiError
-from app.config.logging_config import logger
 
 async def global_http_exception_handler(request: Request, exc: HTTPException):
     """

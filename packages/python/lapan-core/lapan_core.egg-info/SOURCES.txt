@@ -1,5 +1,6 @@
 pyproject.toml
 lapan_core/__init__.py
+lapan_core/report_formatter.py
 lapan_core/security_boundaries.py
 lapan_core.egg-info/PKG-INFO
 lapan_core.egg-info/SOURCES.txt

@@ -34,7 +34,6 @@ omit = [
     "examples_observer_pattern.py",
     "agents/conversation_processor_agent.py",
     "agents/json_processor_agent.py",
-    "agents/writer_nodes.py",
 ]
 
 [tool.coverage.report]

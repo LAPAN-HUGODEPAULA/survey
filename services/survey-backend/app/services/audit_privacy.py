@@ -5,9 +5,9 @@ from __future__ import annotations
 import hashlib
 import re
 from datetime import datetime, timezone
+from typing import Any
 
 from app.config.privacy_audit_config import BuilderAuditPrivacyConfig
-from app.config.logging_config import logger
 
 
 class AuditPrivacyService:

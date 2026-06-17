@@ -5,7 +5,6 @@ from typing import Optional
 
 from bson import ObjectId
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
-from pydantic import BaseModel, Field
 
 from app.api.dependencies.screener_auth import require_screener, require_template_admin
 from app.api.dependencies.builder_auth import build_auth_http_exception

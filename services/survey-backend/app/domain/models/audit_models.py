@@ -47,28 +47,6 @@ class PromptOutcome(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
 
-class PersonaSkillOutcome(BaseModel):
-    """Outcome data for persona skill operations."""
-
-    persona_skill_key: str = Field(..., alias="personaSkillKey")
-    name: str = Field(...)
-    version: datetime = Field(..., alias="version")
-
-    model_config = ConfigDict(populate_by_name=True)
-
-
-class AgentAccessPointOutcome(BaseModel):
-    """Outcome data for agent access point operations."""
-
-    access_point_key: str = Field(..., alias="accessPointKey")
-    name: str = Field(...)
-    survey_id: Optional[str] = Field(None, alias="surveyId")
-    prompt_key: str = Field(..., alias="promptKey")
-    version: datetime = Field(..., alias="version")
-
-    model_config = ConfigDict(populate_by_name=True)
-
-
 class AuthOutcome(BaseModel):
     """Outcome data for authentication operations."""
 
