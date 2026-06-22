@@ -16,7 +16,10 @@ void main() {
             subtitle:
                 'Entre com sua conta profissional cadastrada para iniciar sessões e registrar narrativas clínicas.',
             onSubmit: (_) async => const DsAuthOperationResult.success(),
-            onShowSignUp: () {},
+            onShowSignUp: () {
+              // No-op for testing
+              return;
+            },
           ),
         ),
       ),

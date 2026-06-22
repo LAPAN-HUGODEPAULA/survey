@@ -1,9 +1,9 @@
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
 
-import 'package:clinical_narrative_app/core/services/js_interop.dart' as js_interop;
+import 'package:clinical_narrative_app/core/services/js_interop.dart'
+    as js_interop;
 import 'package:flutter/foundation.dart';
 import 'package:web/web.dart' as web;
 
@@ -37,7 +37,7 @@ class VoiceCaptureResult {
 
 class VoiceCaptureService {
   VoiceCaptureService({VoiceCaptureConfig? config})
-      : config = config ?? const VoiceCaptureConfig();
+    : config = config ?? const VoiceCaptureConfig();
 
   final VoiceCaptureConfig config;
   web.MediaRecorder? _recorder;
@@ -46,8 +46,10 @@ class VoiceCaptureService {
   int _elapsedSeconds = 0;
 
   web.SpeechRecognition? _speechRecognition;
-  final StreamController<String> _previewController = StreamController.broadcast();
-  final StreamController<String> _errorController = StreamController.broadcast();
+  final StreamController<String> _previewController =
+      StreamController.broadcast();
+  final StreamController<String> _errorController =
+      StreamController.broadcast();
   String _previewText = '';
 
   Stream<String> get previewStream => _previewController.stream;
@@ -100,7 +102,7 @@ class VoiceCaptureService {
     _stopPreview();
     _recorder?.stop();
 
-    final parts = _chunks.map((chunk) => chunk as web.BlobPart).toList().toJS;
+    final parts = _chunks.map((chunk) => chunk).toList().toJS;
     final blob = web.Blob(parts, web.BlobPropertyBag(type: config.mimeType));
     final bytes = await _readBlob(blob);
     final objectUrl = web.URL.createObjectURL(blob);
@@ -132,14 +134,18 @@ class VoiceCaptureService {
     final window = web.window;
     final ctor = js_interop.hasProperty(window, 'SpeechRecognition')
         ? js_interop.getProperty<JSFunction?>(window, 'SpeechRecognition')
-        : js_interop.getProperty<JSFunction?>(window, 'webkitSpeechRecognition');
+        : js_interop.getProperty<JSFunction?>(
+            window,
+            'webkitSpeechRecognition',
+          );
     final recognitionObject = js_interop.callConstructor(ctor, []);
     if (recognitionObject == null) {
       _previewController.add('Pré-visualização indisponível neste navegador.');
       return;
     }
-    _speechRecognition = recognitionObject as web.SpeechRecognition;
-    _speechRecognition!
+    final speechRecognition = recognitionObject as web.SpeechRecognition;
+    _speechRecognition = speechRecognition;
+    speechRecognition
       ..continuous = true
       ..interimResults = true
       ..lang = config.language;
@@ -156,22 +162,25 @@ class VoiceCaptureService {
         _previewController.add(_previewText);
       }
     }
-    _speechRecognition!.onresult = onResult.toJS as web.EventHandler;
+
+    speechRecognition.onresult = onResult.toJS;
 
     void onError(web.Event event) {
       final errorEvent = event as web.SpeechRecognitionErrorEvent;
       final error = errorEvent.error;
       _errorController.add(error);
     }
-    _speechRecognition!.onerror = onError.toJS as web.EventHandler;
 
-    _speechRecognition!.start();
+    speechRecognition.onerror = onError.toJS;
+
+    speechRecognition.start();
   }
 
   void _stopPreview() {
-    if (_speechRecognition != null) {
+    final speechRecognition = _speechRecognition;
+    if (speechRecognition != null) {
       try {
-        _speechRecognition!.stop();
+        speechRecognition.stop();
       } catch (_) {}
     }
     _speechRecognition = null;

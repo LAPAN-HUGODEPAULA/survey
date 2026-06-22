@@ -1,2 +1,1 @@
-
-String? registerAudioView(String objectUrl) => null;
+String? registerAudioView(String _) => null;

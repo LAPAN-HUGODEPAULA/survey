@@ -78,7 +78,7 @@ class _NarrativePageState extends State<NarrativePage> {
             message: 'A narrativa foi gerada com sucesso.',
           );
         });
-        AppNavigator.toReport(context, report);
+        await AppNavigator.toReport(context, report);
       }
     } catch (error) {
       if (mounted) {

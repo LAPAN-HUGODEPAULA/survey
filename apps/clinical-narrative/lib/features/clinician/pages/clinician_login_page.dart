@@ -81,9 +81,9 @@ class ClinicianLoginPage extends StatelessWidget {
       chatProvider.setAuthToken(accessToken);
 
       if (settings.requiresInitialNoticeAgreement) {
-        AppNavigator.toInitialNotice(context);
+        await AppNavigator.toInitialNotice(context);
       } else {
-        AppNavigator.toDemographics(context);
+        await AppNavigator.toDemographics(context);
       }
       return const DsAuthOperationResult.success();
     } on DioException catch (error) {

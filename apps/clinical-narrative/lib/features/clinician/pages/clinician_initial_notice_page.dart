@@ -45,7 +45,7 @@ class _ClinicianInitialNoticePageState
       context.read<AppSettings>().markInitialNoticeAccepted(
         profile.initialNoticeAcceptedAt ?? DateTime.now().toUtc(),
       );
-      AppNavigator.toDemographics(context);
+      await AppNavigator.toDemographics(context);
     } on DioException catch (error) {
       if (!mounted) {
         return;

@@ -465,7 +465,7 @@ class ChatProvider extends ChangeNotifier {
     final sessionId = _activeSessionId;
     if (sessionId == null) return;
     final wsUrl = _buildWebSocketUrl(sessionId);
-    _channel?.sink.close();
+    await _channel?.sink.close();
     _channel = WebSocketChannel.connect(wsUrl);
     _channel!.stream.listen(
       (event) {
@@ -480,8 +480,12 @@ class ChatProvider extends ChangeNotifier {
           } catch (_) {}
         }
       },
-      onError: (_) {},
-      onDone: () {},
+      onError: (Object error) {
+        debugPrint('WebSocket error: $error');
+      },
+      onDone: () {
+        debugPrint('WebSocket connection closed.');
+      },
     );
   }
 

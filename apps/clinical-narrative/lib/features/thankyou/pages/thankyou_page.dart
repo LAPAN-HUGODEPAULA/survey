@@ -16,7 +16,7 @@ class ThankYouPage extends StatefulWidget {
 }
 
 class _ThankYouPageState extends State<ThankYouPage> {
-  late Future<void> _saveNarrativeFuture;
+  Future<void>? _saveNarrativeFuture;
 
   @override
   void initState() {
@@ -35,12 +35,21 @@ class _ThankYouPageState extends State<ThankYouPage> {
 
   @override
   Widget build(BuildContext context) {
+    final saveNarrativeFuture = _saveNarrativeFuture;
+    if (saveNarrativeFuture == null) {
+      return const DsScaffold(
+        title: 'Narrativa concluida',
+        subtitle: 'Finalize o fluxo ou reinicie uma nova narrativa clinica.',
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return DsScaffold(
       title: 'Narrativa concluida',
       subtitle: 'Finalize o fluxo ou reinicie uma nova narrativa clinica.',
       body: Center(
         child: FutureBuilder<void>(
-          future: _saveNarrativeFuture,
+          future: saveNarrativeFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const SizedBox(
@@ -98,7 +107,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
                             MaterialPageRoute<void>(
                               builder: (context) => const DemographicsPage(),
                             ),
-                            (Route<dynamic> route) => false,
+                            (_) => false,
                           );
                         },
                         size: DsButtonSize.large,

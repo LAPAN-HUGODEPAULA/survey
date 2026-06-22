@@ -50,7 +50,6 @@ class _ChatPageState extends State<ChatPage> {
       _voiceService?.previewStream.listen((text) {
         if (_isRecording) {
           _voiceTextController.text = text;
-          setState(() {});
         }
       });
       _voiceService?.errorStream.listen((error) {
@@ -152,22 +151,24 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   String _voiceStatusLabel() {
+    final voiceService = _voiceService;
     if (_voiceError != null) return 'Erro de voz';
     if (_isRecording) return 'Gravando';
     if (_isTranscribing) return 'Transcrevendo';
-    if (_voiceService == null) return 'Voz não suportada';
-    if (!_voiceService!.isPreviewAvailable) {
+    if (voiceService == null) return 'Voz não suportada';
+    if (!voiceService.isPreviewAvailable) {
       return 'Pré-visualização indisponível';
     }
     return 'Pronto';
   }
 
   DsStatusType _voiceStatusType() {
+    final voiceService = _voiceService;
     if (_voiceError != null) return DsStatusType.error;
     if (_isRecording) return DsStatusType.warning;
     if (_isTranscribing) return DsStatusType.info;
-    if (_voiceService == null) return DsStatusType.neutral;
-    if (!_voiceService!.isPreviewAvailable) return DsStatusType.warning;
+    if (voiceService == null) return DsStatusType.neutral;
+    if (!voiceService.isPreviewAvailable) return DsStatusType.warning;
     return DsStatusType.success;
   }
 
@@ -284,14 +285,14 @@ class _ChatPageState extends State<ChatPage> {
               ),
             ],
           ),
-          if (_voiceError != null)
+          if (_voiceError case final voiceError?)
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: DsInlineMessage(
                 feedback: DsFeedbackMessage(
                   severity: DsStatusType.error,
                   title: 'Falha na captura de voz',
-                  message: _voiceError!,
+                  message: voiceError,
                 ),
                 margin: EdgeInsets.zero,
               ),
@@ -315,7 +316,8 @@ class _ChatPageState extends State<ChatPage> {
                     : _stopRecording,
               ),
               const SizedBox(width: 12),
-              if (_voiceService != null && !_voiceService!.isPreviewAvailable)
+              if (_voiceService case final voiceService?
+                  when !voiceService.isPreviewAvailable)
                 const Text(
                   'Pré-visualização ao vivo indisponível neste navegador',
                 ),
@@ -325,11 +327,11 @@ class _ChatPageState extends State<ChatPage> {
           if (_isRecording) DsRecordingIndicator(seconds: _recordingSeconds),
           if (_isRecording) const SizedBox(height: 6),
           if (_isRecording) const LinearProgressIndicator(minHeight: 4),
-          if (_audioViewType != null) ...[
+          if (_audioViewType case final audioViewType?) ...[
             const SizedBox(height: 8),
             SizedBox(
               height: 48,
-              child: HtmlElementView(viewType: _audioViewType!),
+              child: HtmlElementView(viewType: audioViewType),
             ),
           ],
           const SizedBox(height: 8),
@@ -463,10 +465,7 @@ class _ChatPageState extends State<ChatPage> {
                                 child: Text(item['label']?.toString() ?? ''),
                               ),
                             )
-                            .where(
-                              (item) =>
-                                  item.value != null && item.value!.isNotEmpty,
-                            )
+                            .where((item) => item.value?.isNotEmpty ?? false)
                             .toList(),
                         onChanged: (value) async {
                           if (value == null || value.isEmpty) return;
@@ -607,7 +606,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   void _openHtmlPreview(String htmlContent) {
-    final parts = <web.BlobPart>[htmlContent.toJS as web.BlobPart].toJS;
+    final parts = <web.BlobPart>[htmlContent.toJS].toJS;
     final blob = web.Blob(parts, web.BlobPropertyBag(type: 'text/html'));
     final url = web.URL.createObjectURL(blob);
     final anchor = web.HTMLAnchorElement()
@@ -671,9 +670,10 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _stopRecording() async {
-    if (_voiceService == null) return;
+    final voiceService = _voiceService;
+    if (voiceService == null) return;
     try {
-      final result = await _voiceService!.stop();
+      final result = await voiceService.stop();
       _registerAudioView(result.objectUrl);
       setState(() {
         _voiceResult = result;
@@ -703,11 +703,12 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _submitVoiceTranscription(ChatProvider provider) async {
     final result = _voiceResult;
-    if (result == null) return;
+    final voiceService = _voiceService;
+    if (result == null || voiceService == null) return;
     setState(() => _isTranscribing = true);
     try {
       final response = await provider.transcribeAudio(
-        audioBase64: _voiceService!.toBase64(result.bytes),
+        audioBase64: voiceService.toBase64(result.bytes),
         audioFormat: result.mimeType,
         durationSeconds: result.durationSeconds,
         language: 'pt-BR',
@@ -881,14 +882,14 @@ class _ChatPageState extends State<ChatPage> {
                     child: _buildSessionHeader(provider, session, phase),
                   ),
                 ),
-                if (provider.error != null)
+                if (provider.error case final providerError?)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: DsMessageBanner(
                       feedback: DsFeedbackMessage(
                         severity: DsStatusType.error,
                         title: 'Não foi possível carregar a conversa',
-                        message: provider.error!,
+                        message: providerError,
                       ),
                     ),
                   ),

@@ -86,7 +86,7 @@ class _ReportPageState extends State<ReportPage> {
     String fileName,
     String content,
   ) async {
-    final parts = <web.BlobPart>[content.toJS as web.BlobPart].toJS;
+    final parts = <web.BlobPart>[content.toJS].toJS;
     final blob = web.Blob(parts, web.BlobPropertyBag(type: 'text/plain'));
     final url = web.URL.createObjectURL(blob);
     final anchor = web.HTMLAnchorElement()

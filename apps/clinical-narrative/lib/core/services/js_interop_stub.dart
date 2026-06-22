@@ -1,14 +1,15 @@
-
 import 'dart:js_interop';
 
-bool hasProperty(JSObject? o, Object? name) => false;
+bool hasProperty(JSObject? _, Object? _) => false;
 
-T? getProperty<T extends JSAny?>(JSObject? o, Object? name) => null;
+T? getProperty<T extends JSAny?>(JSObject? _, Object? _) => null;
 
-JSObject? callConstructor(JSFunction? constr, List<Object?> arguments) =>
+JSObject? callConstructor(JSFunction? _, List<Object?> _) =>
     throw UnsupportedError('JS interop is not available.');
 
-JSAny? callMethod(JSObject? o, String method, List<Object?> args) =>
+JSAny? callMethod(JSObject? _, String _, List<Object?> _) =>
     throw UnsupportedError('JS interop is not available.');
 
-void setProperty(JSObject? o, Object? name, Object? value) {}
+void setProperty(JSObject? _, Object? _, Object? _) {
+  throw UnsupportedError('JS interop is not available.');
+}
