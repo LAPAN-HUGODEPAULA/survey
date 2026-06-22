@@ -1,4 +1,3 @@
-
 import 'dart:js_interop';
 import 'dart:typed_data';
 
@@ -7,20 +6,24 @@ import 'package:web/web.dart' as web;
 Future<void> saveTextDownload({
   required String fileName,
   required String content,
-}) async {
-  final parts = <web.BlobPart>[content.toJS as web.BlobPart].toJS;
+}) {
+  final parts = <web.BlobPart>[content.toJS].toJS;
   final blob = web.Blob(parts, web.BlobPropertyBag(type: 'text/plain'));
   _downloadBlob(blob, fileName);
+
+  return Future.value();
 }
 
 Future<void> saveBytesDownload({
   required String fileName,
   required Uint8List bytes,
   required String mimeType,
-}) async {
-  final parts = <web.BlobPart>[bytes.toJS as web.BlobPart].toJS;
+}) {
+  final parts = <web.BlobPart>[bytes.toJS].toJS;
   final blob = web.Blob(parts, web.BlobPropertyBag(type: mimeType));
   _downloadBlob(blob, fileName);
+
+  return Future.value();
 }
 
 void _downloadBlob(web.Blob blob, String fileName) {

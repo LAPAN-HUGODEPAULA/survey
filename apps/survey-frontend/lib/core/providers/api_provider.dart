@@ -3,15 +3,18 @@ import 'package:survey_app/core/services/api_config.dart';
 import 'package:survey_backend_api/survey_backend_api.dart';
 
 class ApiProvider extends ChangeNotifier {
+  ApiProvider({String? baseUrl}) : _api = _createApi(baseUrl);
 
-  ApiProvider({String? baseUrl}) {
+  final SurveyBackendApi _api;
+
+  static SurveyBackendApi _createApi(String? baseUrl) {
     final dio = ApiConfig.createDio();
     if (baseUrl != null) {
       dio.options.baseUrl = baseUrl;
     }
-    _api = SurveyBackendApi(dio: dio, serializers: standardSerializers);
+
+    return SurveyBackendApi(dio: dio, serializers: standardSerializers);
   }
-  late SurveyBackendApi _api;
 
   SurveyBackendApi get api => _api;
 
