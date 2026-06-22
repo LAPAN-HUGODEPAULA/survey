@@ -1,0 +1,117 @@
+# analysis_options.yaml
+
+# 1. Foundation: Include the official Flutter lint rules.
+include: package:flutter_lints/flutter.yaml
+
+# 2. Analyzer Configuration (Type Safety & Exclusions)
+analyzer:
+  language:
+    # Enforce strict type safety to catch potential runtime errors.
+    # This forces explicit types and prevents dangerous implicit downcasts [citation:4].
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+
+  # Exclude generated files and build directories from analysis to avoid noise.
+  exclude:
+    - 'build/**'
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'
+    - '**/*.gr.dart'
+    - '**/*.config.dart'
+    - 'lib/generated_plugin_registrant.dart'
+
+  # Adjust severity levels for specific lints.
+  errors:
+    # Treat the use of 'print' as an error to prevent it from shipping.
+    avoid_print: error
+    # Treat missing required parameters as an error.
+    missing_required_param: error
+    # Warn if 'const' could be used.
+    prefer_const_constructors: warning
+    # Warn if 'const' could be used in a list.
+    prefer_const_literals_to_create_immutables: warning
+
+# 3. Linter Rules (Customizations on top of flutter_lints)
+linter:
+  rules:
+    # Disable a rule from the included set if your team disagrees with it.
+    # avoid_print: false  # Uncomment to disable, but we set it to error above.
+
+    # Enable additional recommended rules.
+    require_trailing_commas: true
+    avoid_positional_boolean_parameters: true
+    prefer_single_quotes: true
+    unawaited_futures: true
+
+# 4. DCM Configuration (The core of your quality enforcement)
+dcm:
+  # Use DCM's recommended preset for a comprehensive set of rules.
+  # This evolves with DCM and saves you from managing hundreds of rules manually [citation:5].
+  extends:
+    - recommended
+
+  # Configure DCM's advanced lint rules.
+  rules:
+    # Example: Enforce architectural boundaries by banning specific imports.
+    - avoid-banned-imports:
+        entries:
+          # Prevent the shared package from depending on Material Design.
+          - paths: ['packages/shared/.*\.dart']
+            deny: ['package:flutter/material.dart']
+            message: 'The shared package should not depend on Material Design.'
+            severity: error
+          # Prevent core domain logic from depending on a specific state management library.
+          - paths: ['lib/domain/.*\.dart']
+            deny: ['package:flutter_bloc/flutter_bloc.dart']
+            message: 'Domain layer must not depend on presentation frameworks.'
+            severity: error
+
+    - avoid-complex-conditions:
+        threshold: 8 # Default is 10, make it stricter [citation:2].
+
+  # Configure DCM's code health metrics. This is key for managing complexity.
+  metrics:
+    # Set default thresholds for all code.
+    cyclomatic-complexity: 15
+    maximum-nesting-level: 4
+    number-of-parameters: 4
+    source-lines-of-code: 50
+    widgets-nesting-level: 5
+
+    # Use path-specific thresholds to be more or less strict in certain areas [citation:1].
+    # This is perfect for your multi-project setup.
+    entries:
+      # Stricter rules for the shared package and domain logic.
+      - paths:
+          - 'packages/shared/.*\.dart'
+          - 'lib/domain/.*\.dart'
+          - 'lib/application/.*\.dart'
+        # Override the defaults for these critical folders.
+        cyclomatic-complexity: 8
+        maximum-nesting-level: 3
+        source-lines-of-code: 30
+        number-of-parameters: 3
+
+      # Stricter rules for UI components to keep them focused.
+      - paths:
+          - 'lib/presentation/widgets/.*\.dart'
+          - 'lib/ui/.*\.dart'
+        cyclomatic-complexity: 10
+        widgets-nesting-level: 4 # Keep widget trees flat.
+
+      # More lenient rules for screens, which are naturally more complex.
+      - paths:
+          - 'lib/presentation/screens/.*\.dart'
+        cyclomatic-complexity: 20
+        widgets-nesting-level: 8
+        source-lines-of-code: 80
+
+  # Exclude DCM analysis from certain areas.
+  exclude:
+    all:
+      - 'test/**'       # Exclude tests from many DCM checks.
+      - 'example/**'    # Exclude example apps.
+    # You can also have command-specific excludes, e.g., for unused code.
+    # unused-code:
+    #   - 'lib/generated/.*\.dart'

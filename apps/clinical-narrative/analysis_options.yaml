@@ -1,42 +1,149 @@
-# This file configures the analyzer, which statically analyzes Dart code to
-# check for errors, warnings, and lints.
-#
-# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
-# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
-# invoked from the command line by running `flutter analyze`.
+# analysis_options.yaml - Free Plan Compatible
 
-# The following line activates a set of recommended lints for Flutter apps,
-# packages, and plugins designed to encourage good coding practices.
+# 1. Foundation: Include official Flutter lint rules
 include: package:flutter_lints/flutter.yaml
 
+# 2. Analyzer Configuration (Type Safety & Exclusions)
 analyzer:
   language:
     strict-casts: true
     strict-inference: true
     strict-raw-types: true
+  
+  exclude:
+    - 'build/**'
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'
+    - '**/*.gr.dart'
+    - '**/*.config.dart'
+    - 'lib/generated_plugin_registrant.dart'
+  
+  errors:
+    avoid_print: error
+    missing_required_param: error
+    prefer_const_constructors: warning
+    prefer_const_literals_to_create_immutables: warning
 
+# 3. Linter Rules (Standard Dart/Flutter lints)
 linter:
-  # The lint rules applied to this project can be customized in the
-  # section below to disable rules from the `package:flutter_lints/flutter.yaml`
-  # included above or to enable additional rules. A list of all available lints
-  # and their documentation is published at https://dart.dev/lints.
-  #
-  # Instead of disabling a lint rule for the entire project in the
-  # section below, it can also be suppressed for a single line of code
-  # or a specific dart file by using the `// ignore: name_of_lint` and
-  # `// ignore_for_file: name_of_lint` syntax on the line or in the file
-  # producing the lint.
   rules:
+    require_trailing_commas: true
+    avoid_positional_boolean_parameters: false
+    prefer_single_quotes: true
+    unawaited_futures: true
     always_declare_return_types: true
     directives_ordering: true
     prefer_final_in_for_each: true
     prefer_final_locals: true
     sort_constructors_first: true
-    sort_unnamed_constructors_first: true
     unnecessary_lambdas: true
-    unnecessary_library_directive: true
-    unnecessary_library_name: true
     use_super_parameters: true
 
-# Additional information about this file can be found at
-# https://dart.dev/guides/language/analysis-options
+# 4. DCM Configuration - FREE PLAN ONLY
+# No presets, no configurable rules. Only simple, non-configurable rules.
+dcm:
+  rules:
+    # Common rules (non-configurable, available in Free plan)
+
+    - avoid-cascade-after-if-null
+    - avoid-casting-to-extension-type
+    - avoid-collection-methods-with-unrelated-types:
+        strict: false
+    - avoid-conditions-with-boolean-literals
+    - avoid-duplicate-exports
+    - avoid-dynamic
+    - avoid-empty-spread
+    # - avoid-equal-expressions
+    - avoid-global-state
+    - avoid-late-keyword
+    # - avoid-local-functions
+    # - avoid-mutating-parameters
+    # - avoid-negated-conditions
+    # - avoid-nested-assignments
+    - avoid-nested-conditional-expressions
+    - avoid-non-null-assertion
+    # - avoid-passing-default-values
+    - avoid-redundant-async
+    - avoid-self-assignment
+    # - avoid-shadowing
+    # - avoid-throw
+    # - avoid-type-casts
+    # - avoid-unassigned-fields
+    # - avoid-unassigned-local-variable
+    # - avoid-unnecessary-block
+    - avoid-unnecessary-conditionals
+    # - avoid-unnecessary-constructor
+    # - avoid-unnecessary-getter
+    # - avoid-unnecessary-if
+    # - avoid-unnecessary-local-variable
+    # - avoid-unnecessary-negations
+    # - avoid-unnecessary-return
+    # - avoid-unnecessary-statements
+    - avoid-unnecessary-type-assertions
+    - avoid-unnecessary-type-casts
+    # - avoid-unused-local-variable
+    - avoid-unused-parameters
+    - double-literal-format
+    - missing-test-assertion
+    - newline-before-return
+    - no-boolean-literal-compare
+    - no-empty-block
+    # - no-equal-arguments
+    # - no-equal-conditions
+    - no-equal-then-else
+    - no-magic-number
+    - prefer-commenting-analyzer-ignores
+    - prefer-conditional-expressions
+    # - prefer-contains
+    # - prefer-early-return
+    # - prefer-explicit-function-type
+    - prefer-first
+    # - prefer-for-in
+    # - prefer-getter-over-method
+    - prefer-immediate-return
+    - prefer-last
+    # - prefer-named-parameters
+    # - prefer-static-method
+    # - prefer-type-over-var
+    # - prefer-typedefs-for-callbacks
+    
+    # Flutter-specific rules (non-configurable)
+
+    # - avoid-empty-setstate
+    - avoid-missing-image-alt
+    # - avoid-returning-widgets
+    # - avoid-single-child-column-or-row
+    # - avoid-stateless-widget-initialized-fields
+    # - avoid-unnecessary-gesture-detector
+    # - avoid-unnecessary-overrides-in-state
+    - avoid-unnecessary-stateful-widgets
+    - avoid-wrapping-in-padding
+    - check-for-equals-in-render-object-setters
+    # - dispose-fields
+    - prefer-const-border-radius
+    - prefer-define-hero-tag
+    # - prefer-padding-over-container
+    - prefer-single-widget-per-file
+    # - prefer-widget-private-members
+    
+    # Package-specific rules (if you use these packages)
+    # BLoC rules (non-configurable)
+
+    # - avoid-bloc-public-fields
+    # - avoid-bloc-public-methods
+    # - avoid-duplicate-bloc-event-handlers
+    # - avoid-empty-build-when
+    # - avoid-passing-bloc-to-bloc
+    # - check-is-not-closed-after-async-gap
+    
+    # Provider rules (non-configurable)
+    
+    # - avoid-read-inside-build
+    # - avoid-watch-outside-build
+    # - prefer-provider-extensions
+
+  metrics:
+    cyclomatic-complexity: 10
+    number-of-parameters: 4
+    source-lines-of-code: 50
+    maximum-nesting-level: 4
