@@ -28,33 +28,26 @@ class DsTaskButton extends StatelessWidget {
 
     switch (size) {
       case DsTaskButtonSize.large:
-        return _buildLargeButton(context, theme);
+        return _buildLargeButton(theme);
       case DsTaskButtonSize.medium:
-        return _buildMediumButton(context, theme);
+        return _buildMediumButton(theme);
       case DsTaskButtonSize.small:
-        return _buildSmallButton(context, theme);
+        return _buildSmallButton(theme);
     }
   }
 
-  Widget _buildLargeButton(BuildContext context, ThemeData theme) {
+  Widget _buildLargeButton(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: _getBackgroundColor(theme),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: _getBorderColor(theme),
-          width: 1,
-        ),
+        border: Border.all(color: _getBorderColor(theme), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            size: 32,
-            color: _getIconColor(theme),
-          ),
+          Icon(icon, size: 32, color: _getIconColor(theme)),
           const SizedBox(height: 16),
           Text(
             label,
@@ -65,16 +58,13 @@ class DsTaskButton extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           if (showChevron)
-            Icon(
-              Icons.chevron_right,
-              color: _getTextColor(theme),
-            ),
+            Icon(Icons.chevron_right, color: _getTextColor(theme)),
         ],
       ),
     );
   }
 
-  Widget _buildMediumButton(BuildContext context, ThemeData theme) {
+  Widget _buildMediumButton(ThemeData theme) {
     return InkWell(
       onTap: isLoading ? null : onTap,
       borderRadius: BorderRadius.circular(8),
@@ -83,18 +73,11 @@ class DsTaskButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: _getBackgroundColor(theme),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: _getBorderColor(theme),
-            width: 1,
-          ),
+          border: Border.all(color: _getBorderColor(theme), width: 1),
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 24,
-              color: _getIconColor(theme),
-            ),
+            Icon(icon, size: 24, color: _getIconColor(theme)),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -112,22 +95,20 @@ class DsTaskButton extends StatelessWidget {
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   value: progress,
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(_getIconColor(theme)),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    _getIconColor(theme),
+                  ),
                 ),
               )
             else if (showChevron)
-              Icon(
-                Icons.chevron_right,
-                color: _getTextColor(theme),
-              ),
+              Icon(Icons.chevron_right, color: _getTextColor(theme)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSmallButton(BuildContext context, ThemeData theme) {
+  Widget _buildSmallButton(ThemeData theme) {
     return InkWell(
       onTap: isLoading ? null : onTap,
       borderRadius: BorderRadius.circular(6),

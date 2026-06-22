@@ -44,9 +44,9 @@ class DsAdminFormShell extends StatelessWidget {
           Text(
             'Alterações não salvas',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.bold,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
         if (isSaving) ...[
@@ -59,8 +59,8 @@ class DsAdminFormShell extends StatelessWidget {
           Text(
             'Salvando...',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
         const Spacer(),
@@ -94,8 +94,8 @@ class DsAdminFormShell extends StatelessWidget {
           _buildToolbar(context),
           const SizedBox(height: 16),
         ],
-        if (feedback != null) ...[
-          feedback!,
+        if (feedback case final feedback?) ...[
+          feedback,
           const SizedBox(height: 16),
         ],
         child,
@@ -103,6 +103,7 @@ class DsAdminFormShell extends StatelessWidget {
     );
 
     Widget body;
+    final stickyHeader = this.stickyHeader;
     if (stickyHeader == null) {
       body = SingleChildScrollView(
         controller: scrollController,
@@ -114,13 +115,17 @@ class DsAdminFormShell extends StatelessWidget {
         controller: scrollController,
         slivers: [
           SliverPadding(
-            padding:
-                EdgeInsets.fromLTRB(16, 16, 16, stickyFooter == null ? 0 : 16),
+            padding: EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              stickyFooter == null ? 0 : 16,
+            ),
             sliver: SliverToBoxAdapter(
               child: stickyFooter == null ? _buildToolbar(context) : null,
             ),
           ),
-          if (feedback != null)
+          if (feedback case final feedback?)
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: SliverToBoxAdapter(child: feedback),
@@ -128,7 +133,7 @@ class DsAdminFormShell extends StatelessWidget {
           SliverPersistentHeader(
             pinned: true,
             delegate: _DsStickyHeaderDelegate(
-              header: stickyHeader!,
+              header: stickyHeader,
               backgroundColor: theme.scaffoldBackgroundColor,
             ),
           ),
@@ -149,9 +154,7 @@ class DsAdminFormShell extends StatelessWidget {
                 width: 240,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 16, left: 16),
-                  child: SingleChildScrollView(
-                    child: sectionalNav,
-                  ),
+                  child: SingleChildScrollView(child: sectionalNav),
                 ),
               ),
               const VerticalDivider(width: 1),
@@ -170,10 +173,7 @@ class DsAdminFormShell extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           color: theme.scaffoldBackgroundColor,
-          child: SafeArea(
-            top: false,
-            child: _buildToolbar(context),
-          ),
+          child: SafeArea(top: false, child: _buildToolbar(context)),
         ),
       ],
     );

@@ -160,28 +160,30 @@ class DsSurveyDemographicsSection extends StatelessWidget {
             }
             return catalogs.professions.where((String option) {
               return option.toLowerCase().contains(
-                    textEditingValue.text.toLowerCase(),
-                  );
+                textEditingValue.text.toLowerCase(),
+              );
             });
           },
           onSelected: (String selection) {
             professionController.text = selection;
           },
-          fieldViewBuilder: (
-            BuildContext context,
-            TextEditingController controller,
-            FocusNode focusNode,
-            VoidCallback onFieldSubmitted,
-          ) {
-            return DsValidatedTextFormField(
-              controller: professionController,
-              focusNode: focusNode,
-              submitted: submitted,
-              textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(labelText: 'Profissão'),
-              validator: (value) => DsFormValidators.validateProfession(value),
-            );
-          },
+          fieldViewBuilder:
+              (
+                BuildContext context,
+                TextEditingController controller,
+                FocusNode focusNode,
+                VoidCallback onFieldSubmitted,
+              ) {
+                return DsValidatedTextFormField(
+                  controller: professionController,
+                  focusNode: focusNode,
+                  submitted: submitted,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(labelText: 'Profissão'),
+                  validator: (value) =>
+                      DsFormValidators.validateProfession(value),
+                );
+              },
         ),
         const SizedBox(height: 24),
         const Text(
@@ -208,13 +210,13 @@ class DsSurveyDemographicsSection extends StatelessWidget {
               ? 'Faz uso de medicamento psiquiátrico? *'
               : 'Faz uso de medicamento psiquiátrico?',
         ),
-        if (usesMedicationErrorText != null) ...[
+        if (usesMedicationErrorText case final errorText?) ...[
           const SizedBox(height: 8),
           DsInlineMessage(
             feedback: DsFeedbackMessage(
               severity: DsStatusType.error,
               title: 'Revise este campo',
-              message: usesMedicationErrorText!,
+              message: errorText,
             ),
           ),
           const SizedBox(height: 8),
@@ -254,12 +256,9 @@ class DsSurveyDemographicsSection extends StatelessWidget {
             },
           ),
         ],
-        if (continueLabel != null && onContinue != null) ...[
+        if (continueLabel case final label? when onContinue != null) ...[
           const SizedBox(height: 32),
-          DsFilledButton(
-            label: continueLabel!,
-            onPressed: onContinue,
-          ),
+          DsFilledButton(label: label, onPressed: onContinue),
         ],
       ],
     );

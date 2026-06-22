@@ -54,10 +54,7 @@ class DsAdminShell extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Survey Builder',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(height: 32),
@@ -81,9 +78,9 @@ class DsAdminShell extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               // User Profile
-              if (userProfile != null) ...[
+              if (userProfile case final userProfile?) ...[
                 const Divider(),
-                userProfile!,
+                userProfile,
               ],
             ],
           ),
@@ -136,16 +133,16 @@ class DsAdminShell extends StatelessWidget {
                         icon: const Icon(Icons.refresh),
                         onPressed: onRefresh,
                       ),
-                    if (headerActions != null) ...headerActions!,
+                    if (headerActions case final headerActions?)
+                      ...headerActions,
                   ],
                 ),
               ),
               // Content Area
-              Expanded(
-                child: child,
-              ),
+              Expanded(child: child),
               // Recent Activity Feed
-              if (recentUpdates != null && recentUpdates!.isNotEmpty) ...[
+              if (recentUpdates case final recentUpdates?
+                  when recentUpdates.isNotEmpty) ...[
                 Container(
                   height: 120,
                   padding: const EdgeInsets.all(16),
@@ -171,9 +168,9 @@ class DsAdminShell extends StatelessWidget {
                       Expanded(
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
-                          itemCount: recentUpdates!.take(5).length,
+                          itemCount: recentUpdates.take(5).length,
                           itemBuilder: (context, index) {
-                            final update = recentUpdates![index];
+                            final update = recentUpdates[index];
                             return Container(
                               width: 250,
                               margin: const EdgeInsets.only(right: 12),
@@ -187,29 +184,29 @@ class DsAdminShell extends StatelessWidget {
                                 children: [
                                   Text(
                                     update.title,
-                                    style:
-                                        Theme.of(context).textTheme.bodyMedium,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     update.description,
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     update.time,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
+                                    style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurfaceVariant,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
                                         ),
                                   ),
                                 ],
@@ -269,14 +266,12 @@ class DsAdminShell extends StatelessWidget {
                   icon: const Icon(Icons.refresh),
                   onPressed: onRefresh,
                 ),
-              if (headerActions != null) ...headerActions!,
+              if (headerActions case final headerActions?) ...headerActions,
             ],
           ),
         ),
         // Content Area
-        Expanded(
-          child: child,
-        ),
+        Expanded(child: child),
         // Bottom Navigation
         Container(
           decoration: BoxDecoration(
@@ -361,18 +356,21 @@ class DsAdminShell extends StatelessWidget {
   }
 
   Widget _buildBreadcrumbItem(
-      BuildContext context, String label, VoidCallback? onTap) {
+    BuildContext context,
+    String label,
+    VoidCallback? onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(4),
       child: Text(
         label,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: onTap != null
-                  ? Theme.of(context).colorScheme.onSurfaceVariant
-                  : Theme.of(context).colorScheme.onSurface,
-              fontWeight: onTap != null ? FontWeight.w500 : FontWeight.normal,
-            ),
+          color: onTap != null
+              ? Theme.of(context).colorScheme.onSurfaceVariant
+              : Theme.of(context).colorScheme.onSurface,
+          fontWeight: onTap != null ? FontWeight.w500 : FontWeight.normal,
+        ),
       ),
     );
   }

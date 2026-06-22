@@ -92,12 +92,9 @@ class DsPatientIdentitySection extends StatelessWidget {
             validator: DsFormValidators.validateMedicalRecordId,
           ),
         ],
-        if (continueLabel != null && onContinue != null) ...[
+        if (continueLabel case final label? when onContinue != null) ...[
           const SizedBox(height: 32),
-          DsFilledButton(
-            label: continueLabel!,
-            onPressed: onContinue,
-          ),
+          DsFilledButton(label: label, onPressed: onContinue),
         ],
       ],
     );

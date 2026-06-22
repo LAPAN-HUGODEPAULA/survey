@@ -38,8 +38,9 @@ class DsEmotionalToneProvider extends InheritedWidget {
     final themeTokens = Theme.of(context).extension<DsToneTokens>();
     final profile = provider?.profile ?? themeTokens?.profile;
 
-    if (provider?.tokens != null) {
-      return provider!.tokens!;
+    final providerTokens = provider?.tokens;
+    if (providerTokens != null) {
+      return providerTokens;
     }
 
     if (themeTokens != null && profile == themeTokens.profile) {

@@ -55,22 +55,14 @@ class DsErrorMapper {
       return null;
     }
 
-    try {
-      final dynamic dynamicError = error;
-      final int? statusCode = dynamicError.response?.statusCode as int?;
-      if (statusCode != null) {
-        return statusCode;
-      }
-    } catch (_) {
-      // Ignore dynamic extraction failures.
-    }
-
     final match = RegExp(
       r'(status(?:\s*code)?\D*)(\d{3})',
       caseSensitive: false,
     ).firstMatch(error.toString());
     if (match != null) {
-      return int.tryParse(match.group(2)!);
+      final statusCode = match.group(2);
+
+      return statusCode == null ? null : int.tryParse(statusCode);
     }
     return null;
   }

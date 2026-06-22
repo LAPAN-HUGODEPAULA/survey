@@ -196,6 +196,8 @@ class DsAIProgressIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final retryAction = onRetry;
+
     final profile = DsEmotionalToneProvider.resolveProfile(context);
     final tone = DsEmotionalToneProvider.resolveTokens(context);
     final stages = _stagesForProfile(profile);
@@ -225,10 +227,10 @@ class DsAIProgressIndicator extends StatelessWidget {
               severity: _feedbackSeverity,
               title: _feedbackTitle(profile, current),
               message: _feedbackMessage(current, tone),
-              primaryAction: retryable && onRetry != null
+              primaryAction: retryable && retryAction != null
                   ? DsFeedbackAction(
                       label: 'Tentar Novamente',
-                      onPressed: onRetry!,
+                      onPressed: retryAction,
                       icon: Icons.refresh,
                     )
                   : null,
@@ -316,11 +318,11 @@ class _VerticalAIStageTile extends StatelessWidget {
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                    color: isActive
-                        ? activeColor
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                color: isActive
+                    ? activeColor
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ),

@@ -60,10 +60,7 @@ class DsAdminCatalogShell<T> extends StatelessWidget {
               subtitle:
                   'Gerencie itens administrativos usando o shell compartilhado.',
               actions: [
-                DsFilledButton(
-                  label: createLabel,
-                  onPressed: onCreate,
-                ),
+                DsFilledButton(label: createLabel, onPressed: onCreate),
                 DsOutlinedButton(
                   label: 'Atualizar',
                   icon: Icons.refresh,
@@ -72,9 +69,9 @@ class DsAdminCatalogShell<T> extends StatelessWidget {
               ],
             ),
           ),
-          if (feedback != null) ...[
+          if (feedback case final feedback?) ...[
             const SliverToBoxAdapter(child: SizedBox(height: 16)),
-            SliverToBoxAdapter(child: feedback!),
+            SliverToBoxAdapter(child: feedback),
           ],
           const SliverToBoxAdapter(child: SizedBox(height: 16)),
           if (onSearchChanged != null || searchController != null) ...[
@@ -97,9 +94,9 @@ class DsAdminCatalogShell<T> extends StatelessWidget {
           ],
           if (isLoading)
             buildContentState(const DsLoading())
-          else if (error != null)
+          else if (error case final error?)
             buildContentState(
-              DsError(message: error!, onRetry: onRetry ?? onRefresh),
+              DsError(message: error, onRetry: onRetry ?? onRefresh),
             )
           else if (items.isEmpty)
             buildContentState(

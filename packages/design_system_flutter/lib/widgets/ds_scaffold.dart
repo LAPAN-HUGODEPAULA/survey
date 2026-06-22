@@ -51,10 +51,8 @@ class DsStatusBar extends StatelessWidget {
                   dsSharedStatusBarText,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant.withValues(
-                          alpha: 0.86,
-                        ),
-                      ),
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.86),
+                  ),
                 ),
                 TextButton(
                   onPressed: () => showDsLegalDocumentDialog(
@@ -100,6 +98,13 @@ class DsPageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final spacing = Theme.of(context).extension<LapanSpacingTokens>();
+    final leading = this.leading;
+    final breadcrumbs = this.breadcrumbs ?? const <DsBreadcrumbItem>[];
+    final onBack = this.onBack;
+    final eyebrow = this.eyebrow;
+    final subtitle = this.subtitle;
+    final trailing = this.trailing;
+    final actions = this.actions ?? const <Widget>[];
 
     return DsPanel(
       tone: DsPanelTone.low,
@@ -107,16 +112,13 @@ class DsPageHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (leading != null) ...[
-            leading!,
-            SizedBox(width: spacing?.md ?? 16),
-          ],
+          if (leading != null) ...[leading, SizedBox(width: spacing?.md ?? 16)],
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (breadcrumbs != null && breadcrumbs!.isNotEmpty) ...[
-                  DsBreadcrumbs(items: breadcrumbs!),
+                if (breadcrumbs.isNotEmpty) ...[
+                  DsBreadcrumbs(items: breadcrumbs),
                   SizedBox(height: spacing?.sm ?? 8),
                 ],
                 if (onBack != null) ...[
@@ -124,48 +126,46 @@ class DsPageHeader extends StatelessWidget {
                     label: backLabel,
                     icon: Icons.arrow_back_rounded,
                     size: DsButtonSize.small,
-                    onPressed: onBack!,
+                    onPressed: onBack,
                   ),
                   SizedBox(height: spacing?.sm ?? 8),
                 ],
                 if (eyebrow != null)
                   Text(
-                    eyebrow!,
+                    eyebrow,
                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: colorScheme.primary,
-                        ),
+                      color: colorScheme.primary,
+                    ),
                   ),
                 if (eyebrow != null) SizedBox(height: spacing?.sm ?? 8),
                 Text(title, style: Theme.of(context).textTheme.headlineSmall),
                 if (subtitle != null) ...[
                   SizedBox(height: spacing?.sm ?? 8),
                   Text(
-                    subtitle!,
+                    subtitle,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ],
             ),
           ),
-          if ((actions != null && actions!.isNotEmpty) || trailing != null) ...[
+          if (actions.isNotEmpty || trailing != null) ...[
             SizedBox(width: spacing?.md ?? 16),
             Flexible(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  if (trailing != null) trailing!,
-                  if (trailing != null &&
-                      actions != null &&
-                      actions!.isNotEmpty)
+                  if (trailing != null) trailing,
+                  if (trailing != null && actions.isNotEmpty)
                     SizedBox(height: spacing?.sm ?? 8),
-                  if (actions != null && actions!.isNotEmpty)
+                  if (actions.isNotEmpty)
                     Wrap(
                       alignment: WrapAlignment.end,
                       spacing: spacing?.sm ?? 8,
                       runSpacing: spacing?.sm ?? 8,
-                      children: actions!,
+                      children: actions,
                     ),
                 ],
               ),
@@ -195,10 +195,7 @@ class DsPageFrame extends StatelessWidget {
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
-        child: Padding(
-          padding: padding,
-          child: child,
-        ),
+        child: Padding(padding: padding, child: child),
       ),
     );
   }
@@ -261,7 +258,7 @@ class DsScaffold extends StatefulWidget {
 }
 
 class _DsScaffoldState extends State<DsScaffold> {
-  StreamSubscription<dynamic>? _connectivitySubscription;
+  StreamSubscription<Object?>? _connectivitySubscription;
   bool _isOffline = false;
 
   @override
@@ -277,7 +274,7 @@ class _DsScaffoldState extends State<DsScaffold> {
     super.dispose();
   }
 
-  bool _isConnectivityOffline(dynamic result) {
+  bool _isConnectivityOffline(Object? result) {
     if (result is ConnectivityResult) {
       return result == ConnectivityResult.none;
     }
@@ -288,7 +285,7 @@ class _DsScaffoldState extends State<DsScaffold> {
     return false;
   }
 
-  void _updateOfflineFlag(dynamic result) {
+  void _updateOfflineFlag(Object? result) {
     final isOffline = _isConnectivityOffline(result);
     if (mounted && isOffline != _isOffline) {
       setState(() {
@@ -311,13 +308,17 @@ class _DsScaffoldState extends State<DsScaffold> {
     try {
       _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
         _updateOfflineFlag,
-        onError: (_) {
-          // Keep current UI state when stream events fail.
-        },
+        onError: _handleConnectivityError,
       );
     } catch (_) {
       // Ignore missing-plugin/platform failures in environments without
       // connectivity support (e.g., widget tests).
+    }
+  }
+
+  void _handleConnectivityError(Object _) {
+    if (!mounted) {
+      return;
     }
   }
 
@@ -338,13 +339,16 @@ class _DsScaffoldState extends State<DsScaffold> {
     final colorScheme = Theme.of(context).colorScheme;
     final gradients = Theme.of(context).extension<LapanGradientTokens>();
     final ambientGreeting = _resolvedAmbientGreeting(context);
+    final error = widget.error;
+    final header = widget.header;
+    final title = widget.title;
 
     Widget resolvedBody;
     if (widget.isLoading) {
       resolvedBody = Center(child: widget.loading ?? const DsLoading());
-    } else if (widget.error != null) {
+    } else if (error != null) {
       resolvedBody = Center(
-        child: widget.errorWidget ?? DsError(message: widget.error!),
+        child: widget.errorWidget ?? DsError(message: error),
       );
     } else {
       resolvedBody = widget.body;
@@ -357,8 +361,9 @@ class _DsScaffoldState extends State<DsScaffold> {
     );
 
     if (widget.scrollable) {
-      resolvedBody =
-          Scrollbar(child: SingleChildScrollView(child: resolvedBody));
+      resolvedBody = Scrollbar(
+        child: SingleChildScrollView(child: resolvedBody),
+      );
     }
 
     final bodyContent = Column(
@@ -377,13 +382,14 @@ class _DsScaffoldState extends State<DsScaffold> {
               margin: EdgeInsets.zero,
             ),
           ),
-        if (widget.header != null || widget.title != null)
+        if (header != null || title != null)
           DsPageFrame(
             maxWidth: widget.maxBodyWidth,
             padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-            child: widget.header ??
+            child:
+                header ??
                 DsPageHeader(
-                  title: widget.title!,
+                  title: title ?? '',
                   eyebrow: ambientGreeting,
                   subtitle: widget.subtitle,
                   breadcrumbs: widget.breadcrumbs,
@@ -498,6 +504,8 @@ class DsError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onRetry = this.onRetry;
+
     return Center(
       child: SizedBox(
         width: 480,
@@ -510,7 +518,7 @@ class DsError extends StatelessWidget {
                 ? null
                 : DsFeedbackAction(
                     label: 'Tentar Novamente',
-                    onPressed: onRetry!,
+                    onPressed: onRetry,
                     icon: Icons.refresh,
                   ),
           ),

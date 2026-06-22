@@ -37,18 +37,22 @@ class _DsSurveyInstructionGateState extends State<DsSurveyInstructionGate> {
   Widget _buildAnswerTile(String option) {
     final theme = Theme.of(context);
     final isSelected = _selectedAnswer == option;
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(
-        isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-        color:
-            isSelected ? theme.colorScheme.primary : theme.colorScheme.outline,
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(
+          isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+          color: isSelected
+              ? theme.colorScheme.primary
+              : theme.colorScheme.outline,
+        ),
+        title: Text(option),
+        onTap: () => setState(() {
+          _selectedAnswer = option;
+          _showError = false;
+        }),
       ),
-      title: Text(option),
-      onTap: () => setState(() {
-        _selectedAnswer = option;
-        _showError = false;
-      }),
     );
   }
 
@@ -92,9 +96,9 @@ class _DsSurveyInstructionGateState extends State<DsSurveyInstructionGate> {
           const SizedBox(height: 24),
           Text(
             widget.instructions.questionText,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 16),
           ...widget.instructions.answers.map(_buildAnswerTile),

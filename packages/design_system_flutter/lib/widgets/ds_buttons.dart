@@ -82,8 +82,10 @@ class DsFilledButton extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               onTap: disabled ? null : onPressed,
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 14,
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -91,9 +93,7 @@ class DsFilledButton extends StatelessWidget {
                     if (icon != null && !loading) ...[
                       Icon(
                         icon,
-                        size: textStyle.fontSize != null
-                            ? textStyle.fontSize! + 2
-                            : 16,
+                        size: (textStyle.fontSize ?? 14) + 2,
                         color: disabled
                             ? theme.disabledColor
                             : theme.colorScheme.onPrimary,
@@ -181,10 +181,7 @@ class DsOutlinedButton extends StatelessWidget {
                 )
               : OutlinedButton.icon(
                   onPressed: loading ? null : onPressed,
-                  icon: Icon(icon,
-                      size: textStyle.fontSize != null
-                          ? textStyle.fontSize! + 2
-                          : 16),
+                  icon: Icon(icon, size: (textStyle.fontSize ?? 14) + 2),
                   label: child,
                 ),
         ),
@@ -239,16 +236,10 @@ class DsTextButton extends StatelessWidget {
       child: SizedBox(
         height: buttonSize.height,
         child: icon == null
-            ? TextButton(
-                onPressed: loading ? null : onPressed,
-                child: child,
-              )
+            ? TextButton(onPressed: loading ? null : onPressed, child: child)
             : TextButton.icon(
                 onPressed: loading ? null : onPressed,
-                icon: Icon(icon,
-                    size: textStyle.fontSize != null
-                        ? textStyle.fontSize! + 2
-                        : 16),
+                icon: Icon(icon, size: (textStyle.fontSize ?? 14) + 2),
                 label: child,
               ),
       ),

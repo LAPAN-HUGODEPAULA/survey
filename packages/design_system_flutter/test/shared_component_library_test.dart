@@ -140,10 +140,7 @@ void main() {
           child: Column(
             children: List.generate(
               20,
-              (index) => SizedBox(
-                height: 50,
-                child: Text('Item $index'),
-              ),
+              (index) => SizedBox(height: 50, child: Text('Item $index')),
             ),
           ),
         ),
@@ -151,13 +148,16 @@ void main() {
     );
 
     expect(find.text('Item 0'), findsOneWidget);
-    expect(find.text('Item 19'), findsNothing); // Should be scrolled out of view
+    expect(find.text('Item 19').hitTestable(), findsNothing);
 
-    // Scroll down
-    await tester.drag(find.byType(SingleChildScrollView), const Offset(0, -500));
-    await tester.pump();
+    await tester.scrollUntilVisible(
+      find.text('Item 19'),
+      100,
+      scrollable: find.byType(Scrollable),
+    );
+    await tester.pumpAndSettle();
 
-    expect(find.text('Item 19'), findsOneWidget);
+    expect(find.text('Item 19').hitTestable(), findsOneWidget);
   });
 
   testWidgets('DsBreadcrumbs supports clickable parent items', (
@@ -189,44 +189,43 @@ void main() {
   });
 
   testWidgets(
-      'DsSurveyInstructionGate blocks continue until the correct answer is selected',
-      (
-    WidgetTester tester,
-  ) async {
-    var continueCount = 0;
+    'DsSurveyInstructionGate blocks continue until the correct answer is selected',
+    (WidgetTester tester) async {
+      var continueCount = 0;
 
-    await tester.pumpWidget(
-      _wrap(
-        DsSurveyInstructionGate(
-          instructions: const DsSurveyInstructionData(
-            preambleHtml: '<p>Leia com atenção.</p>',
-            questionText: 'Qual resposta libera o fluxo?',
-            answers: <String>['Errada', 'Correta'],
-            correctAnswer: 'Correta',
+      await tester.pumpWidget(
+        _wrap(
+          DsSurveyInstructionGate(
+            instructions: const DsSurveyInstructionData(
+              preambleHtml: '<p>Leia com atenção.</p>',
+              questionText: 'Qual resposta libera o fluxo?',
+              answers: <String>['Errada', 'Correta'],
+              correctAnswer: 'Correta',
+            ),
+            onContinue: () {
+              continueCount += 1;
+            },
           ),
-          onContinue: () {
-            continueCount += 1;
-          },
         ),
-      ),
-    );
+      );
 
-    await tester.tap(find.text('Iniciar Questionário'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Iniciar Questionário'));
+      await tester.pumpAndSettle();
 
-    expect(
-      find.text('Por favor, selecione a resposta correta para continuar.'),
-      findsOneWidget,
-    );
-    expect(continueCount, 0);
+      expect(
+        find.text('Por favor, selecione a resposta correta para continuar.'),
+        findsOneWidget,
+      );
+      expect(continueCount, 0);
 
-    await tester.tap(find.text('Correta'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Iniciar Questionário'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Correta'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Iniciar Questionário'));
+      await tester.pumpAndSettle();
 
-    expect(continueCount, 1);
-  });
+      expect(continueCount, 1);
+    },
+  );
 
   testWidgets('DsPatientIdentitySection renders the requested patient fields', (
     WidgetTester tester,
@@ -286,9 +285,8 @@ void main() {
       _wrap(
         DsProfessionalSignInCard(
           onSubmit: (_) async => const DsAuthOperationResult.error('Falhou'),
-          onForgotPassword: (_) async => const DsAuthOperationResult.success(
-            'Senha enviada.',
-          ),
+          onForgotPassword: (_) async =>
+              const DsAuthOperationResult.success('Senha enviada.'),
           onShowSignUp: () {},
         ),
       ),
@@ -331,92 +329,96 @@ void main() {
     expect(find.text('Campo obrigatório'), findsOneWidget);
   });
 
-  testWidgets('DsProfessionalSignInCard starts obscured and toggles visibility',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(
-      _wrap(
-        DsProfessionalSignInCard(
-          onSubmit: (_) async => const DsAuthOperationResult.success(),
+  testWidgets(
+    'DsProfessionalSignInCard starts obscured and toggles visibility',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          DsProfessionalSignInCard(
+            onSubmit: (_) async => const DsAuthOperationResult.success(),
+          ),
         ),
-      ),
-    );
+      );
 
-    final passwordFieldFinder = find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField && widget.decoration?.labelText == 'Senha',
-    );
+      final passwordFieldFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is TextField && widget.decoration?.labelText == 'Senha',
+      );
 
-    final initialField = tester.widget<TextField>(passwordFieldFinder);
-    expect(initialField.obscureText, isTrue);
-    expect(initialField.autofillHints, contains(AutofillHints.password));
-    expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
+      final initialField = tester.widget<TextField>(passwordFieldFinder);
+      expect(initialField.obscureText, isTrue);
+      expect(initialField.autofillHints, contains(AutofillHints.password));
+      expect(find.byIcon(Icons.visibility_off_outlined), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Mostrar senha'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Mostrar senha'));
+      await tester.pumpAndSettle();
 
-    final toggledField = tester.widget<TextField>(passwordFieldFinder);
-    expect(toggledField.obscureText, isFalse);
-    expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
-  });
+      final toggledField = tester.widget<TextField>(passwordFieldFinder);
+      expect(toggledField.obscureText, isFalse);
+      expect(find.byIcon(Icons.visibility_outlined), findsOneWidget);
+    },
+  );
 
   testWidgets(
-      'DsProfessionalSignInCard preserves the password cursor when toggling',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(
-      _wrap(
-        DsProfessionalSignInCard(
-          onSubmit: (_) async => const DsAuthOperationResult.success(),
+    'DsProfessionalSignInCard preserves the password cursor when toggling',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          DsProfessionalSignInCard(
+            onSubmit: (_) async => const DsAuthOperationResult.success(),
+          ),
         ),
-      ),
-    );
+      );
 
-    final passwordFieldFinder = find.byWidgetPredicate(
-      (widget) =>
-          widget is TextField && widget.decoration?.labelText == 'Senha',
-    );
-    final passwordField = tester.widget<TextField>(passwordFieldFinder);
-    final controller = passwordField.controller!;
+      final passwordFieldFinder = find.byWidgetPredicate(
+        (widget) =>
+            widget is TextField && widget.decoration?.labelText == 'Senha',
+      );
+      final passwordField = tester.widget<TextField>(passwordFieldFinder);
+      final controller = passwordField.controller!;
 
-    controller
-      ..text = 'segredo123'
-      ..selection = const TextSelection.collapsed(offset: 4);
-    await tester.pump();
+      controller
+        ..text = 'segredo123'
+        ..selection = const TextSelection.collapsed(offset: 4);
+      await tester.pump();
 
-    await tester.tap(find.byTooltip('Mostrar senha'));
-    await tester.pump();
-    await tester.pump();
+      await tester.tap(find.byTooltip('Mostrar senha'));
+      await tester.pump();
+      await tester.pump();
 
-    expect(controller.selection, const TextSelection.collapsed(offset: 4));
-  });
+      expect(controller.selection, const TextSelection.collapsed(offset: 4));
+    },
+  );
 
   testWidgets(
-      'DsProfessionalSignUpCard shows password guidance and supports autofill',
-      (WidgetTester tester) async {
-    await tester.pumpWidget(
-      _wrap(
-        DsProfessionalSignUpCard(
-          onSubmit: (_) async => const DsAuthOperationResult.success(),
+    'DsProfessionalSignUpCard shows password guidance and supports autofill',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          DsProfessionalSignUpCard(
+            onSubmit: (_) async => const DsAuthOperationResult.success(),
+          ),
         ),
-      ),
-    );
+      );
 
-    expect(find.text('Use pelo menos 8 caracteres'), findsOneWidget);
+      expect(find.text('Use pelo menos 8 caracteres'), findsOneWidget);
 
-    final passwordFieldFinder = find.descendant(
-      of: find.byKey(const ValueKey('screener-registration-password')),
-      matching: find.byType(TextField),
-    );
+      final passwordFieldFinder = find.descendant(
+        of: find.byKey(const ValueKey('screener-registration-password')),
+        matching: find.byType(TextField),
+      );
 
-    final initialField = tester.widget<TextField>(passwordFieldFinder);
-    expect(initialField.obscureText, isTrue);
-    expect(initialField.autofillHints, contains(AutofillHints.newPassword));
+      final initialField = tester.widget<TextField>(passwordFieldFinder);
+      expect(initialField.obscureText, isTrue);
+      expect(initialField.autofillHints, contains(AutofillHints.newPassword));
 
-    await tester.tap(find.byTooltip('Mostrar senha'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Mostrar senha'));
+      await tester.pumpAndSettle();
 
-    final toggledField = tester.widget<TextField>(passwordFieldFinder);
-    expect(toggledField.obscureText, isFalse);
-  });
+      final toggledField = tester.widget<TextField>(passwordFieldFinder);
+      expect(toggledField.obscureText, isFalse);
+    },
+  );
 
   testWidgets('DsMessageBanner renders severity title, icon, and semantics', (
     WidgetTester tester,
@@ -512,7 +514,8 @@ void main() {
     );
     expect(
       DsErrorMapper.toUserMessage(
-          'DioException [bad response]: status code 500'),
+        'DioException [bad response]: status code 500',
+      ),
       'Não foi possível completar esta ação agora. Nossos sistemas estão temporariamente indisponíveis. Tente novamente em alguns instantes.',
     );
   });
@@ -585,70 +588,71 @@ void main() {
   });
 
   testWidgets(
-      'DsAIProgressIndicator renders pt-BR stage microcopy and retry action', (
-    WidgetTester tester,
-  ) async {
-    var retryTapCount = 0;
-    await tester.pumpWidget(
-      _wrap(
-        DsAIProgressIndicator(
-          stage: 'analyzing_signals',
-          severity: 'warning',
-          retryable: true,
-          onRetry: () {
-            retryTapCount += 1;
-          },
+    'DsAIProgressIndicator renders pt-BR stage microcopy and retry action',
+    (WidgetTester tester) async {
+      var retryTapCount = 0;
+      await tester.pumpWidget(
+        _wrap(
+          DsAIProgressIndicator(
+            stage: 'analyzing_signals',
+            severity: 'warning',
+            retryable: true,
+            onRetry: () {
+              retryTapCount += 1;
+            },
+          ),
         ),
-      ),
-    );
+      );
 
-    expect(find.text('Analisando sinais clínicos'), findsOneWidget);
-    expect(
-      find.text(
-        'Estamos analisando os sinais principais para uma leitura clínica consistente.',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Tentar Novamente'), findsOneWidget);
+      expect(find.text('Analisando sinais clínicos'), findsOneWidget);
+      expect(
+        find.text(
+          'Estamos analisando os sinais principais para uma leitura clínica consistente.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Tentar Novamente'), findsOneWidget);
 
-    await tester.tap(find.text('Tentar Novamente'));
-    await tester.pumpAndSettle();
-    expect(retryTapCount, 1);
-  });
+      await tester.tap(find.text('Tentar Novamente'));
+      await tester.pumpAndSettle();
+      expect(retryTapCount, 1);
+    },
+  );
 
   testWidgets(
-      'DsAIProgressIndicator renders critical failure guidance and retry action',
-      (WidgetTester tester) async {
-    var retryTapCount = 0;
-    await tester.pumpWidget(
-      _wrap(
-        DsAIProgressIndicator(
-          stage: 'reviewing_content',
-          severity: 'critical',
-          retryable: true,
-          onRetry: () {
-            retryTapCount += 1;
-          },
+    'DsAIProgressIndicator renders critical failure guidance and retry action',
+    (WidgetTester tester) async {
+      var retryTapCount = 0;
+      await tester.pumpWidget(
+        _wrap(
+          DsAIProgressIndicator(
+            stage: 'reviewing_content',
+            severity: 'critical',
+            retryable: true,
+            onRetry: () {
+              retryTapCount += 1;
+            },
+          ),
         ),
-      ),
-    );
+      );
 
-    expect(
-      find.text('Não foi possível concluir a geração automática agora'),
-      findsOneWidget,
-    );
-    expect(
-      find.text(
-        'Você pode continuar sem o resultado automático e revisar as respostas originais.',
-      ),
-      findsOneWidget,
-    );
-    expect(find.text('Tentar Novamente'), findsOneWidget);
+      expect(
+        find.text('Não foi possível concluir a geração automática agora'),
+        findsOneWidget,
+      );
+      expect(
+        find.text(
+          'Você pode continuar sem o resultado automático e revisar as respostas originais.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Tentar Novamente'), findsOneWidget);
 
-    await tester.tap(find.text('Tentar Novamente'));
-    await tester.pumpAndSettle();
-    expect(retryTapCount, 1);
-  });
+      await tester.tap(find.text('Tentar Novamente'));
+      await tester.pumpAndSettle();
+      expect(retryTapCount, 1);
+    },
+  );
 
   testWidgets('DsAssistantStatus renders mapped steps and control actions', (
     WidgetTester tester,
@@ -764,10 +768,7 @@ void main() {
     await tester.pumpWidget(
       _wrap(
         const DsValidationSummary(
-          errors: <String>[
-            'Informe o e-mail.',
-            'Selecione um questionário.',
-          ],
+          errors: <String>['Informe o e-mail.', 'Selecione um questionário.'],
         ),
       ),
     );
@@ -860,10 +861,7 @@ void main() {
               showAmbientGreeting: true,
               userName: 'Ana',
               body: Center(
-                child: DsFilledButton(
-                  label: 'Continuar',
-                  onPressed: () {},
-                ),
+                child: DsFilledButton(label: 'Continuar', onPressed: () {}),
               ),
             ),
           ),
@@ -918,12 +916,10 @@ void main() {
                   builder: (context) {
                     patientDuration =
                         DsEmotionalToneProvider.resolveMotionDuration(
-                      context,
-                      base: const Duration(milliseconds: 260),
-                    );
-                    return const DsAmbientDelight(
-                      child: Text('Paciente'),
-                    );
+                          context,
+                          base: const Duration(milliseconds: 260),
+                        );
+                    return const DsAmbientDelight(child: Text('Paciente'));
                   },
                 ),
               ),
@@ -933,12 +929,10 @@ void main() {
                   builder: (context) {
                     adminDuration =
                         DsEmotionalToneProvider.resolveMotionDuration(
-                      context,
-                      base: const Duration(milliseconds: 260),
-                    );
-                    return const DsAmbientDelight(
-                      child: Text('Admin'),
-                    );
+                          context,
+                          base: const Duration(milliseconds: 260),
+                        );
+                    return const DsAmbientDelight(child: Text('Admin'));
                   },
                 ),
               ),
@@ -966,26 +960,26 @@ void main() {
   );
 
   testWidgets(
-      'DsAIProgressIndicator humanizes wait labels with supportive tone', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.dark(),
-        home: DsEmotionalToneProvider(
-          profile: DsToneProfile.patient,
-          child: const Scaffold(
-            body: DsAIProgressIndicator(
-              stage: 'analyzing_signals',
-              userName: 'Marina',
+    'DsAIProgressIndicator humanizes wait labels with supportive tone',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.dark(),
+          home: DsEmotionalToneProvider(
+            profile: DsToneProfile.patient,
+            child: const Scaffold(
+              body: DsAIProgressIndicator(
+                stage: 'analyzing_signals',
+                userName: 'Marina',
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    expect(find.text('Analisando sinais'), findsWidgets);
-    expect(find.textContaining('Olá, Marina.'), findsOneWidget);
-    expect(find.textContaining('leitura inicial cuidadosa'), findsOneWidget);
-  });
+      expect(find.text('Analisando sinais'), findsWidgets);
+      expect(find.textContaining('Olá, Marina.'), findsOneWidget);
+      expect(find.textContaining('leitura inicial cuidadosa'), findsOneWidget);
+    },
+  );
 }

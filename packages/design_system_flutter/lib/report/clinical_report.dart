@@ -12,8 +12,7 @@ class ClinicalReportSection {
     this.bullets = const [],
   });
 
-  bool get hasContent =>
-      (body != null && body!.trim().isNotEmpty) || bullets.isNotEmpty;
+  bool get hasContent => _hasText(body) || bullets.isNotEmpty;
 }
 
 List<ClinicalReportSection> buildClinicalReportSections({
@@ -94,11 +93,7 @@ ClinicalReportSection? _parseBlock(String block, String defaultTitle) {
 
   final body = bodyLines.isEmpty ? null : bodyLines.join('\n');
 
-  return ClinicalReportSection(
-    title: title,
-    body: body,
-    bullets: bullets,
-  );
+  return ClinicalReportSection(title: title, body: body, bullets: bullets);
 }
 
 class ClinicalReportView extends StatelessWidget {
@@ -124,6 +119,7 @@ class ClinicalReportView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final footer = this.footer;
 
     return DsPanel(
       width: double.infinity,
@@ -144,13 +140,13 @@ class ClinicalReportView extends StatelessWidget {
             _ReportSection(section: section),
             const SizedBox(height: 16),
           ],
-          if (footer != null && footer!.trim().isNotEmpty) ...[
+          if (_hasText(footer)) ...[
             const SizedBox(height: 8),
             Text(
-              footer!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+              footer?.trim() ?? '',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
             ),
           ],
         ],
@@ -177,6 +173,8 @@ class _ReportHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final subtitle = this.subtitle;
+    final meta = this.meta;
     final actions = <Widget>[
       if (onPrint != null)
         TextButton.icon(
@@ -205,38 +203,34 @@ class _ReportHeader extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  if (subtitle != null && subtitle!.trim().isNotEmpty)
+                  if (_hasText(subtitle))
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        subtitle!,
+                        subtitle?.trim() ?? '',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
+                          color: scheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
-                  if (meta != null && meta!.trim().isNotEmpty)
+                  if (_hasText(meta))
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        meta!,
+                        meta?.trim() ?? '',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
+                          color: scheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                 ],
               ),
             ),
             if (actions.isNotEmpty)
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: actions,
-              ),
+              Wrap(spacing: 8, runSpacing: 8, children: actions),
           ],
         ),
         const SizedBox(height: 12),
@@ -262,6 +256,8 @@ class _ReportSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final bodyStyle = Theme.of(context).textTheme.bodyMedium;
+    final body = section.body;
+    final hasBody = _hasText(body);
 
     return DsSection(
       tone: DsPanelTone.low,
@@ -271,17 +267,13 @@ class _ReportSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (section.body != null && section.body!.trim().isNotEmpty)
+          if (hasBody)
             SelectableText(
-              section.body!,
-              style: bodyStyle?.copyWith(
-                height: 1.5,
-                color: scheme.onSurface,
-              ),
+              body?.trim() ?? '',
+              style: bodyStyle?.copyWith(height: 1.5, color: scheme.onSurface),
             ),
           if (section.bullets.isNotEmpty) ...[
-            if (section.body != null && section.body!.trim().isNotEmpty)
-              const SizedBox(height: 8),
+            if (hasBody) const SizedBox(height: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: section.bullets
@@ -320,3 +312,5 @@ class _ReportSection extends StatelessWidget {
     );
   }
 }
+
+bool _hasText(String? value) => value?.trim().isNotEmpty ?? false;

@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 
 enum DsPanelTone { floor, low, base, high, focus, glass }
 
-Color _resolvePanelColor(
-  BuildContext context,
-  DsPanelTone tone,
-) {
+Color _resolvePanelColor(BuildContext context, DsPanelTone tone) {
   final colorScheme = Theme.of(context).colorScheme;
   final surfaces = Theme.of(context).extension<LapanSurfaceTokens>();
 
@@ -88,18 +85,16 @@ class DsPanel extends StatelessWidget {
         borderRadius: borderRadius,
         border: showOutline
             ? Border.all(
-                color: (colorTokens?.ghostOutline ??
-                        theme.colorScheme.outlineVariant)
-                    .withValues(alpha: outlineOpacity),
+                color:
+                    (colorTokens?.ghostOutline ??
+                            theme.colorScheme.outlineVariant)
+                        .withValues(alpha: outlineOpacity),
               )
             : null,
         boxShadow: shadow ?? defaultShadow,
       ),
       clipBehavior: clipBehavior,
-      child: Padding(
-        padding: padding,
-        child: child,
-      ),
+      child: Padding(padding: padding, child: child),
     );
   }
 }
@@ -134,6 +129,10 @@ class DsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final eyebrow = this.eyebrow;
+    final title = this.title;
+    final subtitle = this.subtitle;
+    final action = this.action;
 
     final hasHeader =
         eyebrow != null || title != null || subtitle != null || action != null;
@@ -166,7 +165,7 @@ class DsSection extends StatelessWidget {
                     children: [
                       if (eyebrow != null)
                         Text(
-                          eyebrow!,
+                          eyebrow,
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: const Color(0xFFFFF7EF),
                           ),
@@ -175,7 +174,7 @@ class DsSection extends StatelessWidget {
                         const SizedBox(height: 8),
                       if (title != null)
                         Text(
-                          title!,
+                          title,
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -183,7 +182,7 @@ class DsSection extends StatelessWidget {
                       if (subtitle != null) ...[
                         const SizedBox(height: 8),
                         Text(
-                          subtitle!,
+                          subtitle,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -194,7 +193,7 @@ class DsSection extends StatelessWidget {
                 ),
                 if (action != null) ...[
                   const SizedBox(width: 16),
-                  Flexible(child: action!),
+                  Flexible(child: action),
                 ],
               ],
             ),
@@ -251,23 +250,21 @@ class DsFieldChrome extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final supporting = errorText ?? supportingText;
+    final label = this.label;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label != null) ...[
           Text(
-            label!,
+            label,
             style: theme.textTheme.labelLarge?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 8),
         ],
-        DsFocusFrame(
-          padding: padding,
-          child: child,
-        ),
+        DsFocusFrame(padding: padding, child: child),
         if (supporting != null) ...[
           const SizedBox(height: 8),
           Text(

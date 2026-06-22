@@ -27,8 +27,9 @@ class DsAIInsightCard extends StatelessWidget {
   final bool liveRegion;
 
   DsStatusType get _severity {
+    final severityOverride = this.severityOverride;
     if (severityOverride != null) {
-      return severityOverride!;
+      return severityOverride;
     }
     switch (type) {
       case DsAIInsightType.suggestion:
@@ -55,8 +56,9 @@ class DsAIInsightCard extends StatelessWidget {
   }
 
   IconData get _icon {
+    final iconOverride = this.iconOverride;
     if (iconOverride != null) {
-      return iconOverride!;
+      return iconOverride;
     }
     switch (type) {
       case DsAIInsightType.suggestion:
@@ -86,15 +88,16 @@ class DsAIInsightCard extends StatelessWidget {
         liveRegion: liveRegion,
       ),
       margin: margin,
-      footer: normalizedSupportingText != null &&
+      footer:
+          normalizedSupportingText != null &&
               normalizedSupportingText.isNotEmpty
           ? Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 normalizedSupportingText,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             )
           : null,

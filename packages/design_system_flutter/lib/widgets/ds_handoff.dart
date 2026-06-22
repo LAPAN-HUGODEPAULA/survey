@@ -81,10 +81,11 @@ class DsClinicalContentCard extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          if (subtitle != null && subtitle!.trim().isNotEmpty) ...[
+          if (subtitle case final subtitle?
+              when subtitle.trim().isNotEmpty) ...[
             const SizedBox(height: 8),
             Text(
-              subtitle!,
+              subtitle.trim(),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: scheme.onSurfaceVariant,
               ),
@@ -92,9 +93,9 @@ class DsClinicalContentCard extends StatelessWidget {
           ],
           const SizedBox(height: 16),
           child,
-          if (footer != null) ...[
+          if (footer case final footer?) ...[
             const SizedBox(height: 16),
-            footer!,
+            footer,
           ],
         ],
       ),
@@ -209,10 +210,10 @@ class _DsHandoffForkOption extends StatelessWidget {
                 label: action.primaryLabel,
                 onPressed: action.onPrimaryPressed,
               ),
-              if (action.secondaryLabel != null &&
-                  action.onSecondaryPressed != null)
+              if (action.secondaryLabel case final secondaryLabel?
+                  when action.onSecondaryPressed != null)
                 DsOutlinedButton(
-                  label: action.secondaryLabel!,
+                  label: secondaryLabel,
                   onPressed: action.onSecondaryPressed,
                 ),
             ],

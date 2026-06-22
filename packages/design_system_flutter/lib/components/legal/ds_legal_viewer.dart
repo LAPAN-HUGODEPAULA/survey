@@ -15,10 +15,7 @@ Future<void> showDsLegalDocumentDialog(
 }
 
 class DsLegalDocumentDialog extends StatelessWidget {
-  const DsLegalDocumentDialog({
-    required this.documentType,
-    super.key,
-  });
+  const DsLegalDocumentDialog({required this.documentType, super.key});
 
   final DsLegalDocumentType documentType;
 
@@ -30,10 +27,7 @@ class DsLegalDocumentDialog extends StatelessWidget {
       child: DsPanel(
         tone: DsPanelTone.glass,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: 920,
-            maxHeight: 760,
-          ),
+          constraints: const BoxConstraints(maxWidth: 920, maxHeight: 760),
           child: FutureBuilder<DsLegalDocument>(
             future: DsLegalContentRepository.load(documentType),
             builder: (context, snapshot) {
@@ -60,7 +54,14 @@ class DsLegalDocumentDialog extends StatelessWidget {
                 );
               }
 
-              final document = snapshot.data!;
+              final document = snapshot.data;
+              if (document == null) {
+                return const _LegalDialogFrame(
+                  title: 'Carregando documento',
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
               return _LegalDialogFrame(
                 title: document.title,
                 child: DsFocusFrame(
@@ -123,10 +124,7 @@ Map<String, Style> dsLegalHtmlStyles(BuildContext context) {
 }
 
 class _LegalDialogFrame extends StatelessWidget {
-  const _LegalDialogFrame({
-    required this.title,
-    required this.child,
-  });
+  const _LegalDialogFrame({required this.title, required this.child});
 
   final String title;
   final Widget child;
@@ -144,9 +142,9 @@ class _LegalDialogFrame extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
               IconButton(

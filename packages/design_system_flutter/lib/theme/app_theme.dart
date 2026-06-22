@@ -6,17 +6,13 @@ import 'package:flutter/material.dart';
 
 @immutable
 class SurveyOptionColors extends ThemeExtension<SurveyOptionColors> {
-  const SurveyOptionColors({
-    required this.palette,
-  });
+  const SurveyOptionColors({required this.palette});
 
   final List<Color> palette;
 
   @override
   SurveyOptionColors copyWith({List<Color>? palette}) {
-    return SurveyOptionColors(
-      palette: palette ?? this.palette,
-    );
+    return SurveyOptionColors(palette: palette ?? this.palette);
   }
 
   @override
@@ -74,10 +70,7 @@ class LapanColorTokens extends ThemeExtension<LapanColorTokens> {
   }
 
   @override
-  LapanColorTokens lerp(
-    ThemeExtension<LapanColorTokens>? other,
-    double t,
-  ) {
+  LapanColorTokens lerp(ThemeExtension<LapanColorTokens>? other, double t) {
     if (other is! LapanColorTokens) {
       return this;
     }
@@ -90,11 +83,8 @@ class LapanColorTokens extends ThemeExtension<LapanColorTokens> {
           Color.lerp(secondaryTech, other.secondaryTech, t) ?? secondaryTech,
       tertiaryTech:
           Color.lerp(tertiaryTech, other.tertiaryTech, t) ?? tertiaryTech,
-      onPrimaryStrong: Color.lerp(
-            onPrimaryStrong,
-            other.onPrimaryStrong,
-            t,
-          ) ??
+      onPrimaryStrong:
+          Color.lerp(onPrimaryStrong, other.onPrimaryStrong, t) ??
           onPrimaryStrong,
       focusFrame: Color.lerp(focusFrame, other.focusFrame, t) ?? focusFrame,
       ghostOutline:
@@ -114,10 +104,7 @@ class LapanGradientTokens extends ThemeExtension<LapanGradientTokens> {
   final Gradient heroGlow;
 
   @override
-  LapanGradientTokens copyWith({
-    Gradient? primaryAction,
-    Gradient? heroGlow,
-  }) {
+  LapanGradientTokens copyWith({Gradient? primaryAction, Gradient? heroGlow}) {
     return LapanGradientTokens(
       primaryAction: primaryAction ?? this.primaryAction,
       heroGlow: heroGlow ?? this.heroGlow,
@@ -178,10 +165,7 @@ class LapanSurfaceTokens extends ThemeExtension<LapanSurfaceTokens> {
   }
 
   @override
-  LapanSurfaceTokens lerp(
-    ThemeExtension<LapanSurfaceTokens>? other,
-    double t,
-  ) {
+  LapanSurfaceTokens lerp(ThemeExtension<LapanSurfaceTokens>? other, double t) {
     if (other is! LapanSurfaceTokens) {
       return this;
     }
@@ -235,10 +219,7 @@ class LapanSpacingTokens extends ThemeExtension<LapanSpacingTokens> {
   }
 
   @override
-  LapanSpacingTokens lerp(
-    ThemeExtension<LapanSpacingTokens>? other,
-    double t,
-  ) {
+  LapanSpacingTokens lerp(ThemeExtension<LapanSpacingTokens>? other, double t) {
     if (other is! LapanSpacingTokens) {
       return this;
     }
@@ -316,42 +297,43 @@ class AppTheme {
   static const Color _outlineVariant = Color(0xFF564337);
 
   static ThemeData dark() {
-    final colorScheme = const ColorScheme(
-      brightness: Brightness.dark,
-      primary: _primaryBright,
-      onPrimary: _onPrimary,
-      secondary: _secondary,
-      onSecondary: _floor,
-      tertiary: _tertiary,
-      onTertiary: _floor,
-      error: Color(0xFFFF8D7C),
-      onError: _floor,
-      surface: _surface,
-      onSurface: _onSurface,
-      outline: _outlineVariant,
-      outlineVariant: _outlineVariant,
-      shadow: Colors.black,
-      scrim: Colors.black,
-      inverseSurface: _onSurface,
-      onInverseSurface: _surface,
-      inversePrimary: _primary,
-      surfaceTint: Colors.transparent,
-    ).copyWith(
-      primaryContainer: _primary,
-      onPrimaryContainer: _onPrimary,
-      secondaryContainer: const Color(0xFF2A3642),
-      onSecondaryContainer: _onSurface,
-      tertiaryContainer: const Color(0xFF173449),
-      onTertiaryContainer: _onSurface,
-      errorContainer: const Color(0xFF93000A),
-      onErrorContainer: const Color(0xFFFFDAD6),
-      surfaceContainerLowest: _floor,
-      surfaceContainerLow: _surfaceLow,
-      surfaceContainer: _surfaceBase,
-      surfaceContainerHigh: _surfaceHigh,
-      surfaceContainerHighest: _surfaceFocus,
-      onSurfaceVariant: _onSurfaceVariant,
-    );
+    final colorScheme =
+        const ColorScheme(
+          brightness: Brightness.dark,
+          primary: _primaryBright,
+          onPrimary: _onPrimary,
+          secondary: _secondary,
+          onSecondary: _floor,
+          tertiary: _tertiary,
+          onTertiary: _floor,
+          error: Color(0xFFFF8D7C),
+          onError: _floor,
+          surface: _surface,
+          onSurface: _onSurface,
+          outline: _outlineVariant,
+          outlineVariant: _outlineVariant,
+          shadow: Colors.black,
+          scrim: Colors.black,
+          inverseSurface: _onSurface,
+          onInverseSurface: _surface,
+          inversePrimary: _primary,
+          surfaceTint: Colors.transparent,
+        ).copyWith(
+          primaryContainer: _primary,
+          onPrimaryContainer: _onPrimary,
+          secondaryContainer: const Color(0xFF2A3642),
+          onSecondaryContainer: _onSurface,
+          tertiaryContainer: const Color(0xFF173449),
+          onTertiaryContainer: _onSurface,
+          errorContainer: const Color(0xFF93000A),
+          onErrorContainer: const Color(0xFFFFDAD6),
+          surfaceContainerLowest: _floor,
+          surfaceContainerLow: _surfaceLow,
+          surfaceContainer: _surfaceBase,
+          surfaceContainerHigh: _surfaceHigh,
+          surfaceContainerHighest: _surfaceFocus,
+          onSurfaceVariant: _onSurfaceVariant,
+        );
 
     final baseTextTheme = _buildTextTheme();
     final interactionTokens = LapanInteractionTokens(
@@ -381,9 +363,7 @@ class AppTheme {
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
-          side: BorderSide(
-            color: _onSurfaceVariant.withValues(alpha: 0.12),
-          ),
+          side: BorderSide(color: _onSurfaceVariant.withValues(alpha: 0.12)),
         ),
       ),
       snackBarTheme: SnackBarThemeData(
@@ -518,12 +498,8 @@ class AppTheme {
         secondaryLabelStyle: baseTextTheme.labelMedium?.copyWith(
           color: colorScheme.onSurface,
         ),
-        side: BorderSide(
-          color: _onSurfaceVariant.withValues(alpha: 0.12),
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(999),
-        ),
+        side: BorderSide(color: _onSurfaceVariant.withValues(alpha: 0.12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: _surface.withValues(alpha: 0.92),
@@ -541,7 +517,7 @@ class AppTheme {
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
       ),
-      extensions: <ThemeExtension<dynamic>>[
+      extensions: [
         const SurveyOptionColors(palette: ColorPalette.diagnosticScale),
         const LapanColorTokens(
           canvas: _floor,
@@ -596,12 +572,12 @@ class AppTheme {
   }
 
   static TextTheme _buildTextTheme() {
-    final base =
-        Typography.material2021(platform: TargetPlatform.android).white.apply(
-              bodyColor: _onSurface,
-              displayColor: _onSurface,
-              fontFamily: 'Manrope',
-            );
+    final base = Typography.material2021(platform: TargetPlatform.android).white
+        .apply(
+          bodyColor: _onSurface,
+          displayColor: _onSurface,
+          fontFamily: 'Manrope',
+        );
 
     return base.copyWith(
       displayLarge: base.displayLarge?.copyWith(

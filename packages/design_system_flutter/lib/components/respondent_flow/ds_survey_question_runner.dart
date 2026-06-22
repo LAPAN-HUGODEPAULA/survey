@@ -23,10 +23,13 @@ class DsSurveyQuestionRunner extends StatefulWidget {
 
 class _DsSurveyQuestionRunnerState extends State<DsSurveyQuestionRunner> {
   int _currentQuestionIndex = 0;
-  late final List<String> _answers = List<String>.filled(
-    widget.questions.length,
-    '',
-  );
+  List<String> _answers = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _answers = List<String>.filled(widget.questions.length, '');
+  }
 
   void _answerQuestion(String answer) {
     _answers[_currentQuestionIndex] = answer;

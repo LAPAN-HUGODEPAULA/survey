@@ -20,6 +20,7 @@ class ReportView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final footer = this.footer;
 
     return DsPanel(
       width: double.infinity,
@@ -44,13 +45,13 @@ class ReportView extends StatelessWidget {
             _ReportSection(section: section),
             const SizedBox(height: 16),
           ],
-          if (footer != null && footer!.trim().isNotEmpty) ...[
+          if (_hasText(footer)) ...[
             const SizedBox(height: 8),
             Text(
-              footer!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                  ),
+              footer?.trim() ?? '',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
             ),
           ],
         ],
@@ -92,7 +93,9 @@ class _ReportHeader extends StatelessWidget {
         ),
     ];
 
-    final meta = createdAt != null ? _formatDate(createdAt!) : null;
+    final createdAt = this.createdAt;
+    final subtitle = this.subtitle;
+    final meta = createdAt != null ? _formatDate(createdAt) : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,17 +110,17 @@ class _ReportHeader extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  if (subtitle != null && subtitle!.trim().isNotEmpty)
+                  if (_hasText(subtitle))
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
-                        subtitle!,
+                        subtitle?.trim() ?? '',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
+                          color: scheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   if (meta != null)
@@ -126,19 +129,15 @@ class _ReportHeader extends StatelessWidget {
                       child: Text(
                         'Gerado em: $meta',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
-                            ),
+                          color: scheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                 ],
               ),
             ),
             if (actions.isNotEmpty)
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: actions,
-              ),
+              Wrap(spacing: 8, runSpacing: 8, children: actions),
           ],
         ),
         const SizedBox(height: 12),
@@ -165,14 +164,20 @@ class _PatientCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final fields = <_PatientField>[
-      if (patient.name != null && patient.name!.trim().isNotEmpty)
-        _PatientField(label: 'Paciente', value: patient.name!),
-      if (patient.reference != null && patient.reference!.trim().isNotEmpty)
-        _PatientField(label: 'Referencia', value: patient.reference!),
-      if (patient.birthDate != null && patient.birthDate!.trim().isNotEmpty)
-        _PatientField(label: 'Nascimento', value: patient.birthDate!),
-      if (patient.sex != null && patient.sex!.trim().isNotEmpty)
-        _PatientField(label: 'Sexo', value: patient.sex!),
+      if (_hasText(patient.name))
+        _PatientField(label: 'Paciente', value: patient.name?.trim() ?? ''),
+      if (_hasText(patient.reference))
+        _PatientField(
+          label: 'Referencia',
+          value: patient.reference?.trim() ?? '',
+        ),
+      if (_hasText(patient.birthDate))
+        _PatientField(
+          label: 'Nascimento',
+          value: patient.birthDate?.trim() ?? '',
+        ),
+      if (_hasText(patient.sex))
+        _PatientField(label: 'Sexo', value: patient.sex?.trim() ?? ''),
     ];
 
     return DsFocusFrame(
@@ -346,15 +351,12 @@ class _KeyValueView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5);
-    final labelStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
-          fontWeight: FontWeight.w600,
-        );
+    final labelStyle = Theme.of(
+      context,
+    ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600);
 
     return Table(
-      columnWidths: const {
-        0: IntrinsicColumnWidth(),
-        1: FlexColumnWidth(),
-      },
+      columnWidths: const {0: IntrinsicColumnWidth(), 1: FlexColumnWidth()},
       defaultVerticalAlignment: TableCellVerticalAlignment.top,
       children: [
         for (final item in block.items)
@@ -418,3 +420,5 @@ String _formatDate(DateTime date) {
   final minute = local.minute.toString().padLeft(2, '0');
   return '$day/$month/$year $hour:$minute';
 }
+
+bool _hasText(String? value) => value?.trim().isNotEmpty ?? false;

@@ -40,7 +40,7 @@ class DsAssistantStatus extends StatefulWidget {
 }
 
 class _DsAssistantStatusState extends State<DsAssistantStatus> {
-  late bool _expanded;
+  bool _expanded = false;
 
   @override
   void initState() {
@@ -187,8 +187,8 @@ class _DsAssistantStatusState extends State<DsAssistantStatus> {
               Text(
                 _resolvedReassuranceMessage,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
             if (_expanded && hasActions) ...[
@@ -197,17 +197,17 @@ class _DsAssistantStatusState extends State<DsAssistantStatus> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  if (widget.retryAction != null)
+                  if (widget.retryAction case final retryAction?)
                     DsOutlinedButton(
-                      label: widget.retryAction!.label,
-                      icon: widget.retryAction!.icon,
-                      onPressed: widget.retryAction!.onPressed,
+                      label: retryAction.label,
+                      icon: retryAction.icon,
+                      onPressed: retryAction.onPressed,
                     ),
-                  if (widget.cancelAction != null)
+                  if (widget.cancelAction case final cancelAction?)
                     DsTextButton(
-                      label: widget.cancelAction!.label,
-                      icon: widget.cancelAction!.icon,
-                      onPressed: widget.cancelAction!.onPressed,
+                      label: cancelAction.label,
+                      icon: cancelAction.icon,
+                      onPressed: cancelAction.onPressed,
                     ),
                 ],
               ),
@@ -322,11 +322,11 @@ class _AssistantStepTile extends StatelessWidget {
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
-                    color: isCurrent
-                        ? color
-                        : Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w500,
+                color: isCurrent
+                    ? color
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         ),

@@ -4,8 +4,8 @@ import 'package:design_system_flutter/components/respondent_flow/respondent_flow
 import 'package:design_system_flutter/widgets/ds_feedback.dart';
 import 'package:flutter/material.dart';
 
-typedef DsAdditionalValidationItemsBuilder = List<DsValidationSummaryItem>
-    Function();
+typedef DsAdditionalValidationItemsBuilder =
+    List<DsValidationSummaryItem> Function();
 
 class DsDemographicsSubmission {
   const DsDemographicsSubmission({
@@ -183,7 +183,7 @@ class DsDemographicsFormController extends ChangeNotifier {
   }
 
   DsDemographicsSubmission? submit(GlobalKey<FormState> formKey) {
-    final isFormValid = formKey.currentState!.validate();
+    final isFormValid = formKey.currentState?.validate() ?? false;
     final validationItems = _buildValidationItems();
 
     if (!isFormValid || validationItems.isNotEmpty) {
@@ -255,13 +255,17 @@ class DsDemographicsFormController extends ChangeNotifier {
     if (requireIdentityFields) {
       addItem(
         'Nome completo',
-        DsFormValidators.validatePersonName(nameController.text,
-            context: 'patient'),
+        DsFormValidators.validatePersonName(
+          nameController.text,
+          context: 'patient',
+        ),
       );
       addItem(
         'E-mail',
-        DsFormValidators.validateEmail(emailController.text,
-            context: 'patient'),
+        DsFormValidators.validateEmail(
+          emailController.text,
+          context: 'patient',
+        ),
       );
       addItem(
         'Data de nascimento',

@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 
 class DsSurveyDetailsPanel extends StatelessWidget {
-  const DsSurveyDetailsPanel({
-    super.key,
-    required this.details,
-  });
+  const DsSurveyDetailsPanel({super.key, required this.details});
 
   final DsSurveyDetailsData details;
 
@@ -46,7 +43,7 @@ class DsSurveyDetailsPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard(String title, Widget content, BuildContext context) {
+  Widget _buildInfoCard(String title, Widget content) {
     return DsSection(
       title: title,
       tone: DsPanelTone.low,
@@ -73,7 +70,6 @@ class DsSurveyDetailsPanel extends StatelessWidget {
                 _buildDetailRow('Criador:', details.creatorId, context),
               ],
             ),
-            context,
           ),
           _buildInfoCard(
             'Informações Temporais',
@@ -92,7 +88,6 @@ class DsSurveyDetailsPanel extends StatelessWidget {
                 ),
               ],
             ),
-            context,
           ),
           if (details.descriptionHtml.isNotEmpty)
             _buildInfoCard(
@@ -107,7 +102,6 @@ class DsSurveyDetailsPanel extends StatelessWidget {
                   'p': Style(margin: Margins.only(bottom: 12)),
                 },
               ),
-              context,
             ),
           _buildInfoCard(
             'Estatísticas',
@@ -126,7 +120,6 @@ class DsSurveyDetailsPanel extends StatelessWidget {
                 ),
               ],
             ),
-            context,
           ),
         ],
       ),

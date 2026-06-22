@@ -76,8 +76,12 @@ class _DsLegalNoticeGateState extends State<DsLegalNoticeGate> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final document = snapshot.data!;
-        final checkboxLabel = document.checkboxLabel ??
+        final document = snapshot.data;
+        if (document == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final checkboxLabel =
+            document.checkboxLabel ??
             'Li e concordo com o Termo de Uso e Política de Privacidade.';
 
         return DsPanel(
@@ -85,8 +89,8 @@ class _DsLegalNoticeGateState extends State<DsLegalNoticeGate> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (widget.header != null) ...[
-                Center(child: widget.header!),
+              if (widget.header case final header?) ...[
+                Center(child: header),
                 const SizedBox(height: 20),
               ],
               Text(
@@ -128,12 +132,9 @@ class _DsLegalNoticeGateState extends State<DsLegalNoticeGate> {
                   'Abrir Termo de Uso e Política de Privacidade',
                 ),
               ),
-              if (widget.feedback != null) ...[
+              if (widget.feedback case final feedback?) ...[
                 const SizedBox(height: 12),
-                DsMessageBanner(
-                  feedback: widget.feedback!,
-                  margin: EdgeInsets.zero,
-                ),
+                DsMessageBanner(feedback: feedback, margin: EdgeInsets.zero),
               ],
               const SizedBox(height: 8),
               CheckboxListTile(
@@ -142,10 +143,7 @@ class _DsLegalNoticeGateState extends State<DsLegalNoticeGate> {
                     setState(() => _accepted = value ?? false),
                 contentPadding: EdgeInsets.zero,
                 controlAffinity: ListTileControlAffinity.leading,
-                title: Text(
-                  checkboxLabel,
-                  style: theme.textTheme.bodyMedium,
-                ),
+                title: Text(checkboxLabel, style: theme.textTheme.bodyMedium),
               ),
               const SizedBox(height: 20),
               Align(

@@ -4,10 +4,7 @@ import 'package:flutter/material.dart';
 enum DsStepState { todo, active, done }
 
 class DsStepData {
-  const DsStepData({
-    required this.label,
-    required this.state,
-  });
+  const DsStepData({required this.label, required this.state});
 
   final String label;
   final DsStepState state;
@@ -186,10 +183,7 @@ class DsBreadcrumbItem {
 }
 
 class DsBreadcrumbs extends StatelessWidget {
-  const DsBreadcrumbs({
-    super.key,
-    required this.items,
-  });
+  const DsBreadcrumbs({super.key, required this.items});
 
   final List<DsBreadcrumbItem> items;
 
@@ -246,10 +240,7 @@ class DsBreadcrumbs extends StatelessWidget {
 }
 
 class DsStickySectionItem {
-  const DsStickySectionItem({
-    required this.id,
-    required this.label,
-  });
+  const DsStickySectionItem({required this.id, required this.label});
 
   final String id;
   final String label;
@@ -296,19 +287,19 @@ class DsStickySectionHeader extends StatelessWidget
               Expanded(
                 child: Text(
                   title,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
-              if (summary != null)
+              if (summary case final summary?)
                 Flexible(
                   child: Text(
-                    summary!,
+                    summary,
                     textAlign: TextAlign.end,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
             ],

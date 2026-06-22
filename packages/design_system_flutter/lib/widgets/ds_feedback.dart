@@ -258,8 +258,8 @@ class DsValidationSummary extends StatelessWidget {
     final resolvedItems = items.isNotEmpty
         ? items
         : errors
-            .map((error) => DsValidationSummaryItem(message: error))
-            .toList(growable: false);
+              .map((error) => DsValidationSummaryItem(message: error))
+              .toList(growable: false);
 
     if (resolvedItems.isEmpty) {
       return const SizedBox.shrink();
@@ -303,10 +303,7 @@ class DsValidationSummary extends StatelessWidget {
 
 @Deprecated('Use DsToast instead.')
 class DsSnackBarFeedbackContent extends StatelessWidget {
-  const DsSnackBarFeedbackContent({
-    super.key,
-    required this.feedback,
-  });
+  const DsSnackBarFeedbackContent({super.key, required this.feedback});
 
   final DsFeedbackMessage feedback;
 
@@ -323,9 +320,10 @@ ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showDsToast(
 }) {
   final messenger = ScaffoldMessenger.of(context);
   messenger.hideCurrentSnackBar();
-  final title = feedback.title?.trim().isNotEmpty == true
-      ? feedback.title!.trim()
-      : dsFeedbackDefaultTitle(context, feedback.severity);
+  final feedbackTitle = feedback.title?.trim();
+  final title = feedbackTitle == null || feedbackTitle.isEmpty
+      ? dsFeedbackDefaultTitle(context, feedback.severity)
+      : feedbackTitle;
   final resolvedMessage = dsFeedbackResolvedMessage(context, feedback);
   final semanticsAnnouncement =
       feedback.semanticsLabel ?? '$title. $resolvedMessage';
@@ -350,23 +348,16 @@ ScaffoldFeatureController<SnackBar, SnackBarClosedReason> showDsToast(
 
 @Deprecated('Use showDsToast instead.')
 ScaffoldFeatureController<SnackBar, SnackBarClosedReason>
-    showDsFeedbackSnackBar(
+showDsFeedbackSnackBar(
   BuildContext context, {
   required DsFeedbackMessage feedback,
   Duration duration = const Duration(seconds: 3),
 }) {
-  return showDsToast(
-    context,
-    feedback: feedback,
-    duration: duration,
-  );
+  return showDsToast(context, feedback: feedback, duration: duration);
 }
 
 class DsToast extends StatelessWidget {
-  const DsToast({
-    super.key,
-    required this.feedback,
-  });
+  const DsToast({super.key, required this.feedback});
 
   final DsFeedbackMessage feedback;
 
@@ -403,17 +394,22 @@ class _DsFeedbackCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final background = dsFeedbackBackgroundColor(context, feedback.severity);
     final foreground = dsFeedbackForegroundColor(context, feedback.severity);
-    final title = feedback.title?.trim().isNotEmpty == true
-        ? feedback.title!.trim()
-        : dsFeedbackDefaultTitle(context, feedback.severity);
+    final feedbackTitle = feedback.title?.trim();
+    final retryAction = feedback.onRetry;
+    final secondaryAction = feedback.secondaryAction;
+    final footer = this.footer;
+    final title = feedbackTitle == null || feedbackTitle.isEmpty
+        ? dsFeedbackDefaultTitle(context, feedback.severity)
+        : feedbackTitle;
     final message = dsFeedbackResolvedMessage(context, feedback);
     final icon = feedback.icon ?? dsFeedbackIcon(feedback.severity);
-    final primaryAction = feedback.primaryAction ??
-        (feedback.onRetry == null
+    final primaryAction =
+        feedback.primaryAction ??
+        (retryAction == null
             ? null
             : DsFeedbackAction(
                 label: 'Tentar Novamente',
-                onPressed: feedback.onRetry!,
+                onPressed: retryAction,
                 icon: Icons.refresh,
               ));
 
@@ -439,9 +435,9 @@ class _DsFeedbackCard extends StatelessWidget {
                       Text(
                         title,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              color: foreground,
-                              fontWeight: FontWeight.w700,
-                            ),
+                          color: foreground,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -461,11 +457,8 @@ class _DsFeedbackCard extends StatelessWidget {
                   ),
               ],
             ),
-            if (footer != null) ...[
-              const SizedBox(height: 8),
-              footer!,
-            ],
-            if (primaryAction != null || feedback.secondaryAction != null) ...[
+            if (footer != null) ...[const SizedBox(height: 8), footer],
+            if (primaryAction != null || secondaryAction != null) ...[
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -476,9 +469,9 @@ class _DsFeedbackCard extends StatelessWidget {
                       action: primaryAction,
                       foreground: foreground,
                     ),
-                  if (feedback.secondaryAction != null)
+                  if (secondaryAction != null)
                     _DsFeedbackActionButton(
-                      action: feedback.secondaryAction!,
+                      action: secondaryAction,
                       foreground: foreground,
                     ),
                 ],
@@ -499,7 +492,8 @@ class _DsFeedbackCard extends StatelessWidget {
     return Semantics(
       container: true,
       liveRegion: feedback.liveRegion,
-      label: feedback.semanticsLabel ??
+      label:
+          feedback.semanticsLabel ??
           '${dsFeedbackSemanticLabel(feedback.severity)}: $title. $message',
       child: enhancedContent,
     );

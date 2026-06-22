@@ -8,22 +8,19 @@ import 'package:design_system_flutter/widgets/ds_feedback.dart';
 import 'package:design_system_flutter/widgets/ds_surface.dart';
 
 class DsAuthOperationResult {
-  const DsAuthOperationResult._({
-    required this.severity,
-    this.message,
-  });
+  const DsAuthOperationResult._({required this.severity, this.message});
 
   const DsAuthOperationResult.success([String? message])
-      : this._(severity: DsStatusType.success, message: message);
+    : this._(severity: DsStatusType.success, message: message);
 
   const DsAuthOperationResult.error(String message)
-      : this._(severity: DsStatusType.error, message: message);
+    : this._(severity: DsStatusType.error, message: message);
 
   const DsAuthOperationResult.warning(String message)
-      : this._(severity: DsStatusType.warning, message: message);
+    : this._(severity: DsStatusType.warning, message: message);
 
   const DsAuthOperationResult.info(String message)
-      : this._(severity: DsStatusType.info, message: message);
+    : this._(severity: DsStatusType.info, message: message);
 
   final DsStatusType severity;
   final String? message;
@@ -32,10 +29,7 @@ class DsAuthOperationResult {
 }
 
 class DsScreenerLoginData {
-  const DsScreenerLoginData({
-    required this.email,
-    required this.password,
-  });
+  const DsScreenerLoginData({required this.email, required this.password});
 
   final String email;
   final String password;
@@ -113,12 +107,12 @@ class DsProfessionalCouncilData {
   final String registrationNumber;
 }
 
-typedef DsLoginSubmitCallback = Future<DsAuthOperationResult?> Function(
-    DsScreenerLoginData data);
-typedef DsPasswordRecoveryCallback = Future<DsAuthOperationResult?> Function(
-    String email);
-typedef DsRegistrationSubmitCallback = Future<DsAuthOperationResult?> Function(
-    DsScreenerRegistrationData data);
+typedef DsLoginSubmitCallback =
+    Future<DsAuthOperationResult?> Function(DsScreenerLoginData data);
+typedef DsPasswordRecoveryCallback =
+    Future<DsAuthOperationResult?> Function(String email);
+typedef DsRegistrationSubmitCallback =
+    Future<DsAuthOperationResult?> Function(DsScreenerRegistrationData data);
 typedef DsCepLookupCallback = Future<DsCepLookupResult?> Function(String cep);
 
 class DsProfessionalAuthPanel extends StatelessWidget {
@@ -145,8 +139,8 @@ class DsProfessionalAuthPanel extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (header != null) ...[
-                Center(child: header!),
+              if (header case final header?) ...[
+                Center(child: header),
                 const SizedBox(height: 24),
               ],
               DsPanel(
@@ -162,9 +156,8 @@ class DsProfessionalAuthPanel extends StatelessWidget {
                     Text(
                       subtitle,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     child,
@@ -282,8 +275,14 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
     });
 
     try {
-      final result = await widget.onForgotPassword!(email);
-      if (!mounted || result == null || result.message == null) {
+      final onForgotPassword = widget.onForgotPassword;
+      if (onForgotPassword == null) {
+        return;
+      }
+
+      final result = await onForgotPassword(email);
+      final message = result?.message;
+      if (!mounted || result == null || message == null) {
         return;
       }
       setState(() {
@@ -321,10 +320,7 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
       _obscurePassword = !_obscurePassword;
     });
 
-    _restoreSelection(
-      controller: _passwordController,
-      selection: selection,
-    );
+    _restoreSelection(controller: _passwordController, selection: selection);
   }
 
   @override
@@ -352,9 +348,7 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
               DsValidatedTextFormField(
                 controller: _emailController,
                 submitted: _hasSubmitted,
-                decoration: const InputDecoration(
-                  labelText: 'E-mail',
-                ),
+                decoration: const InputDecoration(labelText: 'E-mail'),
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [
                   AutofillHints.username,
@@ -369,8 +363,9 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
                 decoration: InputDecoration(
                   labelText: 'Senha',
                   suffixIcon: IconButton(
-                    tooltip:
-                        _obscurePassword ? 'Mostrar senha' : 'Ocultar senha',
+                    tooltip: _obscurePassword
+                        ? 'Mostrar senha'
+                        : 'Ocultar senha',
                     onPressed: _togglePasswordVisibility,
                     icon: Icon(
                       _obscurePassword
@@ -409,10 +404,12 @@ class _DsProfessionalSignInCardState extends State<DsProfessionalSignInCard> {
   }
 
   DsFeedbackMessage _feedbackFromResult(DsAuthOperationResult result) {
+    final message = result.message;
+
     return DsFeedbackMessage(
       severity: result.severity,
       title: dsFeedbackDefaultTitle(context, result.severity),
-      message: result.message!,
+      message: message ?? '',
     );
   }
 }
@@ -556,8 +553,9 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
             type: _normalizeCouncilType(
               _professionalCouncilTypeController.text.trim(),
             ),
-            registrationNumber:
-                _professionalCouncilRegistrationNumberController.text.trim(),
+            registrationNumber: _professionalCouncilRegistrationNumberController
+                .text
+                .trim(),
           ),
           jobTitle: _jobTitleController.text.trim(),
           degree: _degreeController.text.trim(),
@@ -568,10 +566,11 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
         return;
       }
       setState(() {
+        final message = result.message;
         _feedback = DsFeedbackMessage(
           severity: result.severity,
           title: dsFeedbackDefaultTitle(context, result.severity),
-          message: result.message!,
+          message: message ?? '',
         );
       });
     } finally {
@@ -592,7 +591,12 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
 
     setState(() => _isLookingUpCep = true);
     try {
-      final result = await widget.onLookupCep!(digits);
+      final onLookupCep = widget.onLookupCep;
+      if (onLookupCep == null) {
+        return;
+      }
+
+      final result = await onLookupCep(digits);
       if (result == null || !mounted) {
         return;
       }
@@ -696,10 +700,7 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
                 inputFormatters: DsFormFormatters.phoneBr(),
               ),
               const SizedBox(height: 12),
-              Text(
-                'Endereço',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              Text('Endereço', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 12),
               _buildTextField(
                 controller: _postalCodeController,
@@ -731,9 +732,7 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
                 wrapperKey: const ValueKey('screener-registration-number'),
                 label: 'Número',
                 keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
               _buildTextField(
                 controller: _complementController,
@@ -743,8 +742,9 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
               ),
               _buildTextField(
                 controller: _neighborhoodController,
-                wrapperKey:
-                    const ValueKey('screener-registration-neighborhood'),
+                wrapperKey: const ValueKey(
+                  'screener-registration-neighborhood',
+                ),
                 label: 'Bairro',
                 readOnly: _isLookingUpCep,
               ),
@@ -763,8 +763,9 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
               const SizedBox(height: 12),
               _buildTextField(
                 controller: _professionalCouncilTypeController,
-                wrapperKey:
-                    const ValueKey('screener-registration-council-type'),
+                wrapperKey: const ValueKey(
+                  'screener-registration-council-type',
+                ),
                 label: 'Tipo de Conselho (ex: CRP, CRM) ou "Nenhum"',
                 required: false,
                 validator: _validateCouncilType,
@@ -860,9 +861,7 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
       child: DsValidatedDropdownButtonFormField<String>(
         initialValue: _selectedState,
         submitted: _hasSubmitted,
-        decoration: const InputDecoration(
-          labelText: 'Estado (UF) *',
-        ),
+        decoration: const InputDecoration(labelText: 'Estado (UF) *'),
         items: _brazilStates
             .map(
               (state) =>
@@ -951,10 +950,7 @@ class _DsProfessionalSignUpCardState extends State<DsProfessionalSignUpCard> {
       _obscurePassword = !_obscurePassword;
     });
 
-    _restoreSelection(
-      controller: _passwordController,
-      selection: selection,
-    );
+    _restoreSelection(controller: _passwordController, selection: selection);
   }
 
   String? _validateCpf(String? value) {

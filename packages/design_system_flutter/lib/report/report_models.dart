@@ -11,7 +11,7 @@ class ReportSpan {
   final bool bold;
   final bool italic;
 
-  factory ReportSpan.fromJson(Map<String, dynamic> json) {
+  factory ReportSpan.fromJson(Map<String, Object?> json) {
     return ReportSpan(
       text: json['text']?.toString() ?? '',
       bold: json['bold'] == true,
@@ -20,10 +20,10 @@ class ReportSpan {
   }
 
   Map<String, dynamic> toJson() => {
-        'text': text,
-        'bold': bold,
-        'italic': italic,
-      };
+    'text': text,
+    'bold': bold,
+    'italic': italic,
+  };
 }
 
 abstract class ReportBlock {
@@ -31,7 +31,7 @@ abstract class ReportBlock {
 
   final String type;
 
-  factory ReportBlock.fromJson(Map<String, dynamic> json) {
+  factory ReportBlock.fromJson(Map<String, Object?> json) {
     final type = json['type']?.toString();
     switch (type) {
       case 'paragraph':
@@ -53,11 +53,11 @@ class ReportParagraphBlock extends ReportBlock {
 
   final List<ReportSpan> spans;
 
-  factory ReportParagraphBlock.fromJson(Map<String, dynamic> json) {
-    final rawSpans = json['spans'] as List<dynamic>? ?? const <dynamic>[];
+  factory ReportParagraphBlock.fromJson(Map<String, Object?> json) {
+    final rawSpans = json['spans'] as List<Object?>? ?? const <Object?>[];
     return ReportParagraphBlock(
       spans: rawSpans
-          .whereType<Map<String, dynamic>>()
+          .whereType<Map<String, Object?>>()
           .map(ReportSpan.fromJson)
           .toList(growable: false),
     );
@@ -69,11 +69,11 @@ class ReportBulletItem {
 
   final List<ReportSpan> spans;
 
-  factory ReportBulletItem.fromJson(Map<String, dynamic> json) {
-    final rawSpans = json['spans'] as List<dynamic>? ?? const <dynamic>[];
+  factory ReportBulletItem.fromJson(Map<String, Object?> json) {
+    final rawSpans = json['spans'] as List<Object?>? ?? const <Object?>[];
     return ReportBulletItem(
       spans: rawSpans
-          .whereType<Map<String, dynamic>>()
+          .whereType<Map<String, Object?>>()
           .map(ReportSpan.fromJson)
           .toList(growable: false),
     );
@@ -85,11 +85,11 @@ class ReportBulletListBlock extends ReportBlock {
 
   final List<ReportBulletItem> items;
 
-  factory ReportBulletListBlock.fromJson(Map<String, dynamic> json) {
-    final rawItems = json['items'] as List<dynamic>? ?? const <dynamic>[];
+  factory ReportBulletListBlock.fromJson(Map<String, Object?> json) {
+    final rawItems = json['items'] as List<Object?>? ?? const <Object?>[];
     return ReportBulletListBlock(
       items: rawItems
-          .whereType<Map<String, dynamic>>()
+          .whereType<Map<String, Object?>>()
           .map(ReportBulletItem.fromJson)
           .toList(growable: false),
     );
@@ -102,12 +102,12 @@ class ReportKeyValueItem {
   final String key;
   final List<ReportSpan> value;
 
-  factory ReportKeyValueItem.fromJson(Map<String, dynamic> json) {
-    final rawValue = json['value'] as List<dynamic>? ?? const <dynamic>[];
+  factory ReportKeyValueItem.fromJson(Map<String, Object?> json) {
+    final rawValue = json['value'] as List<Object?>? ?? const <Object?>[];
     return ReportKeyValueItem(
       key: json['key']?.toString() ?? '',
       value: rawValue
-          .whereType<Map<String, dynamic>>()
+          .whereType<Map<String, Object?>>()
           .map(ReportSpan.fromJson)
           .toList(growable: false),
     );
@@ -119,11 +119,11 @@ class ReportKeyValueBlock extends ReportBlock {
 
   final List<ReportKeyValueItem> items;
 
-  factory ReportKeyValueBlock.fromJson(Map<String, dynamic> json) {
-    final rawItems = json['items'] as List<dynamic>? ?? const <dynamic>[];
+  factory ReportKeyValueBlock.fromJson(Map<String, Object?> json) {
+    final rawItems = json['items'] as List<Object?>? ?? const <Object?>[];
     return ReportKeyValueBlock(
       items: rawItems
-          .whereType<Map<String, dynamic>>()
+          .whereType<Map<String, Object?>>()
           .map(ReportKeyValueItem.fromJson)
           .toList(growable: false),
     );
@@ -136,12 +136,12 @@ class ReportSection {
   final String title;
   final List<ReportBlock> blocks;
 
-  factory ReportSection.fromJson(Map<String, dynamic> json) {
-    final rawBlocks = json['blocks'] as List<dynamic>? ?? const <dynamic>[];
+  factory ReportSection.fromJson(Map<String, Object?> json) {
+    final rawBlocks = json['blocks'] as List<Object?>? ?? const <Object?>[];
     return ReportSection(
       title: json['title']?.toString() ?? '',
       blocks: rawBlocks
-          .whereType<Map<String, dynamic>>()
+          .whereType<Map<String, Object?>>()
           .map(ReportBlock.fromJson)
           .toList(growable: false),
     );
@@ -162,12 +162,12 @@ class ReportPatientInfo {
   final String? sex;
 
   bool get hasInfo =>
-      (name != null && name!.trim().isNotEmpty) ||
-      (reference != null && reference!.trim().isNotEmpty) ||
-      (birthDate != null && birthDate!.trim().isNotEmpty) ||
-      (sex != null && sex!.trim().isNotEmpty);
+      _hasText(name) ||
+      _hasText(reference) ||
+      _hasText(birthDate) ||
+      _hasText(sex);
 
-  factory ReportPatientInfo.fromJson(Map<String, dynamic> json) {
+  factory ReportPatientInfo.fromJson(Map<String, Object?> json) {
     return ReportPatientInfo(
       name: json['name']?.toString(),
       reference: json['reference']?.toString(),
@@ -192,18 +192,20 @@ class ReportDocument {
   final ReportPatientInfo patient;
   final List<ReportSection> sections;
 
-  factory ReportDocument.fromJson(Map<String, dynamic> json) {
-    final rawSections = json['sections'] as List<dynamic>? ?? const <dynamic>[];
+  factory ReportDocument.fromJson(Map<String, Object?> json) {
+    final rawSections = json['sections'] as List<Object?>? ?? const <Object?>[];
     final createdAtRaw = json['created_at']?.toString();
+    final rawPatient = json['patient'];
+
     return ReportDocument(
       title: json['title']?.toString() ?? '',
       subtitle: json['subtitle']?.toString(),
       createdAt: _parseDate(createdAtRaw),
-      patient: json['patient'] is Map<String, dynamic>
-          ? ReportPatientInfo.fromJson(json['patient'] as Map<String, dynamic>)
+      patient: rawPatient is Map<String, Object?>
+          ? ReportPatientInfo.fromJson(rawPatient)
           : const ReportPatientInfo(),
       sections: rawSections
-          .whereType<Map<String, dynamic>>()
+          .whereType<Map<String, Object?>>()
           .map(ReportSection.fromJson)
           .toList(growable: false),
     );
@@ -220,9 +222,8 @@ class ReportDocument {
         .map((paragraph) => paragraph.trim())
         .where((paragraph) => paragraph.isNotEmpty)
         .map(
-          (paragraph) => ReportParagraphBlock(
-            spans: [ReportSpan(text: paragraph)],
-          ),
+          (paragraph) =>
+              ReportParagraphBlock(spans: [ReportSpan(text: paragraph)]),
         )
         .toList(growable: false);
     return ReportDocument(
@@ -230,9 +231,7 @@ class ReportDocument {
       subtitle: subtitle,
       createdAt: DateTime.now(),
       patient: patient ?? const ReportPatientInfo(),
-      sections: [
-        ReportSection(title: 'Relatorio', blocks: blocks),
-      ],
+      sections: [ReportSection(title: 'Relatorio', blocks: blocks)],
     );
   }
 
@@ -245,9 +244,7 @@ class ReportDocument {
         ReportSection(
           title: 'Erro no processamento',
           blocks: [
-            ReportParagraphBlock(
-              spans: [ReportSpan(text: message)],
-            ),
+            ReportParagraphBlock(spans: [ReportSpan(text: message)]),
           ],
         ),
       ],
@@ -256,28 +253,30 @@ class ReportDocument {
 
   String toPlainText({String? footer}) {
     final buffer = StringBuffer();
+    final subtitle = this.subtitle;
+    final createdAt = this.createdAt;
     if (title.trim().isNotEmpty) {
       buffer.writeln(title.trim());
     }
-    if (subtitle != null && subtitle!.trim().isNotEmpty) {
-      buffer.writeln(subtitle!.trim());
+    if (_hasText(subtitle)) {
+      buffer.writeln(subtitle?.trim());
     }
     if (createdAt != null) {
-      buffer.writeln('Gerado em: ${_formatDate(createdAt!)}');
+      buffer.writeln('Gerado em: ${_formatDate(createdAt)}');
     }
     if (patient.hasInfo) {
       buffer.writeln('');
-      if (patient.name != null && patient.name!.trim().isNotEmpty) {
-        buffer.writeln('Paciente: ${patient.name}');
+      if (_hasText(patient.name)) {
+        buffer.writeln('Paciente: ${patient.name?.trim()}');
       }
-      if (patient.reference != null && patient.reference!.trim().isNotEmpty) {
-        buffer.writeln('Referencia: ${patient.reference}');
+      if (_hasText(patient.reference)) {
+        buffer.writeln('Referencia: ${patient.reference?.trim()}');
       }
-      if (patient.birthDate != null && patient.birthDate!.trim().isNotEmpty) {
-        buffer.writeln('Nascimento: ${patient.birthDate}');
+      if (_hasText(patient.birthDate)) {
+        buffer.writeln('Nascimento: ${patient.birthDate?.trim()}');
       }
-      if (patient.sex != null && patient.sex!.trim().isNotEmpty) {
-        buffer.writeln('Sexo: ${patient.sex}');
+      if (_hasText(patient.sex)) {
+        buffer.writeln('Sexo: ${patient.sex?.trim()}');
       }
     }
     for (final section in sections) {
@@ -304,6 +303,8 @@ class ReportDocument {
     return buffer.toString().trim();
   }
 }
+
+bool _hasText(String? value) => value?.trim().isNotEmpty ?? false;
 
 DateTime? _parseDate(String? value) {
   if (value == null || value.trim().isEmpty) {

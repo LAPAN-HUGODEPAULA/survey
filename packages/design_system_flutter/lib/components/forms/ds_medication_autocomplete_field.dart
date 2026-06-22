@@ -145,9 +145,7 @@ class _DsMedicationAutocompleteFieldState
     }
 
     final localSuggestions = _catalog
-        .where(
-          (item) => item.toLowerCase().contains(query),
-        )
+        .where((item) => item.toLowerCase().contains(query))
         .where(
           (item) => !widget.selectedMedications.any(
             (selected) => selected.toLowerCase() == item.toLowerCase(),
@@ -242,7 +240,13 @@ class _DsMedicationAutocompleteFieldState
   }
 
   Future<void> _flushPendingManualPersist() async {
-    if (_pendingManualPersist.isEmpty || widget.persistManualMedication == null) {
+    if (_pendingManualPersist.isEmpty ||
+        widget.persistManualMedication == null) {
+      return;
+    }
+
+    final persistManualMedication = widget.persistManualMedication;
+    if (persistManualMedication == null) {
       return;
     }
 
@@ -250,7 +254,7 @@ class _DsMedicationAutocompleteFieldState
     var hasError = false;
     for (final medication in pending) {
       try {
-        await widget.persistManualMedication!(medication);
+        await persistManualMedication(medication);
         _pendingManualPersist.remove(medication);
       } catch (_) {
         hasError = true;
@@ -282,110 +286,127 @@ class _DsMedicationAutocompleteFieldState
             }
             _addMedication(selection, verified: true);
           },
-          fieldViewBuilder: (
-            BuildContext context,
-            TextEditingController textEditingController,
-            FocusNode focusNode,
-            VoidCallback onFieldSubmitted,
-          ) {
-            return DsValidatedTextFormField(
-              controller: textEditingController,
-              focusNode: focusNode,
-              submitted: widget.submitted,
-              decoration: InputDecoration(labelText: widget.labelText),
-              onChanged: _handleQueryChanged,
-              validator: (_) => widget.validator?.call(),
-            );
-          },
-          optionsViewBuilder: (
-            BuildContext context,
-            AutocompleteOnSelected<String> onSelected,
-            Iterable<String> options,
-          ) {
-            final values = options.toList(growable: false);
-            return Align(
-              alignment: Alignment.topLeft,
-              child: Material(
-                elevation: 6,
-                borderRadius: BorderRadius.circular(10),
-                child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxHeight: 220, minWidth: 280),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: values.length,
-                    itemBuilder: (context, index) {
-                      final option = values[index];
-                      if (option == _loadingOption) {
-                        return const ListTile(
-                          leading: SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                          title: Text('Carregando catálogo de medicamentos...'),
-                        );
-                      }
-                      if (option == _manualOption) {
-                        final manualLabel = _queryController.text.trim();
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 8),
-                              child: Text('Nenhum medicamento encontrado.'),
-                            ),
-                            TextButton.icon(
-                              onPressed: manualLabel.isEmpty
-                                  ? null
-                                  : () => _addMedication(
-                                        manualLabel,
-                                        verified: false,
-                                      ),
-                              icon: const Icon(Icons.add),
-                              label: const Text('Adicionar manualmente'),
-                            ),
-                          ],
-                        );
-                      }
-                      return ListTile(
-                        title: Text(option),
-                        onTap: () => onSelected(option),
-                      );
-                    },
+          fieldViewBuilder:
+              (
+                BuildContext context,
+                TextEditingController textEditingController,
+                FocusNode focusNode,
+                VoidCallback onFieldSubmitted,
+              ) {
+                return DsValidatedTextFormField(
+                  controller: textEditingController,
+                  focusNode: focusNode,
+                  submitted: widget.submitted,
+                  decoration: InputDecoration(labelText: widget.labelText),
+                  onChanged: _handleQueryChanged,
+                  validator: (_) => widget.validator?.call(),
+                );
+              },
+          optionsViewBuilder:
+              (
+                BuildContext context,
+                AutocompleteOnSelected<String> onSelected,
+                Iterable<String> options,
+              ) {
+                final values = options.toList(growable: false);
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Material(
+                    elevation: 6,
+                    borderRadius: BorderRadius.circular(10),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxHeight: 220,
+                        minWidth: 280,
+                      ),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: values.length,
+                        itemBuilder: (context, index) {
+                          final option = values[index];
+                          if (option == _loadingOption) {
+                            return const ListTile(
+                              leading: SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              title: Text(
+                                'Carregando catálogo de medicamentos...',
+                              ),
+                            );
+                          }
+                          if (option == _manualOption) {
+                            final manualLabel = _queryController.text.trim();
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  child: Text('Nenhum medicamento encontrado.'),
+                                ),
+                                TextButton.icon(
+                                  onPressed: manualLabel.isEmpty
+                                      ? null
+                                      : () => _addMedication(
+                                          manualLabel,
+                                          verified: false,
+                                        ),
+                                  icon: const Icon(Icons.add),
+                                  label: const Text('Adicionar manualmente'),
+                                ),
+                              ],
+                            );
+                          }
+                          return ListTile(
+                            title: Text(option),
+                            onTap: () => onSelected(option),
+                          );
+                        },
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            );
-          },
+                );
+              },
         ),
         if (widget.selectedMedications.isNotEmpty) ...[
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: widget.selectedMedications.map((medication) {
-              final isUnverified = _unverifiedMedications.contains(medication);
-              return InputChip(
-                label: Text(medication),
-                onDeleted: () => _removeMedication(medication),
-                deleteIcon: const Icon(Icons.close),
-                avatar: isUnverified
-                    ? Icon(
-                        Icons.edit_note_outlined,
-                        size: 18,
-                        color: theme.colorScheme.primary,
-                      )
-                    : null,
-                side: isUnverified
-                    ? BorderSide(color: theme.colorScheme.primary, width: 1.3)
-                    : null,
-                backgroundColor: isUnverified
-                    ? theme.colorScheme.surfaceContainerHighest
-                    : theme.colorScheme.surface,
-              );
-            }).toList(growable: false),
+            children: widget.selectedMedications
+                .map((medication) {
+                  final isUnverified = _unverifiedMedications.contains(
+                    medication,
+                  );
+                  return InputChip(
+                    label: Text(medication),
+                    onDeleted: () => _removeMedication(medication),
+                    deleteIcon: const Icon(Icons.close),
+                    avatar: isUnverified
+                        ? Icon(
+                            Icons.edit_note_outlined,
+                            size: 18,
+                            color: theme.colorScheme.primary,
+                          )
+                        : null,
+                    side: isUnverified
+                        ? BorderSide(
+                            color: theme.colorScheme.primary,
+                            width: 1.3,
+                          )
+                        : null,
+                    backgroundColor: isUnverified
+                        ? theme.colorScheme.surfaceContainerHighest
+                        : theme.colorScheme.surface,
+                  );
+                })
+                .toList(growable: false),
           ),
         ],
         if (_hasPersistError) ...[

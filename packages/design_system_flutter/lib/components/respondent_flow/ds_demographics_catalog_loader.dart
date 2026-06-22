@@ -69,9 +69,9 @@ class DsDemographicsCatalogLoader {
     }
 
     final rawJson = await _bundle.loadString(assetPath);
-    final decoded = jsonDecode(rawJson) as Map<String, dynamic>;
-    final items = (decoded[jsonKey] as List<dynamic>? ?? const <dynamic>[])
-        .map((dynamic item) => item.toString())
+    final decoded = jsonDecode(rawJson) as Map<String, Object?>;
+    final items = (decoded[jsonKey] as List<Object?>? ?? const <Object?>[])
+        .map((item) => item.toString())
         .toList(growable: false);
     _cache[cacheKey] = items;
     return items;

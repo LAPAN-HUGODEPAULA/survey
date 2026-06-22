@@ -25,9 +25,9 @@ class DsValidatedTextFormField extends StatefulWidget {
     this.onFieldSubmitted,
     this.submitted = false,
   }) : assert(
-          controller == null || initialValue == null,
-          'Use controller ou initialValue, mas não ambos.',
-        );
+         controller == null || initialValue == null,
+         'Use controller ou initialValue, mas não ambos.',
+       );
 
   final TextEditingController? controller;
   final String? initialValue;
@@ -59,9 +59,18 @@ class _DsValidatedTextFormFieldState extends State<DsValidatedTextFormField> {
   final GlobalKey<FormFieldState<String>> _fieldKey =
       GlobalKey<FormFieldState<String>>();
 
-  late FocusNode _focusNode;
+  FocusNode? _focusNode;
   bool _ownsFocusNode = false;
   bool _validationActive = false;
+
+  FocusNode get _effectiveFocusNode {
+    final focusNode = _focusNode;
+    if (focusNode == null) {
+      throw StateError('FocusNode ainda não foi inicializado.');
+    }
+
+    return focusNode;
+  }
 
   @override
   void initState() {
@@ -96,18 +105,24 @@ class _DsValidatedTextFormFieldState extends State<DsValidatedTextFormField> {
       _focusNode = focusNode;
       _ownsFocusNode = false;
     }
-    _focusNode.addListener(_handleFocusChange);
+    _effectiveFocusNode.addListener(_handleFocusChange);
   }
 
   void _unbindFocusNode() {
-    _focusNode.removeListener(_handleFocusChange);
-    if (_ownsFocusNode) {
-      _focusNode.dispose();
+    final focusNode = _focusNode;
+    if (focusNode == null) {
+      return;
     }
+
+    focusNode.removeListener(_handleFocusChange);
+    if (_ownsFocusNode) {
+      focusNode.dispose();
+    }
+    _focusNode = null;
   }
 
   void _handleFocusChange() {
-    if (_focusNode.hasFocus || _validationActive) {
+    if (_effectiveFocusNode.hasFocus || _validationActive) {
       return;
     }
     _activateValidation(validateNow: true);
@@ -131,7 +146,7 @@ class _DsValidatedTextFormFieldState extends State<DsValidatedTextFormField> {
       key: _fieldKey,
       controller: widget.controller,
       initialValue: widget.initialValue,
-      focusNode: _focusNode,
+      focusNode: _effectiveFocusNode,
       decoration: widget.decoration,
       keyboardType: widget.keyboardType,
       textInputAction: widget.textInputAction,
@@ -186,9 +201,18 @@ class _DsValidatedDropdownButtonFormFieldState<T>
     extends State<DsValidatedDropdownButtonFormField<T>> {
   final GlobalKey<FormFieldState<T>> _fieldKey = GlobalKey<FormFieldState<T>>();
 
-  late FocusNode _focusNode;
+  FocusNode? _focusNode;
   bool _ownsFocusNode = false;
   bool _validationActive = false;
+
+  FocusNode get _effectiveFocusNode {
+    final focusNode = _focusNode;
+    if (focusNode == null) {
+      throw StateError('FocusNode ainda não foi inicializado.');
+    }
+
+    return focusNode;
+  }
 
   @override
   void initState() {
@@ -225,18 +249,24 @@ class _DsValidatedDropdownButtonFormFieldState<T>
       _focusNode = focusNode;
       _ownsFocusNode = false;
     }
-    _focusNode.addListener(_handleFocusChange);
+    _effectiveFocusNode.addListener(_handleFocusChange);
   }
 
   void _unbindFocusNode() {
-    _focusNode.removeListener(_handleFocusChange);
-    if (_ownsFocusNode) {
-      _focusNode.dispose();
+    final focusNode = _focusNode;
+    if (focusNode == null) {
+      return;
     }
+
+    focusNode.removeListener(_handleFocusChange);
+    if (_ownsFocusNode) {
+      focusNode.dispose();
+    }
+    _focusNode = null;
   }
 
   void _handleFocusChange() {
-    if (_focusNode.hasFocus || _validationActive) {
+    if (_effectiveFocusNode.hasFocus || _validationActive) {
       return;
     }
     _activateValidation(validateNow: true);
@@ -258,7 +288,7 @@ class _DsValidatedDropdownButtonFormFieldState<T>
   Widget build(BuildContext context) {
     return DropdownButtonFormField<T>(
       key: _fieldKey,
-      focusNode: _focusNode,
+      focusNode: _effectiveFocusNode,
       initialValue: widget.initialValue,
       decoration: widget.decoration,
       items: widget.items,

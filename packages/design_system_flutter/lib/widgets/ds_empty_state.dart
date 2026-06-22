@@ -49,15 +49,15 @@ class DsEmptyState extends StatelessWidget {
                 description,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
-              if (actionLabel != null && onAction != null) ...[
+              if (actionLabel case final label? when onAction != null) ...[
                 const SizedBox(height: 20),
                 DsFilledButton(
-                  label: actionLabel!,
+                  label: label,
                   icon: Icons.arrow_forward_rounded,
-                  onPressed: onAction!,
+                  onPressed: onAction,
                 ),
               ],
             ],

@@ -28,13 +28,15 @@ class DsChatBubble extends StatelessWidget {
     final background = isClinician
         ? scheme.primaryContainer
         : role == DsChatRole.system
-            ? scheme.surfaceContainerHighest
-            : scheme.secondaryContainer;
-    final foreground =
-        isClinician ? scheme.onPrimaryContainer : scheme.onSurface;
+        ? scheme.surfaceContainerHighest
+        : scheme.secondaryContainer;
+    final foreground = isClinician
+        ? scheme.onPrimaryContainer
+        : scheme.onSurface;
     final opacity = deleted ? 0.5 : 1.0;
-    final alignment =
-        isClinician ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+    final alignment = isClinician
+        ? CrossAxisAlignment.end
+        : CrossAxisAlignment.start;
 
     return Opacity(
       opacity: opacity,
@@ -42,8 +44,9 @@ class DsChatBubble extends StatelessWidget {
         crossAxisAlignment: alignment,
         children: [
           DsPanel(
-            tone:
-                role == DsChatRole.system ? DsPanelTone.focus : DsPanelTone.low,
+            tone: role == DsChatRole.system
+                ? DsPanelTone.focus
+                : DsPanelTone.low,
             backgroundColor: background,
             margin: const EdgeInsets.symmetric(vertical: 6),
             padding: const EdgeInsets.all(12),
@@ -51,34 +54,32 @@ class DsChatBubble extends StatelessWidget {
             child: Column(
               crossAxisAlignment: alignment,
               children: [
-                if (label != null)
+                if (label case final label?)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
-                      label!,
+                      label,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: foreground,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.4,
-                          ),
+                        color: foreground,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.4,
+                      ),
                     ),
                   ),
                 Text(
                   message,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: foreground),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: foreground),
                 ),
                 if (isPending)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       'Enviando...',
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelSmall
-                          ?.copyWith(color: foreground),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: foreground),
                     ),
                   ),
                 if (hasError)
@@ -86,10 +87,9 @@ class DsChatBubble extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       'Falha ao enviar',
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelSmall
-                          ?.copyWith(color: scheme.error),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: scheme.error),
                     ),
                   ),
               ],
