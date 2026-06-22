@@ -362,7 +362,7 @@ class _ReportPageState extends State<ReportPage> {
     }
   }
 
-  Future<String> _saveToWebBrowser(String fileName, String jsonString) async {
+  Future<String> _saveToWebBrowser(String fileName, String jsonString) {
     return report_download.saveBrowserFile(
       fileName: fileName,
       content: jsonString,
@@ -506,7 +506,7 @@ class _ReportPageState extends State<ReportPage> {
   Future<String> _saveReportToWebBrowser(
     String fileName,
     String content,
-  ) async {
+  ) {
     return report_download.saveBrowserFile(
       fileName: fileName,
       content: content,

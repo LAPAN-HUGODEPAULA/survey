@@ -6,8 +6,8 @@ Future<String> saveBrowserFile({
   required String fileName,
   required String content,
   required String mimeType,
-}) async {
-  final parts = <web.BlobPart>[content.toJS as web.BlobPart].toJS;
+}) {
+  final parts = <web.BlobPart>[content.toJS].toJS;
   final blob = web.Blob(parts, web.BlobPropertyBag(type: mimeType));
   final url = web.URL.createObjectURL(blob);
   final anchor = web.HTMLAnchorElement()
@@ -20,16 +20,20 @@ Future<String> saveBrowserFile({
   anchor.remove();
   web.URL.revokeObjectURL(url);
 
-  return 'Download iniciado: $fileName';
+  return Future.value('Download iniciado: $fileName');
 }
 
 Future<void> saveBrowserLocalStorage({
   required String key,
   required String value,
-}) async {
+}) {
   web.window.localStorage.setItem(key, value);
+
+  return Future.value();
 }
 
-Future<void> printBrowserPage() async {
+Future<void> printBrowserPage() {
   web.window.print();
+
+  return Future.value();
 }

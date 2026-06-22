@@ -384,7 +384,7 @@ class _ThankYouPageState extends State<ThankYouPage> {
     if (!mounted) {
       return;
     }
-    AppNavigator.replaceWithEntryGate(context);
+    await AppNavigator.replaceWithEntryGate(context);
   }
 
   Future<void> _openSpecialistAssistant() async {

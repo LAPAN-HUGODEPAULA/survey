@@ -104,7 +104,7 @@ class _DemographicsPageState extends State<DemographicsPage> {
     if (!mounted) {
       return;
     }
-    AppNavigator.replaceWithEntryGate(context);
+    await AppNavigator.replaceWithEntryGate(context);
   }
 
   Future<List<String>> _searchMedications(String query) {

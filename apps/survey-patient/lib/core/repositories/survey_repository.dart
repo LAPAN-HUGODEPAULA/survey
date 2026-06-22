@@ -132,7 +132,7 @@ class SurveyRepository {
     String? promptKey,
     String? surveyId,
     String flowKey = 'thank_you.auto_analysis',
-  }) async {
+  }) {
     final requestId = _generateRequestId();
     final metadata = <String, dynamic>{
       'source_app': 'survey-patient',
@@ -217,5 +217,6 @@ class SurveyRepository {
 
   void dispose() {
     // no-op for now
+    return;
   }
 }

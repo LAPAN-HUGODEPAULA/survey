@@ -83,7 +83,10 @@ void main() {
             survey: survey,
             surveyAnswers: const ['A'],
             surveyQuestions: survey.questions,
-            onRestartSurvey: () async {},
+            onRestartSurvey: () async {
+              // No-op for testing
+              return;
+            },
             surveyRepository: repository,
           ),
         ),

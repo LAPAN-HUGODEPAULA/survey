@@ -30,11 +30,15 @@ class _WelcomePageState extends State<WelcomePage> {
           if (surveys.isNotEmpty && settings.selectedSurveyId == null) {
             settings.selectSurvey(surveys.first.id);
           }
-          setState(() {});
+          setState(() {
+            // Rebuild widget to show loaded surveys or errors
+          });
         })
         .catchError((_) {
           if (!mounted) return;
-          setState(() {});
+          setState(() {
+            // Rebuild widget to show error state
+          });
         });
   }
 
