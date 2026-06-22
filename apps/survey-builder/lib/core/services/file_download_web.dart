@@ -3,7 +3,7 @@ import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 
 void downloadTextFileImpl(String filename, String content) {
-  final parts = <web.BlobPart>[content.toJS as web.BlobPart].toJS;
+  final parts = <web.BlobPart>[content.toJS].toJS;
   final blob = web.Blob(parts, web.BlobPropertyBag(type: 'application/json'));
   final url = web.URL.createObjectURL(blob);
   final anchor = web.HTMLAnchorElement()

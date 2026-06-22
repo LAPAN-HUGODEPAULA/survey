@@ -58,7 +58,9 @@ class _AgentAccessPointFormPageState extends State<AgentAccessPointFormPage> {
 
   void _handleControllerChanged() {
     if (mounted) {
-      setState(() {});
+      setState(() {
+        // Rebuild when controller state changes
+      });
     }
   }
 

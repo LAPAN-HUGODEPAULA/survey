@@ -344,9 +344,8 @@ class SurveyFormController extends AuthoringFormController {
                 'name': availablePrompts
                     .where((prompt) => prompt.promptKey == selectedPromptKey)
                     .map((prompt) => prompt.name)
-                    .cast<String?>()
                     .firstWhere(
-                      (name) => name != null && name.isNotEmpty,
+                      (name) => name.isNotEmpty,
                       orElse: () => '',
                     ),
               },
@@ -480,6 +479,26 @@ class SurveyFormController extends AuthoringFormController {
         'Adicione pelo menos uma resposta de instrução.',
       );
     }
+    _validateQuestions(items, addItem);
+    if (personaSkillLoadError == null && hasStalePersonaSelection) {
+      addItem(
+        'Persona padrão',
+        'A persona padrão salva não existe mais. Escolha outra persona ou limpe a configuração.',
+      );
+    }
+    if (personaSkillLoadError == null && hasStaleOutputProfileSelection) {
+      addItem(
+        'Perfil de saída padrão',
+        'O perfil de saída padrão salvo não existe mais. Escolha outro perfil ou limpe a configuração.',
+      );
+    }
+    return items;
+  }
+
+  void _validateQuestions(
+    List<DsValidationSummaryItem> items,
+    void Function(String, String?) addItem,
+  ) {
     if (questions.isEmpty) {
       addItem(
         'Perguntas',
@@ -511,19 +530,6 @@ class SurveyFormController extends AuthoringFormController {
         );
       }
     }
-    if (personaSkillLoadError == null && hasStalePersonaSelection) {
-      addItem(
-        'Persona padrão',
-        'A persona padrão salva não existe mais. Escolha outra persona ou limpe a configuração.',
-      );
-    }
-    if (personaSkillLoadError == null && hasStaleOutputProfileSelection) {
-      addItem(
-        'Perfil de saída padrão',
-        'O perfil de saída padrão salvo não existe mais. Escolha outro perfil ou limpe a configuração.',
-      );
-    }
-    return items;
   }
 
   Future<bool> save({
@@ -772,13 +778,8 @@ class SurveyFormController extends AuthoringFormController {
 
   @override
   void markDirty() {
-    final wasDirty = isDirty;
     super.markDirty();
-    if (!wasDirty) {
-      scheduleLocalDraftSave();
-    } else {
-      scheduleLocalDraftSave();
-    }
+    scheduleLocalDraftSave();
   }
 
   @override

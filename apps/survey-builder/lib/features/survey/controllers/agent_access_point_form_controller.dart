@@ -384,10 +384,13 @@ class AgentAccessPointFormController extends AuthoringFormController {
   }
 
   AgentAccessPointDraft buildDraft() {
-    final persona = personas.cast<PersonaSkillDraft?>().firstWhere(
-      (item) => item?.personaSkillKey == personaSkillKey,
-      orElse: () => null,
-    );
+    PersonaSkillDraft? persona;
+    for (final item in personas) {
+      if (item.personaSkillKey == personaSkillKey) {
+        persona = item;
+        break;
+      }
+    }
     final primaryModel = primaryModelController.text.trim();
     final fallbackModel = fallbackModelController.text.trim();
     final agentRefs = <AIAgentRouteRefDraft>[

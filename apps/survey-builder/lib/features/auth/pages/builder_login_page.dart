@@ -3,21 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:survey_builder/core/auth/builder_auth_controller.dart';
 import 'package:survey_builder/core/auth/builder_auth_models.dart';
 
-class BuilderLoginPage extends StatefulWidget {
+class BuilderLoginPage extends StatelessWidget {
   const BuilderLoginPage({super.key, required this.controller, this.message});
 
   final BuilderAuthController controller;
   final String? message;
 
   @override
-  State<BuilderLoginPage> createState() => _BuilderLoginPageState();
-}
-
-class _BuilderLoginPageState extends State<BuilderLoginPage> {
-  @override
   Widget build(BuildContext context) {
-    final message = widget.message?.trim();
-    final failure = widget.controller.failure;
+    final message = this.message?.trim();
+    final failure = controller.failure;
     final feedback = (message == null || message.isEmpty)
         ? null
         : DsMessageBanner(
@@ -40,7 +35,7 @@ class _BuilderLoginPageState extends State<BuilderLoginPage> {
         subtitle:
             'Somente screeners promovidos como administradores podem abrir este ambiente.',
         onSubmit: (data) async {
-          await widget.controller.login(
+          await controller.login(
             email: data.email,
             password: data.password,
           );

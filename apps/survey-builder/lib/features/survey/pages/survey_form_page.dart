@@ -81,7 +81,9 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
 
   void _handleControllerChanged() {
     if (mounted) {
-      setState(() {});
+      setState(() {
+        // Rebuild when controller changes
+      });
     }
   }
 
@@ -294,8 +296,8 @@ class _SurveyFormPageState extends State<SurveyFormPage> {
         child: DsAdminFormShell(
           isSaving: _controller.saving,
           hasUnsavedChanges: _controller.isDirty,
-          onCancel: _controller.saving ? () {} : _confirmCancel,
-          onSave: _controller.saving ? () {} : _save,
+          onCancel: _controller.saving ? () { return; } : _confirmCancel,
+          onSave: _controller.saving ? () { return; } : _save,
           scrollController: _scrollController,
           stickyFooter: const SizedBox.shrink(),
           sectionalNav: DsSectionalNav(

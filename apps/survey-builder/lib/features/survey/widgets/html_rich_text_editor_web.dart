@@ -346,7 +346,7 @@ class _PlatformHtmlRichTextEditorState
               constraints: BoxConstraints(minHeight: widget.minHeight),
               decoration: BoxDecoration(
                 border: Border.all(color: borderColor),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: const BorderRadius.all(Radius.circular(8)),
               ),
               clipBehavior: Clip.antiAlias,
               child: SizedBox(
